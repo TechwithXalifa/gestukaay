@@ -1,0 +1,814 @@
+{
+  "$defs": {
+    "Choix": {
+      "additionalProperties": false,
+      "description": "Option proposée lors d'une correspondance approchée [EF-21, US-13].",
+      "properties": {
+        "id": {
+          "examples": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        },
+        "requete": {
+          "$ref": "#/$defs/RequeteStructuree"
+        }
+      },
+      "required": [
+        "id",
+        "libelle",
+        "requete"
+      ],
+      "title": "Choix",
+      "type": "object"
+    },
+    "Graphique": {
+      "additionalProperties": false,
+      "description": "Graphique web uniquement [EF-20, EF-26].\n\nLes données servent d'alternative textuelle [EF-28] ; le SVG est rendu\ncôté serveur (Plotly) et servi par svg_url.",
+      "properties": {
+        "type": {
+          "enum": [
+            "courbe",
+            "barres_horizontales",
+            "barres_empilees",
+            "deciles"
+          ],
+          "type": "string"
+        },
+        "titre": {
+          "type": "string"
+        },
+        "unite": {
+          "type": "string"
+        },
+        "series": {
+          "items": {
+            "$ref": "#/$defs/SerieGraphique"
+          },
+          "maxItems": 6,
+          "type": "array"
+        },
+        "pied": {
+          "type": "string"
+        },
+        "svg_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "type",
+        "titre",
+        "unite",
+        "series",
+        "pied",
+        "svg_url"
+      ],
+      "title": "Graphique",
+      "type": "object"
+    },
+    "Periode": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "annee",
+            "trimestre",
+            "mois",
+            "derniere"
+          ],
+          "type": "string"
+        },
+        "valeur": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "type",
+        "valeur"
+      ],
+      "title": "Periode",
+      "type": "object"
+    },
+    "PeriodeResolue": {
+      "additionalProperties": false,
+      "properties": {
+        "valeur": {
+          "examples": [
+            "2023"
+          ],
+          "type": "string"
+        },
+        "libelle": {
+          "examples": [
+            "2023"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "valeur",
+        "libelle"
+      ],
+      "title": "PeriodeResolue",
+      "type": "object"
+    },
+    "PointGraphique": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "string"
+        },
+        "y": {
+          "type": "number"
+        },
+        "mise_en_evidence": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "mise_en_evidence"
+      ],
+      "title": "PointGraphique",
+      "type": "object"
+    },
+    "RefIndicateur": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "libelle"
+      ],
+      "title": "RefIndicateur",
+      "type": "object"
+    },
+    "RefZone": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "examples": [
+            "SN-TH"
+          ],
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        },
+        "niveau": {
+          "enum": [
+            "pays",
+            "region",
+            "departement",
+            "commune"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "libelle",
+        "niveau"
+      ],
+      "title": "RefZone",
+      "type": "object"
+    },
+    "ReponseApprochee": {
+      "additionalProperties": false,
+      "description": "AUCUNE valeur dans cette issue : c'est garanti par la structure même\ndu modèle (extra=\"forbid\", pas de champ resultats) [EF-06, US-03].",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "langue": {
+          "enum": [
+            "fr",
+            "wo"
+          ],
+          "type": "string"
+        },
+        "transcription": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "requete": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RequeteStructuree"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version_socle": {
+          "type": "string"
+        },
+        "cree_le": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "latence_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "issue": {
+          "const": "approchee",
+          "default": "approchee",
+          "type": "string"
+        },
+        "reformulation": {
+          "type": "string"
+        },
+        "choix": {
+          "items": {
+            "$ref": "#/$defs/Choix"
+          },
+          "maxItems": 3,
+          "minItems": 2,
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "url",
+        "question",
+        "langue",
+        "transcription",
+        "requete",
+        "version_socle",
+        "cree_le",
+        "latence_ms",
+        "issue",
+        "reformulation",
+        "choix"
+      ],
+      "title": "ReponseApprochee",
+      "type": "object"
+    },
+    "ReponseAucune": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "langue": {
+          "enum": [
+            "fr",
+            "wo"
+          ],
+          "type": "string"
+        },
+        "transcription": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "requete": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RequeteStructuree"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version_socle": {
+          "type": "string"
+        },
+        "cree_le": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "latence_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "issue": {
+          "const": "aucune",
+          "default": "aucune",
+          "type": "string"
+        },
+        "motif": {
+          "enum": [
+            "hors_socle",
+            "projection",
+            "incomprehension"
+          ],
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "suggestions": {
+          "items": {
+            "$ref": "#/$defs/Suggestion"
+          },
+          "maxItems": 3,
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "url",
+        "question",
+        "langue",
+        "transcription",
+        "requete",
+        "version_socle",
+        "cree_le",
+        "latence_ms",
+        "issue",
+        "motif",
+        "message",
+        "suggestions"
+      ],
+      "title": "ReponseAucune",
+      "type": "object"
+    },
+    "ReponseExacte": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "langue": {
+          "enum": [
+            "fr",
+            "wo"
+          ],
+          "type": "string"
+        },
+        "transcription": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "requete": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RequeteStructuree"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version_socle": {
+          "type": "string"
+        },
+        "cree_le": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "latence_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "issue": {
+          "const": "exacte",
+          "default": "exacte",
+          "type": "string"
+        },
+        "intention": {
+          "enum": [
+            "valeur",
+            "comparaison",
+            "classement"
+          ],
+          "type": "string"
+        },
+        "resultats": {
+          "items": {
+            "$ref": "#/$defs/Resultat"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "explication": {
+          "type": "string"
+        },
+        "periode_par_defaut": {
+          "default": false,
+          "type": "boolean"
+        },
+        "note_perimetre": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "graphique": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Graphique"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "citation": {
+          "type": "string"
+        },
+        "audio_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "url",
+        "question",
+        "langue",
+        "transcription",
+        "requete",
+        "version_socle",
+        "cree_le",
+        "latence_ms",
+        "issue",
+        "intention",
+        "resultats",
+        "explication",
+        "periode_par_defaut",
+        "note_perimetre",
+        "graphique",
+        "citation",
+        "audio_url"
+      ],
+      "title": "ReponseExacte",
+      "type": "object"
+    },
+    "RequeteStructuree": {
+      "additionalProperties": false,
+      "description": "Ce que le LLM a le droit de produire, et rien d'autre.\n\nLe LLM ne reçoit jamais de valeur numérique du socle [EF-04]. Les codes\nd'indicateurs et de zones sont validés contre le socle par le moteur :\nun code inconnu -> rejet [10.4].",
+      "properties": {
+        "intention": {
+          "enum": [
+            "valeur",
+            "comparaison",
+            "classement",
+            "hors_perimetre"
+          ],
+          "type": "string"
+        },
+        "indicateur": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "examples": [
+            "population_totale"
+          ]
+        },
+        "zones": {
+          "examples": [
+            [
+              "SN-TH"
+            ]
+          ],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "periode": {
+          "$ref": "#/$defs/Periode"
+        },
+        "desagregation": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "examples": [
+            {
+              "sexe": "Féminin"
+            }
+          ]
+        },
+        "confiance": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "intention",
+        "indicateur",
+        "zones",
+        "periode",
+        "desagregation",
+        "confiance"
+      ],
+      "title": "RequeteStructuree",
+      "type": "object"
+    },
+    "Resultat": {
+      "additionalProperties": false,
+      "description": "Une valeur officielle et tout ce qu'il faut pour la citer.",
+      "properties": {
+        "indicateur": {
+          "$ref": "#/$defs/RefIndicateur"
+        },
+        "zone": {
+          "$ref": "#/$defs/RefZone"
+        },
+        "periode": {
+          "$ref": "#/$defs/PeriodeResolue"
+        },
+        "desagregation": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "valeur": {
+          "type": "number"
+        },
+        "valeur_affichee": {
+          "examples": [
+            "2 463 677"
+          ],
+          "type": "string"
+        },
+        "unite": {
+          "examples": [
+            "habitants"
+          ],
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/Source"
+        },
+        "observation_id": {
+          "type": "string"
+        },
+        "mise_en_evidence": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "indicateur",
+        "zone",
+        "periode",
+        "desagregation",
+        "valeur",
+        "valeur_affichee",
+        "unite",
+        "source",
+        "observation_id",
+        "mise_en_evidence"
+      ],
+      "title": "Resultat",
+      "type": "object"
+    },
+    "SerieGraphique": {
+      "additionalProperties": false,
+      "properties": {
+        "nom": {
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/PointGraphique"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "nom",
+        "points"
+      ],
+      "title": "SerieGraphique",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "Bloc source — obligatoire sur toute valeur, tous canaux [Engagement 01].",
+      "properties": {
+        "producteur": {
+          "examples": [
+            "ANSD"
+          ],
+          "type": "string"
+        },
+        "operation": {
+          "examples": [
+            "RGPH-5"
+          ],
+          "type": "string"
+        },
+        "titre": {
+          "type": "string"
+        },
+        "date_publication": {
+          "format": "date",
+          "type": "string"
+        },
+        "licence": {
+          "examples": [
+            "CC BY 4.0"
+          ],
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "libelle": {
+          "examples": [
+            "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "producteur",
+        "operation",
+        "titre",
+        "date_publication",
+        "licence",
+        "url",
+        "libelle"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "Suggestion": {
+      "additionalProperties": false,
+      "description": "Indicateur proche proposé lors d'un refus [EF-05, US-02].",
+      "properties": {
+        "indicateur": {
+          "$ref": "#/$defs/RefIndicateur"
+        },
+        "question_suggeree": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "indicateur",
+        "question_suggeree"
+      ],
+      "title": "Suggestion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Enveloppe HTTP de toutes les routes qui renvoient une réponse.",
+  "properties": {
+    "version_contrat": {
+      "default": "1.0.0",
+      "type": "string"
+    },
+    "reponse": {
+      "discriminator": {
+        "mapping": {
+          "approchee": "#/$defs/ReponseApprochee",
+          "aucune": "#/$defs/ReponseAucune",
+          "exacte": "#/$defs/ReponseExacte"
+        },
+        "propertyName": "issue"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ReponseExacte"
+        },
+        {
+          "$ref": "#/$defs/ReponseApprochee"
+        },
+        {
+          "$ref": "#/$defs/ReponseAucune"
+        }
+      ]
+    }
+  },
+  "required": [
+    "version_contrat",
+    "reponse"
+  ],
+  "title": "AskResponse",
+  "type": "object"
+}

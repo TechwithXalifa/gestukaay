@@ -1,0 +1,66 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "reponse_id": {
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "vote",
+        "signalement",
+        "suggestion_indicateur"
+      ],
+      "type": "string"
+    },
+    "vote": {
+      "anyOf": [
+        {
+          "enum": [
+            "utile",
+            "pas_utile"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "motif": {
+      "anyOf": [
+        {
+          "enum": [
+            "chiffre_faux",
+            "mauvaise_zone",
+            "mauvaise_comprehension",
+            "autre"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "commentaire": {
+      "anyOf": [
+        {
+          "maxLength": 1000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "reponse_id",
+    "type"
+  ],
+  "title": "FeedbackRequest",
+  "type": "object"
+}

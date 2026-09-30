@@ -1,0 +1,64 @@
+{
+  "version_contrat": "1.0.0",
+  "reponse": {
+    "id": "ex-approchee",
+    "url": "https://app.gestukaay.test/r/ex-approchee",
+    "question": "Population de la ville de Thiès en 2023",
+    "langue": "fr",
+    "transcription": null,
+    "requete": {
+      "intention": "valeur",
+      "indicateur": "population_totale",
+      "zones": [
+        "SN-TH"
+      ],
+      "periode": {
+        "type": "annee",
+        "valeur": "2023"
+      },
+      "desagregation": null,
+      "confiance": 0.55
+    },
+    "version_socle": "2026.10.0",
+    "cree_le": "2026-09-30T10:00:00Z",
+    "latence_ms": 1240,
+    "issue": "approchee",
+    "reformulation": "Nous n'avons pas la population de la ville de Thiès. Est-ce ce que vous cherchez ?",
+    "choix": [
+      {
+        "id": "1",
+        "libelle": "Population du département de Thiès (2023)",
+        "requete": {
+          "intention": "valeur",
+          "indicateur": "population_totale",
+          "zones": [
+            "SN-TH-THIES"
+          ],
+          "periode": {
+            "type": "annee",
+            "valeur": "2023"
+          },
+          "desagregation": null,
+          "confiance": 1.0
+        }
+      },
+      {
+        "id": "2",
+        "libelle": "Population de la région de Thiès (2023)",
+        "requete": {
+          "intention": "valeur",
+          "indicateur": "population_totale",
+          "zones": [
+            "SN-TH"
+          ],
+          "periode": {
+            "type": "annee",
+            "valeur": "2023"
+          },
+          "desagregation": null,
+          "confiance": 1.0
+        }
+      }
+    ]
+  }
+}

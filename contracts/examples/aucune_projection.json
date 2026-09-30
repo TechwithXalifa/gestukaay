@@ -1,0 +1,38 @@
+{
+  "version_contrat": "1.0.0",
+  "reponse": {
+    "id": "ex-aucune-projection",
+    "url": "https://app.gestukaay.test/r/ex-aucune-projection",
+    "question": "Population du Sénégal en 2040",
+    "langue": "fr",
+    "transcription": null,
+    "requete": {
+      "intention": "hors_perimetre",
+      "indicateur": "population_totale",
+      "zones": [
+        "SN"
+      ],
+      "periode": {
+        "type": "annee",
+        "valeur": "2040"
+      },
+      "desagregation": null,
+      "confiance": 0.9
+    },
+    "version_socle": "2026.10.0",
+    "cree_le": "2026-09-30T10:00:00Z",
+    "latence_ms": 1240,
+    "issue": "aucune",
+    "motif": "projection",
+    "message": "Gëstukaay ne fait pas de prévisions. Les projections officielles de population sont publiées par l'ANSD sur www.ansd.sn.",
+    "suggestions": [
+      {
+        "indicateur": {
+          "code": "population_totale",
+          "libelle": "Population totale"
+        },
+        "question_suggeree": "Combien d'habitants au Sénégal ?"
+      }
+    ]
+  }
+}

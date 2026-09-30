@@ -1,0 +1,52 @@
+{
+  "version_contrat": "1.0.0",
+  "reponse": {
+    "id": "ex-aucune-hors-socle",
+    "url": "https://app.gestukaay.test/r/ex-aucune-hors-socle",
+    "question": "Nombre de voitures à Kolda",
+    "langue": "fr",
+    "transcription": null,
+    "requete": {
+      "intention": "hors_perimetre",
+      "indicateur": null,
+      "zones": [
+        "SN-KD"
+      ],
+      "periode": {
+        "type": "derniere",
+        "valeur": null
+      },
+      "desagregation": null,
+      "confiance": 0.88
+    },
+    "version_socle": "2026.10.0",
+    "cree_le": "2026-09-30T10:00:00Z",
+    "latence_ms": 1240,
+    "issue": "aucune",
+    "motif": "hors_socle",
+    "message": "Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons. Voici des indicateurs proches pour Kolda :",
+    "suggestions": [
+      {
+        "indicateur": {
+          "code": "population_totale",
+          "libelle": "Population totale"
+        },
+        "question_suggeree": "Combien d'habitants à Kolda ?"
+      },
+      {
+        "indicateur": {
+          "code": "nombre_menages",
+          "libelle": "Nombre de ménages"
+        },
+        "question_suggeree": "Combien de ménages à Kolda ?"
+      },
+      {
+        "indicateur": {
+          "code": "taille_moyenne_menage",
+          "libelle": "Taille moyenne des ménages"
+        },
+        "question_suggeree": "Quelle est la taille moyenne des ménages à Kolda ?"
+      }
+    ]
+  }
+}

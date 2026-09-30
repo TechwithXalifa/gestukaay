@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  contrat-et-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Lint
+        run: uv run ruff check .
+      - name: Tests (contrat + moteur)
+        run: uv run pytest -q
+      - name: Types TypeScript à jour
+        run: |
+          ./scripts/generer_contrat.sh
+          git diff --exit-code contracts/generated/ || \
+            (echo "::error::contracts/generated/ n'est pas à jour : lancer ./scripts/generer_contrat.sh" && exit 1)

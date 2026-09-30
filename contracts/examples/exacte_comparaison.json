@@ -1,0 +1,120 @@
+{
+  "version_contrat": "1.0.0",
+  "reponse": {
+    "id": "ex-exacte-comparaison",
+    "url": "https://app.gestukaay.test/r/ex-exacte-comparaison",
+    "question": "Population de Dakar et de Thiès en 2023",
+    "langue": "fr",
+    "transcription": null,
+    "requete": {
+      "intention": "comparaison",
+      "indicateur": "population_totale",
+      "zones": [
+        "SN-DK",
+        "SN-TH"
+      ],
+      "periode": {
+        "type": "annee",
+        "valeur": "2023"
+      },
+      "desagregation": null,
+      "confiance": 0.91
+    },
+    "version_socle": "2026.10.0",
+    "cree_le": "2026-09-30T10:00:00Z",
+    "latence_ms": 1240,
+    "issue": "exacte",
+    "intention": "comparaison",
+    "resultats": [
+      {
+        "indicateur": {
+          "code": "population_totale",
+          "libelle": "Population totale"
+        },
+        "zone": {
+          "code": "SN-DK",
+          "libelle": "Dakar",
+          "niveau": "region"
+        },
+        "periode": {
+          "valeur": "2023",
+          "libelle": "2023"
+        },
+        "desagregation": null,
+        "valeur": 4004426,
+        "valeur_affichee": "4 004 426",
+        "unite": "habitants",
+        "source": {
+          "producteur": "ANSD",
+          "operation": "RGPH-5",
+          "titre": "Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023)",
+          "date_publication": "2023-10-31",
+          "licence": "CC BY 4.0",
+          "url": "https://senegal.opendataforafrica.org/pvswjnd",
+          "libelle": "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
+        },
+        "observation_id": "pvswjnd:SN-DK:2023:total",
+        "mise_en_evidence": true
+      },
+      {
+        "indicateur": {
+          "code": "population_totale",
+          "libelle": "Population totale"
+        },
+        "zone": {
+          "code": "SN-TH",
+          "libelle": "Thiès",
+          "niveau": "region"
+        },
+        "periode": {
+          "valeur": "2023",
+          "libelle": "2023"
+        },
+        "desagregation": null,
+        "valeur": 2463677,
+        "valeur_affichee": "2 463 677",
+        "unite": "habitants",
+        "source": {
+          "producteur": "ANSD",
+          "operation": "RGPH-5",
+          "titre": "Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023)",
+          "date_publication": "2023-10-31",
+          "licence": "CC BY 4.0",
+          "url": "https://senegal.opendataforafrica.org/pvswjnd",
+          "libelle": "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
+        },
+        "observation_id": "pvswjnd:SN-TH:2023:total",
+        "mise_en_evidence": true
+      }
+    ],
+    "explication": "En 2023, la région de Dakar compte 4 004 426 habitants et la région de Thiès 2 463 677 (RGPH-5).",
+    "periode_par_defaut": false,
+    "note_perimetre": null,
+    "graphique": {
+      "type": "barres_horizontales",
+      "titre": "Population par région en 2023 (habitants)",
+      "unite": "habitants",
+      "series": [
+        {
+          "nom": "Population totale",
+          "points": [
+            {
+              "x": "Dakar",
+              "y": 4004426,
+              "mise_en_evidence": true
+            },
+            {
+              "x": "Thiès",
+              "y": 2463677,
+              "mise_en_evidence": true
+            }
+          ]
+        }
+      ],
+      "pied": "Source : ANSD, RGPH-5, publié le 31 octobre 2023 · gestukaay",
+      "svg_url": "https://app.gestukaay.test/v1/answers/ex-exacte-comparaison/chart.svg"
+    },
+    "citation": "Source : ANSD, RGPH-5 (2023), publié le 31 octobre 2023. Consulté via Gëstukaay le 30 septembre 2026, https://app.gestukaay.test/r/ex-exacte-comparaison.",
+    "audio_url": null
+  }
+}

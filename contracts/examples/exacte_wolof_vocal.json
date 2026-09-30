@@ -1,0 +1,66 @@
+{
+  "version_contrat": "1.0.0",
+  "reponse": {
+    "id": "ex-exacte-wolof-vocal",
+    "url": "https://app.gestukaay.test/r/ex-exacte-wolof-vocal",
+    "question": "Ñaata nit ñoo dëkk Tiés ?",
+    "langue": "wo",
+    "transcription": "Ñaata nit ñoo dëkk Tiés ?",
+    "requete": {
+      "intention": "valeur",
+      "indicateur": "population_totale",
+      "zones": [
+        "SN-TH"
+      ],
+      "periode": {
+        "type": "derniere",
+        "valeur": null
+      },
+      "desagregation": null,
+      "confiance": 0.94
+    },
+    "version_socle": "2026.10.0",
+    "cree_le": "2026-09-30T10:00:00Z",
+    "latence_ms": 1240,
+    "issue": "exacte",
+    "intention": "valeur",
+    "resultats": [
+      {
+        "indicateur": {
+          "code": "population_totale",
+          "libelle": "Population totale"
+        },
+        "zone": {
+          "code": "SN-TH",
+          "libelle": "Thiès",
+          "niveau": "region"
+        },
+        "periode": {
+          "valeur": "2023",
+          "libelle": "2023"
+        },
+        "desagregation": null,
+        "valeur": 2463677,
+        "valeur_affichee": "2 463 677",
+        "unite": "habitants",
+        "source": {
+          "producteur": "ANSD",
+          "operation": "RGPH-5",
+          "titre": "Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023)",
+          "date_publication": "2023-10-31",
+          "licence": "CC BY 4.0",
+          "url": "https://senegal.opendataforafrica.org/pvswjnd",
+          "libelle": "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
+        },
+        "observation_id": "pvswjnd:SN-TH:2023:total",
+        "mise_en_evidence": false
+      }
+    ],
+    "explication": "[WO — gabarit à valider par un linguiste] Diiwaanu Tiés am na 2 463 677 nit, ci limu 2023 (RGPH-5).",
+    "periode_par_defaut": true,
+    "note_perimetre": null,
+    "graphique": null,
+    "citation": "Source : ANSD, RGPH-5 (2023), publié le 31 octobre 2023. Consulté via Gëstukaay le 30 septembre 2026, https://app.gestukaay.test/r/ex-exacte-wolof-vocal.",
+    "audio_url": "https://app.gestukaay.test/audio/ex-exacte-wolof-vocal.ogg"
+  }
+}

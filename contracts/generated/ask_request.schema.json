@@ -1,0 +1,57 @@
+{
+  "additionalProperties": false,
+  "description": "Corps de POST /v1/ask [EF-01].",
+  "properties": {
+    "question": {
+      "maxLength": 300,
+      "minLength": 3,
+      "type": "string"
+    },
+    "langue": {
+      "anyOf": [
+        {
+          "enum": [
+            "fr",
+            "wo"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "auto",
+          "type": "string"
+        }
+      ],
+      "default": "auto"
+    },
+    "canal": {
+      "default": "web",
+      "enum": [
+        "web",
+        "whatsapp",
+        "telegram",
+        "api"
+      ],
+      "type": "string"
+    },
+    "conversation_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "audio_retour": {
+      "default": false,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "question"
+  ],
+  "title": "AskRequest",
+  "type": "object"
+}

@@ -1,0 +1,18 @@
+{
+  "version_contrat": "1.0.0",
+  "reponse": {
+    "id": "ex-aucune-incomprehension",
+    "url": "https://app.gestukaay.test/r/ex-aucune-incomprehension",
+    "question": "euh bon voilà",
+    "langue": "fr",
+    "transcription": null,
+    "requete": null,
+    "version_socle": "2026.10.0",
+    "cree_le": "2026-09-30T10:00:00Z",
+    "latence_ms": 1240,
+    "issue": "aucune",
+    "motif": "incomprehension",
+    "message": "Je n'ai pas bien compris. Essayez par exemple : « Combien d'habitants à Thiès ? »",
+    "suggestions": []
+  }
+}

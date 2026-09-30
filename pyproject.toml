@@ -1,0 +1,22 @@
+[project]
+name = "gestukaay"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["gestukaay-contracts", "gestukaay-engine"]
+
+[tool.uv.workspace]
+members = ["contracts", "engine"]
+
+[tool.uv.sources]
+gestukaay-contracts = { workspace = true }
+gestukaay-engine = { workspace = true }
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["contracts/tests", "engine/tests"]
