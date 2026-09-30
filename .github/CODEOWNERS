@@ -1,15 +1,15 @@
 # Le propriétaire d'un dossier est automatiquement demandé en relecture.
-# Remplacer @SERIGNE_GITHUB par l'identifiant GitHub de Serigne.
 
-*                @TechwithXalifa @SERIGNE_GITHUB
 
-/contracts/      @TechwithXalifa @SERIGNE_GITHUB
-/docs/           @TechwithXalifa @SERIGNE_GITHUB
-/.github/        @TechwithXalifa @SERIGNE_GITHUB
+*                @TechwithXalifa @abdlaziz221
+
+/contracts/      @TechwithXalifa @abdlaziz221
+/docs/           @TechwithXalifa @abdlaziz221
+/.github/        @TechwithXalifa @abdlaziz221
 
 /engine/         @TechwithXalifa
 /socle/          @TechwithXalifa
 /canaux/         @TechwithXalifa
 
-/backend/        @SERIGNE_GITHUB
-/web/            @SERIGNE_GITHUB
+/backend/        @abdlaziz221
+/web/            @abdlaziz221
