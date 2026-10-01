@@ -2,22 +2,23 @@
 name = "gestukaay"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["gestukaay-contracts", "gestukaay-engine", "gestukaay-socle"]
+dependencies = ["gestukaay-backend", "gestukaay-contracts", "gestukaay-engine", "gestukaay-socle"]
 
 [tool.uv.workspace]
-members = ["contracts", "engine", "socle"]
+members = ["backend", "contracts", "engine", "socle"]
 
 [tool.uv.sources]
+gestukaay-backend = { workspace = true }
 gestukaay-contracts = { workspace = true }
 gestukaay-engine = { workspace = true }
 gestukaay-socle = { workspace = true }
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.6"]
+dev = ["pytest>=8", "ruff>=0.6", "httpx>=0.27"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 
 [tool.pytest.ini_options]
-testpaths = ["contracts/tests", "engine/tests", "socle/tests", "mesure/tests"]
+testpaths = ["backend/tests", "contracts/tests", "engine/tests", "socle/tests", "mesure/tests"]

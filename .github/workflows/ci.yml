@@ -21,3 +21,33 @@ jobs:
           ./scripts/generer_contrat.sh
           git diff --exit-code contracts/generated/ || \
             (echo "::error::contracts/generated/ n'est pas à jour : lancer ./scripts/generer_contrat.sh" && exit 1)
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Types (contrat compris)
+        run: npx tsc --noEmit
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construire et démarrer les deux images
+        run: docker compose up --build --detach --wait
+      - name: Vérifier l'API et le site
+        run: |
+          curl -fsS -X POST localhost:8000/v1/ask -H 'Content-Type: application/json' \
+            -d '{"question":"Combien d habitants à Thiès ?"}' | grep -q '"issue":"exacte"'
+          curl -fsS localhost:3000 | grep -q 'Gëstukaay'
+      - if: always()
+        run: docker compose logs && docker compose down

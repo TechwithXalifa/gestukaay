@@ -27,4 +27,10 @@ uv run pytest            # tout doit être vert
 cp .env.example .env     # puis remplir
 ```
 
+Ou, sans rien installer d'autre que Docker :
+
+```bash
+docker compose up --build   # site : http://localhost:3000 · API : http://localhost:8000/docs
+```
+
 Référence fonctionnelle : cahier des charges v1.1 (30 septembre 2026).
