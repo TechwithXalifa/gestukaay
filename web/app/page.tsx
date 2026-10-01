@@ -1,62 +1,60 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { AskResponse } from "@contracts/ask_response";
-import { confirmer, demander } from "@/lib/api";
-import { Reponse } from "@/components/Reponse";
+import { ChampQuestion } from "@/components/ChampQuestion";
+import { Entete, PiedDePage } from "@/components/Entete";
+import { Chargement, Erreur } from "@/components/Etats";
+import { demander } from "@/lib/api";
+
+const EXEMPLES = [
+  { texte: "Combien d'habitants à Thiès ?" },
+  { texte: "Population de Dakar et de Thiès en 2023" },
+  { texte: "Ñaata nit ñoo dëkk Tiés ?", wo: true },
+  { texte: "Population de la ville de Thiès en 2023" },
+];
 
 export default function Accueil() {
-  const [question, setQuestion] = useState("");
-  const [reponse, setReponse] = useState<AskResponse | null>(null);
-  const [erreur, setErreur] = useState<string | null>(null);
-  const [enCours, setEnCours] = useState(false);
+  const router = useRouter();
+  const [question, setQuestion] = useState<string | null>(null);
+  const [erreur, setErreur] = useState<unknown>(null);
 
-  async function lancer(appel: () => Promise<AskResponse>) {
-    setEnCours(true);
+  async function poser(q: string) {
+    setQuestion(q);
     setErreur(null);
     try {
-      setReponse(await appel());
+      const r = await demander({ question: q });
+      router.push(`/r/${r.reponse.id}`);
     } catch (e) {
-      setErreur(e instanceof Error ? e.message : "Le service ne répond pas.");
-    } finally {
-      setEnCours(false);
+      setErreur(e);
     }
   }
 
   return (
-    <main className="page">
-      <p className="eyebrow">Données officielles</p>
-      <h1>Posez votre question, recevez le chiffre officiel.</h1>
-      <form
-        className="champ"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (question.trim().length >= 3) lancer(() => demander({ question }));
-        }}
-      >
-        <label htmlFor="question" className="sr-only">Votre question</label>
-        <input
-          id="question"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Combien d'habitants à Thiès ?"
-          maxLength={300}
-        />
-        <button type="submit" className="primaire" disabled={enCours}>
-          {enCours ? "…" : "Envoyer"}
-        </button>
-      </form>
-      {erreur && <p role="alert" className="alerte">{erreur}</p>}
-      {reponse && (
-        <Reponse
-          r={reponse.reponse}
-          onChoix={(id) => lancer(() => confirmer(reponse.reponse.id, id))}
-          onSuggestion={(q) => {
-            setQuestion(q);
-            lancer(() => demander({ question: q }));
-          }}
-        />
-      )}
-    </main>
+    <div className="site">
+      <Entete />
+      <main className="accueil">
+        <p className="eyebrow">Données officielles du Sénégal</p>
+        <h1 className="titre-accueil">Posez votre question.<br />Recevez le chiffre officiel.</h1>
+        <p className="chapeau">En français ou en wolof. Toujours avec la source et la date.</p>
+        <ChampQuestion grand enCours={question !== null && !erreur} onEnvoyer={poser} />
+        <div className="exemples">
+          {EXEMPLES.map((e) => (
+            <button key={e.texte} type="button" className="puce" onClick={() => poser(e.texte)}>
+              {e.wo && <span className="marqueur-wo">WO</span>}
+              <span lang={e.wo ? "wo" : undefined}>{e.texte}</span>
+            </button>
+          ))}
+        </div>
+        <div className="zone-etat">
+          {erreur ? (
+            <Erreur erreur={erreur} onReessayer={() => question && poser(question)} />
+          ) : (
+            question && <Chargement question={question} />
+          )}
+        </div>
+      </main>
+      <PiedDePage />
+    </div>
   );
 }
