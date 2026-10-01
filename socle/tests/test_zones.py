@@ -37,6 +37,7 @@ def test_academies_de_dakar_ne_sont_pas_la_region():
         ("Thiès", None, "SN-TH"),
         ("THIES", None, "SN-TH"),
         ("Tiés", None, "SN-TH"),
+        ("Cees", None, "SN-TH"),
         ("Kees", None, "SN-TH"),
         ("Saint Louis", None, "SN-SL"),
         ("Ndar", None, "SN-SL"),

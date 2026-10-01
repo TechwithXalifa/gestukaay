@@ -1,0 +1,71 @@
+﻿id;question_fr;question_wo;ecriture
+FR-001;Combien d'habitants à Thiès ?;Ñata nit ñoo dëkk Cees ?;officielle
+FR-002;Quel est le taux de chômage des jeunes de 15 à 24 ans au Sénégal en 2025 ?;Niata moy taux chômage jeunes 15 ba 24 ans si Senegal ci 2025 ?;usage
+FR-003;Quel est le taux brut de scolarisation des filles à l'élémentaire dans l'académie de Kolda ?;Ban taux brut scolarisation filles am primaire si academie kolda ?;usage
+FR-004;Quel est le taux de pauvreté au Sénégal ?;Ban tolluwaayu ñàkk lañu am Senegaal ?;officielle
+FR-005;Quel pourcentage des ménages s'éclairent à l'électricité au Sénégal ?;Ban pourcentage keur yi gno am courant (électricité) Senegal ?;usage
+FR-006;Quelle part des ménages ruraux a un robinet dans le logement ou la concession ?;Gnata part keur ruraux yi nio am robinet si sen biir logement ?;usage
+FR-007;Quel est le taux de mortalité des enfants de moins de 5 ans au Sénégal ?;Ban tolluwaayu xale yu amagul juróomi at yiy faatu lañu am Senegaal ?;officielle
+FR-008;Quelle proportion des enfants sont complètement vaccinés à Kolda ?;Ban proportion xale yi nio am vaccins yeup complètement si Kolda ?;usage
+FR-009;Combien d'enfants une femme a-t-elle en moyenne au Sénégal ?;Djiguene senegal naata xale lay am en moyenne ?;usage
+FR-010;Quel est le PIB du Sénégal en 2024 ?;Ban PIB la Senegaal am ci atum 2024 ?;officielle
+FR-011;Combien coûte le kilo de riz brisé ordinaire au détail ?;Nata lay kilo thieb bou dagg détail di diar ?;usage
+FR-012;Quel est le niveau de l'indice harmonisé des prix à la consommation ?;Naka la indice prix à la consommation bi tollou ?;usage
+FR-013;Quel est le taux d'urbanisation de la région de Dakar ?;Ban tolluwaayu dëkkuwaay la diiwaanu Ndakaaru am ?;officielle
+FR-014;Combien de personnes sont emprisonnées au Sénégal ?;Gnata nitt nio nek kaso au Senegal ?;usage
+FR-015;Quelle quantité de produits la pêche artisanale a-t-elle débarquée en 2024 ?;Ban quantité produits la peche artisanale andi si 2024 ?;usage
+FR-016;Quel est le taux de pénétration de la téléphonie mobile ?;Ban tolluwaayu nit ñi am telefon portabal lañu am ?;officielle
+FR-017;Combien de touristes français sont arrivés au Sénégal en décembre 2018 ?;Niata touristes francais nio nieuw Senegal mois de decembre 2018 ?;usage
+FR-018;Quelle est la production de riz du Sénégal ?;Ban production thieb la senegal am ?;usage
+FR-019;Quel est le salaire moyen mensuel au Sénégal ?;Ñata la yamaley payooru weer wu nekk ci Senegaal ?;officielle
+FR-020;Quel pourcentage d'enfants souffrent d'un retard de croissance au Sénégal ?;Ban pourcentage xale yi nio am retard de croissance senegal ?;usage
+FR-021;Quel est le coefficient de Gini du Sénégal ?;Ban coefficient Gini la Senegal am ?;usage
+FR-022;Quel est le taux de chômage des femmes à Ziguinchor en 2024 ?;Ban tolluwaayu jigéen ñi amul liggéey lañu am Siggcoor ci atum 2024 ?;officielle
+FR-023;Combien de femmes vivent dans la région de Matam ?;Gnata djiguenes nio deukk region Matam ?;usage
+FR-024;Quel est le taux de pauvreté à Kolda ?;Naka la taux de pauvrete bi tollou kolda ?;usage
+FR-025;Combien y a-t-il de jeunes de moins de 15 ans au Sénégal ?;Ñata ndaw ñu amagul fukk ak juróomi at ñoo nekk Senegaal ?;officielle
+FR-026;Quel pourcentage des ménages ont l'électricité à Tambacounda ?;Ban pourcentage keur yi nio am electricite tamba ?;usage
+FR-027;Quelle sera l'espérance de vie au Sénégal en 2035 ?;Naka la esperance de vie bi di tollou senegal en 2035 ?;usage
+FR-028;Quel est le pourcentage de filles parmi les élèves du secondaire au Sénégal ?;Ban pousantaas ci xale yu jigéen yi ñoo nekk ci ekool segondeer ci Senegaal ?;officielle
+FR-029;Population de Dakar et de Thiès en 2023;Population dakar ak thies en 2023;usage
+FR-030;Chômage à Dakar et à Thiès en 2024;Chomage thiès ak dakar en 2024;usage
+FR-031;Le prix du riz brisé au détail a-t-il augmenté entre mars 2025 et mars 2026 ?;Ndax njëgu ceeb bu dagg bi jaay ci kilo yokk na diggante weeru mars 2025 ak mars 2026 ?;officielle
+FR-032;Le taux de pauvreté a-t-il baissé entre 2011 et 2022 au Sénégal ?;Ndax taux de pauvrete bi wagni kou na entre 2011 ak 2022 senegal ?;usage
+FR-033;Accès à l'électricité : Kédougou comparé à Dakar;Acces electricite: kedougou compare ak dakar;usage
+FR-034;Taux brut de scolarisation à l'élémentaire : académies de Kolda et de Ziguinchor;Tolluwaayu xale yi mbindu ci priméer : méngale akademi Koldaa ak Siggcoor.;officielle
+FR-035;Mortalité des moins de 5 ans à Kolda comparée à la moyenne nationale;Mortalite moins de 5 ans Kolda compare ak moyenne nationale bi;usage
+FR-036;Évolution du PIB entre 2021 et 2024;Evolution PIB bi entre 2021 et 2024;usage
+FR-037;Nombre de détenus à Dakar et à Thiès;Limu nit ñi nekk kaso Ndakaaru ak Cees.;officielle
+FR-038;Vaccination complète des enfants à Matam et à Louga;Vaccination complete xale yi Matam ak Louga;usage
+FR-039;Le chômage a-t-il augmenté au Sénégal entre 2015 et 2025 ?;Ndax chomage bi yokk na senegal entre 2015 ak 2025 ?;usage
+FR-040;Quelle région a le taux de scolarisation le plus élevé ?;Ban diiwaan moo am tolluwaayu mbindu ci ekool bi ëpp ?;officielle
+FR-041;Quelle région a le taux de chômage le plus élevé en 2025 ?;Ban region mo am taux chomage bi geuna kawé en 2025 ?;usage
+FR-042;Quelle est la région la plus peuplée ?;Ban region mo geuna peuplé ?;usage
+FR-043;Quelle région a le taux de pauvreté le plus bas ?;Ban diiwaan moo am tolluwaayu ñàkk bi gëna woyof ?;officielle
+FR-044;Quelle région a le moins accès à l'électricité ?;Ban region mo am moins acces si courant bi ?;usage
+FR-045;Classe les régions selon la mortalité des enfants de moins de 5 ans;Classer regions yi selon mortalite enfants moins de 5 ans yi;usage
+FR-046;Quelle région compte le plus de personnes emprisonnées ?;Ban diiwaan moo am nit ñu ñu tëj ñi ëpp ?;officielle
+FR-047;Population de la ville de Thiès en 2023;Population ville thies en 2023;usage
+FR-048;Quel est le taux de scolarisation à Dakar ?;Taux scolarisation dakar ?;usage
+FR-049;Combien coûte le riz à Thiès ?;Ñata la thieb bi di diar thies ?;usage
+FR-050;Quel est le taux de pauvreté au Sénégal en 2023 ?;Taux de pauvreté senegal 2023;usage
+FR-051;Combien d'habitants à Touba ?;Ñata nit ño deuk touba ?;usage
+FR-052;Taux de chômage à Kaolack en 2026;Taux chômage kaolack 2026;usage
+FR-053;Quel pourcentage des ménages ont l'électricité à Pikine ?;Ban pourcentage keur pikine nio am courant ?;usage
+FR-054;Nombre de voitures à Kolda;Nombre de voitures kolda;usage
+FR-055;Population du Sénégal en 2040;Population senegal en 2040;usage
+FR-056;Quel sera le taux de chômage en 2030 ?;Ban tolluwaayu ñi amul liggéey lañu am ci atum 2030 ?;officielle
+FR-057;Quelle sera l'inflation en 2027 ?;Inflation en 2027;usage
+FR-058;Combien de mosquées y a-t-il à Touba ?;Ñata diaka ño nek touba ?;usage
+FR-059;Qui est le président du Sénégal ?;Kan moy president senegal ?;usage
+FR-060;Quel temps fera-t-il demain à Dakar ?;Naka la météo bi di mel euleuk dakar ?;usage
+FR-061;Combien d'habitants à Paris ?;Ñata nitt nio deukk paris ?;usage
+FR-062;Combien gagne un chauffeur de taxi à Dakar ?;Ñata lay am chauffeur taxi dakar ?;usage
+FR-063;Écris-moi un poème sur la Casamance;Bindal ma poème si casamance;usage
+FR-064;asdkjh qwe;asdkjh qwe;usage
+FR-065;euh bon voilà quoi;euh wa waw;usage
+FR-066;Combien de vaches a mon voisin ?;Ñata nag la sama voisin am ?;usage
+FR-067;Quel est le taux de criminalité à Kaolack ?;Taux criminalité kaolack;usage
+FR-068;Et pour Kaolack ?;Kaolack nak ?;officielle
+FR-069;Et en 2025 ?;Ak en 2025 ?;usage
+FR-070;Et le mil ?;Dugub ji nak ?;officielle
