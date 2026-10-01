@@ -1,0 +1,29 @@
+@import "./tokens.css";
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--gk-ivoire); color: var(--gk-encre); font: 15px/24px var(--font-sans); }
+button, input { font: inherit; }
+:focus-visible { outline: 2px solid var(--gk-feuille); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.page { max-width: 720px; margin: 0 auto; padding: 48px 16px; }
+.eyebrow { margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gk-feuille); }
+h1 { margin: 12px 0 24px; font-size: 28px; line-height: 34px; color: var(--gk-baobab); }
+
+.champ { display: flex; gap: 8px; padding: 4px 4px 4px 16px; background: var(--gk-blanc); border: 1px solid var(--gk-champ); border-radius: var(--radius-lg); box-shadow: var(--shadow-question); }
+.champ input { flex: 1; min-width: 0; height: 48px; border: 0; background: transparent; font-size: 16px; color: var(--gk-encre); }
+.primaire, .secondaire { min-height: 48px; padding: 0 16px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
+.primaire { border: 0; background: var(--gk-feuille); color: var(--gk-sur-action); }
+.secondaire { border: 1px solid var(--gk-lin); background: var(--gk-blanc); color: var(--gk-baobab); text-align: left; }
+
+.carte { margin-top: 24px; padding: 20px; background: var(--gk-blanc); border: 1px solid var(--gk-lin); border-radius: var(--radius-lg); }
+.badge { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.badge.exacte { background: var(--gk-feuille-50); color: var(--gk-feuille); }
+.badge.approchee { background: var(--gk-ocre-50); color: var(--gk-ocre); }
+.libelle { margin: 12px 0 0; font-size: 14px; line-height: 20px; color: var(--gk-ardoise); }
+.valeur { margin: 0; font-size: 40px; line-height: 44px; font-weight: 700; color: var(--gk-baobab); font-variant-numeric: tabular-nums; }
+.valeur span { font-size: 16px; font-weight: 400; color: var(--gk-ardoise); }
+.source { margin: 8px 0 0; font-size: 13px; line-height: 18px; color: var(--gk-ardoise); }
+.explication { margin: 12px 0 0; font-family: var(--font-serif); }
+.choix { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.alerte { margin-top: 16px; padding: 12px 16px; border-radius: var(--radius-md); background: var(--gk-laterite-50); }
