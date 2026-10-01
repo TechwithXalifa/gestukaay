@@ -1,0 +1,30 @@
+# Lancer toute l'application :  docker compose up --build
+# Site : http://localhost:3000 · API : http://localhost:8000/docs
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports: ["8000:8000"]
+    environment:
+      GESTUKAAY_MOTEUR: ${GESTUKAAY_MOTEUR:-fake}
+      GESTUKAAY_URL_PUBLIQUE: ${GESTUKAAY_URL_PUBLIQUE:-http://localhost:3000}
+    env_file:
+      - path: .env
+        required: false
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports: ["3000:3000"]
+    depends_on:
+      api:
+        condition: service_healthy

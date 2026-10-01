@@ -12,3 +12,5 @@ node_modules/
 # Données brutes volumineuses : jamais dans Git (voir socle/README)
 *.zip
 socle/brut/
+.claude/
+*.tsbuildinfo
