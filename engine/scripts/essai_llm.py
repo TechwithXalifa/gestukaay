@@ -1,8 +1,10 @@
 """Essai RÉEL de la chaîne LLM configurée dans .env (issue #9). Coûte quelques
 fractions de centime : à lancer à la main, jamais en CI.
 
-    uv run python engine/scripts/essai_llm.py            # chaque maillon, puis la chaîne
-    uv run python engine/scripts/essai_llm.py --chaine   # la chaîne seulement
+    uv run python engine/scripts/essai_llm.py                    # chaque maillon, puis la chaîne
+    uv run python engine/scripts/essai_llm.py --chaine           # la chaîne seulement
+    uv run python engine/scripts/essai_llm.py --repetitions 10   # latence : médiane, p95, max
+    uv run python engine/scripts/essai_llm.py -n 10 --delai 30   # latence RÉELLE, sans couper à 2 s
 
 Pose une question simple et vérifie : JSON valide, délai, latence, coût.
 N'affiche jamais les clés.
@@ -10,8 +12,12 @@ N'affiche jamais les clés.
 
 from __future__ import annotations
 
+import argparse
 import os
+import statistics
 import sys
+from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 from gestukaay_engine.llm import ClientLLM, EchecLLM, lire_chaine
@@ -60,7 +66,7 @@ def essayer(titre: str, client: ClientLLM) -> bool:
     except EchecLLM as e:
         appel, obj = e.appel, None
     for t in appel.tentatives:
-        print(f"   {t.maillon:<10} {t.fournisseur:<18} {t.modele:<28} {t.statut:<12} {t.latence_ms:>5} ms  {t.detail[:80]}")
+        print(f"   {t.maillon:<10} {t.fournisseur:<18} {t.modele:<32} {t.statut:<12} {t.latence_ms:>5} ms  {t.detail[:80]}")
     if obj is None:
         print("   ÉCHEC : aucun maillon n'a répondu")
         return False
@@ -69,15 +75,58 @@ def essayer(titre: str, client: ClientLLM) -> bool:
     return True
 
 
+def mesurer(titre: str, client: ClientLLM, n: int, seuil_ms: int) -> bool:
+    """n appels : taux de réussite, latence médiane / p95 / max, coût moyen."""
+    print(f"\n== {titre} — {n} appels")
+    latences, statuts, couts, reussites = [], Counter(), [], 0
+    for i in range(n):
+        try:
+            _, appel = client.structurer(SYSTEME, QUESTION, Reponse)
+            reussites += 1
+            if appel.cout_usd is not None:
+                couts.append(appel.cout_usd)
+        except EchecLLM as e:
+            appel = e.appel
+        latences.append(appel.latence_ms)
+        statuts.update(t.statut for t in appel.tentatives)
+        print(f"   {i + 1:>2}. {appel.latence_ms:>5} ms  {' → '.join(f'{t.maillon}:{t.statut}' for t in appel.tentatives)}",
+              flush=True)
+    ordre = sorted(latences)
+    p95 = ordre[min(len(ordre) - 1, round(0.95 * (len(ordre) - 1)))]
+    sous = sum(1 for x in latences if x <= seuil_ms)
+    print(f"   réussites {reussites}/{n} | médiane {statistics.median(latences):.0f} ms | p95 {p95} ms | "
+          f"max {ordre[-1]} ms | sous {seuil_ms} ms : {sous}/{n}")
+    print(f"   statuts : {dict(statuts)}" + (f" | coût moyen {statistics.mean(couts) * 100:.4f} centime(s) $"
+                                             if couts else " | coût inconnu (prix non configurés)"))
+    return reussites == n
+
+
 def main() -> int:
+    p = argparse.ArgumentParser(description="Essai réel de la chaîne LLM du .env")
+    p.add_argument("--chaine", action="store_true", help="tester la chaîne seulement")
+    p.add_argument("-n", "--repetitions", type=int, default=1, help="nombre d'appels par essai")
+    p.add_argument("--delai", type=float, help="remplace le délai de chaque maillon (s), ex. 30 "
+                   "pour mesurer la latence réelle sans couper")
+    args = p.parse_args()
+
     charger_env(RACINE / ".env")
     chaine = lire_chaine()
+    seuil_ms = round(min(m.delai_s for m in chaine) * 1000)
+    if args.delai:
+        chaine = [replace(m, delai_s=args.delai) for m in chaine]
+        print(f"Délai porté à {args.delai} s pour mesurer la latence réelle (le seuil affiché reste {seuil_ms} ms).")
+
+    def lancer(titre: str, client: ClientLLM) -> bool:
+        if args.repetitions > 1:
+            return mesurer(titre, client, args.repetitions, seuil_ms)
+        return essayer(titre, client)
+
     ok = True
-    if "--chaine" not in sys.argv:
+    if not args.chaine:
         for m in chaine:
             if m.fournisseur != "regles":
-                ok &= essayer(f"maillon « {m.nom} » seul", ClientLLM([m]))
-    ok &= essayer("chaîne complète", ClientLLM(chaine))
+                ok &= lancer(f"maillon « {m.nom} » seul", ClientLLM([m]))
+    ok &= lancer("chaîne complète", ClientLLM(chaine))
     return 0 if ok else 1
 
 
