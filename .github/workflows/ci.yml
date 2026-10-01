@@ -37,3 +37,17 @@ jobs:
       - run: npm ci
       - name: Types (contrat compris)
         run: npx tsc --noEmit
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construire et démarrer les deux images
+        run: docker compose up --build --detach --wait
+      - name: Vérifier l'API et le site
+        run: |
+          curl -fsS -X POST localhost:8000/v1/ask -H 'Content-Type: application/json' \
+            -d '{"question":"Combien d habitants à Thiès ?"}' | grep -q '"issue":"exacte"'
+          curl -fsS localhost:3000 | grep -q 'Gëstukaay'
+      - if: always()
+        run: docker compose logs && docker compose down
