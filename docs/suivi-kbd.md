@@ -10,13 +10,13 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 |---|---|---|---|
 | 0 · Fondations | 4 | 4 | ✅ terminé |
 | 1 · Socle | 2 | 8 | Préparation |
-| 2 · Moteur | 0 | 9 | Préparation |
-| 3 · Jeu de test et mesure | 0 | 4 | Préparation |
+| 2 · Moteur | 0 | 10 | Préparation |
+| 3 · Jeu de test et mesure | 1 | 4 | Préparation |
 | 4 · Wolof | 0 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **6** | **45** | |
+| **Total** | **7** | **46** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -32,7 +32,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 |---|---|
 | 01/10 | 1.1 · 1.2 · 2.1 · 3.1 · 4.5 · 6.1 · 7.1 |
 | 02/10 | 1.3 · 1.4 · 1.5 |
-| 03/10 | 1.6 · 1.7 · 1.8 · 2.2 |
+| 03/10 | 1.6 · 1.7 · 1.8 · 2.2 · 2.10 |
 | 04/10 | 2.3 · 2.4 · 2.5 · 2.6 · 2.8 · 3.2 |
 | 05/10 | 2.7 · 2.9 · 3.3 · 4.1 · 4.2 · 4.3 · 6.2 · 6.3 |
 | 06/10 | 4.4 · 5.1 · 6.4 · 6.6 · 7.2 |
@@ -70,10 +70,11 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [ ] **2.7** Contexte de suivi sur 3 échanges — [#15](https://github.com/TechwithXalifa/gestukaay/issues/15) · échéance 05/10 · après 2.2
 - [ ] **2.8** Gabarits d'explication FR, formatage des nombres, citation — [#16](https://github.com/TechwithXalifa/gestukaay/issues/16) · échéance 04/10 · après 2.3
 - [ ] **2.9** Basculer du faux moteur au vrai — [#17](https://github.com/TechwithXalifa/gestukaay/issues/17) · échéance 05/10 · après 2.3, 2.4, 2.5
+- [ ] **2.10** Contrat v1.1.0 : nature de la valeur et niveau « académie » — [#45](https://github.com/TechwithXalifa/gestukaay/issues/45) · échéance 03/10 · après décisions 0002 et 0003
 
 ## 3 · Jeu de test et mesure
 
-- [ ] **3.1** Rédiger les 100 questions de référence — [#18](https://github.com/TechwithXalifa/gestukaay/issues/18) · échéance 01/10
+- [x] **3.1** Rédiger les 100 questions de référence — [#18](https://github.com/TechwithXalifa/gestukaay/issues/18) · échéance 01/10
 - [ ] **3.2** Script de benchmark + invariant « zéro chiffre inventé » — [#19](https://github.com/TechwithXalifa/gestukaay/issues/19) · échéance 04/10 · après 3.1, 2.3
 - [ ] **3.3** Benchmark exécuté par la CI — [#20](https://github.com/TechwithXalifa/gestukaay/issues/20) · échéance 05/10 · après 3.2
 - [ ] **3.4** Rapport de mesure ⏳ — [#21](https://github.com/TechwithXalifa/gestukaay/issues/21) · échéance 09/10 · après 3.2
