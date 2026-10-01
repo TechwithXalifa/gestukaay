@@ -104,6 +104,28 @@ def test_ollama_local_meme_adaptateur_sans_cle():
     assert obj.ville == "Dakar" and "authorization" not in t.recues[0].headers
 
 
+def test_huggingface_routeur_par_defaut_et_consigne_json():
+    hf = Maillon(nom="hf", fournisseur="huggingface", modele="openai/gpt-oss-120b:cheapest", cle="hf_x",
+                 prix_entree=0.1, prix_sortie=0.5)
+    t = transport(**{"router.huggingface.co": openai_ok(cout=None)})
+    obj, appel = ClientLLM([hf], transport=t).structurer("sys", "q", Capitale)
+    req = t.recues[0]
+    assert str(req.url) == "https://router.huggingface.co/v1/chat/completions"
+    assert req.headers["authorization"] == "Bearer hf_x"
+    corps = json.loads(req.content)
+    assert corps["model"] == "openai/gpt-oss-120b:cheapest"  # le suffixe choisit l'hébergeur
+    assert "response_format" not in corps and "schéma JSON" in corps["messages"][0]["content"]
+    assert obj.ville == "Dakar" and appel.cout_usd == pytest.approx((120 * 0.1 + 10 * 0.5) / 1e6)
+
+
+def test_huggingface_endpoint_dedie_et_mode_json_configurable():
+    hf = Maillon(nom="hf", fournisseur="huggingface", modele="tgi", cle="hf_x",
+                 url="https://mon-endpoint.endpoints.huggingface.cloud/v1", mode_json="objet")
+    t = transport(**{"mon-endpoint.endpoints.huggingface.cloud": openai_ok()})
+    ClientLLM([hf], transport=t).structurer("sys", "q", Capitale)
+    assert json.loads(t.recues[0].content)["response_format"] == {"type": "json_object"}
+
+
 # ---- la chaîne de secours ----------------------------------------------------------
 
 @pytest.mark.parametrize(
@@ -176,19 +198,20 @@ def test_schema_requete_structuree_a_cles_libres_bascule_en_consigne():
 # ---- configuration -------------------------------------------------------------------
 
 ENV = {
-    "LLM_CHAINE": "principal, repli ,secours",
+    "LLM_CHAINE": "principal, repli ,hf,secours",
     "LLM_PRINCIPAL_FOURNISSEUR": "gemini", "LLM_PRINCIPAL_MODELE": "gemini-2.5-flash",
     "LLM_PRINCIPAL_CLE": "g", "LLM_PRINCIPAL_PRIX_ENTREE": "0.3", "LLM_PRINCIPAL_PRIX_SORTIE": "2.5",
     "LLM_REPLI_FOURNISSEUR": "anthropic", "LLM_REPLI_MODELE": "claude-haiku-4-5", "LLM_REPLI_CLE": "a",
     "LLM_REPLI_DELAI_S": "3", "LLM_REPLI_TEMPERATURE": "aucune",
     "LLM_SECOURS_FOURNISSEUR": "regles",
+    "LLM_HF_FOURNISSEUR": "huggingface", "LLM_HF_MODELE": "openai/gpt-oss-120b:fastest", "LLM_HF_CLE": "hf_x",
 }
 
 
 def test_changer_de_fournisseur_se_fait_dans_l_environnement():
     c = lire_chaine(ENV)
     assert [(m.nom, m.fournisseur) for m in c] == [("principal", "gemini"), ("repli", "anthropic"),
-                                                   ("secours", "regles")]
+                                                   ("hf", "huggingface"), ("secours", "regles")]
     assert c[0].delai_s == 2 and c[1].delai_s == 3 and c[1].temperature is None
     tout_openrouter = {**ENV, "LLM_PRINCIPAL_FOURNISSEUR": "openai_compatible",
                        "LLM_PRINCIPAL_URL": "https://openrouter.ai/api/v1",

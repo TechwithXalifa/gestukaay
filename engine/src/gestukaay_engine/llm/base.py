@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
-Fournisseur = Literal["openai_compatible", "anthropic", "gemini", "regles"]
+Fournisseur = Literal["openai_compatible", "huggingface", "anthropic", "gemini", "regles"]
 # Comment demander du JSON au fournisseur. Dans tous les cas, la réponse est
 # revalidée chez nous avec le schéma Pydantic (EF-03).
 ModeJson = Literal["schema", "objet", "aucun"]

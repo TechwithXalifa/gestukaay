@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import copy
 import json
+from dataclasses import replace
 
 import httpx
 
@@ -18,6 +19,7 @@ from .base import Brut, ErreurAdaptateur, Maillon
 URL_OPENROUTER = "https://openrouter.ai/api/v1"
 URL_ANTHROPIC = "https://api.anthropic.com/v1"
 URL_GEMINI = "https://generativelanguage.googleapis.com/v1beta"
+URL_HUGGINGFACE = "https://router.huggingface.co/v1"
 
 
 def consigne_json(schema: dict) -> str:
@@ -167,4 +169,18 @@ def gemini(client: httpx.Client, m: Maillon, systeme: str, utilisateur: str, sch
                 modele=d.get("modelVersion") or m.modele)
 
 
-ADAPTATEURS = {"openai_compatible": openai_compatible, "anthropic": anthropic, "gemini": gemini}
+# --------------------------------------------------------------------------
+# Hugging Face (Inference Providers) : format OpenAI compatible
+# --------------------------------------------------------------------------
+
+def huggingface(client: httpx.Client, m: Maillon, systeme: str, utilisateur: str, schema: dict) -> Brut:
+    """Routeur Hugging Face. Le modèle peut choisir l'hébergeur : « org/modele:groq »,
+    « org/modele:fastest » ou « :cheapest ». Les hébergeurs ne gèrent pas tous le mode
+    JSON : par défaut, consigne dans le prompt (JSON revalidé chez nous de toute façon).
+    Pour un Inference Endpoint dédié (TGI, vLLM) : LLM_<NOM>_URL=https://<endpoint>/v1."""
+    m = replace(m, url=m.url or URL_HUGGINGFACE, mode_json=m.mode_json or "aucun")
+    return openai_compatible(client, m, systeme, utilisateur, schema)
+
+
+ADAPTATEURS = {"openai_compatible": openai_compatible, "huggingface": huggingface,
+               "anthropic": anthropic, "gemini": gemini}
