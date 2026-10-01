@@ -34,7 +34,7 @@ dans le quintile le plus bas), pas des bornes de dépenses.
 - Résultat :
   - dépense annuelle par personne du ménage (calcul sur **les seules données saisies**) comparée à la
     **consommation moyenne par tête** publiée pour la région et pour le pays (`jcvcajc`, FCFA) ;
-  - **taux de pauvreté** publié des ménages de même taille dans la région (`jcvcajc`) ;
+  - **taux de pauvreté** publié des ménages de même taille (`jcvcajc`) — au niveau **national** : le portail ne le publie pas par région ;
   - **contexte** : part de la population de la région dans le quintile le plus bas (`qjyrtof`), accès
     à l'eau et à l'électricité de la région ;
   - chaque valeur avec sa source ; encadré pédagogique « C'est quoi une moyenne ? » à la place de
