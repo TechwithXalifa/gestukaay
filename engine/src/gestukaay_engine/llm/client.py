@@ -27,6 +27,8 @@ from .adaptateurs import ADAPTATEURS
 from .base import Appel, Brut, EchecLLM, ErreurAdaptateur, Maillon, Tentative
 
 M = TypeVar("M", bound=BaseModel)
+# Fournisseurs qui exigent une clé (openai_compatible non : Ollama local n'en a pas)
+CLE_OBLIGATOIRE = {"gemini", "anthropic", "huggingface"}
 # Secours local : (système, utilisateur) -> dict, ou None si les règles ne savent pas répondre
 Regles = Callable[[str, str], dict | None]
 
@@ -71,6 +73,8 @@ class ClientLLM:
             if d is None:
                 raise ErreurAdaptateur("indisponible", "règles sans réponse")
             return Brut(texte=json.dumps(d, ensure_ascii=False), modele="regles")
+        if not m.cle and m.fournisseur in CLE_OBLIGATOIRE:
+            raise ErreurAdaptateur("indisponible", f"clé absente : définir LLM_{m.nom.upper()}_CLE")
         with httpx.Client(timeout=m.delai_s, transport=self._transport) as client:
             return ADAPTATEURS[m.fournisseur](client, m, systeme, utilisateur, schema)
 

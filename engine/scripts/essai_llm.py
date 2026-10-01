@@ -32,14 +32,25 @@ QUESTION = "Ñata nit ñoo dëkk Cees ?"
 
 
 def charger_env(fichier: Path) -> None:
-    """Lecteur minimal de .env (CLE=valeur), sans écraser l'environnement existant."""
+    """Lecteur minimal de .env (CLE=valeur), sans écraser l'environnement existant.
+    Comme les outils .env usuels, la DERNIÈRE définition d'une variable l'emporte ;
+    les doublons sont signalés (source d'erreur fréquente)."""
     if not fichier.exists():
         sys.exit(f"{fichier} introuvable : copier .env.example en .env et le remplir.")
-    for ligne in fichier.read_text(encoding="utf-8").splitlines():
+    valeurs: dict[str, str] = {}
+    lignes: dict[str, list[int]] = {}
+    for n, ligne in enumerate(fichier.read_text(encoding="utf-8").splitlines(), 1):
         ligne = ligne.strip()
         if ligne and not ligne.startswith("#") and "=" in ligne:
             cle, _, valeur = ligne.partition("=")
-            os.environ.setdefault(cle.strip(), valeur.split(" #")[0].strip())
+            valeurs[cle.strip()] = valeur.split(" #")[0].strip()
+            lignes.setdefault(cle.strip(), []).append(n)
+    for cle, ns in lignes.items():
+        if len(ns) > 1:
+            print(f"ATTENTION : {cle} est défini {len(ns)} fois dans .env (lignes {ns}) ; "
+                  f"la ligne {ns[-1]} est utilisée.")
+    for cle, valeur in valeurs.items():
+        os.environ.setdefault(cle, valeur)
 
 
 def essayer(titre: str, client: ClientLLM) -> bool:

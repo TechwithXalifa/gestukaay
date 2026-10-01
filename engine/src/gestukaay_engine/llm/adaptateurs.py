@@ -28,6 +28,18 @@ def consigne_json(schema: dict) -> str:
             "schéma JSON :\n" + json.dumps(schema, ensure_ascii=False))
 
 
+def _message_erreur(r: httpx.Response) -> str:
+    """Le message lisible d'une erreur HTTP, quel que soit le format du fournisseur."""
+    try:
+        d = r.json()
+    except ValueError:
+        return " ".join(r.text.split())[:200]
+    e = d.get("error", d) if isinstance(d, dict) else d
+    if isinstance(e, dict):
+        return str(e.get("message") or e.get("type") or e)[:200]
+    return str(e)[:200]
+
+
 def _poster(client: httpx.Client, url: str, entetes: dict, corps: dict) -> dict:
     try:
         r = client.post(url, headers=entetes, json=corps)
@@ -36,7 +48,7 @@ def _poster(client: httpx.Client, url: str, entetes: dict, corps: dict) -> dict:
     except httpx.HTTPError as e:
         raise ErreurAdaptateur("reseau", type(e).__name__) from e
     if r.status_code != 200:
-        raise ErreurAdaptateur("http", f"{r.status_code} {r.text[:200]}")
+        raise ErreurAdaptateur("http", f"{r.status_code} {_message_erreur(r)}")
     try:
         return r.json()
     except ValueError as e:

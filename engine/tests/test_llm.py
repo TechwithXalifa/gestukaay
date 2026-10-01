@@ -170,6 +170,22 @@ def test_tout_echoue_echecllm_avec_le_detail_de_chaque_essai():
     assert [x.statut for x in e.value.appel.tentatives] == ["delai", "http", "indisponible"]
 
 
+def test_cle_absente_indisponible_sans_appel_reseau():
+    t = transport(**{O: openai_ok()})
+    sans_cle = Maillon(nom="principal", fournisseur="gemini", modele="gemini-2.5-flash")
+    _, appel = ClientLLM([sans_cle, OPENROUTER], transport=t).structurer("s", "q", Capitale)
+    assert appel.tentatives[0].statut == "indisponible" and "LLM_PRINCIPAL_CLE" in appel.tentatives[0].detail
+    assert [r.url.host for r in t.recues] == [O]  # Gemini n'a pas été appelé
+
+
+def test_message_d_erreur_lisible():
+    t = transport(**{A: httpx.Response(401, json={"type": "error", "error": {
+        "type": "authentication_error", "message": "invalid x-api-key"}})})
+    with pytest.raises(EchecLLM) as e:
+        ClientLLM([REPLI], transport=t).structurer("s", "q", Capitale)
+    assert e.value.appel.tentatives[0].detail == "401 invalid x-api-key"
+
+
 def test_json_entoure_d_un_bloc_de_code_accepte():
     t = transport(**{O: openai_ok("```json\n" + json.dumps(BON) + "\n```")})
     obj, _ = ClientLLM([OPENROUTER], transport=t).structurer("s", "q", Capitale)
