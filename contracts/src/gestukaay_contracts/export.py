@@ -12,7 +12,16 @@ from pathlib import Path
 
 from pydantic import TypeAdapter
 
-from .models import AskRequest, AskResponse, ConfirmRequest, FeedbackRequest, Problem
+from .models import (
+    AskRequest,
+    AskResponse,
+    ConfirmRequest,
+    FeedbackRequest,
+    Problem,
+    SituateRequest,
+    SituateResponse,
+    TranscriptionResponse,
+)
 
 SORTIE = Path(__file__).resolve().parents[2] / "generated"
 
@@ -24,6 +33,9 @@ MODELES = {
     "confirm_request": (ConfirmRequest, "validation"),
     "feedback_request": (FeedbackRequest, "validation"),
     "problem": (Problem, "serialization"),
+    "transcription_response": (TranscriptionResponse, "serialization"),
+    "situate_request": (SituateRequest, "validation"),
+    "situate_response": (SituateResponse, "serialization"),
 }
 
 

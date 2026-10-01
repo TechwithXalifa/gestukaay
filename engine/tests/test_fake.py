@@ -11,9 +11,19 @@ from gestukaay_engine import charger_moteur
         ("Population de la ville de Thiès en 2023", "approchee"),
         ("Nombre de voitures à Kolda", "aucune"),
         ("Population du Sénégal en 2040", "aucune"),
+        ("Espérance de vie en 2035", "exacte"),
         ("bla bla bla", "aucune"),
     ],
 )
 def test_moteur_factice_couvre_les_trois_issues(question, issue):
     rep = charger_moteur().repondre(AskRequest(question=question))
     assert rep.reponse.issue == issue
+
+
+def test_moteur_factice_transcrire_et_situer():
+    from gestukaay_contracts.models import SituateRequest
+
+    m = charger_moteur()
+    assert m.transcrire(b"...", "webm").transcription
+    rep = m.situer(SituateRequest(region="SN-KD", taille_menage=7, depenses_mensuelles="100k_200k"))
+    assert rep.position_region in ("en_dessous", "autour", "au_dessus")

@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_CONTRAT = "1.0.0"
+VERSION_CONTRAT = "1.1.0"
 
 
 class _Strict(BaseModel):
@@ -79,6 +79,12 @@ class AskRequest(_Strict):
     # « et Kaolack ? » [EF-09]. Le backend le hache avant journalisation.
     conversation_id: str | None = None
     audio_retour: bool = False  # [EF-16] audio wolof en réponse
+    # v1.1.0 — question dictée puis corrigée sur le web (décision 0004 §1) :
+    # le web envoie le texte final dans `question`, et ce que /v1/transcrire
+    # avait produit dans `transcription_brute`. L'écart sert à mesurer le taux
+    # d'erreur de la transcription (cahier 12.1) ; il n'est pas affiché.
+    source: Literal["texte", "voix"] = "texte"
+    transcription_brute: str | None = Field(None, max_length=1000)
 
 
 class ConfirmRequest(_Strict):
@@ -113,7 +119,9 @@ class RefIndicateur(_Strict):
 class RefZone(_Strict):
     code: str = Field(examples=["SN-TH"])  # ISO 3166-2 pour les régions
     libelle: str
-    niveau: Literal["pays", "region", "departement", "commune"]
+    # v1.1.0 : « academie » = inspection d'académie (données d'éducation,
+    # décision 0003). Le libellé dit « académie de Kolda », jamais « région ».
+    niveau: Literal["pays", "region", "departement", "commune", "academie"]
 
 
 class PeriodeResolue(_Strict):
@@ -138,6 +146,11 @@ class Resultat(_Strict):
     observation_id: str
     # Zone demandée à mettre en évidence (classement, comparaison) [9.8]
     mise_en_evidence: bool = False
+    # v1.1.0 — décision 0002 : les projections officielles de l'ANSD sont
+    # restituées, toujours étiquetées. None = non renseigné (traiter comme observée).
+    nature: Literal["observee", "estimation", "projection"] | None = None
+    # Pour une estimation ou une projection : sa base, à afficher dans le badge
+    base_projection: str | None = Field(None, examples=["Projections démographiques 2023-2073"])
 
 
 class PointGraphique(_Strict):
@@ -242,6 +255,74 @@ class AskResponse(_Strict):
 
     version_contrat: str = VERSION_CONTRAT
     reponse: Reponse
+
+
+# ---------------------------------------------------------------------------
+# v1.1.0 — Transcription seule, pour corriger avant l'envoi (décision 0004 §1)
+# ---------------------------------------------------------------------------
+
+
+class TranscriptionResponse(_Strict):
+    """Réponse de POST /v1/transcrire [EF-11, EF-15, US-09].
+
+    Corps de la requête : multipart, champ `fichier` (WebM/OGG Opus, 60 s
+    max) et champ facultatif `langue` (fr | wo | auto). L'audio n'est pas
+    conservé (10.7). Le web affiche `transcription`, l'utilisateur la corrige,
+    puis envoie POST /v1/ask avec source="voix".
+    """
+
+    version_contrat: str = VERSION_CONTRAT
+    transcription: str  # vide si rien n'a été compris -> état « je n'ai pas bien compris » (7.3)
+    langue: Langue
+    duree_s: float
+    confiance: float | None = Field(None, ge=0, le=1)
+
+
+# ---------------------------------------------------------------------------
+# v1.1.0 — « Où je me situe » (décision 0004 §2) [EF-37 à EF-41]
+# ---------------------------------------------------------------------------
+
+# Dépenses mensuelles du ménage, en FCFA, par tranches [EF-37]
+TrancheDepense = Literal["moins_50k", "50k_100k", "100k_200k", "200k_350k", "350k_500k", "plus_500k"]
+
+
+class SituateRequest(_Strict):
+    """Corps de POST /v1/situate. RIEN n'est conservé : ni base, ni journal [EF-40, US-21]."""
+
+    region: str = Field(examples=["SN-KD"])  # code de région du référentiel
+    taille_menage: int = Field(ge=1, le=40)  # nombre exact : intervalle par personne plus étroit
+    depenses_mensuelles: TrancheDepense
+    # Demandé par le cahier (EF-37) mais aucune donnée publiée ne le croise
+    # encore : accepté, non exploité en v1.1.0.
+    niveau_instruction_chef: Literal["aucun", "primaire", "moyen", "secondaire", "superieur"] | None = None
+
+
+class Intervalle(_Strict):
+    minimum: float
+    maximum: float | None  # None : tranche ouverte (« plus de 500 000 »)
+    libelle: str = Field(examples=["entre 133 333 et 480 000 FCFA"])
+
+
+Position = Literal["en_dessous", "autour", "au_dessus"]
+
+
+class SituateResponse(_Strict):
+    """Le ménage comparé aux moyennes PUBLIÉES. Aucune tranche (décile,
+    quintile) : le portail n'en publie pas les seuils (décision 0004 §2)."""
+
+    version_contrat: str = VERSION_CONTRAT
+    # Calcul sur les SEULES données saisies : dépenses × 12 / taille du ménage
+    depense_par_personne_an: Intervalle
+    moyenne_region: Resultat  # consommation moyenne par tête de la région (FCFA/an)
+    moyenne_pays: Resultat
+    # au_dessus / en_dessous si tout l'intervalle est d'un côté de la moyenne, sinon autour
+    position_region: Position
+    position_pays: Position
+    # Repères publiés : pauvreté des ménages de même taille (national), part de la
+    # région dans le quintile le plus bas, accès à l'électricité de la région…
+    contexte: list[Resultat] = Field(default_factory=list, max_length=6)
+    # 1 à 3 phrases par gabarit + encadré « C'est quoi une moyenne ? » [EF-39]
+    explication: str
 
 
 # ---------------------------------------------------------------------------

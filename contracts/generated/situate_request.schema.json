@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "description": "Corps de POST /v1/situate. RIEN n'est conservé : ni base, ni journal [EF-40, US-21].",
+  "properties": {
+    "region": {
+      "examples": [
+        "SN-KD"
+      ],
+      "type": "string"
+    },
+    "taille_menage": {
+      "maximum": 40,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "depenses_mensuelles": {
+      "enum": [
+        "moins_50k",
+        "50k_100k",
+        "100k_200k",
+        "200k_350k",
+        "350k_500k",
+        "plus_500k"
+      ],
+      "type": "string"
+    },
+    "niveau_instruction_chef": {
+      "anyOf": [
+        {
+          "enum": [
+            "aucun",
+            "primaire",
+            "moyen",
+            "secondaire",
+            "superieur"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "region",
+    "taille_menage",
+    "depenses_mensuelles"
+  ],
+  "title": "SituateRequest",
+  "type": "object"
+}

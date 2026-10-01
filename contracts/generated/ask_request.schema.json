@@ -47,6 +47,26 @@
     "audio_retour": {
       "default": false,
       "type": "boolean"
+    },
+    "source": {
+      "default": "texte",
+      "enum": [
+        "texte",
+        "voix"
+      ],
+      "type": "string"
+    },
+    "transcription_brute": {
+      "anyOf": [
+        {
+          "maxLength": 1000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

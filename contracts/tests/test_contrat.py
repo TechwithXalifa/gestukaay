@@ -5,11 +5,32 @@ import re
 from pathlib import Path
 
 import pytest
-from gestukaay_contracts.models import AskResponse, ReponseApprochee
+from gestukaay_contracts.models import (
+    AskResponse,
+    ReponseApprochee,
+    SituateResponse,
+    TranscriptionResponse,
+)
 from pydantic import ValidationError
 
-EXEMPLES = sorted((Path(__file__).parents[1] / "examples").glob("*.json"))
+DOSSIER = Path(__file__).parents[1] / "examples"
+# Exemples qui ne sont pas des AskResponse (routes v1.1.0)
+AUTRES = {"transcription.json": TranscriptionResponse, "situer.json": SituateResponse}
+EXEMPLES = sorted(p for p in DOSSIER.glob("*.json") if p.name not in AUTRES)
 GENERATED = Path(__file__).parents[1] / "generated"
+
+
+@pytest.mark.parametrize("nom,modele", AUTRES.items())
+def test_exemples_des_autres_routes_conformes(nom, modele):
+    modele.model_validate_json((DOSSIER / nom).read_text(encoding="utf-8"))
+
+
+def test_situer_toute_valeur_a_sa_source_et_aucune_tranche():
+    rep = SituateResponse.model_validate_json((DOSSIER / "situer.json").read_text(encoding="utf-8"))
+    for r in [rep.moyenne_region, rep.moyenne_pays, *rep.contexte]:
+        assert r.source.libelle and r.source.date_publication and r.source.url
+    # décision 0004 §2 : aucune notion de décile ou de quintile du ménage lui-même
+    assert "decile" not in SituateResponse.model_fields and "quintile" not in SituateResponse.model_fields
 
 
 @pytest.mark.parametrize("chemin", EXEMPLES, ids=lambda p: p.stem)
@@ -32,6 +53,15 @@ def test_approchee_ne_peut_pas_porter_de_valeur():
     with pytest.raises(ValidationError):
         AskResponse.model_validate(data)
     assert "resultats" not in ReponseApprochee.model_fields
+
+
+def test_une_projection_est_toujours_etiquetee():
+    """Décision 0002 : une projection affichée porte sa nature et sa base."""
+    for chemin in EXEMPLES:
+        rep = AskResponse.model_validate_json(chemin.read_text(encoding="utf-8")).reponse
+        for r in getattr(rep, "resultats", []):
+            if r.nature == "projection":
+                assert r.base_projection
 
 
 @pytest.mark.parametrize("chemin", EXEMPLES, ids=lambda p: p.stem)

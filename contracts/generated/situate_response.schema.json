@@ -1,0 +1,312 @@
+{
+  "$defs": {
+    "Intervalle": {
+      "additionalProperties": false,
+      "properties": {
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "libelle": {
+          "examples": [
+            "entre 133 333 et 480 000 FCFA"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum",
+        "libelle"
+      ],
+      "title": "Intervalle",
+      "type": "object"
+    },
+    "PeriodeResolue": {
+      "additionalProperties": false,
+      "properties": {
+        "valeur": {
+          "examples": [
+            "2023"
+          ],
+          "type": "string"
+        },
+        "libelle": {
+          "examples": [
+            "2023"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "valeur",
+        "libelle"
+      ],
+      "title": "PeriodeResolue",
+      "type": "object"
+    },
+    "RefIndicateur": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "libelle"
+      ],
+      "title": "RefIndicateur",
+      "type": "object"
+    },
+    "RefZone": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "examples": [
+            "SN-TH"
+          ],
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        },
+        "niveau": {
+          "enum": [
+            "pays",
+            "region",
+            "departement",
+            "commune",
+            "academie"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "libelle",
+        "niveau"
+      ],
+      "title": "RefZone",
+      "type": "object"
+    },
+    "Resultat": {
+      "additionalProperties": false,
+      "description": "Une valeur officielle et tout ce qu'il faut pour la citer.",
+      "properties": {
+        "indicateur": {
+          "$ref": "#/$defs/RefIndicateur"
+        },
+        "zone": {
+          "$ref": "#/$defs/RefZone"
+        },
+        "periode": {
+          "$ref": "#/$defs/PeriodeResolue"
+        },
+        "desagregation": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "valeur": {
+          "type": "number"
+        },
+        "valeur_affichee": {
+          "examples": [
+            "2 463 677"
+          ],
+          "type": "string"
+        },
+        "unite": {
+          "examples": [
+            "habitants"
+          ],
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/Source"
+        },
+        "observation_id": {
+          "type": "string"
+        },
+        "mise_en_evidence": {
+          "default": false,
+          "type": "boolean"
+        },
+        "nature": {
+          "anyOf": [
+            {
+              "enum": [
+                "observee",
+                "estimation",
+                "projection"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "base_projection": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "examples": [
+            "Projections démographiques 2023-2073"
+          ]
+        }
+      },
+      "required": [
+        "indicateur",
+        "zone",
+        "periode",
+        "desagregation",
+        "valeur",
+        "valeur_affichee",
+        "unite",
+        "source",
+        "observation_id",
+        "mise_en_evidence",
+        "nature",
+        "base_projection"
+      ],
+      "title": "Resultat",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "Bloc source — obligatoire sur toute valeur, tous canaux [Engagement 01].",
+      "properties": {
+        "producteur": {
+          "examples": [
+            "ANSD"
+          ],
+          "type": "string"
+        },
+        "operation": {
+          "examples": [
+            "RGPH-5"
+          ],
+          "type": "string"
+        },
+        "titre": {
+          "type": "string"
+        },
+        "date_publication": {
+          "format": "date",
+          "type": "string"
+        },
+        "licence": {
+          "examples": [
+            "CC BY 4.0"
+          ],
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "libelle": {
+          "examples": [
+            "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "producteur",
+        "operation",
+        "titre",
+        "date_publication",
+        "licence",
+        "url",
+        "libelle"
+      ],
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Le ménage comparé aux moyennes PUBLIÉES. Aucune tranche (décile,\nquintile) : le portail n'en publie pas les seuils (décision 0004 §2).",
+  "properties": {
+    "version_contrat": {
+      "default": "1.1.0",
+      "type": "string"
+    },
+    "depense_par_personne_an": {
+      "$ref": "#/$defs/Intervalle"
+    },
+    "moyenne_region": {
+      "$ref": "#/$defs/Resultat"
+    },
+    "moyenne_pays": {
+      "$ref": "#/$defs/Resultat"
+    },
+    "position_region": {
+      "enum": [
+        "en_dessous",
+        "autour",
+        "au_dessus"
+      ],
+      "type": "string"
+    },
+    "position_pays": {
+      "enum": [
+        "en_dessous",
+        "autour",
+        "au_dessus"
+      ],
+      "type": "string"
+    },
+    "contexte": {
+      "items": {
+        "$ref": "#/$defs/Resultat"
+      },
+      "maxItems": 6,
+      "type": "array"
+    },
+    "explication": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "version_contrat",
+    "depense_par_personne_an",
+    "moyenne_region",
+    "moyenne_pays",
+    "position_region",
+    "position_pays",
+    "contexte",
+    "explication"
+  ],
+  "title": "SituateResponse",
+  "type": "object"
+}
