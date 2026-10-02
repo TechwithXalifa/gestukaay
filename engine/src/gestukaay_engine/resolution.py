@@ -92,8 +92,9 @@ def correspond(canonique: str, valeur: str, modalite: str) -> bool:
     m, v = normaliser(modalite), normaliser(valeur)
     if v == "total":
         return m in _TOTAUX
-    if v in _VALEURS:
-        return m in _VALEURS[v] or bool(set(m.split()) & _VALEURS[v])
+    for groupe in _VALEURS.values():  # « primaire » ~ « Elémentaire », « filles » ~ « Féminin »
+        if v in groupe:
+            return m in groupe or bool(set(m.split()) & groupe)
     if canonique == "age":
         return m == v or (_nombres(v) and _nombres(v) == _nombres(m)) or (v in m)
     return v == m or v in m.split()
@@ -122,31 +123,45 @@ def citee(modalite: str, question: str) -> bool:
     return bool(m) and len("".join(m)) >= 3 and f" {' '.join(m)} " in q
 
 
-def choisir(lignes: list[Observation], demande: dict[str, str], question: str = "",
-            defauts: dict[str, str] | None = None) -> tuple[list[Observation], Introuvable | None]:
-    """Fixe chaque dimension, dans l'ordre : demandée, nommée dans la question, unique, total,
-    défaut déclaré du jeu ; sinon ambiguë (les modalités sont rendues pour proposer un choix)."""
-    defauts = defauts or {}
+def imposer(lignes: list[Observation], demande: dict[str, str]) -> tuple[list[Observation], Introuvable | None]:
+    """Applique ce que la question demande (vocabulaire fixe), toutes périodes confondues."""
     dims = {k for o in lignes for k, _ in o.desagregation}
     imposees: dict[str, str] = {}
     for canon, valeur in demande.items():
         d = dimension(canon, dims) if canon in _CLES else None
         if d is None:
-            return [], Introuvable("desagregation_absente", f"{canon} = {valeur} : non publié pour cet indicateur")
+            if normaliser(valeur) == "total":
+                continue  # demander le total, c'est le défaut
+            # la clé ne colle à aucune dimension (« produit = français ») : la modalité existe-t-elle ailleurs ?
+            ailleurs = [(k, m) for k in sorted(dims) for m in sorted({o.dims().get(k) for o in lignes} - {None})
+                        if not est_total(m) and correspond(canon, valeur, m)]
+            if len(ailleurs) != 1:
+                return [], Introuvable("desagregation_absente", f"{canon} = {valeur} : non publié pour cet indicateur")
+            d = ailleurs[0][0]
         modalites = sorted({o.dims().get(d) for o in lignes} - {None})
         trouvees = [m for m in modalites if correspond(canon, valeur, m)]
         if not trouvees:
             return [], Introuvable("desagregation_absente", f"{canon} = {valeur}", choix={d: modalites})
         imposees[d] = trouvees[0]
+    return [o for o in lignes if all(o.dims().get(d) == v for d, v in imposees.items())], None
+
+
+def completer(lignes: list[Observation], question: str = "",
+              defauts: dict[str, str] | None = None) -> tuple[list[Observation], Introuvable | None]:
+    """Fixe les dimensions restantes, dans l'ordre : nommée dans la question, unique, total, défaut
+    déclaré du jeu ; sinon ambiguë (les modalités sont rendues pour proposer un choix)."""
+    defauts = defauts or {}
+    dims = {k for o in lignes for k, _ in o.desagregation}
+    imposees: dict[str, str] = {}
     ambigues: dict[str, list[str]] = {}
-    for d in sorted(dims - imposees.keys()):
+    for d in sorted(dims):
         modalites = sorted({o.dims().get(d) for o in lignes} - {None})
         nommees = [m for m in modalites if not est_total(m) and citee(m, question)]
         totaux = [m for m in modalites if est_total(m)]
-        if len(nommees) == 1:
-            imposees[d] = nommees[0]
-        elif len(modalites) == 1:
+        if len(modalites) == 1:
             imposees[d] = modalites[0]
+        elif len(nommees) == 1:
+            imposees[d] = nommees[0]
         elif totaux:
             imposees[d] = totaux[0]
         elif defauts.get(d) in modalites:
@@ -156,6 +171,13 @@ def choisir(lignes: list[Observation], demande: dict[str, str], question: str = 
     if ambigues:
         return [], Introuvable("desagregation_ambigue", "préciser : " + ", ".join(ambigues), choix=ambigues)
     return [o for o in lignes if all(o.dims().get(d, v) == v for d, v in imposees.items())], None
+
+
+def choisir(lignes: list[Observation], demande: dict[str, str], question: str = "",
+            defauts: dict[str, str] | None = None) -> tuple[list[Observation], Introuvable | None]:
+    """imposer() puis completer(), sur des lignes d'une même période."""
+    lignes, erreur = imposer(lignes, demande)
+    return ([], erreur) if erreur else completer(lignes, question, defauts)
 
 
 # --------------------------------------------------------------------------
@@ -255,14 +277,17 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
     if zone not in publiees:
         return Introuvable("zone_non_couverte", f"{zone} non publié", disponibles=publiees)
     demande = {k: v for k, v in demande.items() if not portee_par_indicateur(ind, v)}
-    lignes = [o for o in lignes if o.zone == zone]
-    # la période d'abord : une dimension n'est ambiguë que si plusieurs modalités existent cette année-là
+    # 1. ce que la question demande (riz : seule année publiée à Kaolack, 2016) ;
+    # 2. la période ; 3. les autres dimensions, ambiguës seulement si plusieurs modalités existent cette année-là
+    lignes, erreur = imposer([o for o in lignes if o.zone == zone], demande)
+    if erreur:
+        return erreur
     periodes = sorted({o.periode for o in lignes})
     p = periode or periodes[-1]
     if p not in periodes:
         return Introuvable("periode_absente", f"{p} non publié", disponibles=periodes)
-    retenues, erreur = choisir([o for o in lignes if o.periode == p], demande, question,
-                               defauts_desagregation().get(ind.dataset_id))
+    retenues, erreur = completer([o for o in lignes if o.periode == p], question,
+                                 defauts_desagregation().get(ind.dataset_id))
     if erreur:
         return erreur
     if len({o.desagregation for o in retenues}) > 1:  # ne devrait pas arriver après choisir()

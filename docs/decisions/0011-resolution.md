@@ -28,10 +28,16 @@ sans recalcul, et savoir dire quand elle n'existe pas.
 
 ## Conséquences
 
-- Bout en bout (compréhension + résolution) sur le jeu de test, **règles seules, sans réseau** :
-  48/57 questions exactes justes au chiffre près ; 9 chiffres faux, tous dus aux limites de la
-  compréhension par règles (refus hors sujet non détectés, indicateur voisin) — à mesurer avec le LLM
-  (`engine/scripts/evaluer_bout_en_bout.py`, `mesure/rapports/bout_en_bout_*.md`).
+- Bout en bout (compréhension + résolution) sur le jeu de test (`engine/scripts/evaluer_bout_en_bout.py`,
+  `mesure/rapports/bout_en_bout_*.md`) :
+  - **Gemini 2.5 Flash** : 50/57 questions exactes justes au chiffre près, **31/31 approchées et refus
+    sans aucune valeur servie**. Quatre « sans réponse » venaient de la résolution (sexe = total sans
+    dimension sexe, « français » rangé dans produit, « primaire », céréale demandée avant la période) :
+    corrigés et rejoués sur le socle réel, d'où **54/57 attendus**. Restent 2 valeurs d'un autre jeu
+    officiel (retard de croissance 2023 au lieu de l'EDS 2019 ; WO-002, ambiguë : nombre de chômeurs)
+    et WO-009 (type de pêche à préciser) ;
+  - règles seules, sans réseau : 48/57, 9 chiffres faux dus à la compréhension par règles (refus hors
+    sujet non détectés) : c'est le secours, pas le mode nominal.
 - « Nombre de voitures à Kolda » sert le TOTAL du parc (9 317) : la nuance « voitures » ≠ toutes
   catégories relève de #12 (proposer TOTAL ou VPP).
 - `valeur_affichee` et les libellés de période sont provisoires : les gabarits (#16) les reprennent.

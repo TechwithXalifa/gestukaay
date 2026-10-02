@@ -16,7 +16,7 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **12** | **46** | |
+| **Total** | **13** | **46** | |
 
 ## Comment je mets à jour ce fichier
 

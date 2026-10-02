@@ -120,3 +120,23 @@ def test_charger_lit_le_format_extrait(tmp_path):
     s = charger(tmp_path)
     assert len(s) == 1 and s.observations("pvswjnd")[0].dims() == {"sexe": "Total"}
     assert s.sources["pvswjnd"].date_publication == date(2023, 10, 31)
+
+
+def test_demandes_du_llm_tolerees():
+    """Cas réels de la passe Gemini (#11) : sexe = total sans dimension sexe ; « français » rangé dans
+    produit ; « primaire » pour « Elémentaire » ; la céréale demandée avant la dernière période."""
+    s = Socle([
+        obs("whkisxc", "SN", "2018-12", 55538, nationalité="Français"),
+        obs("whkisxc", "SN", "2018-12", 9000, nationalité="Algériens"),
+        obs("ervtjfc.taux-brut-de-scolarisation", "SN-IA-LOUGA", "2025", 86.7, sexe="Féminin", cycle="Elémentaire"),
+        obs("ervtjfc.taux-brut-de-scolarisation", "SN-IA-LOUGA", "2025", 70.1, sexe="Féminin", cycle="Moyen général"),
+        obs("sbsryhc", "SN-KL", "2016", 273.5, **{"type-de-céréales": "Riz"}),
+        obs("sbsryhc", "SN-KL", "2023", 300.0, **{"type-de-céréales": "mil"}),
+    ], SOURCES)
+    assert une(resoudre(s, req("whkisxc", periode="2018-12", produit="français"))).valeur == 55538
+    assert une(resoudre(s, req("whkisxc", periode="2018-12", sexe="total"),
+                        question="touristes français")).valeur == 55538
+    assert une(resoudre(s, req("ervtjfc.taux-brut-de-scolarisation", ["SN-IA-LOUGA"], sexe="femmes",
+                               cycle="primaire"))).valeur == 86.7
+    x = une(resoudre(s, req("sbsryhc", ["SN-KL"], produit="riz")))
+    assert (x.valeur, x.periode.valeur) == (273.5, "2016")
