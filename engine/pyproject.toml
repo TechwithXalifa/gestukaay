@@ -5,6 +5,7 @@ description = "Moteur Gëstukaay : compréhension (LLM) + résolution détermini
 requires-python = ">=3.12"
 dependencies = [
     "gestukaay-contracts",
+    "gestukaay-socle",
     "httpx>=0.28.1",
 ]
 

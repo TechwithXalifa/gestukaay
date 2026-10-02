@@ -15,10 +15,10 @@ PAR_ID = {q["id"]: q for q in QUESTIONS}
 
 # Répartition validée (cahier 12.1 : 70 FR / 30 WO), portée à 103 en #3 pour garder 20 refus
 REPARTITION = {
-    ("fr", "simple"): 28, ("fr", "comparative"): 11, ("fr", "classement"): 7,
-    ("fr", "approchee"): 9, ("fr", "refus"): 14, ("fr", "suivi"): 3,
-    ("wo", "simple"): 12, ("wo", "comparative"): 4, ("wo", "classement"): 3,
-    ("wo", "approchee"): 4, ("wo", "refus"): 6, ("wo", "suivi"): 2,
+    ("fr", "simple"): 29, ("fr", "comparative"): 11, ("fr", "classement"): 7,
+    ("fr", "approchee"): 8, ("fr", "refus"): 14, ("fr", "suivi"): 3,
+    ("wo", "simple"): 13, ("wo", "comparative"): 4, ("wo", "classement"): 3,
+    ("wo", "approchee"): 3, ("wo", "refus"): 6, ("wo", "suivi"): 2,
 }
 ISSUE_PAR_TYPE = {"simple": "exacte", "comparative": "exacte", "classement": "exacte",
                   "suivi": "exacte", "approchee": "approchee", "refus": "aucune"}

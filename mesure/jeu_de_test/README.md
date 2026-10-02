@@ -8,10 +8,10 @@ indicateurs du socle (#3).
 
 | Type | Ce qu'on teste | FR | WO |
 |---|---|---|---|
-| simple | une valeur | 28 | 12 |
+| simple | une valeur | 29 | 13 |
 | comparative | 2 zones ou 2 périodes | 11 | 4 |
 | classement | « quelle région… le plus… » | 7 | 3 |
-| approchee | ville → département, « Dakar » → 3 académies, période voisine, catégorie non publiée | 9 | 4 |
+| approchee | ville → département, « Dakar » → 3 académies, période voisine, catégorie non publiée | 8 | 3 |
 | refus | donnée absente, prévision non publiée, hors statistique, inintelligible | 14 | 6 |
 | suivi | « et pour Kaolack ? » (colonne `suite_de`) | 3 | 2 |
 
