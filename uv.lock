@@ -163,10 +163,14 @@ version = "0.1.0"
 source = { editable = "engine" }
 dependencies = [
     { name = "gestukaay-contracts" },
+    { name = "httpx" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "gestukaay-contracts", editable = "contracts" }]
+requires-dist = [
+    { name = "gestukaay-contracts", editable = "contracts" },
+    { name = "httpx", specifier = ">=0.28.1" },
+]
 
 [[package]]
 name = "gestukaay-socle"
