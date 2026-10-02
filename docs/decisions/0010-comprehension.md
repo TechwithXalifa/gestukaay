@@ -27,8 +27,23 @@ Le cahier exige « aucun chiffre inventé » et des codes validés contre le soc
 
 ## Conséquences
 
-- Règles seules, sans LLM, sur les 103 questions : **85 justes (83 %)**, zones et périodes 100 %,
-  indicateurs 91 % (`mesure/rapports/comprehension_regles.md`). Le LLM doit surtout apporter les refus
-  hors sujet (météo, Paris) et les indicateurs proches (production de riz contre prix du riz).
+- **Mesures sur les 103 questions** (`mesure/rapports/comprehension_*.md`, délai 2 s) :
+
+  | | Juste | Intention | Indicateur | Médiane | Coût / question |
+  |---|---|---|---|---|---|
+  | Règles seules | 86 (83 %) | 91 % | 92 % | — | 0 |
+  | **Gemini 2.5 Flash** (OpenRouter) | **99 (96 %)** | 100 % | 96 % | 1,1 s | ~0,0006 $ |
+  | Gemini 2.5 Flash-Lite | 84 (82 %) | 96 % | 84 % | 0,8 s | ~0,0002 $ |
+  | Qwen3-32B | — | — | — | 3,4 s : au-delà du délai | — |
+
+  **Chaîne retenue** (`.env.example`) : Gemini 2.5 Flash, puis Flash-Lite, puis les règles.
+- Ce qui a fait progresser le LLM : candidats publiés au niveau de zone cité placés en tête, couverture
+  [zones ; années] affichée, indicateurs vérifiés marqués ★, consigne « choisis même si la zone n'est
+  pas couverte (réponse approchée) », période du LLM prise seulement si la question parle du temps.
+- La compréhension a trouvé une donnée que le jeu de test ignorait : le prix du riz par région (CSA,
+  `sbsryhc`) ; FR-049 et WO-021 deviennent exactes.
+- Restent 4 confusions entre indicateurs équivalents de jeux différents (chômage national `muhgux`
+  contre régional `dwibrlf`…) : la résolution (#11) devra préférer, à concept égal, le jeu qui couvre
+  la zone et la période demandées.
 - **Limite du contrat** : `Periode` ne porte qu'une période ; « entre 2015 et 2025 » (5 questions)
   garde la première. Évolution du contrat (v1.2.0) à proposer à SAN.
