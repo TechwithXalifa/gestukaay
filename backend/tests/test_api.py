@@ -21,6 +21,7 @@ def test_trois_issues_de_bout_en_bout():
 def test_latence_et_relecture():
     rep = _demander("Combien d'habitants à Thiès ?")
     assert rep["latence_ms"] is not None
+    assert rep["url"].endswith(f"/r/{rep['id']}") and "gestukaay.test" not in rep["url"]
     assert client.get(f"/v1/answers/{rep['id']}").json()["reponse"]["id"] == rep["id"]
 
 
