@@ -52,7 +52,7 @@ FR-050;fr;approchee;pauvreté;besoin;Quel est le taux de pauvreté au Sénégal 
 FR-051;fr;approchee;démographie;besoin;Combien d'habitants à Touba ?;;;approchee;;pvswjnd;regions;"{""sexe"": ""Total"", ""age"": ""Total""}";SN-DB-MBACKE;;;;;Touba est une ville du département de Mbacké.;
 FR-052;fr;approchee;emploi;besoin;Taux de chômage à Kaolack en 2026;;;approchee;;dwibrlf;régions;"{""sexe"": ""TOTAL"", ""âge"": ""TOTAL""}";SN-KL;;;;;Dernière année publiée : 2025.;
 FR-053;fr;approchee;énergie;besoin;Quel pourcentage des ménages ont l'électricité à Pikine ?;;;approchee;;asongtc;régions;"{""milieu-de-résidence"": ""Total""}";SN-DK;;;;;Donnée régionale seulement : proposer la région de Dakar (zone parente).;
-FR-054;fr;refus;transport;cahier;Nombre de voitures à Kolda;;;aucune;hors_socle;;;;;;;;;"À vérifier en #3 : un parc automobile national existe (amkzokg) ; si retenu, l'issue devient approchée.";
+FR-054;fr;approchee;transport;cahier;Nombre de voitures à Kolda;;;approchee;;qbvttzc;région;"{""catégories"": ""TOTAL""}";SN-KD;;;;;« Voitures » n'est pas une catégorie publiée : proposer le parc de véhicules (TOTAL) ou les véhicules particuliers (VPP), qbvttzc (DTT, 2017-2021). Exemple de refus du cahier (§5, annexe) devenu approché : la donnée existe (#3).;
 FR-055;fr;refus;démographie;cahier;Population du Sénégal en 2040;;;aucune;projection;;;;;;;;;Projections publiées jusqu'en 2038 seulement.;
 FR-056;fr;refus;emploi;besoin;Quel sera le taux de chômage en 2030 ?;;;aucune;projection;;;;;;;;;;
 FR-057;fr;refus;prix;besoin;Quelle sera l'inflation en 2027 ?;;;aucune;projection;;;;;;;;;;
@@ -65,10 +65,12 @@ FR-063;fr;refus;—;besoin;Écris-moi un poème sur la Casamance;;;aucune;hors_s
 FR-064;fr;refus;—;besoin;asdkjh qwe;;;aucune;incomprehension;;;;;;;;;;
 FR-065;fr;refus;—;besoin;euh bon voilà quoi;;;aucune;incomprehension;;;;;;;;;;
 FR-066;fr;refus;—;besoin;Combien de vaches a mon voisin ?;;;aucune;hors_socle;;;;;;;;;;
-FR-067;fr;refus;justice;besoin;Quel est le taux de criminalité à Kaolack ?;;;aucune;hors_socle;;;;;;;;;À confirmer en #3 : aucune statistique de criminalité régionale repérée.;
+FR-067;fr;approchee;justice;besoin;Quel est le taux de criminalité à Kaolack ?;;;approchee;;iocwzud;;"{""taux-de-criminalité"": ""Taux de criminalité""}";SN;;;;;Taux de criminalité publié au niveau national seulement (iocwzud) : proposer le Sénégal (zone parente).;
 FR-068;fr;suivi;démographie;cahier;Et pour Kaolack ?;;FR-001;exacte;;pvswjnd;regions;"{""sexe"": ""Total"", ""age"": ""Total""}";SN-KL;2023;SN-KL=1336720;;oui;;
 FR-069;fr;suivi;emploi;besoin;Et en 2025 ?;;FR-030;exacte;;dwibrlf;régions;"{""sexe"": ""TOTAL"", ""âge"": ""TOTAL""}";SN-DK|SN-TH;2025;SN-DK=13.2|SN-TH=22.7;%;non;;
 FR-070;fr;suivi;prix;besoin;Et le mil ?;;FR-011;exacte;;feujxob;;"{""indicateur"": ""Mil en grain  vendu au détail""}";SN-DK;2026-03;SN-DK=392.894285813803;FCFA/kg;oui;;
+FR-071;fr;refus;démographie;besoin;Combien de personnes parlent sérère au Sénégal ?;;;aucune;hors_socle;;;;;;;;;Langues parlées : dans le rapport RGPH-5, absentes du portail (aucune occurrence, vérifié en #3). Exemple de refus pour la démo.;
+FR-072;fr;refus;—;besoin;Combien de Sénégalais sont partis en pèlerinage à La Mecque en 2024 ?;;;aucune;hors_socle;;;;;;;;;Aucune statistique de pèlerinage dans le socle (vérifié en #3).;
 WO-001;wo;simple;démographie;cahier;Ñaata nit ñoo dëkk Tiés ?;Combien d'habitants à Thiès ?;;exacte;;pvswjnd;regions;"{""sexe"": ""Total"", ""age"": ""Total""}";SN-TH;2023;SN-TH=2463677;;oui;;usage
 WO-002;wo;simple;emploi;cahier;Ñi amul ligéey ci Senegaal ?;Quel est le taux de chômage au Sénégal ?;;exacte;;dwibrlf;régions;"{""sexe"": ""TOTAL"", ""âge"": ""TOTAL""}";SN;2025;SN=20.4;%;oui;;usage
 WO-003;wo;simple;prix;persona;Ñata la kilo thieb bou dagg détail di diar ?;Combien coûte le kilo de riz brisé au détail ?;;exacte;;feujxob;;"{""indicateur"": ""Riz brisé ordinaire au détail""}";SN-DK;2026-03;SN-DK=309.026438943514;FCFA/kg;oui;;usage
@@ -92,10 +94,11 @@ WO-020;wo;approchee;démographie;besoin;Ñata nitt nio deuk ville kaolack ?;Comb
 WO-021;wo;approchee;prix;persona;Ñata lay diar thieb kaolack ?;Combien coûte le riz à Kaolack ?;;approchee;;feujxob;;"{""indicateur"": ""Riz brisé ordinaire au détail""}";SN-DK;;;;;Prix relevés seulement à Dakar.;usage
 WO-022;wo;approchee;éducation;piège;Taux scolarisation dakar;Quel est le taux de scolarisation à Dakar ?;;approchee;;ervtjfc;inspection-académique;"{""indicateurs"": ""Taux brut de scolarisation"", ""cycle"": ""Elémentaire"", ""sexe"": ""Totale""}";SN-IA-DAKAR|SN-IA-PIKINE-GUEDIAWAYE|SN-IA-RUFISQUE;;;;;;usage
 WO-023;wo;refus;démographie;cahier;Limu askanu Senegaal ci atum 2040;Population du Sénégal en 2040;;aucune;projection;;;;;;;;;;officielle
-WO-024;wo;refus;transport;besoin;Ñata voitures nio nek ziguinchor ?;Combien de voitures à Ziguinchor ?;;aucune;hors_socle;;;;;;;;;;usage
+WO-024;wo;approchee;transport;besoin;Ñata voitures nio nek ziguinchor ?;Combien de voitures à Ziguinchor ?;;approchee;;qbvttzc;région;"{""catégories"": ""TOTAL""}";SN-ZG;;;;;« Voitures » n'est pas une catégorie publiée : proposer le parc de véhicules (TOTAL) ou les véhicules particuliers (VPP), qbvttzc (DTT, 2017-2021). Exemple de refus du cahier (§5, annexe) devenu approché : la donnée existe (#3).;usage
 WO-025;wo;refus;—;besoin;Kan mooy njiitu réewum Senegaal ?;Qui est le président du Sénégal ?;;aucune;hors_socle;;;;;;;;;;officielle
 WO-026;wo;refus;—;besoin;Naka météo bi di mel euleuk ?;Quel temps fera-t-il demain ?;;aucune;hors_socle;;;;;;;;;;usage
 WO-027;wo;refus;emploi;besoin;Taux chomage en 2030;Quel sera le taux de chômage en 2030 ?;;aucune;projection;;;;;;;;;;usage
 WO-028;wo;refus;—;besoin;waa man tay dama xiif trop lii mbaa diamm la tamit;Bavardage en wolof, sans question statistique;;aucune;incomprehension;;;;;;;;;Aucune question statistique : le moteur doit dire qu'il n'a pas compris et proposer des exemples, jamais deviner un indicateur.;usage
 WO-029;wo;suivi;démographie;cahier;Kaolack nak ?;Et pour Kaolack ?;WO-001;exacte;;pvswjnd;regions;"{""sexe"": ""Total"", ""age"": ""Total""}";SN-KL;2023;SN-KL=1336720;;oui;;officielle
 WO-030;wo;suivi;prix;besoin;Dugub ji nak ?;Et le mil ?;WO-003;exacte;;feujxob;;"{""indicateur"": ""Mil en grain  vendu au détail""}";SN-DK;2026-03;SN-DK=392.894285813803;FCFA/kg;oui;;officielle
+WO-031;wo;refus;démographie;besoin;niaata nit ñooy lakk sereer fatik;Combien de personnes parlent sérère à Fatick ?;;aucune;hors_socle;;;;;;;;;Langues parlées : absentes du portail (vérifié en #3).;usage

@@ -35,3 +35,7 @@ plusieurs unités (comptes nationaux en prix courants et constants, captures en 
   questions types (`questions_types = oui`) peuvent rester en tête.
 - **Jeu de test** : les questions approchées indiquent désormais l'indicateur à proposer
   (`dataset_id`, `filtres`).
+- **Jeu de test (103 questions)** : « Nombre de voitures à Kolda », exemple de refus du cahier (§5,
+  annexe), devient une question **approchée** : le parc de véhicules par région existe (`qbvttzc`, DTT).
+  Idem pour Ziguinchor (WO-024) et la criminalité (FR-067, nationale seulement). Trois refus ajoutés
+  pour garder 20 refus ; l'exemple de refus de la démo devient FR-071 (langues parlées).

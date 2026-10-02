@@ -9,9 +9,9 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 | Indicateurs retenus | 4149 |
 | Jeux du portail | 373 |
 | Domaines | 32 |
-| Priorité P1 (jeu de test) | 24 |
+| Priorité P1 (jeu de test) | 26 |
 | Priorité P2 (domaines des questions types) | 1272 |
-| Priorité P3 (autres) | 2853 |
+| Priorité P3 (autres) | 2851 |
 | Vérifiés à la main | 0 |
 | Avec un libellé wolof | 0 |
 | Écartés | 0 |
@@ -26,12 +26,12 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 | Santé | 394 | 47 | 4 | 390 | 0 | 124 |
 | Économie | 228 | 5 | 0 | 0 | 228 | 0 |
 | Entreprises | 223 | 9 | 0 | 0 | 223 | 0 |
-| Justice | 189 | 27 | 1 | 0 | 188 | 3 |
+| Justice | 189 | 27 | 2 | 0 | 187 | 3 |
 | Culture | 137 | 2 | 0 | 0 | 137 | 0 |
 | Éducation | 108 | 33 | 2 | 106 | 0 | 38 |
 | Démographie | 103 | 17 | 3 | 100 | 0 | 47 |
 | Commerce extérieur | 101 | 7 | 0 | 0 | 101 | 0 |
-| Transport | 75 | 26 | 0 | 0 | 75 | 3 |
+| Transport | 75 | 26 | 1 | 0 | 74 | 3 |
 | Banque et finance | 66 | 6 | 0 | 0 | 66 | 0 |
 | Emploi et chômage | 57 | 7 | 2 | 55 | 0 | 11 |
 | Environnement | 56 | 18 | 0 | 0 | 56 | 9 |
@@ -112,7 +112,7 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | FR-051 | approchee | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
 | FR-052 | approchee | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
 | FR-053 | approchee | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
-| FR-054 | aucune | hors périmètre (hors_socle) | |
+| FR-054 | approchee | `qbvttzc` | Evolution du parc de véhicule par type et par région |
 | FR-055 | aucune | hors périmètre (projection) | |
 | FR-056 | aucune | hors périmètre (projection) | |
 | FR-057 | aucune | hors périmètre (projection) | |
@@ -125,10 +125,12 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | FR-064 | aucune | hors périmètre (incomprehension) | |
 | FR-065 | aucune | hors périmètre (incomprehension) | |
 | FR-066 | aucune | hors périmètre (hors_socle) | |
-| FR-067 | aucune | hors périmètre (hors_socle) | |
+| FR-067 | approchee | `iocwzud` | Taux de criminalité |
 | FR-068 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
 | FR-069 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
 | FR-070 | exacte | `feujxob.mil-en-grain-vendu-au-detail` | Mil en grain vendu au détail |
+| FR-071 | aucune | hors périmètre (hors_socle) | |
+| FR-072 | aucune | hors périmètre (hors_socle) | |
 | WO-001 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
 | WO-002 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
 | WO-003 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Riz brisé ordinaire au détail |
@@ -152,13 +154,14 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | WO-021 | approchee | `feujxob.riz-brise-ordinaire-au-detail` | Riz brisé ordinaire au détail |
 | WO-022 | approchee | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
 | WO-023 | aucune | hors périmètre (projection) | |
-| WO-024 | aucune | hors périmètre (hors_socle) | |
+| WO-024 | approchee | `qbvttzc` | Evolution du parc de véhicule par type et par région |
 | WO-025 | aucune | hors périmètre (hors_socle) | |
 | WO-026 | aucune | hors périmètre (hors_socle) | |
 | WO-027 | aucune | hors périmètre (projection) | |
 | WO-028 | aucune | hors périmètre (incomprehension) | |
 | WO-029 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
 | WO-030 | exacte | `feujxob.mil-en-grain-vendu-au-detail` | Mil en grain vendu au détail |
+| WO-031 | aucune | hors périmètre (hors_socle) | |
 
 Questions sans indicateur : aucune.
 
