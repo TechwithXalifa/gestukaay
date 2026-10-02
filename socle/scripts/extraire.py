@@ -24,6 +24,13 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from gestukaay_socle.controles import (
+    appliquer,
+    controle_population,
+    controler,
+    corrections,
+    unites_incrementees,
+)
 from gestukaay_socle.extraction import (
     COLONNES_OBSERVATIONS,
     COLONNES_REJETS,
@@ -42,6 +49,7 @@ SOCLE = Path(os.environ.get("GESTUKAAY_SOCLE_BRUT", RACINE.parent / "socle_opend
 SORTIE = Path(os.environ.get("GESTUKAAY_SOCLE_EXTRAIT", RACINE.parent / "socle_gestukaay"))
 JEU = RACINE / "mesure" / "jeu_de_test" / "questions.csv"
 RAPPORT = RACINE / "socle" / "rapports" / "extraction.md"
+RAPPORT_CONTROLES = RACINE / "socle" / "rapports" / "controles.md"
 
 
 def lignes_brutes(numeros: bool = False):
@@ -162,6 +170,41 @@ def rapport(res, total_attendus: int, erreurs: list[str], non_observees: list[st
     RAPPORT.write_text("\n".join(L) + "\n", encoding="utf-8")
 
 
+def rapport_controles(observations, corr, exclusions) -> None:
+    """Corrections appliquées, puis ce que les contrôles signalent encore (#6, décision 0008)."""
+    ind = indicateurs()
+    L = ["# Contrôles du socle", "",
+         ("Les **corrections** (`socle/referentiels/corrections.csv`) sont décidées à la main, avec leur preuve. "
+          "Les **contrôles** signalent seulement : rien n'est exclu sans une ligne de corrections."), "",
+         "## Corrections appliquées", "", "| Id | Action | Jeu | Effet | Motif | Preuve |", "|---|---|---|---|---|---|"]
+    for c in corr:
+        if c.action == "exclure":
+            effet = f"{exclusions.get(c.id, 0)} valeurs exclues"
+        else:
+            n = sum(1 for x in ind.values() if x.dataset_id == c.dataset_id and x.unite_affichee == c.valeur)
+            effet = f"unité affichée « {c.valeur} » ({n} indicateurs)"
+        L.append(f"| {c.id} | {c.action} | `{c.dataset_id}` | {effet} | {c.motif} | {c.preuve} |")
+    L += ["", "## Contrôle entre sources : population régionale", "",
+          "`rnumqzf` 2022 comparé au RGPH-5 2023 (`pvswjnd`) : un écart de plus de 15 % trahit une permutation.", ""]
+    L += [f"- {e}" for e in controle_population(observations)] or ["Aucun écart."]
+    unites = unites_incrementees(ind)
+    L += ["", "## Unités incrémentées (portail)", "",
+          ", ".join(f"`{d}` ({n} années de base)" for d, n in sorted(unites.items())) or "Aucune.",
+          "(corrigées pour l'affichage par C05 à C07 ; l'unité du portail reste l'identité de l'indicateur)", ""]
+    L += ["## Signalements restants", "", "| Contrôle | Signalements | Exemples |", "|---|---|---|"]
+    signal = controler(observations, ind)
+    for nom in ("pourcentage hors de 0-100", "Gini hors de ]0, 1[", "date impossible",
+                "rupture (×3 d'une année sur l'autre)"):
+        ex = signal.get(nom, [])
+        L.append(f"| {nom} | {len(ex)} | {'<br>'.join(ex[:5])[:900]} |")
+    ruptures = Counter(e.split("`")[1].split(".")[0].split("~")[0] for e in signal.get(
+        "rupture (×3 d'une année sur l'autre)", []))
+    if ruptures:
+        L += ["", "Ruptures par jeu (à examiner ; une vraie rupture reste servie) : "
+              + ", ".join(f"`{d}` ({n})" for d, n in ruptures.most_common(20)) + "."]
+    RAPPORT_CONTROLES.write_text("\n".join(L) + "\n", encoding="utf-8")
+
+
 def _p1() -> set[str]:
     return {x.code for x in indicateurs().values() if x.priorite == "P1"}
 
@@ -175,17 +218,22 @@ def main() -> int:
         annees_maj = {r["dataset_id"]: r["derniere_maj"][:4] for r in csv.DictReader(f)}
     res = extraire(lignes_brutes(numeros=True), geo, index_indicateurs(indicateurs()), zones_par_jeu(),
                    natures(), annees_maj)
+    corr = corrections()
+    res.observations, rejets_corr, exclusions = appliquer(res.observations, corr)
+    res.rejets = sorted(res.rejets + rejets_corr, key=lambda r: r[0])
     ecrire("observations.csv", COLONNES_OBSERVATIONS, res.observations)
     ecrire("rejets.csv", COLONNES_REJETS, res.rejets)
     ecrire("sources.csv", COLONNES_SOURCES, sources())
     total, erreurs, non_observees = verifier_jeu_de_test(res.observations)
     rapport(res, total, erreurs, non_observees)
+    rapport_controles(res.observations, corr, exclusions)
     print(f"{res.stats['valeurs lues']} valeurs lues : {len(res.observations)} extraites, "
           f"{len(res.rejets)} rejetées -> {SORTIE}")
     print(f"Jeu de test : {total - len(erreurs)}/{total} valeurs attendues retrouvées")
     for e in erreurs:
         print("  ÉCHEC", e)
-    print(f"Rapport : {RAPPORT.relative_to(RACINE)}")
+    print(f"Corrections : {sum(exclusions.values())} valeurs exclues ({dict(exclusions)})")
+    print(f"Rapports : {RAPPORT.relative_to(RACINE)}, {RAPPORT_CONTROLES.relative_to(RACINE)}")
     return 1 if erreurs else 0
 
 
