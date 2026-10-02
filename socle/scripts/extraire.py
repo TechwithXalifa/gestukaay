@@ -31,6 +31,7 @@ from gestukaay_socle.extraction import (
     colonnes_geo,
     extraire,
     index_indicateurs,
+    natures,
     zones_par_jeu,
 )
 from gestukaay_socle.indicateurs import dimensions_indicateur, indicateurs
@@ -90,22 +91,24 @@ def verifier_jeu_de_test(observations) -> tuple[int, list[str]]:
     for o in observations:
         if o[1] in utiles:
             par_code[o[1]].append(o)
-    total, erreurs = 0, []
+    total, erreurs, non_observees = 0, [], []
     for q in questions:
         filtres = json.loads(q["filtres"])
         for k in dimensions_indicateur(filtres):
             filtres.pop(k)  # porté par le code de l'indicateur
         for z, p, v in attendus(q):
             total += 1
-            trouvees = [float(o[6]) for c in par_question[q["id"]] for o in par_code[c]
-                        if o[2] == z and o[4] == p
-                        and all(json.loads(o[5]).get(k) == x for k, x in filtres.items())]
-            if trouvees != [v]:
-                erreurs.append(f"{q['id']} {z}@{p} : attendu {v}, trouvé {trouvees}")
-    return total, erreurs
+            lignes = [o for c in par_question[q["id"]] for o in par_code[c]
+                      if o[2] == z and o[4] == p
+                      and all(json.loads(o[5]).get(k) == x for k, x in filtres.items())]
+            if [float(o[6]) for o in lignes] != [v]:
+                erreurs.append(f"{q['id']} {z}@{p} : attendu {v}, trouvé {[o[6] for o in lignes]}")
+            elif lignes[0][10] != "observee":
+                non_observees.append(f"{q['id']} {z}@{p} : {lignes[0][10]} ({lignes[0][11] or 'base non déclarée'})")
+    return total, erreurs, non_observees
 
 
-def rapport(res, total_attendus: int, erreurs: list[str]) -> None:
+def rapport(res, total_attendus: int, erreurs: list[str], non_observees: list[str]) -> None:
     s, obs, rej = res.stats, res.observations, res.rejets
     z = zones()
     niveaux = Counter(z[o[2]].niveau for o in obs)
@@ -127,6 +130,17 @@ def rapport(res, total_attendus: int, erreurs: list[str]) -> None:
          (f"{total_attendus} valeurs attendues (questions exactes) cherchées dans la table extraite : "
          f"**{total_attendus - len(erreurs)} trouvées à l'identique**, {len(erreurs)} échec(s)."), ""]
     L += [f"- {e}" for e in erreurs] + ([""] if erreurs else [])
+    if non_observees:
+        L += ["Réponses attendues qui ne sont pas des valeurs observées (le badge doit s'afficher) :", ""]
+        L += [f"- {n}" for n in non_observees] + [""]
+    L += ["## Nature des valeurs (#5, décision 0007)", "", "| Nature | Valeurs | Jeux |", "|---|---|---|"]
+    for nat in ("observee", "estimation", "projection"):
+        os_ = [o for o in obs if o[10] == nat]
+        L.append(f"| {nat} | {len(os_)} | {len({o[9] for o in os_})} |")
+    auto = Counter(o[9] for o in obs if o[10] == "projection" and not o[11])
+    L += ["", "Projections repérées par la règle automatique (année postérieure à la dernière mise à jour du "
+          "jeu), sans base déclarée dans `natures.csv` : "
+          + (", ".join(f"`{d}` ({n})" for d, n in auto.most_common()) or "aucune") + ".", ""]
     L += ["## Rejets par motif", "", "| Motif | Valeurs | Jeux | Exemples |", "|---|---|---|---|"]
     par_motif = defaultdict(list)
     for r in rej:
@@ -157,12 +171,15 @@ def main() -> int:
         sys.exit(f"{SOCLE}/observations.csv introuvable : définir GESTUKAAY_SOCLE_BRUT.")
     SORTIE.mkdir(parents=True, exist_ok=True)
     geo = colonnes_geo(lignes_brutes())
-    res = extraire(lignes_brutes(numeros=True), geo, index_indicateurs(indicateurs()), zones_par_jeu())
+    with open(SOCLE / "catalogue.csv", encoding="utf-8-sig", newline="") as f:
+        annees_maj = {r["dataset_id"]: r["derniere_maj"][:4] for r in csv.DictReader(f)}
+    res = extraire(lignes_brutes(numeros=True), geo, index_indicateurs(indicateurs()), zones_par_jeu(),
+                   natures(), annees_maj)
     ecrire("observations.csv", COLONNES_OBSERVATIONS, res.observations)
     ecrire("rejets.csv", COLONNES_REJETS, res.rejets)
     ecrire("sources.csv", COLONNES_SOURCES, sources())
-    total, erreurs = verifier_jeu_de_test(res.observations)
-    rapport(res, total, erreurs)
+    total, erreurs, non_observees = verifier_jeu_de_test(res.observations)
+    rapport(res, total, erreurs, non_observees)
     print(f"{res.stats['valeurs lues']} valeurs lues : {len(res.observations)} extraites, "
           f"{len(res.rejets)} rejetées -> {SORTIE}")
     print(f"Jeu de test : {total - len(erreurs)}/{total} valeurs attendues retrouvées")

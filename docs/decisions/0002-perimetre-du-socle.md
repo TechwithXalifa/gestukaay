@@ -14,7 +14,8 @@ Trois constats mesurés dans le socle :
 - **Les projections ne sont pas toujours signalées dans le titre.** Huit jeux le disent dans leur
   titre. Huit autres ne le disent que dans leur description : `rnumqzf` (1.1 population, 2023 = RGPH-5,
   2024-2025 = projections), `elwxsmc` (fécondité), `hydkglc` et `mwxxnab` (natalité, mortalité),
-  `ervtjfc` et `vyadqbb` (scolarisation 2016-2022 recalculée), `uzptmtd`, `xmobtrb`.
+  `ervtjfc` et `vyadqbb` (scolarisation 2016-2022 recalculée), `uzptmtd`, `xmobtrb`. *(Révisé par 0007 :
+  la scolarisation reste observée, seul son dénominateur est projeté.)*
 - **Il y a deux sortes de projections, toutes deux publiées par l'ANSD** : des prévisions pour des
   années futures (jusqu'en 2038) et des estimations pour des années passées.
 

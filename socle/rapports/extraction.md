@@ -18,6 +18,21 @@ Socle brut : `socle_opendata_par_themes/observations.csv` · sortie : `socle_ges
 
 218 valeurs attendues (questions exactes) cherchées dans la table extraite : **218 trouvées à l'identique**, 0 échec(s).
 
+Réponses attendues qui ne sont pas des valeurs observées (le badge doit s'afficher) :
+
+- FR-009 SN@2025 : projection (Projections démographiques 2023-2073)
+- FR-027 SN@2035 : projection (Projections démographiques RGPHAE 2013)
+
+## Nature des valeurs (#5, décision 0007)
+
+| Nature | Valeurs | Jeux |
+|---|---|---|
+| observee | 551760 | 361 |
+| estimation | 1388 | 3 |
+| projection | 93297 | 15 |
+
+Projections repérées par la règle automatique (année postérieure à la dernière mise à jour du jeu), sans base déclarée dans `natures.csv` : aucune.
+
 ## Rejets par motif
 
 | Motif | Valeurs | Jeux | Exemples |

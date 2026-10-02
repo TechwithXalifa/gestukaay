@@ -17,7 +17,9 @@ Décisions (#4) :
   - rien ne disparaît sans trace : chaque valeur écartée va dans les rejets
     avec son motif ; chaque valeur gardée remonte à sa ligne d'origine ;
   - les corrections (Thiès permuté, unités incrémentées…) viennent après,
-    en #6 : ici on extrait fidèlement ce que publie le portail.
+    en #6 : ici on extrait fidèlement ce que publie le portail ;
+  - nature de chaque valeur (#5, décision 0007) : observée, estimation ou
+    projection, par jeu et par période (`natures.csv`).
 """
 
 from __future__ import annotations
@@ -33,10 +35,12 @@ from .indicateurs import REFERENTIELS, Indicateur, dimensions_indicateur, valeur
 from .zones import motif_non_rattache, niveau_de_colonne, normaliser, resoudre, zones
 
 FICHIER_ZONES_PAR_JEU = REFERENTIELS / "zones_par_jeu.csv"
+FICHIER_NATURES = REFERENTIELS / "natures.csv"
+NATURES = ("observee", "estimation", "projection")
 
 COLONNES_OBSERVATIONS = (
     "observation_id", "indicateur", "zone", "zone_presumee", "periode", "desagregation", "valeur",
-    "unite", "echelle", "source_id", "nature", "ligne_origine",
+    "unite", "echelle", "source_id", "nature", "base_projection", "ligne_origine",
 )
 COLONNES_REJETS = ("ligne_origine", "dataset_id", "indicateur", "motif", "detail")
 COLONNES_SOURCES = (
@@ -134,6 +138,39 @@ def index_indicateurs(indicateurs: dict[str, Indicateur]) -> dict[tuple[str, str
     return out
 
 
+@dataclass(frozen=True)
+class RegleNature:
+    debut: str  # année, vide = depuis le début
+    fin: str  # année, vide = jusqu'à la fin
+    nature: str
+    base_projection: str
+
+
+def natures() -> dict[str, list[RegleNature]]:
+    """Nature déclarée par jeu et par période (décisions 0002 et 0007), avec sa preuve."""
+    out: dict[str, list[RegleNature]] = defaultdict(list)
+    with FICHIER_NATURES.open(encoding="utf-8") as f:
+        for r in csv.DictReader(f, delimiter=";"):
+            out[r["dataset_id"]].append(RegleNature(r["periode_debut"], r["periode_fin"], r["nature"],
+                                                    r["base_projection"]))
+    return dict(out)
+
+
+def nature_de(periode_: str, regles: list[RegleNature], annee_maj: str) -> tuple[str, str]:
+    """(nature, base de projection) d'une valeur. Dans l'ordre :
+    1. la règle déclarée pour ce jeu et cette période (natures.csv) ;
+    2. une année postérieure à la dernière mise à jour du jeu ne peut pas être
+       observée : projection (base inconnue) ;
+    3. sinon, observée."""
+    annee = periode_[:4]
+    for r in regles:
+        if (not r.debut or r.debut <= annee) and (not r.fin or annee <= r.fin):
+            return r.nature, r.base_projection
+    if annee_maj and annee > annee_maj:
+        return "projection", ""
+    return "observee", ""
+
+
 @dataclass
 class Resultat:
     observations: list[tuple]
@@ -142,8 +179,12 @@ class Resultat:
 
 
 def extraire(lignes: Iterable[tuple[int, dict]], geo: dict[str, dict[str, bool]],
-             index: dict[tuple[str, str, str], Indicateur], exceptions: dict[str, str]) -> Resultat:
-    """lignes : (numéro de ligne dans observations.csv, ligne du portail)."""
+             index: dict[tuple[str, str, str], Indicateur], exceptions: dict[str, str],
+             regles_nature: dict[str, list[RegleNature]] | None = None,
+             annees_maj: dict[str, str] | None = None) -> Resultat:
+    """lignes : (numéro de ligne dans observations.csv, ligne du portail).
+    annees_maj : jeu -> année de sa dernière mise à jour sur le portail (règle des natures)."""
+    regles_nature, annees_maj = regles_nature or {}, annees_maj or {}
     stats: Counter = Counter()
     rejets: list[tuple] = []
     par_cle: dict[tuple, list[tuple]] = defaultdict(list)
@@ -171,7 +212,8 @@ def extraire(lignes: Iterable[tuple[int, dict]], geo: dict[str, dict[str, bool]]
         per = periode(ligne["periode"], ligne["frequence"])
         par_cle[(ind.code, zone, per, desag_json)].append((
             observation_id(ds, ligne["periode"], dims, unite), ind.code, zone, "oui" if presumee else "",
-            per, desag_json, ligne["valeur"], unite, ligne["echelle"], ds, "", n,
+            per, desag_json, ligne["valeur"], unite, ligne["echelle"], ds,
+            *nature_de(per, regles_nature.get(ds, []), annees_maj.get(ds, "")), n,
         ))
 
     observations = []
@@ -181,7 +223,7 @@ def extraire(lignes: Iterable[tuple[int, dict]], geo: dict[str, dict[str, bool]]
             stats["doublons identiques fusionnés"] += len(groupe) - 1
         else:  # deux valeurs pour la même clé : #6 tranchera
             for o in groupe:
-                rejets.append((o[11], o[9], code, "doublon conflictuel",
+                rejets.append((o[12], o[9], code, "doublon conflictuel",
                                f"{zone} {per} : " + " / ".join(sorted({x[6] for x in groupe}))))
     observations.sort(key=lambda o: (o[1], o[2], o[4], o[5]))
     rejets.sort(key=lambda r: r[0])
