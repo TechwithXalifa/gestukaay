@@ -13,7 +13,7 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 | Priorité P2 (domaines des questions types) | 1278 |
 | Priorité P3 (autres) | 2978 |
 | Vérifiés à la main | 24 |
-| Avec un libellé wolof | 25 |
+| Avec un libellé wolof | 26 |
 | Écartés | 0 |
 
 ## Par domaine

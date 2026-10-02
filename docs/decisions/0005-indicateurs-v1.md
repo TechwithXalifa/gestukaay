@@ -57,4 +57,4 @@ plusieurs unités (comptes nationaux en prix courants et constants, captures en 
 - **P1 vérifiés : 24 sur 26.** Vérifié = libellé FR et nom wolof écrits, unité affichable, zone confirmée
   (description du jeu), valeurs du jeu de test retrouvées. Restent `a_verifier`, avec leur raison dans
   `note` : `qjyrtof.gini` (portail arrondi à 0,1 : 118 valeurs sur 187 à 0,0, à exclure en #6) et
-  `ovothxc.production` (unité « tonnes » déduite de l'ordre de grandeur ; nom wolof à écrire).
+  `ovothxc.production` (unité « tonnes » déduite de l'ordre de grandeur).
