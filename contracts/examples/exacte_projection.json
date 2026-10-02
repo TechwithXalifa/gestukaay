@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.1.0",
+  "version_contrat": "1.1.1",
   "reponse": {
     "id": "ex-exacte-projection",
     "url": "https://app.gestukaay.test/r/ex-exacte-projection",
@@ -62,7 +62,7 @@
     "periode_par_defaut": false,
     "note_perimetre": "Projection officielle de l'ANSD : Gëstukaay ne produit aucune prévision.",
     "graphique": null,
-    "citation": "Source : ANSD, Statistiques d'état civil (2035), publié le 1er décembre 2022. Consulté via Gëstukaay le 1er octobre 2026, https://app.gestukaay.test/r/ex-exacte-projection.",
+    "citation": "Source : ANSD, Statistiques d'état civil, projection pour 2035, publiée le 1er décembre 2022. Consulté via Gëstukaay le 1er octobre 2026, https://app.gestukaay.test/r/ex-exacte-projection.",
     "audio_url": null
   }
 }

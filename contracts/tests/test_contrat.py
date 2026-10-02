@@ -48,7 +48,7 @@ def test_toute_valeur_a_sa_source(chemin):
 
 def test_approchee_ne_peut_pas_porter_de_valeur():
     """EF-06 / US-03 : impossible, par construction, d'ajouter une valeur."""
-    data = json.loads((Path(__file__).parents[1] / "examples/approchee.json").read_text())
+    data = json.loads((Path(__file__).parents[1] / "examples/approchee.json").read_text(encoding="utf-8"))
     data["reponse"]["resultats"] = [{"valeur": 1}]
     with pytest.raises(ValidationError):
         AskResponse.model_validate(data)
@@ -79,6 +79,6 @@ def test_schemas_generes_a_jour():
     for nom, (modele, mode) in MODELES.items():
         fichier = GENERATED / f"{nom}.schema.json"
         assert fichier.exists(), f"{fichier} manquant : lancer scripts/generer_contrat.sh"
-        assert json.loads(fichier.read_text()) == schema_de(modele, mode), (
+        assert json.loads(fichier.read_text(encoding="utf-8")) == schema_de(modele, mode), (
             f"{fichier.name} n'est pas à jour : lancer scripts/generer_contrat.sh"
         )

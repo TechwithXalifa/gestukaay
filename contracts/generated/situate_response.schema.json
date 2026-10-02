@@ -258,7 +258,7 @@
   "description": "Le ménage comparé aux moyennes PUBLIÉES. Aucune tranche (décile,\nquintile) : le portail n'en publie pas les seuils (décision 0004 §2).",
   "properties": {
     "version_contrat": {
-      "default": "1.1.0",
+      "default": "1.1.1",
       "type": "string"
     },
     "depense_par_personne_an": {

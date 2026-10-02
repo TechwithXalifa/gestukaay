@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_CONTRAT = "1.1.0"
+VERSION_CONTRAT = "1.1.1"
 
 
 class _Strict(BaseModel):
