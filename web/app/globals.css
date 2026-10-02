@@ -253,3 +253,15 @@ a { color: var(--gk-feuille); }
 .comparaisons .valeur-petite { display: block; margin-top: 4px; line-height: 30px; }
 .comparaisons .valeur-petite span { line-height: 20px; }
 .lien-situer { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 600; text-decoration: none; }
+
+/* ---- Domaines (décision 0005) ----------------------------------------- */
+.domaines { width: 100%; margin-top: 16px; text-align: left; }
+.grille-domaines { margin: 12px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 12px; }
+.grille-domaines button { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 16px; border: 1px solid var(--gk-lin); border-radius: var(--radius-md); background: var(--gk-blanc); color: var(--gk-encre); text-align: left; cursor: pointer; }
+.grille-domaines button:hover { border-color: var(--gk-feuille); }
+.grille-domaines strong { font-size: 16px; color: var(--gk-baobab); }
+.grille-domaines span { font-size: 13px; line-height: 18px; color: var(--gk-ardoise); }
+.domaines-page { max-width: 720px !important; }
+.liste-domaines { margin: 16px 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.liste-domaines li { padding: 8px 14px; border: 1px solid var(--gk-lin); border-radius: 999px; background: var(--gk-blanc); }
+.domaines-page > .primaire { align-self: flex-start; }

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ChampQuestion } from "@/components/ChampQuestion";
 import { Ecoute } from "@/components/Ecoute";
 import { Fleche } from "@/components/icones";
+import { DOMAINES_PRINCIPAUX } from "@/lib/domaines";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { HorsLigne } from "@/components/HorsLigne";
@@ -86,6 +87,24 @@ export default function Accueil() {
             question && <Chargement question={question} />
           )}
         </div>
+        {!horsLigne && !question && (
+          <section className="domaines" aria-labelledby="titre-domaines">
+            <h2 id="titre-domaines" className="sous-titre">{t("domaines.accueil")}</h2>
+            <ul className="grille-domaines">
+              {DOMAINES_PRINCIPAUX.map((d) => (
+                <li key={d.nom}>
+                  <button type="button" onClick={() => poser(d.exemple)}>
+                    <strong>{d.nom}</strong>
+                    <span>{d.exemple}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <Link href="/domaines" className="lien-situer">
+              {t("domaines.tous")} <Fleche taille={16} />
+            </Link>
+          </section>
+        )}
       </main>
       <PiedDePage />
       {ecoute && (
