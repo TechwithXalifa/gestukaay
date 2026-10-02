@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.1.1",
+  "version_contrat": "1.1.2",
   "reponse": {
     "id": "ex-aucune-projection",
     "url": "https://app.gestukaay.test/r/ex-aucune-projection",
@@ -8,7 +8,7 @@
     "transcription": null,
     "requete": {
       "intention": "hors_perimetre",
-      "indicateur": "population_totale",
+      "indicateur": "pvswjnd",
       "zones": [
         "SN"
       ],
@@ -28,7 +28,7 @@
     "suggestions": [
       {
         "indicateur": {
-          "code": "population_totale",
+          "code": "pvswjnd",
           "libelle": "Population totale"
         },
         "question_suggeree": "Combien d'habitants au Sénégal ?"

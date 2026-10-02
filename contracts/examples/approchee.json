@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.1.1",
+  "version_contrat": "1.1.2",
   "reponse": {
     "id": "ex-approchee",
     "url": "https://app.gestukaay.test/r/ex-approchee",
@@ -8,7 +8,7 @@
     "transcription": null,
     "requete": {
       "intention": "valeur",
-      "indicateur": "population_totale",
+      "indicateur": "pvswjnd",
       "zones": [
         "SN-TH"
       ],
@@ -30,7 +30,7 @@
         "libelle": "Population du département de Thiès (2023)",
         "requete": {
           "intention": "valeur",
-          "indicateur": "population_totale",
+          "indicateur": "pvswjnd",
           "zones": [
             "SN-TH-THIES"
           ],
@@ -47,7 +47,7 @@
         "libelle": "Population de la région de Thiès (2023)",
         "requete": {
           "intention": "valeur",
-          "indicateur": "population_totale",
+          "indicateur": "pvswjnd",
           "zones": [
             "SN-TH"
           ],

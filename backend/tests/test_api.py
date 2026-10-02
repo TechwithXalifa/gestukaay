@@ -15,7 +15,7 @@ def _demander(question: str) -> dict:
 def test_trois_issues_de_bout_en_bout():
     assert _demander("Combien d'habitants à Thiès ?")["issue"] == "exacte"
     assert _demander("Population de la ville de Thiès en 2023")["issue"] == "approchee"
-    assert _demander("Nombre de voitures à Kolda")["issue"] == "aucune"
+    assert _demander("Combien de personnes parlent sérère au Sénégal ?")["issue"] == "aucune"
 
 
 def test_latence_et_relecture():

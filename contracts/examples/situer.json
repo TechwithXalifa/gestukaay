@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.1.1",
+  "version_contrat": "1.1.2",
   "depense_par_personne_an": {
     "minimum": 171429,
     "maximum": 342857,
@@ -7,7 +7,7 @@
   },
   "moyenne_region": {
     "indicateur": {
-      "code": "consommation_par_tete",
+      "code": "jcvcajc.total",
       "libelle": "Consommation moyenne par tête"
     },
     "zone": {
@@ -39,7 +39,7 @@
   },
   "moyenne_pays": {
     "indicateur": {
-      "code": "consommation_par_tete",
+      "code": "jcvcajc.total",
       "libelle": "Consommation moyenne par tête"
     },
     "zone": {
@@ -74,7 +74,7 @@
   "contexte": [
     {
       "indicateur": {
-        "code": "taux_pauvrete_taille_menage",
+        "code": "jcvcajc.taux-de-pauvrete",
         "libelle": "Taux de pauvreté des ménages de 5 à 9 personnes"
       },
       "zone": {
@@ -106,7 +106,7 @@
     },
     {
       "indicateur": {
-        "code": "quintile_bien_etre_plus_bas",
+        "code": "qjyrtof.le-plus-bas",
         "libelle": "Population dans le quintile de bien-être le plus bas"
       },
       "zone": {
@@ -138,7 +138,7 @@
     },
     {
       "indicateur": {
-        "code": "menages_electricite",
+        "code": "asongtc",
         "libelle": "Ménages éclairés à l'électricité"
       },
       "zone": {

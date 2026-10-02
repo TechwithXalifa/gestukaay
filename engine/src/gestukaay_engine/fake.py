@@ -7,7 +7,7 @@ Questions reconnues (insensible à la casse) :
   « ville »             -> approchee
   « 2035 »              -> exacte_projection (badge « projection »)
   « 2040 » / « 2050 »   -> aucune_projection
-  « voiture »           -> aucune_hors_socle
+  « sérère » / « sereer » -> aucune_hors_socle
   « thiès » / « thies » -> exacte_valeur
   sinon                 -> aucune_incomprehension
 """
@@ -53,7 +53,7 @@ class MoteurFactice:
             nom = "exacte_projection"
         elif "2040" in q or "2050" in q:
             nom = "aucune_projection"
-        elif "voiture" in q:
+        elif "sérère" in q or "serere" in q or "sereer" in q:
             nom = "aucune_hors_socle"
         elif "thiès" in q or "thies" in q:
             nom = "exacte_valeur"

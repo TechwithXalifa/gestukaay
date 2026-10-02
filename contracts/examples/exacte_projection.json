@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.1.1",
+  "version_contrat": "1.1.2",
   "reponse": {
     "id": "ex-exacte-projection",
     "url": "https://app.gestukaay.test/r/ex-exacte-projection",
@@ -8,7 +8,7 @@
     "transcription": null,
     "requete": {
       "intention": "valeur",
-      "indicateur": "esperance_de_vie",
+      "indicateur": "pexioke.esperance-de-vie-a-la-naissance",
       "zones": [
         "SN"
       ],
@@ -27,7 +27,7 @@
     "resultats": [
       {
         "indicateur": {
-          "code": "esperance_de_vie",
+          "code": "pexioke.esperance-de-vie-a-la-naissance",
           "libelle": "Espérance de vie à la naissance"
         },
         "zone": {

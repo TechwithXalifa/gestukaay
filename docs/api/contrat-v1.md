@@ -1,4 +1,4 @@
-# Contrat d'API Gëstukaay — v1.1.1
+# Contrat d'API Gëstukaay — v1.1.2
 
 > **Nouveautés v1.1.0** (décisions 0002, 0003, 0004) — toutes **additives**, rien ne casse :
 > nature des valeurs (`observee` / `estimation` / `projection`) · niveau de zone `academie` ·
@@ -166,8 +166,8 @@ Procédure :
 ## 7. Points ouverts
 
 - [ ] **Licence** : le portail n'en renseigne aucune (`licence` vide dans les 376 jeux). Les exemples portent « CC BY 4.0 » conformément au cahier (1.4) ; à confirmer avec l'ANSD avant publication.
-- [ ] **Codes de départements** (`SN-TH-THIES` dans `approchee.json`) : provisoires, fixés avec la table des zones du socle.
-- [ ] **Codes d'indicateurs** des suggestions (`nombre_menages`, `taille_moyenne_menage`) : provisoires, fixés avec le socle curé.
+- [x] **Codes de départements** : ceux du référentiel des zones (`socle/referentiels/zones.csv`, décision 0003), ex. `SN-TH-THIES`.
+- [x] **Codes d'indicateurs** : ceux du référentiel des indicateurs (`socle/referentiels/indicateurs.csv`, décision 0005), ex. `pvswjnd`, `jcvcajc.taux-de-pauvrete`. Jamais affichés au public.
 - [ ] **Explication wolof** : les gabarits WO sont marqués « à valider par un linguiste » (7.4).
 - [x] **`/v1/situate`** : écrit en v1.1.0 (décision 0004 §2).
 - [x] **Tranches de dépenses** de « Où je me situe » : les 6 tranches sont validées par SAN.
@@ -183,3 +183,4 @@ Procédure :
 | 1.0.0 | 2026-09-30 | Version initiale : `/v1/ask`, trois issues, exports, feedback |
 | 1.1.0 | 2026-10-01 | `Resultat.nature` + `base_projection` ; `RefZone.niveau = academie` ; `AskRequest.source` + `transcription_brute` ; `POST /v1/transcrire` ; `POST /v1/situate` ; graphique de contexte (doc) |
 | 1.1.1 | 2026-10-02 | Retours de SAN, sans changement de format : exemple `exacte_valeur.json` avec graphique de contexte ; graphique de contexte par niveau de zone (doc) ; biais à signaler dans l'explication de « Où je me situe » ; citation d'une projection ; tests en UTF-8 (Windows) ; version du paquet |
+| 1.1.2 | 2026-10-02 | Exemples seuls, sans changement de format : codes d'indicateurs du référentiel (`pvswjnd`…) ; `aucune_hors_socle.json` = FR-071 (« sérère »), « voitures à Kolda » étant devenue une question approchée (décision 0005) |
