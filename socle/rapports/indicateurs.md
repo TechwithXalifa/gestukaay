@@ -9,8 +9,8 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 | Indicateurs retenus | 4282 |
 | Jeux du portail | 373 |
 | Domaines | 32 |
-| Priorité P1 (jeu de test) | 26 |
-| Priorité P2 (domaines des questions types) | 1278 |
+| Priorité P1 (jeu de test) | 27 |
+| Priorité P2 (domaines des questions types) | 1277 |
 | Priorité P3 (autres) | 2978 |
 | Vérifiés à la main | 24 |
 | Avec un libellé wolof | 26 |
@@ -22,7 +22,7 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 |---|---|---|---|---|---|---|
 | Agriculture | 801 | 40 | 1 | 0 | 800 | 523 |
 | Comptes nationaux et PIB | 799 | 21 | 1 | 0 | 798 | 22 |
-| Prix | 615 | 7 | 3 | 612 | 0 | 2 |
+| Prix | 615 | 7 | 4 | 611 | 0 | 2 |
 | Santé | 400 | 47 | 4 | 396 | 0 | 124 |
 | Économie | 228 | 5 | 0 | 0 | 228 | 0 |
 | Entreprises | 223 | 9 | 0 | 0 | 223 | 0 |
@@ -107,7 +107,7 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | FR-046 | exacte | `ioxbglg.nombre-de-personnes-emprisonnees` | Nombre de personnes emprisonnées |
 | FR-047 | approchee | `pvswjnd` | Population (RGPH-5) |
 | FR-048 | approchee | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
-| FR-049 | approchee | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
+| FR-049 | exacte | `sbsryhc` | Prix de détail des céréales locales |
 | FR-050 | approchee | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
 | FR-051 | approchee | `pvswjnd` | Population (RGPH-5) |
 | FR-052 | approchee | `dwibrlf` | Taux de chômage |
@@ -151,7 +151,7 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | WO-018 | exacte | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
 | WO-019 | exacte | `asongtc` | Ménages selon la source d'éclairage |
 | WO-020 | approchee | `pvswjnd` | Population (RGPH-5) |
-| WO-021 | approchee | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
+| WO-021 | exacte | `sbsryhc` | Prix de détail des céréales locales |
 | WO-022 | approchee | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
 | WO-023 | aucune | hors périmètre (projection) | |
 | WO-024 | approchee | `qbvttzc` | Parc de véhicules |
