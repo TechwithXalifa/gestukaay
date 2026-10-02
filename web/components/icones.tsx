@@ -55,3 +55,15 @@ export const Tourne = ({ taille = 20 }: P) => (
   </svg>
 );
 export const Telecharger = (p: P) => <Ic {...p}><path d="M12 15V3M6 9l6 6 6-6M19 21H5" /></Ic>;
+export const Micro = (p: P) => (
+  <Ic {...p}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3" /></Ic>
+);
+export const MicroBarre = (p: P) => (
+  <Ic {...p}><path d="m2 2 20 20M18.9 13a7 7 0 0 0 .1-1v-2M5 10v2a7 7 0 0 0 12 5M15 9.3V5a3 3 0 0 0-5.7-1.3M9 9v3a3 3 0 0 0 5.1 2.1M12 19v3" /></Ic>
+);
+export const Cadenas = (p: P) => (
+  <Ic {...p}><rect width="18" height="11" x="3" y="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></Ic>
+);
+export const Wifi = (p: P) => (
+  <Ic {...p}><path d="M12 20h.01M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8M19 12.9a10 10 0 0 0-2.2-1.6M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8a15 15 0 0 0-11.3-3.7M2 2l20 20" /></Ic>
+);

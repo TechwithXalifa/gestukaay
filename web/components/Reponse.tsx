@@ -75,6 +75,10 @@ function Exacte({ r }: { r: ReponseExacte }) {
           <p className="valeur">
             <span>{v.valeur_affichee}</span> <span className="unite">{v.unite}</span>
           </p>
+          <p className="source-ligne">
+            <Livre taille={16} />
+            <span>{v.source.libelle}</span>
+          </p>
         </div>
       ))}
       <p className="explication">{r.explication}</p>
