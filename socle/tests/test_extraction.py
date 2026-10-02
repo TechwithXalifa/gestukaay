@@ -1,6 +1,7 @@
 """Extraction vers le schéma 10.3 (#4). Lignes synthétiques : tourne en CI, sans le socle brut."""
 
 import json
+from dataclasses import fields
 
 from gestukaay_socle.extraction import (
     colonnes_geo,
@@ -23,12 +24,13 @@ def ligne(ds, valeur, dims, periode_="2023-01-01T00:00:00Z", freq="A", unite="%"
 
 
 def indicateur(code, ds, valeur_portail="", unite="%", verification="a_verifier"):
-    return Indicateur(
-        code=code, dataset_id=ds, libelle_fr=code, libelle_wo="", statut_wo="", unite=unite, domaine="D",
-        priorite="P3", verification=verification, questions_test=(), producteur="ANSD", niveaux_zone=(),
-        desagregations=(), frequence="A", periode_debut="2023", periode_fin="2023", nb_valeurs=1,
-        dimension_indicateur="indicateurs" if valeur_portail else "", valeur_portail=valeur_portail,
-        jeu=ds, note="")
+    """Indicateur minimal ; les autres colonnes du référentiel restent vides (robuste aux ajouts)."""
+    base = {f.name: "" for f in fields(Indicateur)} | {"questions_test": (), "niveaux_zone": (),
+                                                        "desagregations": (), "nb_valeurs": 1}
+    return Indicateur(**base | {
+        "code": code, "dataset_id": ds, "libelle_fr": code, "unite": unite, "domaine": "D", "priorite": "P3",
+        "verification": verification, "dimension_indicateur": "indicateurs" if valeur_portail else "",
+        "valeur_portail": valeur_portail, "jeu": ds})
 
 
 def test_periode():

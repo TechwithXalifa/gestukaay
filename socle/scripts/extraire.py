@@ -33,7 +33,7 @@ from gestukaay_socle.extraction import (
     index_indicateurs,
     zones_par_jeu,
 )
-from gestukaay_socle.indicateurs import dimension_indicateur, indicateurs
+from gestukaay_socle.indicateurs import dimensions_indicateur, indicateurs
 from gestukaay_socle.zones import zones
 
 RACINE = Path(__file__).resolve().parents[2]
@@ -45,7 +45,7 @@ RAPPORT = RACINE / "socle" / "rapports" / "extraction.md"
 
 def lignes_brutes(numeros: bool = False):
     """Lignes de observations.csv, avec leur numéro de ligne dans le fichier si demandé."""
-    csv.field_size_limit(sys.maxsize)
+    csv.field_size_limit(2**31 - 1)  # sys.maxsize déborde sous Windows (long C sur 32 bits)
     with open(SOCLE / "observations.csv", encoding="utf-8-sig", newline="") as f:
         lecteur = csv.DictReader(f)
         for ligne in lecteur:
@@ -93,8 +93,8 @@ def verifier_jeu_de_test(observations) -> tuple[int, list[str]]:
     total, erreurs = 0, []
     for q in questions:
         filtres = json.loads(q["filtres"])
-        ik = dimension_indicateur(filtres)
-        filtres.pop(ik, None)  # porté par le code de l'indicateur
+        for k in dimensions_indicateur(filtres):
+            filtres.pop(k)  # porté par le code de l'indicateur
         for z, p, v in attendus(q):
             total += 1
             trouvees = [float(o[6]) for c in par_question[q["id"]] for o in par_code[c]
@@ -143,8 +143,8 @@ def rapport(res, total_attendus: int, erreurs: list[str]) -> None:
     L += ["", "## Jeux à zone présumée", "",
           ("Sans colonne géographique ni code région : rattachés au Sénégal. À confirmer à la vérification "
           "des indicateurs ; une exception se déclare dans `socle/referentiels/zones_par_jeu.csv`."), "",
-          f"{len({o[9] for o in presumees})} jeux, dont ceux du jeu de test : "
-          + ", ".join(f"`{d}`" for d in sorted({o[9] for o in presumees if o[1] in _p1()})) + "."]
+          f"{len({o[9] for o in presumees})} jeux ; parmi eux, utilisés par le jeu de test : "
+          + (", ".join(f"`{d}`" for d in sorted({o[9] for o in presumees if o[1] in _p1()})) or "aucun") + "."]
     RAPPORT.write_text("\n".join(L) + "\n", encoding="utf-8")
 
 

@@ -29,7 +29,7 @@ from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from .indicateurs import REFERENTIELS, Indicateur, dimension_indicateur
+from .indicateurs import REFERENTIELS, Indicateur, dimensions_indicateur, valeur_indicateur
 from .zones import motif_non_rattache, niveau_de_colonne, normaliser, resoudre, zones
 
 FICHIER_ZONES_PAR_JEU = REFERENTIELS / "zones_par_jeu.csv"
@@ -66,7 +66,8 @@ def observation_id(dataset_id: str, periode_brute: str, dims: dict, unite: str) 
 
 
 def zones_par_jeu() -> dict[str, str]:
-    """Jeux sans colonne géographique dont la zone n'est pas le Sénégal."""
+    """Zone déclarée d'un jeu sans colonne géographique : autre que le Sénégal (feujxob = Dakar),
+    ou Sénégal confirmé à la vérification (la valeur n'est alors plus « présumée »)."""
     with FICHIER_ZONES_PAR_JEU.open(encoding="utf-8") as f:
         return {r["dataset_id"]: r["zone"] for r in csv.DictReader(f, delimiter=";")}
 
@@ -152,8 +153,8 @@ def extraire(lignes: Iterable[tuple[int, dict]], geo: dict[str, dict[str, bool]]
         stats["valeurs lues"] += 1
         ds = ligne["dataset_id"]
         dims = json.loads(ligne["desagregation_json"] or "{}")
-        ik = dimension_indicateur(dims)
-        valeur_ind = " ".join(str(dims.get(ik, "")).split()) if ik else ""
+        cles = dimensions_indicateur(dims)
+        valeur_ind = valeur_indicateur(dims)
         unite = ligne["unite"].strip()
         ind = index.get((ds, normaliser(valeur_ind), unite))
         if ind is None or ind.verification == "ecarte":
@@ -165,7 +166,7 @@ def extraire(lignes: Iterable[tuple[int, dict]], geo: dict[str, dict[str, bool]]
         if zone is None:
             rejets.append((n, ds, ind.code, motif.split(" : ")[0], motif))
             continue
-        desag = {k: v for k, v in dims.items() if k != ik and k not in geo_ds}
+        desag = {k: v for k, v in dims.items() if k not in cles and k not in geo_ds}
         desag_json = json.dumps(desag, ensure_ascii=False, sort_keys=True)
         per = periode(ligne["periode"], ligne["frequence"])
         par_cle[(ind.code, zone, per, desag_json)].append((

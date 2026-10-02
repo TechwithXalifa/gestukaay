@@ -30,5 +30,6 @@ pleines (`cimkorc` : 4 023 500 000 000 FCFA, échelle 10⁹ = « affiché en mil
   retrouvées à l'identique (`socle/rapports/extraction.md`).
 - **#6** traite les 10 451 doublons conflictuels (région / département homonymes ; séries publiées en
   double : `amkfcsb`, `cimkorc`, `ykwfqkb`…) et les erreurs connues (Thiès dans `rnumqzf`).
-- **Vérification** : 225 jeux ont une zone présumée, dont 7 du jeu de test (`tsghpfc` IHPC,
-  `muhgux` salaires…) : à confirmer, ou à déclarer dans `zones_par_jeu.csv`.
+- **Vérification** : 218 jeux ont une zone présumée. Ceux du jeu de test (`tsghpfc` IHPC, `muhgux`
+  salaires…) ont été confirmés nationaux à la vérification des P1 (#7) et déclarés dans
+  `zones_par_jeu.csv` ; les autres le seront au fil de la vérification.

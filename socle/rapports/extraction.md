@@ -10,13 +10,13 @@ Socle brut : `socle_opendata_par_themes/observations.csv` · sortie : `socle_ges
 | → extraites | 646445 |
 | → doublons identiques fusionnés | 1654 |
 | → rejetées (voir `rejets.csv`) | 25141 |
-| Indicateurs représentés | 4114 |
+| Indicateurs représentés | 4247 |
 | Zones : pays / régions / départements / académies | 334438 / 249292 / 25506 / 37209 |
-| Zone présumée (jeu sans colonne géographique → Sénégal) | 289439 valeurs, 225 jeux |
+| Zone présumée (jeu sans colonne géographique → Sénégal) | 274347 valeurs, 218 jeux |
 
 ## Contrôle de bout en bout : jeu de test
 
-216 valeurs attendues (questions exactes) cherchées dans la table extraite : **216 trouvées à l'identique**, 0 échec(s).
+218 valeurs attendues (questions exactes) cherchées dans la table extraite : **218 trouvées à l'identique**, 0 échec(s).
 
 ## Rejets par motif
 
@@ -53,4 +53,4 @@ Même indicateur, zone, période et désagrégation, mais valeurs différentes (
 
 Sans colonne géographique ni code région : rattachés au Sénégal. À confirmer à la vérification des indicateurs ; une exception se déclare dans `socle/referentiels/zones_par_jeu.csv`.
 
-225 jeux, dont ceux du jeu de test : `cfulhc`, `iocwzud`, `muhgux`, `ovothxc`, `pexioke`, `tsghpfc`, `whkisxc`.
+218 jeux ; parmi eux, utilisés par le jeu de test : aucun.
