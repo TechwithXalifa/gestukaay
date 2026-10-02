@@ -247,12 +247,14 @@ version = "0.1.0"
 source = { editable = "engine" }
 dependencies = [
     { name = "gestukaay-contracts" },
+    { name = "gestukaay-socle" },
     { name = "httpx" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "gestukaay-contracts", editable = "contracts" },
+    { name = "gestukaay-socle", editable = "socle" },
     { name = "httpx", specifier = ">=0.28.1" },
 ]
 
