@@ -67,3 +67,4 @@ export const Cadenas = (p: P) => (
 export const Wifi = (p: P) => (
   <Ic {...p}><path d="M12 20h.01M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8M19 12.9a10 10 0 0 0-2.2-1.6M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8a15 15 0 0 0-11.3-3.7M2 2l20 20" /></Ic>
 );
+export const Chevron = (p: P) => <Ic {...p}><path d="m15 18-6-6 6-6" /></Ic>;

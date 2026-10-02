@@ -2,6 +2,8 @@ import type { AskRequest } from "@contracts/ask_request";
 import type { AskResponse } from "@contracts/ask_response";
 import type { FeedbackRequest } from "@contracts/feedback_request";
 import type { Problem } from "@contracts/problem";
+import type { SituateRequest } from "@contracts/situate_request";
+import type { SituateResponse } from "@contracts/situate_response";
 import type { TranscriptionResponse } from "@contracts/transcription_response";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -45,7 +47,11 @@ export const confirmer = (id: string, choixId: string) =>
     body: JSON.stringify({ choix_id: choixId }),
   });
 
-export const lireReponse = (id: string) => requete<AskResponse>(`/v1/answers/${id}`);
+/** « Où je me situe » (décision 0004 §2) : rien n'est conservé, ni ici ni côté serveur. */
+export const situer = (req: SituateRequest) =>
+  requete<SituateResponse>("/v1/situate", { method: "POST", body: JSON.stringify(req) });
+
+export const lireReponse =(id: string) => requete<AskResponse>(`/v1/answers/${id}`);
 
 export const envoyerRetour = (retour: FeedbackRequest) =>
   requete<void>("/v1/feedback", { method: "POST", body: JSON.stringify(retour) });
