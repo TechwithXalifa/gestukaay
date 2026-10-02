@@ -4,26 +4,22 @@
 
 | | Score |
 |---|---|
-| **Tout juste** | **95/103 (92 %)** |
-| Français | 66/72 (92 %) |
-| Wolof | 29/31 (94 %) |
-| Intention | 99/103 (96 %) |
-| Indicateur | 97/103 (94 %) |
+| **Tout juste** | **99/103 (96 %)** |
+| Français | 69/72 (96 %) |
+| Wolof | 30/31 (97 %) |
+| Intention | 103/103 (100 %) |
+| Indicateur | 99/103 (96 %) |
 | Zones | 103/103 (100 %) |
 | Période | 103/103 (100 %) |
-| Latence médiane / max | 1160 ms / 1925 ms |
-| Secours par règles | 5 |
-| Coût total | 0.0697 $ |
+| Latence médiane / max | 1126 ms / 1857 ms |
+| Secours par règles | 9 |
+| Coût total | 0.0629 $ |
 
 ## Questions fausses
 
 | Id | Question | Faux | Obtenu | Attendu |
 |---|---|---|---|---|
-| FR-015 | Quelle quantité de produits la pêche artisanale a-t-elle débarquée en 2024 ? | indicateur | valeur · zxtmqqg · — · 2024 | valeur · wrqfsxb.quantite |
-| FR-018 | Quelle est la production de riz du Sénégal ? | intention, indicateur | hors_perimetre · None · SN · dernière | valeur · ovothxc.production |
-| FR-049 | Combien coûte le riz à Thiès ? | indicateur | valeur · sbsryhc · SN-TH · dernière | valeur · feujxob.riz-brise-ordinaire-au-detail |
-| FR-056 | Quel sera le taux de chômage en 2030 ? | intention | hors_perimetre · None · — · 2030 | valeur · — |
-| FR-067 | Quel est le taux de criminalité à Kaolack ? | intention, indicateur | hors_perimetre · None · SN-KL · dernière | valeur · iocwzud |
+| FR-020 | Quel pourcentage d'enfants souffrent d'un retard de croissance au Sénégal ? | indicateur | valeur · pagfmnc.prevalence-du-retard-de-croissance · SN · dernière | valeur · xsitdae.enfants-souffrant-dun-retard-de-croissance |
+| FR-039 | Le chômage a-t-il augmenté au Sénégal entre 2015 et 2025 ? | indicateur | comparaison · muhgux.taux-de-chomage · SN · 2015 | comparaison · dwibrlf |
+| FR-049 | Combien coûte le riz à Thiès ? | indicateur | valeur · haeeyfb · SN-TH · dernière | valeur · sbsryhc |
 | WO-002 | Ñi amul ligéey ci Senegaal ? | indicateur | valeur · muhgux.population-au-chomage · SN · dernière | valeur · dwibrlf |
-| WO-021 | Ñata lay diar thieb kaolack ? | indicateur | valeur · sbsryhc · SN-KL · dernière | valeur · feujxob.riz-brise-ordinaire-au-detail |
-| FR-069 | Et en 2025 ? | intention | comparaison · dwibrlf · SN-DK,SN-TH · 2025 | valeur · dwibrlf |
