@@ -54,3 +54,4 @@ export const Tourne = ({ taille = 20 }: P) => (
     <path d="M21 12a9 9 0 1 1-6.2-8.6" />
   </svg>
 );
+export const Telecharger = (p: P) => <Ic {...p}><path d="M12 15V3M6 9l6 6 6-6M19 21H5" /></Ic>;

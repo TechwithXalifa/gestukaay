@@ -48,3 +48,6 @@ export const lireReponse = (id: string) => requete<AskResponse>(`/v1/answers/${i
 
 export const envoyerRetour = (retour: FeedbackRequest) =>
   requete<void>("/v1/feedback", { method: "POST", body: JSON.stringify(retour) });
+
+/** Exports d'une réponse exacte (EF-33, EF-34) : liens de téléchargement directs. */
+export const exportUrl = (id: string, format: "pdf" | "csv") => `${BASE}/v1/answers/${id}/export.${format}`;
