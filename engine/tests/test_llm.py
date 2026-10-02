@@ -105,6 +105,24 @@ def test_openrouter_choix_et_tri_des_hebergeurs():
         "order": ["cerebras", "groq"], "sort": "latency", "require_parameters": True}
 
 
+@pytest.mark.parametrize("valeur,attendu", [
+    ("non", {"enabled": False}),
+    ("low", {"effort": "low", "exclude": True}),
+])
+def test_openrouter_raisonnement_reglable(valeur, attendu):
+    m = Maillon(nom="or", fournisseur="openai_compatible", modele="qwen/qwen3-32b", cle="o",
+                url="https://openrouter.ai/api/v1", raisonnement=valeur)
+    t = transport(**{O: openai_ok()})
+    ClientLLM([m], transport=t).structurer("s", "q", Capitale)
+    assert json.loads(t.recues[0].content)["reasoning"] == attendu
+
+
+def test_raisonnement_absent_par_defaut():
+    t = transport(**{O: openai_ok()})
+    ClientLLM([OPENROUTER], transport=t).structurer("s", "q", Capitale)
+    assert "reasoning" not in json.loads(t.recues[0].content)
+
+
 def test_routage_d_hebergeurs_jamais_envoye_hors_openrouter():
     m = Maillon(nom="l", fournisseur="openai_compatible", modele="m", url="http://localhost:11434/v1",
                 hebergeurs=("cerebras",))

@@ -107,6 +107,10 @@ def openai_compatible(client: httpx.Client, m: Maillon, systeme: str, utilisateu
             routage["require_parameters"] = True  # seulement des hébergeurs qui respectent le JSON
         if routage:
             corps["provider"] = routage
+        if m.raisonnement:
+            # Inutile pour de l'extraction et coûteux en latence (13 à 30 s mesurés sur Qwen3-32B)
+            corps["reasoning"] = ({"enabled": False} if m.raisonnement == "non"
+                                  else {"effort": m.raisonnement, "exclude": True})
     entetes = {"Authorization": f"Bearer {m.cle}"} if m.cle else {}
     d = _poster(client, f"{base}/chat/completions", entetes, corps)
     try:

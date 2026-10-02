@@ -117,7 +117,8 @@ def lire_chaine(env: Mapping[str, str] = os.environ) -> list[Maillon]:
     LLM_N_FOURNISSEUR, LLM_N_MODELE, LLM_N_CLE, LLM_N_URL, LLM_N_DELAI_S,
     LLM_N_TEMPERATURE (« aucune » pour ne pas l'envoyer), LLM_N_JSON,
     LLM_N_PRIX_ENTREE, LLM_N_PRIX_SORTIE ($ par million de jetons),
-    LLM_N_HEBERGEURS (OpenRouter : « cerebras,groq »), LLM_N_TRI (« latency »…)."""
+    LLM_N_HEBERGEURS (OpenRouter : « cerebras,groq »), LLM_N_TRI (« latency »…),
+    LLM_N_RAISONNEMENT (OpenRouter : « non », « minimal », « low »…)."""
     noms = [n.strip() for n in env.get("LLM_CHAINE", "").split(",") if n.strip()]
     delai_defaut = float(env.get("LLM_DELAI_S", "2"))
     chaine = []
@@ -140,6 +141,7 @@ def lire_chaine(env: Mapping[str, str] = os.environ) -> list[Maillon]:
             prix_sortie=_flottant(env.get(p + "PRIX_SORTIE")),
             hebergeurs=tuple(h.strip() for h in env.get(p + "HEBERGEURS", "").split(",") if h.strip()),
             tri=env.get(p + "TRI") or None,
+            raisonnement=env.get(p + "RAISONNEMENT") or None,
         ))
     return chaine
 
