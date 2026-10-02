@@ -28,7 +28,7 @@ peut manquer) ; `socle` (pour couvrir les domaines) ; `piège` (problèmes connu
 | `suite_de` | type `suivi` : la question précédente de la conversation |
 | `issue_attendue` | `exacte`, `approchee` ou `aucune` (EF-05) |
 | `motif` | refus : `hors_socle`, `projection` ou `incomprehension` |
-| `dataset_id`, `colonne_zone`, `filtres` | où se trouve la réponse dans le socle brut |
+| `dataset_id`, `colonne_zone`, `filtres` | où se trouve la réponse dans le socle brut ; approchée : l'indicateur à proposer |
 | `zones_attendues` | codes du référentiel (`SN-TH`, `SN-IA-KOLDA`…) ; approchée : les choix à proposer |
 | `periode` | `2023`, `2026-03`, `2023-T2` ; plusieurs périodes séparées par `\|` |
 | `valeurs_attendues` | `SN-TH=2463677` ; comparaison de périodes : `SN@2011=46.7\|SN@2022=37.5` ; classement : dans l'ordre attendu |

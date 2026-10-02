@@ -28,3 +28,32 @@ uv run python socle/scripts/couverture_zones.py
 ```
 
 Pour chaque colonne géographique du socle : libellés rattachés, écartés, et pourquoi.
+
+## Référentiel des indicateurs — `referentiels/indicateurs.csv` (issue #3, décision 0005)
+
+**Un indicateur = un jeu du portail × une valeur de sa dimension « Indicateur » × une unité.** Les
+autres dimensions (sexe, âge, milieu…) sont des désagrégations (`desagregations`), les colonnes
+géographiques donnent la zone (`niveaux_zone`). Tout le socle y est : 4 149 indicateurs, 373 jeux,
+32 domaines.
+
+```bash
+uv run python socle/scripts/inventaire_indicateurs.py   # ~15 s, relançable
+```
+
+| Colonne | Contenu |
+|---|---|
+| `code` | identifiant interne stable (`dwibrlf`, `jcvcajc.taux-de-pauvrete`, `uipcgjd.total~courants`) ; jamais montré au public |
+| `libelle_fr`, `libelle_wo`, `statut_wo` | **à la main** ; `libelle_fr` est pré-rempli depuis le portail |
+| `priorite` | `P1` utilisé par le jeu de test · `P2` domaines des questions types du cahier · `P3` le reste |
+| `verification` | **à la main** : `a_verifier` → `verifie` (ou `ecarte`) |
+| `questions_test` | questions du jeu de test qui l'utilisent |
+| `dimension_indicateur`, `valeur_portail` | où le retrouver dans le socle brut (graphies séparées par `\|`) |
+| `niveaux_zone` | `pays\|region\|departement\|academie` ; vide = aucune zone dans les données (souvent national, à vérifier) |
+
+L'inventaire **ne remplace jamais** les colonnes remplies à la main (`libelle_fr`, `libelle_wo`,
+`statut_wo`, `verification`, `note`) et signale les codes disparus si le socle change.
+
+`referentiels/domaines.csv` : thème du portail → domaine Gëstukaay (doublons fusionnés, « Métadonnées »
+exclu) ; `questions_types = oui` pour les 6 domaines des questions types du cahier.
+
+Rapport : `rapports/indicateurs.md` (comptes par domaine, couverture des 100 questions, anomalies).

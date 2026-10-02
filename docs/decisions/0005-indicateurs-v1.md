@@ -1,0 +1,37 @@
+# 0005 — Indicateurs V1 : unité de compte, périmètre, domaines
+
+**Date** : 2026-10-02 · **Statut** : accepté (KBD) ; liste des domaines à partager avec SAN · **Issue** : #3
+
+## Contexte
+
+Le cahier vise « 200+ indicateurs, 6 domaines » (2.3) et un modèle `indicateur` avec code, libellés
+FR/WO, unité et domaine (10.3). Dans le socle, **un jeu du portail n'est pas un indicateur** : 225 jeux
+sur 376 ont une dimension « Indicateur » qui en regroupe plusieurs, souvent avec des unités différentes
+(`jcvcajc` : taux de pauvreté, profondeur, sévérité…). 261 couples (jeu, indicateur) sont publiés en
+plusieurs unités (comptes nationaux en prix courants et constants, captures en tonnes et en FCFA).
+
+## Décisions
+
+1. **Un indicateur = jeu × valeur de la dimension « Indicateur » × unité.** Les autres dimensions sont
+   des désagrégations. Un jeu sans dimension « Indicateur » compte pour un indicateur par unité. Les
+   graphies d'une même valeur (« Effectif » / « effectif ») sont fusionnées.
+2. **Tout le socle entre dans le référentiel** (4 149 indicateurs), pas une sélection de 200. La colonne
+   `verification` dit ce qui a été contrôlé à la main, par priorité : **P1** jeu de test (24), **P2**
+   domaines des questions types du cahier (1 272), **P3** le reste.
+3. **Noms wolof des indicateurs : écrits par KBD, pour les prioritaires** (P1 d'abord). Aucun nom wolof
+   n'est généré. Sans nom wolof, une réponse en wolof cite le nom français.
+4. **Domaines : tous ceux du socle, doublons du portail fusionnés** (38 thèmes → 32 domaines,
+   `socle/referentiels/domaines.csv`). La limite « 6 domaines » n'est pas retenue (suite de 0002).
+
+## Conséquences
+
+- **Écart au cahier** : 2.3 parle de 200+ indicateurs « curés » ; ici tout est servi, mais seuls les
+  indicateurs `verifie` sont garantis relus. Le benchmark (#19) ne porte que sur des P1.
+- **#4 (extraction)** filtre le socle brut par `dataset_id` + `dimension_indicateur` /
+  `valeur_portail` + unité. Deux points y restent à régler : le sens de la colonne `echelle`
+  (189 indicateurs à 10⁶ ou 10⁹) et l'unité « prix constants de 1999… 2041 » incrémentée à tort dans
+  `uipcgjd`, `fsrvlqe`, `chnqiuf`.
+- **Web (SAN)** : 32 domaines au lieu de 6 pour la navigation de l'accueil ; les 6 domaines des
+  questions types (`questions_types = oui`) peuvent rester en tête.
+- **Jeu de test** : les questions approchées indiquent désormais l'indicateur à proposer
+  (`dataset_id`, `filtres`).
