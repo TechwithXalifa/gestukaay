@@ -13,7 +13,7 @@ import os
 import time
 from typing import Literal
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Form, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from gestukaay_contracts.models import (
@@ -24,6 +24,7 @@ from gestukaay_contracts.models import (
     Problem,
     ReponseApprochee,
     ReponseExacte,
+    TranscriptionResponse,
 )
 from gestukaay_engine import charger_moteur
 
@@ -76,6 +77,33 @@ def sante() -> dict:
 def demander(req: AskRequest) -> AskResponse:
     debut = time.perf_counter()
     return _conserver(moteur.repondre(req), debut)
+
+
+# Opus à 60 s dépasse rarement 600 Ko : 2 Mo laisse de la marge sans ouvrir la porte aux abus
+AUDIO_MAX_OCTETS = 2 * 1024 * 1024
+FORMATS_AUDIO = {"audio/webm": "webm", "audio/ogg": "ogg"}
+
+
+@app.post("/v1/transcrire", response_model=TranscriptionResponse)
+async def transcrire(
+    fichier: UploadFile,
+    langue: Literal["fr", "wo", "auto"] = Form("auto"),
+) -> TranscriptionResponse:
+    """Voix sur le web (décision 0004 §1) : audio -> texte, que l'utilisateur
+    corrige avant d'envoyer /v1/ask. L'audio n'est jamais écrit sur disque ni
+    conservé : il ne vit qu'en mémoire le temps de la transcription (10.7)."""
+    type_mime = (fichier.content_type or "").split(";")[0].strip()
+    if type_mime not in FORMATS_AUDIO:
+        raise ErreurApi(415, "Format audio non pris en charge", "WebM ou OGG (Opus) attendu.")
+    audio = await fichier.read(AUDIO_MAX_OCTETS + 1)
+    if len(audio) > AUDIO_MAX_OCTETS:
+        raise ErreurApi(413, "Enregistrement trop long", "60 secondes au maximum.")
+    if not audio:
+        raise ErreurApi(422, "Enregistrement vide")
+    try:
+        return moteur.transcrire(audio, FORMATS_AUDIO[type_mime], langue)
+    finally:
+        del audio
 
 
 @app.post("/v1/ask/{rid}/confirm", response_model=AskResponse)

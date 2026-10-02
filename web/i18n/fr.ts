@@ -20,8 +20,6 @@ export const fr = {
   "accueil.titre1": "Posez votre question.",
   "accueil.titre2": "Recevez le chiffre officiel.",
   "accueil.chapeau": "En français ou en wolof. Parlez ou écrivez.",
-  "accueil.micro.accorde": "Micro autorisé. La question à voix haute arrive très bientôt : écrivez-la en attendant.",
-  "accueil.micro.indisponible": "Aucun micro n'est disponible sur cet appareil. Écrivez votre question.",
 
   // Champ de question
   "champ.libelle": "Votre question",
@@ -88,6 +86,23 @@ export const fr = {
   "micro.etape2": "Ouvrez Autorisations, puis réglez Micro sur « Autoriser ».",
   "micro.reessayer": "J'ai autorisé, réessayer",
   "micro.texte": "Vous pouvez aussi écrire votre question dans le champ ci-dessus. Gëstukaay n'écoute que lorsque vous appuyez sur le micro.",
+
+  // Écoute (7.3, décision 0004 §1)
+  "ecoute.titre": "Je vous écoute…",
+  "ecoute.arret": "arrêt automatique après 2 s de silence",
+  "ecoute.annuler": "Annuler",
+  "ecoute.terminer": "Terminer",
+  "ecoute.transcription": "Transcription en cours…",
+  "ecoute.verifier": "Vérifiez votre question",
+  "ecoute.corriger": "Corrigez le texte si besoin, puis envoyez.",
+  "ecoute.reenregistrer": "Réenregistrer",
+  "ecoute.envoyer": "Envoyer",
+  "ecoute.vide": "Je n'ai pas bien compris.",
+  "ecoute.videAide": "Parlez près du téléphone, par exemple : « Combien d'habitants à Thiès ? »",
+  "ecoute.format": "Votre navigateur ne sait pas enregistrer la voix.",
+  "ecoute.ecrire": "Vous pouvez écrire votre question à la place.",
+  "ecoute.ecrireBouton": "Écrire ma question",
+  "ecoute.confidentialite": "L'audio sert seulement à la transcription, puis il est effacé.",
 
   // Interface wolof incomplète
   "wo.enCours": "L'interface en wolof est en cours de validation par un linguiste : les textes pas encore validés restent en français.",

@@ -3,14 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChampQuestion } from "@/components/ChampQuestion";
+import { Ecoute } from "@/components/Ecoute";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { HorsLigne } from "@/components/HorsLigne";
 import { MicroRefuse } from "@/components/MicroRefuse";
 import { useEnLigne } from "@/hooks/useEnLigne";
 import { useLangue } from "@/i18n/langue";
+import type { AskRequest } from "@contracts/ask_request";
 import { demander, ErreurApi } from "@/lib/api";
-import { type AccesMicro, demanderMicro } from "@/lib/micro";
 
 const EXEMPLES = [
   { texte: "Combien d'habitants à Thiès ?" },
@@ -25,14 +26,16 @@ export default function Accueil() {
   const { t } = useLangue();
   const [question, setQuestion] = useState<string | null>(null);
   const [erreur, setErreur] = useState<unknown>(null);
-  const [micro, setMicro] = useState<AccesMicro | null>(null);
+  const [ecoute, setEcoute] = useState(false);
+  const [microRefuse, setMicroRefuse] = useState(false);
 
-  async function poser(q: string) {
+  async function poser(q: string, voix?: Pick<AskRequest, "transcription_brute" | "langue">) {
     setQuestion(q);
     setErreur(null);
-    setMicro(null);
+    setEcoute(false);
+    setMicroRefuse(false);
     try {
-      const r = await demander({ question: q });
+      const r = await demander(voix ? { question: q, source: "voix", ...voix } : { question: q });
       router.push(`/r/${r.reponse.id}`);
     } catch (e) {
       setErreur(e);
@@ -53,7 +56,7 @@ export default function Accueil() {
           desactive={horsLigne}
           enCours={question !== null && !erreur}
           onEnvoyer={poser}
-          onMicro={async () => setMicro(await demanderMicro())}
+          onMicro={() => setEcoute(true)}
         />
         {!horsLigne && (
           <div className="exemples">
@@ -68,12 +71,8 @@ export default function Accueil() {
         <div className="zone-etat">
           {horsLigne ? (
             <HorsLigne onReessayer={() => (question ? poser(question) : location.reload())} />
-          ) : micro === "refuse" ? (
-            <MicroRefuse onReessayer={async () => setMicro(await demanderMicro())} />
-          ) : micro ? (
-            <p className="note" role="status">
-              {t(micro === "accorde" ? "accueil.micro.accorde" : "accueil.micro.indisponible")}
-            </p>
+          ) : microRefuse ? (
+            <MicroRefuse onReessayer={() => setEcoute(true)} />
           ) : erreur ? (
             <Erreur erreur={erreur} onReessayer={() => question && poser(question)} />
           ) : (
@@ -82,6 +81,16 @@ export default function Accueil() {
         </div>
       </main>
       <PiedDePage />
+      {ecoute && (
+        <Ecoute
+          onEnvoyer={(q, brute, langue) => poser(q, { transcription_brute: brute, langue })}
+          onFermer={() => setEcoute(false)}
+          onRefus={() => {
+            setEcoute(false);
+            setMicroRefuse(true);
+          }}
+        />
+      )}
     </div>
   );
 }

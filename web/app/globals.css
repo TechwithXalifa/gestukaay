@@ -174,3 +174,29 @@ a { color: var(--gk-feuille); }
 
 /* ---- Interface wolof en cours de validation --------------------------- */
 .bandeau-langue { margin: 0; padding: 8px 16px; background: var(--gk-sable-50); color: var(--gk-encre); font-size: 13px; line-height: 18px; text-align: center; }
+
+/* ---- Écoute (maquette M-Ecoute, plein écran sombre) -------------------- */
+.ecoute { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; padding: 16px 20px 24px; background: var(--gk-ivoire); color: var(--gk-encre); }
+.ecoute-haut { display: flex; justify-content: flex-start; }
+.ecoute-centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; }
+.ecoute-titre { margin: 0; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 26px; line-height: 34px; font-weight: 600; }
+.ecoute-aide { margin: 12px 0 0; font-size: 13px; line-height: 18px; color: var(--gk-ardoise); }
+.ecoute-aide strong { color: var(--gk-encre); font-variant-numeric: tabular-nums; }
+.ecoute-micro { position: relative; width: 176px; height: 176px; margin-top: 40px; display: flex; align-items: center; justify-content: center; }
+.ecoute-rond { position: relative; display: flex; align-items: center; justify-content: center; width: 112px; height: 112px; border-radius: 999px; background: var(--gk-feuille); color: var(--gk-sur-action); }
+.pulse { position: absolute; inset: 0; border-radius: 999px; background: var(--gk-feuille-50); animation: gkpulse 1.8s ease-out infinite; }
+.pulse.retard { animation-delay: -.9s; }
+@keyframes gkpulse { 0% { transform: scale(.8); opacity: .75; } 100% { transform: scale(1.45); opacity: 0; } }
+.onde { margin-top: 32px; height: 72px; display: flex; align-items: center; gap: 4px; }
+.onde span { width: 4px; border-radius: 2px; background: var(--gk-feuille); transition: height .1s linear; }
+.ecoute-verif { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; max-width: 560px; width: 100%; margin: 0 auto; }
+.ecoute-verif .ecoute-titre { justify-content: flex-start; font-size: 22px; line-height: 28px; }
+.ecoute-verif textarea { width: 100%; padding: 16px; border: 1.5px solid var(--gk-feuille); border-radius: var(--radius-lg); background: var(--gk-blanc); color: var(--gk-encre); font-size: 18px; line-height: 26px; resize: vertical; }
+.ecoute-bas { display: flex; gap: 12px; max-width: 560px; width: 100%; margin: 0 auto; }
+.bouton-contour, .bouton-feuille { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
+.bouton-contour { border: 1px solid var(--gk-trait); background: transparent; color: var(--gk-encre); }
+.bouton-feuille { border: 0; background: var(--gk-feuille); color: var(--gk-sur-action); }
+.bouton-feuille:disabled { background: var(--gk-squelette); color: var(--gk-champ); cursor: not-allowed; }
+.large { flex: 1; min-height: 56px; }
+.ecoute-confidentialite { margin: 12px 0 0; text-align: center; font-size: 12px; line-height: 16px; color: var(--gk-ardoise); }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } .onde span { transition: none; } }
