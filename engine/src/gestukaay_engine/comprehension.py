@@ -27,7 +27,14 @@ from gestukaay_socle.zones import normaliser
 from gestukaay_socle.zones import zones as zones_ref
 from pydantic import BaseModel, ConfigDict, Field
 
-from .candidats import Candidat, index, periodes_citees, zones_citees
+from .candidats import (
+    Candidat,
+    desagregation_citee,
+    index,
+    lieux_inconnus,
+    periodes_citees,
+    zones_citees,
+)
 from .llm import Appel, ClientLLM, EchecLLM
 
 K = 15  # candidats proposés au LLM
@@ -82,6 +89,7 @@ class Comprise:
     source: Literal["llm", "regles"]
     appel: Appel | None = None
     detail: dict = field(default_factory=dict)
+    lieux_inconnus: list[str] = field(default_factory=list)  # « Touba » : jamais remplacé par le national
 
 
 _PERIODE = {"annee": r"(19|20)\d\d", "trimestre": r"(19|20)\d\d-T[1-4]", "mois": r"(19|20)\d\d-(0[1-9]|1[0-2])"}
@@ -144,12 +152,14 @@ class Comprehension:
                 sortie, appel = self.client.structurer(SYSTEME, self._message(question, zones, periodes,
                                                                               candidats, precedente), SortieLLM)
                 req = self._requete(sortie, candidats, zones, periodes, precedente, question)
-                return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()})
+                return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
+                                lieux_inconnus(question))
             except EchecLLM as e:
                 appel = e.appel
         else:
             appel = None
-        return Comprise(regles(question, candidats, zones, periodes, precedente), candidats, "regles", appel)
+        return Comprise(regles(question, candidats, zones, periodes, precedente), candidats, "regles", appel,
+                        lieux_inconnus=lieux_inconnus(question))
 
     # ------------------------------------------------------------------
 
@@ -224,4 +234,5 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
     else:
         intention = "valeur"
     periode = periode_de(periodes[0]) if periodes else Periode(type="derniere")
-    return RequeteStructuree(intention=intention, indicateur=code, zones=zones, periode=periode, confiance=0.4)
+    return RequeteStructuree(intention=intention, indicateur=code, zones=zones, periode=periode,
+                             desagregation=desagregation_citee(question) or None, confiance=0.4)

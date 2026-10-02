@@ -1,0 +1,7 @@
+dataset_id;dimension;modalite;motif
+rgohtcc;composantes;PRODUIT INTERIEUR BRUT;Agrégat principal du jeu : « le PIB » sans précision
+rgohtcc;base-pib;Base 2021;Base la plus récente des comptes nationaux de l'ANSD
+rgohtcc;prix-pib;Prix courant;Valeur nominale, celle que l'on cite sans précision
+rgohtcc;approche;PIB approche production;Approche de référence des comptes nationaux
+ervtjfc;cycle;Elémentaire;Cycle de référence quand on parle de scolarisation sans préciser
+elwxsmc;tranche-d-âge;15-49 ans;Âges féconds de référence de l'indice synthétique de fécondité
