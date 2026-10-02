@@ -98,6 +98,15 @@ def openai_compatible(client: httpx.Client, m: Maillon, systeme: str, utilisateu
     base = (m.url or URL_OPENROUTER).rstrip("/")
     if "openrouter.ai" in base:
         corps["usage"] = {"include": True}  # OpenRouter renvoie alors le coût exact
+        routage: dict = {}
+        if m.hebergeurs:
+            routage["order"] = list(m.hebergeurs)  # puis les autres si ceux-ci échouent
+        if m.tri:
+            routage["sort"] = m.tri
+        if mode != "aucun":
+            routage["require_parameters"] = True  # seulement des hébergeurs qui respectent le JSON
+        if routage:
+            corps["provider"] = routage
     entetes = {"Authorization": f"Bearer {m.cle}"} if m.cle else {}
     d = _poster(client, f"{base}/chat/completions", entetes, corps)
     try:

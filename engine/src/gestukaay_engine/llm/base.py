@@ -25,6 +25,10 @@ class Maillon:
     mode_json: ModeJson | None = None  # None : le meilleur mode connu du fournisseur
     prix_entree: float | None = None  # $ par million de jetons, si le fournisseur ne donne pas le coût
     prix_sortie: float | None = None
+    # OpenRouter seulement : hébergeurs à essayer dans l'ordre (« cerebras », « groq »…)
+    # et tri des autres (« latency », « throughput », « price »).
+    hebergeurs: tuple[str, ...] = ()
+    tri: str | None = None
 
 
 @dataclass(frozen=True)

@@ -96,6 +96,23 @@ def test_openrouter_cout_exact_fourni_par_le_fournisseur():
     assert t.recues[0].headers["authorization"] == "Bearer o"
 
 
+def test_openrouter_choix_et_tri_des_hebergeurs():
+    m = Maillon(nom="or", fournisseur="openai_compatible", modele="openai/gpt-oss-120b", cle="o",
+                url="https://openrouter.ai/api/v1", hebergeurs=("cerebras", "groq"), tri="latency")
+    t = transport(**{O: openai_ok()})
+    ClientLLM([m], transport=t).structurer("s", "q", Capitale)
+    assert json.loads(t.recues[0].content)["provider"] == {
+        "order": ["cerebras", "groq"], "sort": "latency", "require_parameters": True}
+
+
+def test_routage_d_hebergeurs_jamais_envoye_hors_openrouter():
+    m = Maillon(nom="l", fournisseur="openai_compatible", modele="m", url="http://localhost:11434/v1",
+                hebergeurs=("cerebras",))
+    t = transport(localhost=openai_ok())
+    ClientLLM([m], transport=t).structurer("s", "q", Capitale)
+    assert "provider" not in json.loads(t.recues[0].content)
+
+
 def test_ollama_local_meme_adaptateur_sans_cle():
     local = Maillon(nom="local", fournisseur="openai_compatible", modele="qwen3:4b",
                     url="http://localhost:11434/v1")
@@ -240,6 +257,8 @@ ENV = {
     "LLM_PRINCIPAL_CLE": "g", "LLM_PRINCIPAL_PRIX_ENTREE": "0.3", "LLM_PRINCIPAL_PRIX_SORTIE": "2.5",
     "LLM_REPLI_FOURNISSEUR": "anthropic", "LLM_REPLI_MODELE": "claude-haiku-4-5", "LLM_REPLI_CLE": "a",
     "LLM_REPLI_DELAI_S": "3", "LLM_REPLI_TEMPERATURE": "aucune",
+    "LLM_OR_FOURNISSEUR": "openai_compatible", "LLM_OR_MODELE": "openai/gpt-oss-120b",
+    "LLM_OR_URL": "https://openrouter.ai/api/v1", "LLM_OR_HEBERGEURS": "cerebras, groq", "LLM_OR_TRI": "latency",
     "LLM_SECOURS_FOURNISSEUR": "regles",
     "LLM_HF_FOURNISSEUR": "huggingface", "LLM_HF_MODELE": "openai/gpt-oss-120b:fastest", "LLM_HF_CLE": "hf_x",
 }
@@ -250,6 +269,7 @@ def test_changer_de_fournisseur_se_fait_dans_l_environnement():
     assert [(m.nom, m.fournisseur) for m in c] == [("principal", "gemini"), ("repli", "anthropic"),
                                                    ("hf", "huggingface"), ("secours", "regles")]
     assert c[0].delai_s == 2 and c[1].delai_s == 3 and c[1].temperature is None
+    assert lire_chaine({**ENV, "LLM_CHAINE": "or"})[0].hebergeurs == ("cerebras", "groq")
     tout_openrouter = {**ENV, "LLM_PRINCIPAL_FOURNISSEUR": "openai_compatible",
                        "LLM_PRINCIPAL_URL": "https://openrouter.ai/api/v1",
                        "LLM_PRINCIPAL_MODELE": "google/gemini-2.5-flash"}
