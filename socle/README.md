@@ -31,9 +31,11 @@ Pour chaque colonne géographique du socle : libellés rattachés, écartés, et
 
 ## Référentiel des indicateurs — `referentiels/indicateurs.csv` (issue #3, décision 0005)
 
-**Un indicateur = un jeu du portail × une valeur de sa dimension « Indicateur » × une unité.** Les
+**Un indicateur = un jeu du portail × une valeur de sa dimension « Indicateur » × une unité.** Une
+dimension de mesure (« Quota », « Mesure », « Unités ») porte aussi l'indicateur : production, rendement
+et superficie sont trois indicateurs même quand le portail ne leur donne pas d'unité. Les
 autres dimensions (sexe, âge, milieu…) sont des désagrégations (`desagregations`), les colonnes
-géographiques donnent la zone (`niveaux_zone`). Tout le socle y est : 4 149 indicateurs, 373 jeux,
+géographiques donnent la zone (`niveaux_zone`). Tout le socle y est : 4 282 indicateurs, 373 jeux,
 32 domaines.
 
 ```bash
@@ -43,7 +45,8 @@ uv run python socle/scripts/inventaire_indicateurs.py   # ~15 s, relançable
 | Colonne | Contenu |
 |---|---|
 | `code` | identifiant interne stable (`dwibrlf`, `jcvcajc.taux-de-pauvrete`, `uipcgjd.total~courants`) ; jamais montré au public |
-| `libelle_fr`, `libelle_wo`, `statut_wo` | **à la main** ; `libelle_fr` est pré-rempli depuis le portail |
+| `libelle_fr`, `libelle_wo`, `statut_wo` | **à la main** ; `libelle_fr` est pré-rempli depuis le portail, les doublons départagés (nom du jeu, unité, période) |
+| `unite` / `unite_affichee` | unité du portail (identité, jamais modifiée) / **à la main** : unité montrée au public (« habitants », « ans ») ; vide = celle du portail |
 | `priorite` | `P1` utilisé par le jeu de test · `P2` domaines des questions types du cahier · `P3` le reste |
 | `verification` | **à la main** : `a_verifier` → `verifie` (ou `ecarte`) |
 | `questions_test` | questions du jeu de test qui l'utilisent |
@@ -51,7 +54,7 @@ uv run python socle/scripts/inventaire_indicateurs.py   # ~15 s, relançable
 | `niveaux_zone` | `pays\|region\|departement\|academie` ; vide = aucune zone dans les données (souvent national, à vérifier) |
 
 L'inventaire **ne remplace jamais** les colonnes remplies à la main (`libelle_fr`, `libelle_wo`,
-`statut_wo`, `verification`, `note`) et signale les codes disparus si le socle change.
+`statut_wo`, `unite_affichee`, `verification`, `note`) et signale les codes disparus si le socle change.
 
 `referentiels/domaines.csv` : thème du portail → domaine Gëstukaay (doublons fusionnés, « Métadonnées »
 exclu) ; `questions_types = oui` pour les 6 domaines des questions types du cahier.

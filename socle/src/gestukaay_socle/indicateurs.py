@@ -2,7 +2,10 @@
 
 Décisions :
   - un indicateur = un jeu du portail × une valeur de sa dimension « Indicateur »
-    × une unité. Les autres dimensions (sexe, âge, milieu…) sont des
+    × une unité. Une dimension de mesure (« Quota », « Mesure », « Unités » :
+    production / rendement / superficie, valeur / volume…) porte aussi
+    l'indicateur, seule ou avec « Indicateur » : sinon des mesures différentes
+    sans unité sur le portail seraient mélangées. Les autres dimensions (sexe, âge, milieu…) sont des
     désagrégations ; les dimensions géographiques donnent la zone. Un jeu sans
     dimension « Indicateur » est un seul indicateur (par unité) ;
   - l'unité fait partie de l'identité : une même série ne mélange jamais deux
@@ -30,17 +33,19 @@ FICHIER = REFERENTIELS / "indicateurs.csv"
 FICHIER_DOMAINES = REFERENTIELS / "domaines.csv"
 
 COLONNES = (
-    "code", "dataset_id", "libelle_fr", "libelle_wo", "statut_wo", "unite", "domaine", "priorite",
+    "code", "dataset_id", "libelle_fr", "libelle_wo", "statut_wo", "unite", "unite_affichee", "domaine", "priorite",
     "verification", "questions_test", "producteur", "niveaux_zone", "desagregations", "frequence",
     "periode_debut", "periode_fin", "nb_valeurs", "dimension_indicateur", "valeur_portail", "jeu", "note",
 )
 # Colonnes remplies ou corrigées à la main : jamais écrasées par l'inventaire.
-MANUELLES = ("libelle_fr", "libelle_wo", "statut_wo", "verification", "note")
+MANUELLES = ("libelle_fr", "libelle_wo", "statut_wo", "unite_affichee", "verification", "note")
 VERIFICATIONS = ("a_verifier", "verifie", "ecarte")
 PRIORITES = ("P1", "P2", "P3")
 
 # indicateur, indicateurs, indicator, indicateurs-vaccination…
 _DIMENSION_INDICATEUR = re.compile(r"^indicat")
+# quota, mesure(s), measure(s), unités : PRODUCTION / RENDEMENT, Valeur / Volume, courants / volume
+_DIMENSION_MESURE = re.compile(r"^(quota|mesures?|measures?|unites?)$")
 # Valeurs d'indicateur qui ne disent rien seules : le libellé reprend le nom du jeu.
 _GENERIQUES = {"total", "totaux", "ensemble", "global", "tous", "all", "valeur", "nombre"}
 # « 18.3-b_ », « 11.1-11.3_ », « 22.4a_ » : numérotation des annuaires en tête des noms de jeux
@@ -62,7 +67,8 @@ class Indicateur:
     libelle_fr: str
     libelle_wo: str
     statut_wo: str
-    unite: str
+    unite: str  # celle du portail : fait partie de l'identité, jamais modifiée
+    unite_affichee: str  # à la main ; vide = celle du portail
     domaine: str
     priorite: str
     verification: str
@@ -74,18 +80,26 @@ class Indicateur:
     periode_debut: str
     periode_fin: str
     nb_valeurs: int
-    dimension_indicateur: str  # clé de la dimension dans desagregation_json, vide si aucune
-    valeur_portail: str  # valeur exacte de cette dimension sur le portail
+    dimension_indicateur: str  # clé(s) dans desagregation_json (« indicateurs+mesure »), vide si aucune
+    valeur_portail: str  # valeur(s) exacte(s) sur le portail, jointes par « — » ; graphies séparées par |
     jeu: str
     note: str
 
 
-def dimension_indicateur(dims: dict) -> str | None:
-    """Clé de la dimension « Indicateur » d'une ligne du portail, s'il y en a une."""
-    for cle in dims:
-        if _DIMENSION_INDICATEUR.match(normaliser(cle)):
-            return cle
-    return None
+def est_dimension_indicateur(cle: str) -> bool:
+    return bool(_DIMENSION_INDICATEUR.match(normaliser(cle)))
+
+
+def dimensions_indicateur(dims: dict) -> tuple[str, ...]:
+    """Clés d'une ligne du portail qui portent l'indicateur : « Indicateur » puis la mesure."""
+    ind = [k for k in dims if est_dimension_indicateur(k)][:1]
+    mes = [k for k in dims if _DIMENSION_MESURE.match(normaliser(k))][:1]
+    return tuple(ind + mes)
+
+
+def valeur_indicateur(dims: dict) -> str:
+    """« Taux de pauvreté », « PRODUCTION », « Total — En milliards de francs CFA courants »."""
+    return " — ".join(" ".join(str(dims[k]).split()) for k in dimensions_indicateur(dims))
 
 
 def nom_du_jeu(nom: str) -> str:
@@ -93,11 +107,12 @@ def nom_du_jeu(nom: str) -> str:
     return _NUMERO_ANNUAIRE.sub("", nom).strip()
 
 
-def libelle(nom_jeu: str, valeur: str) -> str:
-    """Libellé français initial, avant relecture."""
+def libelle(nom_jeu: str, valeur: str, mesure_seule: bool = False) -> str:
+    """Libellé français initial, avant relecture. « PRODUCTION » seul ne dit rien :
+    une mesure sans dimension « Indicateur » est précédée du nom du jeu."""
     if not valeur:
         return nom_du_jeu(nom_jeu)
-    if normaliser(valeur) in _GENERIQUES:
+    if mesure_seule or normaliser(valeur) in _GENERIQUES:
         return f"{nom_du_jeu(nom_jeu)} — {valeur.strip()}"
     return " ".join(valeur.split())
 

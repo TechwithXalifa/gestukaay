@@ -6,24 +6,24 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 
 | | Nombre |
 |---|---|
-| Indicateurs retenus | 4149 |
+| Indicateurs retenus | 4282 |
 | Jeux du portail | 373 |
 | Domaines | 32 |
 | Priorité P1 (jeu de test) | 26 |
-| Priorité P2 (domaines des questions types) | 1272 |
-| Priorité P3 (autres) | 2851 |
-| Vérifiés à la main | 0 |
-| Avec un libellé wolof | 26 |
+| Priorité P2 (domaines des questions types) | 1278 |
+| Priorité P3 (autres) | 2978 |
+| Vérifiés à la main | 24 |
+| Avec un libellé wolof | 25 |
 | Écartés | 0 |
 
 ## Par domaine
 
 | Domaine | Indicateurs | Jeux | P1 | P2 | P3 | Régionaux |
 |---|---|---|---|---|---|---|
-| Agriculture | 797 | 40 | 1 | 0 | 796 | 523 |
-| Comptes nationaux et PIB | 676 | 21 | 1 | 0 | 675 | 11 |
+| Agriculture | 801 | 40 | 1 | 0 | 800 | 523 |
+| Comptes nationaux et PIB | 799 | 21 | 1 | 0 | 798 | 22 |
 | Prix | 615 | 7 | 3 | 612 | 0 | 2 |
-| Santé | 394 | 47 | 4 | 390 | 0 | 124 |
+| Santé | 400 | 47 | 4 | 396 | 0 | 124 |
 | Économie | 228 | 5 | 0 | 0 | 228 | 0 |
 | Entreprises | 223 | 9 | 0 | 0 | 223 | 0 |
 | Justice | 189 | 27 | 2 | 0 | 187 | 3 |
@@ -73,10 +73,10 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | FR-012 | exacte | `tsghpfc.indice-global` | Indice des prix à la consommation |
 | FR-013 | exacte | `rfegvpb.taux-durbanisation` | Taux d'urbanisation |
 | FR-014 | exacte | `ioxbglg.nombre-de-personnes-emprisonnees` | Nombre de personnes emprisonnées |
-| FR-015 | exacte | `wrqfsxb~tonne` | Captures de poisson (en tonnes) |
+| FR-015 | exacte | `wrqfsxb.quantite` | Captures de poisson (en tonnes) |
 | FR-016 | exacte | `cfulhc.taux-de-penetration-mobile` | Taux de pénétration de la téléphonie mobile |
 | FR-017 | exacte | `whkisxc` | Arrivées de visiteurs non-résidents |
-| FR-018 | exacte | `ovothxc` | Production, rendement et superficie des céréales |
+| FR-018 | exacte | `ovothxc.production` | Production de céréales |
 | FR-019 | exacte | `muhgux.salaire-moyen-mensuel` | Salaire moyen mensuel |
 | FR-020 | exacte | `xsitdae.enfants-souffrant-dun-retard-de-croissance` | Enfants souffrant d'un retard de croissance |
 | FR-021 | exacte | `qjyrtof.gini` | Indice de Gini (inégalités) |
@@ -139,7 +139,7 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | WO-006 | exacte | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
 | WO-007 | exacte | `pvswjnd` | Population (RGPH-5) |
 | WO-008 | exacte | `ioxbglg.nombre-de-personnes-emprisonnees` | Nombre de personnes emprisonnées |
-| WO-009 | exacte | `wrqfsxb~tonne` | Captures de poisson (en tonnes) |
+| WO-009 | exacte | `wrqfsxb.quantite` | Captures de poisson (en tonnes) |
 | WO-010 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Mortalité des enfants de moins de 5 ans |
 | WO-011 | exacte | `wdvdnub.proportion-denfants-de-12-a-23-mois` | Enfants de 12 à 23 mois complètement vaccinés |
 | WO-012 | exacte | `dwibrlf` | Taux de chômage |
@@ -174,8 +174,6 @@ Même jeu et même valeur « Indicateur », unités différentes : chaque unité
 | Jeu | Indicateurs concernés | Unités |
 |---|---|---|
 | `uipcgjd` | 43 | En milliards de francs CFA aux prix constants de 1999 · En milliards de francs CFA aux prix constants de 2000 · En milliards de francs CFA aux prix constants de 2001 · En milliards de francs CFA aux prix constants de 2002 · … (44 unités) |
-| `fruuksc` | 43 | En milliards de francs CFA FAB courants · En milliards de francs CFA fab aux prix constants de 1999 |
-| `efrliqb` | 43 | En milliards de francs CFA aux prix d'acquisition constants de 1999 · En milliards de francs CFA courants au prix d'acquisition |
 | `fsrvlqe` | 42 | En milliards de francs CFA aux prix constants de 1999 · En milliards de francs CFA aux prix constants de 2000 · En milliards de francs CFA aux prix constants de 2001 · En milliards de francs CFA aux prix constants de 2002 · … (44 unités) |
 | `chnqiuf` | 42 | En milliards de francs CFA aux prix constants de 1999 · En milliards de francs CFA aux prix constants de 2000 · En milliards de francs CFA aux prix constants de 2001 · En milliards de francs CFA aux prix constants de 2002 · … (44 unités) |
 | `vihpdpe` | 10 | En Pourcentage du PIB aux prix constants de 1999 · En Pourcentage du PIB aux prix courants |
@@ -186,7 +184,6 @@ Même jeu et même valeur « Indicateur », unités différentes : chaque unité
 | `oabkope` | 2 | % · 1000FCFA · US dollar / FCFA · Usdollar · … (8 unités) |
 | `amkfcsb` | 2 | Unité · tonnes |
 | `bzoyiaf` | 1 | Unité · jour |
-| `qrbsrjf` | 1 | millions FCFA · tonnes |
 | `brwhpd` | 1 | Etudiant (s) pour un enseignant · enseignant · étudiant |
 | `thtvbnb` | 1 | MIO_CFA · Nm3 · baril · m3/habitant · … (6 unités) |
 | `wgpraxe` | 1 | Nm3 · tonnes |
@@ -196,7 +193,6 @@ Même jeu et même valeur « Indicateur », unités différentes : chaque unité
 | `gaxmlud` | 1 | Détenus par personnel pénitentiaire · Unité |
 | `dnfzlsc` | 1 | En millions de francs CFA · Nm3 · baril |
 | `pvfxije` | 1 | GWh · Mètres · Personne · en milliards de FCFA · … (5 unités) |
-| `wrqfsxb` | 1 | B_CFA · tonne |
 | `gggrydc` | 1 | FCFA · Tonne(s) |
 | `mmvnrz` | 1 | milliers FCFA · tonne |
 | `oyjjwdd` | 1 | milliers FCFA · tonne |
@@ -230,7 +226,7 @@ Libellé d'unité incrémenté ligne à ligne (« prix constants de 1999 », « 
 
 ### Indicateurs sans unité
 
-1330 indicateurs (155 jeux) n'ont pas d'unité sur le portail. Souvent elle est dans le libellé (« … (%) ») : à compléter à la vérification.
+1394 indicateurs (155 jeux) n'ont pas d'unité sur le portail. Souvent elle est dans le libellé (« … (%) ») : à compléter à la vérification.
 
 ### Échelle
 
@@ -238,5 +234,5 @@ Libellé d'unité incrémenté ligne à ligne (« prix constants de 1999 », « 
 
 ### Sans zone
 
-3121 indicateurs n'ont ni colonne géographique ni code région du portail. Ils sont en général nationaux, mais pas toujours (les prix de `feujxob` sont relevés dans l'agglomération de Dakar) : la zone est fixée jeu par jeu à la vérification.
+3243 indicateurs n'ont ni colonne géographique ni code région du portail. Ils sont en général nationaux, mais pas toujours (les prix de `feujxob` sont relevés dans l'agglomération de Dakar) : la zone est fixée jeu par jeu à la vérification.
 
