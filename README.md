@@ -33,4 +33,8 @@ Ou, sans rien installer d'autre que Docker :
 docker compose up --build   # site : http://localhost:3000 · API : http://localhost:8000/docs
 ```
 
+Pour le vrai moteur : `GESTUKAAY_MOTEUR=reel` et la clé `LLM_PRINCIPAL_CLE` dans `.env`, et le socle
+extrait dans `../socle_gestukaay` (ou le chemin donné par `GESTUKAAY_SOCLE_EXTRAIT`). Il est monté en
+lecture seule dans l'API.
+
 Référence fonctionnelle : cahier des charges v1.1 (30 septembre 2026).
