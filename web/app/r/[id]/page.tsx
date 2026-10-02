@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AskResponse } from "@contracts/ask_response";
 import { ChampQuestion } from "@/components/ChampQuestion";
+import { Ecoute } from "@/components/Ecoute";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { HorsLigne } from "@/components/HorsLigne";
@@ -13,7 +14,6 @@ import { useEnLigne } from "@/hooks/useEnLigne";
 import { useLangue } from "@/i18n/langue";
 import { confirmer, demander, ErreurApi, lireReponse } from "@/lib/api";
 import { memoriser, retrouver } from "@/lib/historique";
-import { demanderMicro } from "@/lib/micro";
 
 /** Page réponse : adresse stable et partageable (EF-29), lisible hors ligne si déjà consultée (7.3). */
 export default function PageReponse({ params }: { params: Promise<{ id: string }> }) {
@@ -26,6 +26,7 @@ export default function PageReponse({ params }: { params: Promise<{ id: string }
   const [erreur, setErreur] = useState<unknown>(null);
   const [enCours, setEnCours] = useState(true);
   const [microRefuse, setMicroRefuse] = useState(false);
+  const [ecoute, setEcoute] = useState(false);
 
   const charger = useCallback(async (appel: () => Promise<AskResponse>, naviguer = false) => {
     setEnCours(true);
@@ -60,9 +61,6 @@ export default function PageReponse({ params }: { params: Promise<{ id: string }
   const horsLigne = !enLigne || (erreur instanceof ErreurApi && erreur.horsLigne);
   const lisible = r && (!erreur || depuisAppareil);
 
-  async function micro() {
-    setMicroRefuse((await demanderMicro()) === "refuse");
-  }
 
   return (
     <div className="site">
@@ -74,9 +72,9 @@ export default function PageReponse({ params }: { params: Promise<{ id: string }
           enCours={enCours}
           desactive={horsLigne}
           onEnvoyer={(q) => charger(() => demander({ question: q }), true)}
-          onMicro={micro}
+          onMicro={() => setEcoute(true)}
         />
-        {microRefuse && <MicroRefuse onReessayer={micro} />}
+        {microRefuse && <MicroRefuse onReessayer={() => setEcoute(true)} />}
         {horsLigne && lisible && (
           <p className="bandeau-discret" role="status">{t("reponse.horsligne")}</p>
         )}
@@ -95,6 +93,19 @@ export default function PageReponse({ params }: { params: Promise<{ id: string }
         )}
       </main>
       <PiedDePage adresse={r?.url} />
+      {ecoute && (
+        <Ecoute
+          onEnvoyer={(q, brute, langue) => {
+            setEcoute(false);
+            charger(() => demander({ question: q, source: "voix", transcription_brute: brute, langue }), true);
+          }}
+          onFermer={() => setEcoute(false)}
+          onRefus={() => {
+            setEcoute(false);
+            setMicroRefuse(true);
+          }}
+        />
+      )}
     </div>
   );
 }
