@@ -58,3 +58,11 @@ plusieurs unités (comptes nationaux en prix courants et constants, captures en 
   (description du jeu), valeurs du jeu de test retrouvées. Restent `a_verifier`, avec leur raison dans
   `note` : `qjyrtof.gini` (portail arrondi à 0,1 : 118 valeurs sur 187 à 0,0, à exclure en #6) et
   `ovothxc.production` (unité « tonnes » déduite de l'ordre de grandeur).
+
+## Fiches (#7, 2026-10-02)
+
+- Fiche d'un indicateur = référentiel + fiche de son jeu (`jeux.csv`, découpée dans la description du
+  portail). Définition propre à un indicateur : **citée mot pour mot du portail, jamais rédigée**.
+- 17 des 26 P1 ont une définition publiée ; 9 n'en ont aucune sur le portail (taux brut de
+  scolarisation, prix du mil et du riz, salaire moyen, production de céréales, espérance de vie, Gini,
+  taux d'urbanisation, captures) : la fiche le dit, sans combler le vide.

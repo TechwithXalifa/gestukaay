@@ -60,3 +60,20 @@ L'inventaire **ne remplace jamais** les colonnes remplies à la main (`libelle_f
 exclu) ; `questions_types = oui` pour les 6 domaines des questions types du cahier.
 
 Rapport : `rapports/indicateurs.md` (comptes par domaine, couverture des 100 questions, anomalies).
+
+## Fiches des jeux et des indicateurs — `referentiels/jeux.csv` (issue #7)
+
+```bash
+uv run python socle/scripts/fiches.py   # quelques secondes
+```
+
+`jeux.csv` : une fiche par jeu, découpée dans la description du portail (rien n'est rédigé). Les 61 jeux
+au modèle des annuaires ANSD donnent `intitule`, `definition`, `type_donnees`, `operation` (ENES, EHCVM,
+RGPH-5… : le `Source.operation` du contrat), `methode`, `observations` ; les autres, une `description`
+en texte libre (78 n'en ont aucune).
+
+**Fiche d'un indicateur** = son référentiel (libellés, unité, périmètre) + la fiche de son jeu. Quand le
+jeu décrit plusieurs indicateurs, la colonne manuelle `definition` d'`indicateurs.csv` porte la phrase
+propre à l'indicateur, **citée mot pour mot du portail** (un test le vérifie).
+
+Rapport de relecture : `rapports/fiches_p1.md`.

@@ -197,7 +197,7 @@ def construire(catalogue, cumuls, cle_indic, geo, questions):
         ligne = {
             "code": code, "dataset_id": ds, "libelle_fr": libelle(cat["nom"], valeur, mesure_seule=bool(valeur) and not
                                                           est_dimension_indicateur(cle_indic[ds].split("+")[0])),
-            "libelle_wo": "", "statut_wo": "", "unite": unite, "unite_affichee": "", "domaine": dom.domaine,
+            "libelle_wo": "", "statut_wo": "", "unite": unite, "unite_affichee": "", "definition": "", "domaine": dom.domaine,
             "priorite": "P1" if qs else "P2" if dom.questions_types else "P3",
             "verification": "a_verifier" if dom.domaine else "ecarte",
             "questions_test": "|".join(qs), "producteur": cat["producteur"],
