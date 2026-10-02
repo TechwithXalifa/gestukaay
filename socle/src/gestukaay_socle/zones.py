@@ -131,3 +131,32 @@ def resoudre(libelle: str, niveau: str | None = None) -> str | None:
         if defaut in par_niveau:
             return par_niveau[defaut]
     return None
+
+
+# --------------------------------------------------------------------------
+# Pourquoi un libellé n'est pas rattaché (rapport de couverture, rejets de l'extraction)
+# --------------------------------------------------------------------------
+
+TOTAUX = _JAMAIS | {"communes"}
+# Arrondissements et communes, toutes abréviations du portail (Arrond, ARD., ARDT, COOMUNE…)
+_INFRA = re.compile(
+    r"^(arrondissement|arrond|ardt|ard|ca|commune|coomune|cmc|cr|communaute rurale|ville de|quartier) "
+)
+# Regroupements qui ne sont pas des zones administratives : points cardinaux, pôles,
+# couples de régions, zones agricoles, régions dans leurs limites d'une année passée.
+_NON_ADMIN = re.compile(
+    r"^zone |^(nord|sud|est|ouest|centre)( |$)| et |^pole |"
+    r"^(notto diosmone palmarain|gorom lampsar|saint louis matam)$| (19|20)\d\d$"
+)
+
+
+def motif_non_rattache(libelle: str) -> str:
+    """« total », « infra » (arrondissement, commune…), « non_admin » ou « inconnu »."""
+    n = normaliser(libelle)
+    if n in TOTAUX:
+        return "total"
+    if _INFRA.match(n):
+        return "infra"
+    if _NON_ADMIN.search(n):
+        return "non_admin"
+    return "inconnu"
