@@ -13,7 +13,7 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 | Priorité P2 (domaines des questions types) | 1272 |
 | Priorité P3 (autres) | 2851 |
 | Vérifiés à la main | 0 |
-| Avec un libellé wolof | 0 |
+| Avec un libellé wolof | 26 |
 | Écartés | 0 |
 
 ## Par domaine
@@ -59,60 +59,60 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 
 | Question | Issue | Indicateur(s) | Libellé |
 |---|---|---|---|
-| FR-001 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| FR-002 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
+| FR-001 | exacte | `pvswjnd` | Population (RGPH-5) |
+| FR-002 | exacte | `dwibrlf` | Taux de chômage |
 | FR-003 | exacte | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
 | FR-004 | exacte | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
-| FR-005 | exacte | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
-| FR-006 | exacte | `kdtstle.robinet-dans-logement-concession` | Robinet dans logement/concession |
-| FR-007 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Quotient de mortalité infanto-juvénile |
-| FR-008 | exacte | `wdvdnub.proportion-denfants-de-12-a-23-mois` | Proportion d'enfants de 12 à 23 mois complètement vaccinés conformément au calendrier national |
-| FR-009 | exacte | `elwxsmc.indice-synthetique-de-fecondite` | Indice synthétique de fécondité |
-| FR-010 | exacte | `rgohtcc` | Produit Intérieur Brut (PIB) du Sénégal (Base 2014 et Base 2021) |
-| FR-011 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Riz brisé ordinaire au détail |
-| FR-012 | exacte | `tsghpfc.indice-global` | INDICE GLOBAL |
+| FR-005 | exacte | `asongtc` | Ménages selon la source d'éclairage |
+| FR-006 | exacte | `kdtstle.robinet-dans-logement-concession` | Ménages avec robinet dans le logement ou la concession |
+| FR-007 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Mortalité des enfants de moins de 5 ans |
+| FR-008 | exacte | `wdvdnub.proportion-denfants-de-12-a-23-mois` | Enfants de 12 à 23 mois complètement vaccinés |
+| FR-009 | exacte | `elwxsmc.indice-synthetique-de-fecondite` | Nombre moyen d'enfants par femme |
+| FR-010 | exacte | `rgohtcc` | Produit intérieur brut (PIB) |
+| FR-011 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
+| FR-012 | exacte | `tsghpfc.indice-global` | Indice des prix à la consommation |
 | FR-013 | exacte | `rfegvpb.taux-durbanisation` | Taux d'urbanisation |
 | FR-014 | exacte | `ioxbglg.nombre-de-personnes-emprisonnees` | Nombre de personnes emprisonnées |
-| FR-015 | exacte | `wrqfsxb~tonne` | Captures halieutiques par type de pêche |
-| FR-016 | exacte | `cfulhc.taux-de-penetration-mobile` | Taux de pénétration mobile |
-| FR-017 | exacte | `whkisxc` | Arrivées des non-résidents par nationalité et par mois |
-| FR-018 | exacte | `ovothxc` | Production des principales céréales  : production, rendement et superficie |
-| FR-019 | exacte | `muhgux.salaire-moyen-mensuel` | Salaire Moyen Mensuel |
+| FR-015 | exacte | `wrqfsxb~tonne` | Captures de poisson (en tonnes) |
+| FR-016 | exacte | `cfulhc.taux-de-penetration-mobile` | Taux de pénétration de la téléphonie mobile |
+| FR-017 | exacte | `whkisxc` | Arrivées de visiteurs non-résidents |
+| FR-018 | exacte | `ovothxc` | Production, rendement et superficie des céréales |
+| FR-019 | exacte | `muhgux.salaire-moyen-mensuel` | Salaire moyen mensuel |
 | FR-020 | exacte | `xsitdae.enfants-souffrant-dun-retard-de-croissance` | Enfants souffrant d'un retard de croissance |
-| FR-021 | exacte | `qjyrtof.gini` | Gini |
-| FR-022 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
-| FR-023 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
+| FR-021 | exacte | `qjyrtof.gini` | Indice de Gini (inégalités) |
+| FR-022 | exacte | `dwibrlf` | Taux de chômage |
+| FR-023 | exacte | `pvswjnd` | Population (RGPH-5) |
 | FR-024 | exacte | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
-| FR-025 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| FR-026 | exacte | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
-| FR-027 | exacte | `pexioke.esperance-de-vie-a-la-naissance` | Esperance de vie à la naissance |
-| FR-028 | exacte | `ervtjfc.pourcentage-de-filles-dans-les-effectifs` | Pourcentage de filles dans les effectifs scolarisés |
-| FR-029 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| FR-030 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
-| FR-031 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Riz brisé ordinaire au détail |
+| FR-025 | exacte | `pvswjnd` | Population (RGPH-5) |
+| FR-026 | exacte | `asongtc` | Ménages selon la source d'éclairage |
+| FR-027 | exacte | `pexioke.esperance-de-vie-a-la-naissance` | Espérance de vie à la naissance |
+| FR-028 | exacte | `ervtjfc.pourcentage-de-filles-dans-les-effectifs` | Part des filles parmi les élèves |
+| FR-029 | exacte | `pvswjnd` | Population (RGPH-5) |
+| FR-030 | exacte | `dwibrlf` | Taux de chômage |
+| FR-031 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
 | FR-032 | exacte | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
-| FR-033 | exacte | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
+| FR-033 | exacte | `asongtc` | Ménages selon la source d'éclairage |
 | FR-034 | exacte | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
-| FR-035 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Quotient de mortalité infanto-juvénile |
-| FR-036 | exacte | `rgohtcc` | Produit Intérieur Brut (PIB) du Sénégal (Base 2014 et Base 2021) |
+| FR-035 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Mortalité des enfants de moins de 5 ans |
+| FR-036 | exacte | `rgohtcc` | Produit intérieur brut (PIB) |
 | FR-037 | exacte | `ioxbglg.nombre-de-personnes-emprisonnees` | Nombre de personnes emprisonnées |
-| FR-038 | exacte | `wdvdnub.proportion-denfants-de-12-a-23-mois` | Proportion d'enfants de 12 à 23 mois complètement vaccinés conformément au calendrier national |
-| FR-039 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
+| FR-038 | exacte | `wdvdnub.proportion-denfants-de-12-a-23-mois` | Enfants de 12 à 23 mois complètement vaccinés |
+| FR-039 | exacte | `dwibrlf` | Taux de chômage |
 | FR-040 | exacte | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
-| FR-041 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
-| FR-042 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
+| FR-041 | exacte | `dwibrlf` | Taux de chômage |
+| FR-042 | exacte | `pvswjnd` | Population (RGPH-5) |
 | FR-043 | exacte | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
-| FR-044 | exacte | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
-| FR-045 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Quotient de mortalité infanto-juvénile |
+| FR-044 | exacte | `asongtc` | Ménages selon la source d'éclairage |
+| FR-045 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Mortalité des enfants de moins de 5 ans |
 | FR-046 | exacte | `ioxbglg.nombre-de-personnes-emprisonnees` | Nombre de personnes emprisonnées |
-| FR-047 | approchee | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
+| FR-047 | approchee | `pvswjnd` | Population (RGPH-5) |
 | FR-048 | approchee | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
-| FR-049 | approchee | `feujxob.riz-brise-ordinaire-au-detail` | Riz brisé ordinaire au détail |
+| FR-049 | approchee | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
 | FR-050 | approchee | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
-| FR-051 | approchee | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| FR-052 | approchee | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
-| FR-053 | approchee | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
-| FR-054 | approchee | `qbvttzc` | Evolution du parc de véhicule par type et par région |
+| FR-051 | approchee | `pvswjnd` | Population (RGPH-5) |
+| FR-052 | approchee | `dwibrlf` | Taux de chômage |
+| FR-053 | approchee | `asongtc` | Ménages selon la source d'éclairage |
+| FR-054 | approchee | `qbvttzc` | Parc de véhicules |
 | FR-055 | aucune | hors périmètre (projection) | |
 | FR-056 | aucune | hors périmètre (projection) | |
 | FR-057 | aucune | hors périmètre (projection) | |
@@ -126,41 +126,41 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | FR-065 | aucune | hors périmètre (incomprehension) | |
 | FR-066 | aucune | hors périmètre (hors_socle) | |
 | FR-067 | approchee | `iocwzud` | Taux de criminalité |
-| FR-068 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| FR-069 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
-| FR-070 | exacte | `feujxob.mil-en-grain-vendu-au-detail` | Mil en grain vendu au détail |
+| FR-068 | exacte | `pvswjnd` | Population (RGPH-5) |
+| FR-069 | exacte | `dwibrlf` | Taux de chômage |
+| FR-070 | exacte | `feujxob.mil-en-grain-vendu-au-detail` | Prix du mil en grain au détail |
 | FR-071 | aucune | hors périmètre (hors_socle) | |
 | FR-072 | aucune | hors périmètre (hors_socle) | |
-| WO-001 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| WO-002 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
-| WO-003 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Riz brisé ordinaire au détail |
-| WO-004 | exacte | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
+| WO-001 | exacte | `pvswjnd` | Population (RGPH-5) |
+| WO-002 | exacte | `dwibrlf` | Taux de chômage |
+| WO-003 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
+| WO-004 | exacte | `asongtc` | Ménages selon la source d'éclairage |
 | WO-005 | exacte | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
 | WO-006 | exacte | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
-| WO-007 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
+| WO-007 | exacte | `pvswjnd` | Population (RGPH-5) |
 | WO-008 | exacte | `ioxbglg.nombre-de-personnes-emprisonnees` | Nombre de personnes emprisonnées |
-| WO-009 | exacte | `wrqfsxb~tonne` | Captures halieutiques par type de pêche |
-| WO-010 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Quotient de mortalité infanto-juvénile |
-| WO-011 | exacte | `wdvdnub.proportion-denfants-de-12-a-23-mois` | Proportion d'enfants de 12 à 23 mois complètement vaccinés conformément au calendrier national |
-| WO-012 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
-| WO-013 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| WO-014 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Riz brisé ordinaire au détail |
-| WO-015 | exacte | `dwibrlf` | Taux de chômage (par région, sexe et âge) |
-| WO-016 | exacte | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
-| WO-017 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
+| WO-009 | exacte | `wrqfsxb~tonne` | Captures de poisson (en tonnes) |
+| WO-010 | exacte | `smcofug.quotient-de-mortalite-infanto-juvenile` | Mortalité des enfants de moins de 5 ans |
+| WO-011 | exacte | `wdvdnub.proportion-denfants-de-12-a-23-mois` | Enfants de 12 à 23 mois complètement vaccinés |
+| WO-012 | exacte | `dwibrlf` | Taux de chômage |
+| WO-013 | exacte | `pvswjnd` | Population (RGPH-5) |
+| WO-014 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
+| WO-015 | exacte | `dwibrlf` | Taux de chômage |
+| WO-016 | exacte | `asongtc` | Ménages selon la source d'éclairage |
+| WO-017 | exacte | `pvswjnd` | Population (RGPH-5) |
 | WO-018 | exacte | `jcvcajc.taux-de-pauvrete` | Taux de pauvreté |
-| WO-019 | exacte | `asongtc` | Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise) |
-| WO-020 | approchee | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| WO-021 | approchee | `feujxob.riz-brise-ordinaire-au-detail` | Riz brisé ordinaire au détail |
+| WO-019 | exacte | `asongtc` | Ménages selon la source d'éclairage |
+| WO-020 | approchee | `pvswjnd` | Population (RGPH-5) |
+| WO-021 | approchee | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
 | WO-022 | approchee | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
 | WO-023 | aucune | hors périmètre (projection) | |
-| WO-024 | approchee | `qbvttzc` | Evolution du parc de véhicule par type et par région |
+| WO-024 | approchee | `qbvttzc` | Parc de véhicules |
 | WO-025 | aucune | hors périmètre (hors_socle) | |
 | WO-026 | aucune | hors périmètre (hors_socle) | |
 | WO-027 | aucune | hors périmètre (projection) | |
 | WO-028 | aucune | hors périmètre (incomprehension) | |
-| WO-029 | exacte | `pvswjnd` | Répartition de la population du Sénégal par région, sexe et groupe d'âge (RGPH-5, 2023) |
-| WO-030 | exacte | `feujxob.mil-en-grain-vendu-au-detail` | Mil en grain vendu au détail |
+| WO-029 | exacte | `pvswjnd` | Population (RGPH-5) |
+| WO-030 | exacte | `feujxob.mil-en-grain-vendu-au-detail` | Prix du mil en grain au détail |
 | WO-031 | aucune | hors périmètre (hors_socle) | |
 
 Questions sans indicateur : aucune.
