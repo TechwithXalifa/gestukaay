@@ -12,11 +12,11 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | 1 · Socle | 3 | 8 | Préparation |
 | 2 · Moteur | 2 | 10 | Préparation |
 | 3 · Jeu de test et mesure | 1 | 4 | Préparation |
-| 4 · Wolof | 0 | 5 | Préparation |
+| 4 · Wolof | 1 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **10** | **46** | |
+| **Total** | **11** | **46** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -85,7 +85,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [ ] **4.2** Lexique métier bilingue — [#23](https://github.com/TechwithXalifa/gestukaay/issues/23) · échéance 05/10 · après 1.3
 - [ ] **4.3** Détection automatique de la langue — [#24](https://github.com/TechwithXalifa/gestukaay/issues/24) · échéance 05/10
 - [ ] **4.4** Gabarits de réponse en wolof — [#25](https://github.com/TechwithXalifa/gestukaay/issues/25) · échéance 06/10 · après 2.8
-- [ ] **4.5** Trouver 2 locuteurs natifs dont un linguiste — [#26](https://github.com/TechwithXalifa/gestukaay/issues/26) · échéance 01/10
+- [x] **4.5** ~~Trouver 2 locuteurs natifs dont un linguiste~~ → validation par KBD, décision 0009 — [#26](https://github.com/TechwithXalifa/gestukaay/issues/26) · échéance 01/10
 
 ## 5 · Voix
 
