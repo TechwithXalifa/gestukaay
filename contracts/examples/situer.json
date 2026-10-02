@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.1.0",
+  "version_contrat": "1.1.1",
   "depense_par_personne_an": {
     "minimum": 171429,
     "maximum": 342857,
@@ -169,5 +169,5 @@
       "base_projection": null
     }
   ],
-  "explication": "Votre ménage dépense entre 171 429 et 342 857 FCFA par personne et par an. C'est moins que la consommation moyenne par tête publiée pour la région de Kolda (387 934 FCFA) et pour le Sénégal (542 706 FCFA). Une moyenne additionne les dépenses de tous les ménages puis divise par le nombre de personnes : elle ne dit pas où se situe la majorité."
+  "explication": "Votre ménage dépense entre 171 429 et 342 857 FCFA par personne et par an. C'est moins que la consommation moyenne par tête publiée pour la région de Kolda (387 934 FCFA) et pour le Sénégal (542 706 FCFA). Une moyenne additionne les dépenses de tous les ménages puis divise par le nombre de personnes : elle ne dit pas où se situe la majorité. Deux précautions : ces moyennes ont été mesurées en 2022, en FCFA de 2022, alors que vos dépenses sont celles d'aujourd'hui ; et la consommation mesurée par l'enquête compte aussi ce que le ménage produit lui-même et la valeur du logement occupé, que l'on oublie souvent dans ses dépenses. La comparaison donne donc un ordre de grandeur, pas un classement."
 }

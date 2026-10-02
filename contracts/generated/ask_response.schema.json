@@ -813,7 +813,7 @@
   "description": "Enveloppe HTTP de toutes les routes qui renvoient une réponse.",
   "properties": {
     "version_contrat": {
-      "default": "1.1.0",
+      "default": "1.1.1",
       "type": "string"
     },
     "reponse": {
