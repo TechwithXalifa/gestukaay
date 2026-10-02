@@ -1,0 +1,39 @@
+theme_portail;domaine;questions_types;note
+Agriculture;Agriculture;non;
+Assistance sociale;Secours et assistance sociale;non;fusion : doublon de « Secours et assistance » (sapeurs-pompiers des deux côtés)
+Banque et Finance;Banque et finance;non;
+Chômage;Emploi et chômage;oui;fusion : doublon de « Travail et emploi »
+Commerce extérieur;Commerce extérieur;non;
+Comptes nationaux;Comptes nationaux et PIB;non;fusion : doublon de « PIB »
+Culture;Culture;non;
+Démographie;Démographie;oui;
+Eau;Eau;non;
+Economie;Économie;non;thème fourre-tout du portail (commerce extérieur, finances publiques)
+Education;Éducation;oui;
+Elevage;Élevage;non;
+Energie;Énergie;non;
+Enseignement supérieur;Enseignement supérieur;non;
+Environnement;Environnement;non;
+Finances publiques;Finances publiques;non;
+Genre;Genre;non;
+Gouvernance;Gouvernance;non;
+Habitat;Habitat;non;
+Justice;Justice;non;
+Migration;Migration;non;
+Mines;Mines;non;
+Métadonnées;;non;exclu : jeux de test du portail (ODINTEST), pas des statistiques
+PIB;Comptes nationaux et PIB;non;fusion : doublon de « Comptes nationaux »
+Pauvreté;Pauvreté;oui;
+Prix;Prix;oui;fusion : doublon de « Prix à la consommation »
+Prix à la consommation;Prix;oui;fusion : doublon de « Prix »
+Pêche;Pêche;non;
+Santé;Santé;oui;
+Secours et assistance;Secours et assistance sociale;non;fusion : doublon de « Assistance sociale »
+Sports;Sports;non;
+Statistiques d'entreprises;Entreprises;non;
+Sécurité alimentaire;Sécurité alimentaire;non;
+TICs;Télécommunications et TIC;non;fusion : doublon de « Télécommunications »
+Transport;Transport;non;
+Télécommunications;Télécommunications et TIC;non;fusion : doublon de « TICs »
+Tourisme;Tourisme;non;
+Travail et emploi;Emploi et chômage;oui;fusion : doublon de « Chômage »

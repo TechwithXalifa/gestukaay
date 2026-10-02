@@ -9,14 +9,14 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | Chantier | Fait | Total | Jalon principal |
 |---|---|---|---|
 | 0 · Fondations | 4 | 4 | ✅ terminé |
-| 1 · Socle | 2 | 8 | Préparation |
+| 1 · Socle | 3 | 8 | Préparation |
 | 2 · Moteur | 2 | 10 | Préparation |
 | 3 · Jeu de test et mesure | 1 | 4 | Préparation |
 | 4 · Wolof | 0 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **9** | **46** | |
+| **Total** | **10** | **46** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -52,7 +52,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 
 - [x] **1.1** Décider le périmètre du socle : sources, 6 domaines, projections ⚖️ — [#1](https://github.com/TechwithXalifa/gestukaay/issues/1) · échéance 01/10
 - [x] **1.2** Référentiel des zones : 14 régions, 46 départements ⚖️ — [#2](https://github.com/TechwithXalifa/gestukaay/issues/2) · échéance 01/10 · après 1.1
-- [ ] **1.3** Choisir les ~200 indicateurs V1 à partir du jeu de test — [#3](https://github.com/TechwithXalifa/gestukaay/issues/3) · échéance 02/10 · après 3.1
+- [x] **1.3** Choisir les ~200 indicateurs V1 à partir du jeu de test — [#3](https://github.com/TechwithXalifa/gestukaay/issues/3) · échéance 02/10 · après 3.1
 - [ ] **1.4** Extraction vers le schéma indicateur | zone | période | valeur | source — [#4](https://github.com/TechwithXalifa/gestukaay/issues/4) · échéance 02/10 · après 1.2, 1.3
 - [ ] **1.5** Étiqueter chaque valeur : observée, estimation ou projection — [#5](https://github.com/TechwithXalifa/gestukaay/issues/5) · échéance 02/10 · après 1.4
 - [ ] **1.6** Contrôles et rapport d'anomalies — [#6](https://github.com/TechwithXalifa/gestukaay/issues/6) · échéance 03/10 · après 1.4
