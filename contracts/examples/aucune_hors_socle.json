@@ -1,16 +1,16 @@
 {
-  "version_contrat": "1.1.1",
+  "version_contrat": "1.1.2",
   "reponse": {
     "id": "ex-aucune-hors-socle",
     "url": "https://app.gestukaay.test/r/ex-aucune-hors-socle",
-    "question": "Nombre de voitures à Kolda",
+    "question": "Combien de personnes parlent sérère au Sénégal ?",
     "langue": "fr",
     "transcription": null,
     "requete": {
       "intention": "hors_perimetre",
       "indicateur": null,
       "zones": [
-        "SN-KD"
+        "SN"
       ],
       "periode": {
         "type": "derniere",
@@ -24,28 +24,28 @@
     "latence_ms": 1240,
     "issue": "aucune",
     "motif": "hors_socle",
-    "message": "Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons. Voici des indicateurs proches pour Kolda :",
+    "message": "Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons. Voici des indicateurs proches pour le Sénégal :",
     "suggestions": [
       {
         "indicateur": {
-          "code": "population_totale",
+          "code": "pvswjnd",
           "libelle": "Population totale"
         },
-        "question_suggeree": "Combien d'habitants à Kolda ?"
+        "question_suggeree": "Combien d'habitants au Sénégal ?"
       },
       {
         "indicateur": {
-          "code": "nombre_menages",
-          "libelle": "Nombre de ménages"
+          "code": "deuqmkd.taux-dalphabetisation-des-membres-%",
+          "libelle": "Taux d'alphabétisation"
         },
-        "question_suggeree": "Combien de ménages à Kolda ?"
+        "question_suggeree": "Quel est le taux d'alphabétisation au Sénégal ?"
       },
       {
         "indicateur": {
-          "code": "taille_moyenne_menage",
+          "code": "rfegvpb.taille-des-menages",
           "libelle": "Taille moyenne des ménages"
         },
-        "question_suggeree": "Quelle est la taille moyenne des ménages à Kolda ?"
+        "question_suggeree": "Quelle est la taille moyenne des ménages au Sénégal ?"
       }
     ]
   }

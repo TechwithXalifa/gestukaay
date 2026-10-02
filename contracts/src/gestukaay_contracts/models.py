@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_CONTRAT = "1.1.1"
+VERSION_CONTRAT = "1.1.2"
 
 
 class _Strict(BaseModel):
@@ -54,7 +54,7 @@ class RequeteStructuree(_Strict):
     """
 
     intention: Intention
-    indicateur: str | None = Field(None, examples=["population_totale"])
+    indicateur: str | None = Field(None, examples=["pvswjnd"])
     zones: list[str] = Field(default_factory=list, examples=[["SN-TH"]])
     periode: Periode = Field(default_factory=lambda: Periode(type="derniere"))
     desagregation: dict[str, str] | None = Field(None, examples=[{"sexe": "Féminin"}])

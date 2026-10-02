@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.1.1",
+  "version_contrat": "1.1.2",
   "reponse": {
     "id": "ex-exacte-valeur",
     "url": "https://app.gestukaay.test/r/ex-exacte-valeur",
@@ -8,7 +8,7 @@
     "transcription": null,
     "requete": {
       "intention": "valeur",
-      "indicateur": "population_totale",
+      "indicateur": "pvswjnd",
       "zones": [
         "SN-TH"
       ],
@@ -27,7 +27,7 @@
     "resultats": [
       {
         "indicateur": {
-          "code": "population_totale",
+          "code": "pvswjnd",
           "libelle": "Population totale"
         },
         "zone": {
