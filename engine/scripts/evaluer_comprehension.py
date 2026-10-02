@@ -28,6 +28,8 @@ ZONE_FIXE = {"feujxob"}  # prix relevés à Dakar : aucune zone à citer
 
 def attendu(q: dict, codes: dict[str, set]) -> dict:
     intention = INTENTION[q["type"]]
+    if q["type"] == "suivi" and len(q["zones_attendues"].split("|")) > 1:
+        intention = "comparaison"  # « Et en 2025 ? » après « Chômage à Dakar et à Thiès »
     if q["motif"] == "projection":
         intention = "valeur"  # la question est comprise ; c'est la résolution qui refuse
     zones = None

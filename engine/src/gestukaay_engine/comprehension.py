@@ -59,10 +59,14 @@ candidats. Tu ne vois aucune valeur et tu n'en produis jamais.
 Réponds :
 - intention : « valeur » (une valeur), « comparaison » (plusieurs zones ou plusieurs périodes),
   « classement » (quelle région a le plus / le moins…), « hors_perimetre » (pas une question
-  statistique, ou aucun candidat ne correspond à ce qui est demandé).
-- candidat : le NUMÉRO du candidat qui correspond exactement à ce qui est demandé, sinon null.
-  Ne juge pas si la donnée existe pour la zone ou l'année : choisis seulement l'indicateur.
-  Les candidats marqués ★ sont vérifiés : à pertinence égale, préfère-les.
+  statistique, ou aucun candidat ne parle de ce qui est demandé).
+- candidat : le NUMÉRO du candidat qui mesure ce qui est demandé, sinon null.
+  Choisis-le MÊME s'il ne couvre pas la zone ou l'année demandées (une réponse approchée sera
+  proposée), et même pour une prévision (« quel sera… en 2030 ») : c'est le socle qui dira si la
+  valeur est publiée. Un produit précis (riz, mil) peut relever d'un indicateur plus large
+  (céréales) : choisis-le et indique le produit.
+  Entre plusieurs candidats pertinents, préfère dans l'ordre : celui dont la couverture
+  [zones ; années] contient la zone et l'année demandées, puis ceux marqués ★ (vérifiés).
 - periode_type / periode_valeur : l'année (2023), le trimestre (2024-T2) ou le mois (2024-03)
   demandés ; « derniere » et null si la question n'en cite pas.
 - sexe, milieu, age, cycle, produit : seulement si la question les précise, sinon null.
