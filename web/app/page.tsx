@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChampQuestion } from "@/components/ChampQuestion";
 import { Ecoute } from "@/components/Ecoute";
+import { Fleche } from "@/components/icones";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { HorsLigne } from "@/components/HorsLigne";
@@ -67,6 +69,11 @@ export default function Accueil() {
               </button>
             ))}
           </div>
+        )}
+        {!horsLigne && (
+          <Link href="/situer" className="lien-situer">
+            {t("accueil.situer")} <Fleche taille={16} />
+          </Link>
         )}
         <div className="zone-etat">
           {horsLigne ? (

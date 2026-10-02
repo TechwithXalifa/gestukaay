@@ -5,7 +5,7 @@ import { useLangue } from "@/i18n/langue";
 import { Baobab } from "./icones";
 
 /** En-tête commun : logo, navigation, bascule FR/WO toujours visible (9.7). */
-export function Entete() {
+export function Entete({ actif = "question" }: { actif?: "question" | "situer" }) {
   const { langue, setLangue, t, incomplet } = useLangue();
   return (
     <>
@@ -15,7 +15,8 @@ export function Entete() {
             <Baobab /> <span>Gëstukaay</span>
           </Link>
           <nav aria-label={t("nav.principale")} className="nav">
-            <Link href="/" aria-current="page">{t("nav.poser")}</Link>
+            <Link href="/" aria-current={actif === "question" ? "page" : undefined}>{t("nav.poser")}</Link>
+            <Link href="/situer" aria-current={actif === "situer" ? "page" : undefined}>{t("nav.situer")}</Link>
           </nav>
           <div role="group" aria-label={t("langue.groupe")} className="bascule">
             {(["fr", "wo"] as const).map((l) => (
