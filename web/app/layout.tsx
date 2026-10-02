@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { EnregistrerSW } from "@/components/EnregistrerSW";
+import { LangueProvider } from "@/i18n/langue";
 
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#1D4448" };
 
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        {children}
+        <LangueProvider>{children}</LangueProvider>
         <EnregistrerSW />
       </body>
     </html>

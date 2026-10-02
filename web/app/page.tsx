@@ -8,6 +8,7 @@ import { Chargement, Erreur } from "@/components/Etats";
 import { HorsLigne } from "@/components/HorsLigne";
 import { MicroRefuse } from "@/components/MicroRefuse";
 import { useEnLigne } from "@/hooks/useEnLigne";
+import { useLangue } from "@/i18n/langue";
 import { demander, ErreurApi } from "@/lib/api";
 import { type AccesMicro, demanderMicro } from "@/lib/micro";
 
@@ -21,6 +22,7 @@ const EXEMPLES = [
 export default function Accueil() {
   const router = useRouter();
   const enLigne = useEnLigne();
+  const { t } = useLangue();
   const [question, setQuestion] = useState<string | null>(null);
   const [erreur, setErreur] = useState<unknown>(null);
   const [micro, setMicro] = useState<AccesMicro | null>(null);
@@ -43,9 +45,9 @@ export default function Accueil() {
     <div className="site">
       <Entete />
       <main className="accueil">
-        <p className="eyebrow">Données officielles du Sénégal</p>
-        <h1 className="titre-accueil">Posez votre question.<br />Recevez le chiffre officiel.</h1>
-        <p className="chapeau">En français ou en wolof. Parlez ou écrivez.</p>
+        <p className="eyebrow">{t("accueil.eyebrow")}</p>
+        <h1 className="titre-accueil">{t("accueil.titre1")}<br />{t("accueil.titre2")}</h1>
+        <p className="chapeau">{t("accueil.chapeau")}</p>
         <ChampQuestion
           grand
           desactive={horsLigne}
@@ -70,9 +72,7 @@ export default function Accueil() {
             <MicroRefuse onReessayer={async () => setMicro(await demanderMicro())} />
           ) : micro ? (
             <p className="note" role="status">
-              {micro === "accorde"
-                ? "Micro autorisé. La question à voix haute arrive très bientôt : écrivez-la en attendant."
-                : "Aucun micro n'est disponible sur cet appareil. Écrivez votre question."}
+              {t(micro === "accorde" ? "accueil.micro.accorde" : "accueil.micro.indisponible")}
             </p>
           ) : erreur ? (
             <Erreur erreur={erreur} onReessayer={() => question && poser(question)} />

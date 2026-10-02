@@ -1,4 +1,7 @@
+"use client";
+
 import type { AskResponse, ReponseExacte } from "@contracts/ask_response";
+import { useLangue } from "@/i18n/langue";
 import { Actions } from "./Actions";
 import { Retour } from "./Retour";
 import { Base, Coche, Externe, Fleche, Info, Livre } from "./icones";
@@ -15,13 +18,14 @@ export function Reponse({
   onChoix: (id: string) => void;
   onQuestion: (question: string) => void;
 }) {
+  const { t } = useLangue();
   switch (r.issue) {
     case "exacte":
       return <Exacte r={r} />;
     case "approchee":
       return (
         <article className="carte" aria-labelledby="titre-reponse">
-          <span className="badge approchee"><Info taille={16} />Correspondance approchée</span>
+          <span className="badge approchee"><Info taille={16} />{t("reponse.approchee")}</span>
           <p id="titre-reponse" className="explication">{r.reformulation}</p>
           <div className="choix">
             {r.choix.map((c) => (
@@ -30,7 +34,7 @@ export function Reponse({
               </button>
             ))}
           </div>
-          <p className="note">Gëstukaay ne remplace jamais un chiffre manquant par une estimation. Aucune valeur n'est affichée avant votre choix.</p>
+          <p className="note">{t("reponse.sansEstimation")}</p>
         </article>
       );
     case "aucune":
@@ -59,18 +63,19 @@ export function Reponse({
 }
 
 function Exacte({ r }: { r: ReponseExacte }) {
+  const { t } = useLangue();
   const sources = [...new Map(r.resultats.map((v) => [v.source.url, v.source])).values()];
   return (
     <article className="carte" aria-labelledby="titre-reponse">
       <div className="ligne-badges">
-        <span className="badge exacte"><Coche taille={16} />Correspondance exacte</span>
+        <span className="badge exacte"><Coche taille={16} />{t("reponse.exacte")}</span>
       </div>
 
       {r.resultats.map((v, i) => (
         <div key={v.observation_id} className="resultat">
           <h1 id={i === 0 ? "titre-reponse" : undefined} className="libelle">
             {v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle}
-            {r.periode_par_defaut && " · dernière donnée publiée"}
+            {r.periode_par_defaut && ` · ${t("reponse.derniere")}`}
           </h1>
           <p className="valeur">
             <span>{v.valeur_affichee}</span> <span className="unite">{v.unite}</span>
@@ -84,18 +89,18 @@ function Exacte({ r }: { r: ReponseExacte }) {
       <p className="explication">{r.explication}</p>
 
       <div className="corps">
-        {r.graphique && <p className="note">Graphique : {r.graphique.titre}</p>}
-        <aside aria-label="Source officielle" className="bloc-source">
-          <p className="bloc-source-titre"><Livre />Source officielle</p>
+        {r.graphique && <p className="note">{t("reponse.graphique", { titre: r.graphique.titre })}</p>}
+        <aside aria-label={t("reponse.source")} className="bloc-source">
+          <p className="bloc-source-titre"><Livre />{t("reponse.source")}</p>
           {sources.map((s) => (
             <div key={s.url}>
               <p>{s.titre}</p>
               <p className="discret">{s.libelle}</p>
             </div>
           ))}
-          {r.note_perimetre && <p className="discret">Périmètre : {r.note_perimetre}</p>}
+          {r.note_perimetre && <p className="discret">{t("reponse.perimetre", { note: r.note_perimetre })}</p>}
           <a href={sources[0].url} target="_blank" rel="noreferrer" className="lien">
-            Voir la publication <Externe taille={16} />
+            {t("reponse.publication")} <Externe taille={16} />
           </a>
         </aside>
       </div>

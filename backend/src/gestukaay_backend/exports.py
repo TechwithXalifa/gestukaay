@@ -68,6 +68,24 @@ def _polices(pdf) -> None:
     pdf.add_font("Lora", "I", POLICES / "Lora-Italic.ttf")
 
 
+# Logo baobab : même tracé que le SVG de la charte (viewBox 33 × 43)
+_TRONC = [((16, 20.7), (16, 36.4)), ((16, 36.4), (10.8, 40.8)), ((16, 36.4), (21.3, 40.8))]
+_BRANCHES = [(2.9, 12), (10.5, 4.2), (18.2, 2.1), (25.8, 5.3), (30.2, 14.1)]
+
+
+def _baobab(pdf, x: float, y: float, hauteur: float) -> None:
+    k = hauteur / 43
+    pdf.set_draw_color(*BAOBAB)
+    pdf.set_fill_color(*BAOBAB)
+    pdf.set_line_width(2.2 * k)
+    traits = _TRONC + [((16, 20.7), b) for b in _BRANCHES]
+    for (x1, y1), (x2, y2) in traits:
+        pdf.line(x + x1 * k, y + y1 * k, x + x2 * k, y + y2 * k)
+    for bx, by in _BRANCHES:
+        r = 2.3 * k
+        pdf.ellipse(x + bx * k - r, y + by * k - r, 2 * r, 2 * r, style="F")
+
+
 def vers_pdf(rep: ReponseExacte, genere_le: datetime | None = None) -> bytes:
     from fpdf import FPDF  # chargé à la demande : seul le PDF en a besoin
 
@@ -80,9 +98,11 @@ def vers_pdf(rep: ReponseExacte, genere_le: datetime | None = None) -> bytes:
     largeur = pdf.w - 40
 
     # En-tête
+    _baobab(pdf, 20, 19, 10)
+    pdf.set_x(29)
     pdf.set_font("Poppins", "B", 18)
     pdf.set_text_color(*BAOBAB)
-    pdf.cell(largeur / 2, 10, _texte("Gëstukaay"))
+    pdf.cell(largeur / 2 - 9, 10, _texte("Gëstukaay"))
     pdf.set_font("Poppins", "", 9)
     pdf.set_text_color(*ARDOISE)
     pdf.multi_cell(largeur / 2, 4.5, _texte(f"Réponse officielle\ngénérée le {genere_le:%d/%m/%Y à %H:%M}"), align="R")
