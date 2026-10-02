@@ -24,6 +24,8 @@ from gestukaay_contracts.models import (
     Problem,
     ReponseApprochee,
     ReponseExacte,
+    SituateRequest,
+    SituateResponse,
     TranscriptionResponse,
 )
 from gestukaay_engine import charger_moteur
@@ -104,6 +106,13 @@ async def transcrire(
         return moteur.transcrire(audio, FORMATS_AUDIO[type_mime], langue)
     finally:
         del audio
+
+
+@app.post("/v1/situate", response_model=SituateResponse)
+def situer(req: SituateRequest) -> SituateResponse:
+    """« Où je me situe » (décision 0004 §2). RIEN n'est conservé : ni stockage,
+    ni journal, ni identifiant (EF-40, US-21). Ne jamais journaliser `req`."""
+    return moteur.situer(req)
 
 
 @app.post("/v1/ask/{rid}/confirm", response_model=AskResponse)
