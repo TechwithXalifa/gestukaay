@@ -1,14 +1,14 @@
-# Compréhension — évaluation (regles)
+# Compréhension — évaluation (llm-qwen-qwen3-32b)
 
 103 questions du jeu de test (#10). Une question est juste si l'intention, l'indicateur, les zones et la période le sont.
 
 | | Score |
 |---|---|
-| **Tout juste** | **86/103 (83 %)** |
+| **Tout juste** | **85/103 (83 %)** |
 | Français | 61/72 (85 %) |
-| Wolof | 25/31 (81 %) |
+| Wolof | 24/31 (77 %) |
 | Intention | 94/103 (91 %) |
-| Indicateur | 95/103 (92 %) |
+| Indicateur | 94/103 (91 %) |
 | Zones | 103/103 (100 %) |
 | Période | 103/103 (100 %) |
 
@@ -31,5 +31,6 @@
 | WO-017 | Ban diiwaan moo ëpp nit ? | indicateur | classement · ioxbglg.nombre-de-personnes-emprisonnees · — · dernière | classement · pvswjnd |
 | WO-028 | waa man tay dama xiif trop lii mbaa diamm la tamit | intention | valeur · ewnjbnf.menages-rencontrant-des-contraintes-pouvant-empecher-le-developpement-de-lexploitation-liees · — · dernière | hors_perimetre · — |
 | WO-031 | niaata nit ñooy lakk sereer fatik | intention | valeur · ioxbglg.nombre-de-personnes-emprisonnees · SN-FK · dernière | hors_perimetre · — |
-| FR-069 | Et en 2025 ? | indicateur | valeur · uipcgjd.260-construction-de-materiels-de-transports~aux-prix-constants-de-2025 · SN-DK,SN-TH · 2025 | valeur · dwibrlf |
+| FR-070 | Et le mil ? | indicateur | valeur · feujxob.riz-brise-ordinaire-au-detail · — · dernière | valeur · feujxob.mil-en-grain-vendu-au-detail |
 | WO-029 | Kaolack nak ? | indicateur | valeur · rfegvpb.taux-durbanisation · SN-KL · dernière | valeur · pvswjnd |
+| WO-030 | Dugub ji nak ? | indicateur | valeur · feujxob.riz-brise-ordinaire-au-detail · — · dernière | valeur · feujxob.mil-en-grain-vendu-au-detail |

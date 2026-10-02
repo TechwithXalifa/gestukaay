@@ -52,7 +52,9 @@ def main() -> int:
         from essai_llm import charger_env  # même lecture du .env que l'essai du client (#9)
         from gestukaay_engine.llm import charger_client
         charger_env(RACINE / ".env")
-        comp, mode = Comprehension(charger_client()), "llm"
+        client = charger_client()
+        modele = next((m.modele for m in client.chaine if m.fournisseur != "regles"), "llm")
+        comp, mode = Comprehension(client), "llm-" + modele.replace("/", "-").replace(":", "-")
 
     with open(JEU, encoding="utf-8-sig", newline="") as f:
         questions = list(csv.DictReader(f, delimiter=";"))

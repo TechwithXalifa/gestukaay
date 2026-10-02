@@ -31,6 +31,7 @@ from .candidats import Candidat, index, periodes_citees, zones_citees
 from .llm import Appel, ClientLLM, EchecLLM
 
 K = 15  # candidats proposés au LLM
+_NIVEAUX = {"pays": "pays", "region": "régions", "departement": "départements", "academie": "académies"}
 
 
 class SortieLLM(BaseModel):
@@ -61,6 +62,7 @@ Réponds :
   statistique, ou aucun candidat ne correspond à ce qui est demandé).
 - candidat : le NUMÉRO du candidat qui correspond exactement à ce qui est demandé, sinon null.
   Ne juge pas si la donnée existe pour la zone ou l'année : choisis seulement l'indicateur.
+  Les candidats marqués ★ sont vérifiés : à pertinence égale, préfère-les.
 - periode_type / periode_valeur : l'année (2023), le trimestre (2024-T2) ou le mois (2024-03)
   demandés ; « derniere » et null si la question n'en cite pas.
 - sexe, milieu, age, cycle, produit : seulement si la question les précise, sinon null.
@@ -96,6 +98,20 @@ def periode_de(valeur: str) -> Periode:
     return Periode(type="mois" if "-" in valeur else "annee", valeur=valeur)
 
 
+def couvrant(candidats: list[Candidat], niveaux: set[str]) -> list[Candidat]:
+    """Les candidats publiés au niveau des zones citées d'abord, les autres ensuite.
+    Le même concept existe souvent dans plusieurs jeux (chômage par région dans dwibrlf,
+    national seulement dans muhgux) : servir Dakar exige un jeu qui publie Dakar. Les autres
+    restent proposés : « le prix du riz à Thiès » n'existe qu'à Dakar, la réponse sera
+    approchée (#12)."""
+    ok = [c for c in candidats if niveaux <= set(c.indicateur.niveaux_zone)]
+    return ok[:K - 5] + [c for c in candidats if c not in ok][:5] + ok[K - 5:]
+
+
+_TEMPS = re.compile(r"\b(an|annee|annees|mois|trimestre|dernier|derniere|passe|passee|prochain|prochaine|"
+                    r"actuel|actuelle|aujourd|recent|recente|at|atum|weer)\b")
+
+
 def _suivi(question: str) -> bool:
     """« Et pour Kaolack ? », « Kaolack nak ? » : une question courte qui prolonge la précédente."""
     m = normaliser(question).split()
@@ -111,7 +127,9 @@ class Comprehension:
         periodes = periodes_citees(question)
         precedente = (contexte or [None])[-1]
         niveaux = {zones_ref()[z].niveau for z in zones if z != "SN"}
-        candidats = index().chercher(question, K, niveaux)
+        if not niveaux and _CLASSEMENT.search(normaliser(question)):
+            niveaux = {"region"}  # « quelle région… » : il faut un indicateur publié par région
+        candidats = couvrant(index().chercher(question, 4 * K, niveaux), niveaux)[:K]
         if precedente and precedente.indicateur and _suivi(question):
             # l'indicateur de l'échange précédent est toujours proposé, en premier
             p = indicateurs().get(precedente.indicateur)
@@ -144,7 +162,10 @@ class Comprehension:
         for n, c in enumerate(candidats, 1):
             x = c.indicateur
             unite = x.unite_affichee or x.unite
-            lignes.append(f"{n}. {x.libelle_fr}{f' ({unite})' if unite else ''} — jeu : {x.jeu}")
+            etoile = "★ " if x.verification == "verifie" else ""
+            couverture = ", ".join(_NIVEAUX[n_] for n_ in x.niveaux_zone) or "national"
+            lignes.append(f"{n}. {etoile}{x.libelle_fr}{f' ({unite})' if unite else ''} — jeu : {x.jeu} "
+                          f"[{couverture} ; {x.periode_debut}–{x.periode_fin}]")
         return "\n".join(lignes)
 
     @staticmethod
@@ -153,9 +174,14 @@ class Comprehension:
         if s.candidat is not None and 1 <= s.candidat <= len(candidats):
             code = candidats[s.candidat - 1].indicateur.code
         intention = s.intention if code or s.intention == "hors_perimetre" else "hors_perimetre"
-        # les périodes repérées dans le texte priment ; sinon celle du LLM si elle est bien formée
-        periode = periode_de(periodes[0]) if periodes else (
-            periode_valide(s.periode_type, s.periode_valeur) or Periode(type="derniere"))
+        # les périodes repérées dans le texte priment ; celle du LLM n'est prise que si la question
+        # parle du temps (« l'an dernier ») : sinon il en déduit une du nom du jeu (« RGPH-5, 2023 »)
+        if periodes:
+            periode = periode_de(periodes[0])
+        elif _TEMPS.search(normaliser(question)):
+            periode = periode_valide(s.periode_type, s.periode_valeur) or Periode(type="derniere")
+        else:
+            periode = Periode(type="derniere")
         if not zones and precedente and _suivi(question):
             zones = list(precedente.zones)
         desag = {k: v for k, v in (("sexe", s.sexe), ("milieu", s.milieu), ("age", s.age),
@@ -178,7 +204,8 @@ _COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)
 def regles(question: str, candidats: list[Candidat], zones: list[str], periodes: list[str],
            precedente: RequeteStructuree | None) -> RequeteStructuree:
     t = normaliser(question)
-    meilleur = candidats[0] if candidats and candidats[0].score >= SEUIL_REGLES else None
+    meilleur = max(candidats, key=lambda c: c.score, default=None)  # le tri par couverture ne compte pas ici
+    meilleur = meilleur if meilleur and meilleur.score >= SEUIL_REGLES else None
     code = meilleur.indicateur.code if meilleur else None
     if precedente and precedente.indicateur and _suivi(question):
         code = code if code and not zones else precedente.indicateur
