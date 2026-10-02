@@ -112,3 +112,62 @@ a { color: var(--gk-feuille); }
 .etapes .encours .ic { color: var(--gk-feuille); }
 .squelettes { width: 100%; margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
 .squelettes div { border-radius: var(--radius-sm); background: var(--gk-squelette); }
+
+/* ---- Micro, champ désactivé ------------------------------------------ */
+.bouton-icone.micro { background: var(--gk-feuille); color: var(--gk-sur-action); }
+.bouton-icone.micro:disabled { background: var(--gk-squelette); color: var(--gk-champ); }
+.champ.desactive { background: var(--gk-coton); border-color: var(--gk-lin); }
+.champ.desactive input::placeholder { color: var(--gk-ardoise); }
+
+/* ---- Ligne source sous la valeur (maquette Réponse mobile) -------------- */
+.source-ligne { margin: 8px 0 0; display: none; gap: 8px; font-size: 13px; line-height: 18px; color: var(--gk-ardoise); }
+.source-ligne .ic { margin-top: 1px; color: var(--gk-baobab); }
+
+/* ---- Hors ligne -------------------------------------------------------- */
+.hors-ligne { display: flex; flex-direction: column; gap: 16px; }
+.bandeau { padding: 16px 20px; border-radius: var(--radius-lg); background: var(--gk-baobab); color: var(--gk-sur-marque); display: flex; flex-direction: column; gap: 16px; }
+.bandeau-texte { display: flex; gap: 12px; }
+.bandeau-texte .ic { margin-top: 3px; color: var(--gk-sable-clair); }
+.bandeau h1 { margin: 0; font-size: 18px; line-height: 26px; }
+.bandeau p { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: var(--gk-sur-marque-2); }
+.primaire-sombre { align-self: flex-start; min-height: 48px; padding: 0 20px; border: 0; border-radius: var(--radius-md); background: var(--gk-sable-clair); color: var(--gk-baobab); font-weight: 600; cursor: pointer; }
+.eyebrow-gris { margin: 8px 0 0; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gk-ardoise); }
+.recentes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.recentes a { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; background: var(--gk-blanc); border: 1px solid var(--gk-lin); border-radius: var(--radius-md); color: var(--gk-encre); text-decoration: none; }
+.recentes .discret { margin: 0; font-size: 12px; line-height: 16px; }
+.valeur-petite { font-size: 22px; line-height: 28px; font-weight: 700; color: var(--gk-baobab); font-variant-numeric: tabular-nums; }
+.valeur-petite span { font-size: 14px; font-weight: 400; color: var(--gk-ardoise); }
+.bandeau-discret { margin: 0; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--gk-sable-50); font-size: 13px; line-height: 18px; }
+
+/* ---- Micro refusé ------------------------------------------------------ */
+.etapes-numerotees { margin: 16px 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.etapes-numerotees li { display: flex; gap: 12px; }
+.etapes-numerotees li > span:first-child { flex: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: var(--gk-feuille-50); color: var(--gk-feuille); font-size: 13px; font-weight: 700; }
+.micro-refuse .note { display: flex; gap: 8px; }
+
+/* ---- Mobile (maquettes M-*) : < 768 px -------------------------------- */
+@media (max-width: 767px) {
+  .entete-int { flex-wrap: nowrap; gap: 12px; min-height: 64px; padding: 0 16px; }
+  .nav { display: none; }
+  .logo { font-size: 20px; line-height: 26px; gap: 8px; }
+  .bascule { padding: 2px; }
+  .bascule button { min-width: 44px; padding: 0 8px; }
+  .site main { padding: 12px 16px 24px; gap: 12px; }
+  .accueil { padding-top: 24px !important; }
+  .champ, .champ.grand { padding: 0 4px 0 16px; min-height: 56px; }
+  .champ .bouton-icone { width: 44px; height: 44px; }
+  .champ.grand input { font-size: 16px; }
+  .exemples { flex-direction: column; align-items: stretch; width: 100%; }
+  .puce { min-height: 48px; }
+  .carte { padding: 16px 20px; }
+  .libelle { margin-top: 12px; font-size: 14px; line-height: 20px; }
+  .unite { font-size: 16px; line-height: 24px; }
+  .source-ligne { display: flex; }
+  .explication { font-size: 15px; line-height: 24px; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; padding-top: 16px; }
+  .actions .primaire, .actions .secondaire { justify-content: center; padding: 0 8px; font-size: 14px; }
+  .retour { gap: 4px; }
+  .retour > span:first-child { flex-basis: 100%; }
+  .lien-signaler { margin-left: auto; }
+  .pied-int { padding: 8px 16px; }
+}
