@@ -91,6 +91,9 @@ def mesurer(titre: str, client: ClientLLM, n: int, seuil_ms: int) -> bool:
         statuts.update(t.statut for t in appel.tentatives)
         print(f"   {i + 1:>2}. {appel.latence_ms:>5} ms  {' → '.join(f'{t.maillon}:{t.statut}' for t in appel.tentatives)}",
               flush=True)
+        for t in appel.tentatives:  # le pourquoi des échecs (hors maillons non configurés)
+            if t.statut not in ("ok", "indisponible"):
+                print(f"         {t.maillon} : {t.detail[:110]}")
     ordre = sorted(latences)
     p95 = ordre[min(len(ordre) - 1, round(0.95 * (len(ordre) - 1)))]
     sous = sum(1 for x in latences if x <= seuil_ms)

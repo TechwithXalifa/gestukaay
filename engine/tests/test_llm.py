@@ -146,6 +146,27 @@ def test_le_principal_echoue_le_repli_repond(panne, statut):
     assert [(x.maillon, x.statut) for x in appel.tentatives] == [("principal", statut), ("repli", "ok")]
 
 
+def test_delai_total_respecte_malgre_les_signaux_d_attente():
+    """OpenRouter envoie des espaces pendant que le modèle travaille : le délai de
+    httpx (par morceau) ne se déclenche jamais. Le chronomètre global, si."""
+    import time
+
+    def lent():
+        for _ in range(40):  # 2 s de « signaux d'attente », un toutes les 50 ms
+            time.sleep(0.05)
+            yield b" "
+        yield json.dumps(openai_ok()).encode()
+
+    t = transport(**{O: lambda req: httpx.Response(200, content=lent()), A: anthropic_ok()})
+    m = Maillon(nom="or", fournisseur="openai_compatible", modele="x", cle="o",
+                url="https://openrouter.ai/api/v1", delai_s=0.3)
+    debut = time.perf_counter()
+    _, appel = ClientLLM([m, REPLI], transport=t).structurer("s", "q", Capitale)
+    assert time.perf_counter() - debut < 1.0  # et non 2 s
+    assert [x.statut for x in appel.tentatives] == ["delai", "ok"]
+    assert "délai total" in appel.tentatives[0].detail
+
+
 def test_anthropic_refus_passe_au_suivant():
     refus = {"stop_reason": "refusal", "stop_details": {"category": "cyber"}, "content": []}
     t = transport(**{A: refus, O: openai_ok()})

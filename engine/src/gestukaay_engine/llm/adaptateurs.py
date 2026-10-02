@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import copy
 import json
+import time
 from dataclasses import replace
 
 import httpx
@@ -28,12 +29,12 @@ def consigne_json(schema: dict) -> str:
             "schéma JSON :\n" + json.dumps(schema, ensure_ascii=False))
 
 
-def _message_erreur(r: httpx.Response) -> str:
+def _message_erreur(texte: str) -> str:
     """Le message lisible d'une erreur HTTP, quel que soit le format du fournisseur."""
     try:
-        d = r.json()
+        d = json.loads(texte)
     except ValueError:
-        return " ".join(r.text.split())[:200]
+        return " ".join(texte.split())[:200]
     e = d.get("error", d) if isinstance(d, dict) else d
     if isinstance(e, dict):
         return str(e.get("message") or e.get("type") or e)[:200]
@@ -41,16 +42,35 @@ def _message_erreur(r: httpx.Response) -> str:
 
 
 def _poster(client: httpx.Client, url: str, entetes: dict, corps: dict) -> dict:
+    """POST avec un délai TOTAL (celui du maillon, porté par client.timeout).
+
+    Le délai de httpx s'applique à chaque étape (connexion, chaque morceau
+    reçu), pas à l'appel entier : un serveur qui envoie des signaux d'attente
+    (OpenRouter envoie des espaces pendant que le modèle travaille) le relance
+    indéfiniment. On lit donc la réponse morceau par morceau en surveillant
+    un chronomètre global.
+    """
+    limite = client.timeout.read or 30.0
+    debut = time.perf_counter()
     try:
-        r = client.post(url, headers=entetes, json=corps)
+        with client.stream("POST", url, headers=entetes, json=corps) as r:
+            morceaux = []
+            for morceau in r.iter_bytes():
+                morceaux.append(morceau)
+                if time.perf_counter() - debut > limite:
+                    raise ErreurAdaptateur("delai", f"délai total de {limite:g} s dépassé")
+            statut = r.status_code
     except httpx.TimeoutException as e:
         raise ErreurAdaptateur("delai", type(e).__name__) from e
     except httpx.HTTPError as e:
         raise ErreurAdaptateur("reseau", type(e).__name__) from e
-    if r.status_code != 200:
-        raise ErreurAdaptateur("http", f"{r.status_code} {_message_erreur(r)}")
+    if time.perf_counter() - debut > limite:
+        raise ErreurAdaptateur("delai", f"délai total de {limite:g} s dépassé")
+    texte = b"".join(morceaux).decode("utf-8", errors="replace")
+    if statut != 200:
+        raise ErreurAdaptateur("http", f"{statut} {_message_erreur(texte)}")
     try:
-        return r.json()
+        return json.loads(texte)
     except ValueError as e:
         raise ErreurAdaptateur("http", "réponse non JSON") from e
 
