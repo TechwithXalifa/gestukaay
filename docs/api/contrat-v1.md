@@ -1,4 +1,4 @@
-# Contrat d'API Gëstukaay — v1.1.0
+# Contrat d'API Gëstukaay — v1.1.1
 
 > **Nouveautés v1.1.0** (décisions 0002, 0003, 0004) — toutes **additives**, rien ne casse :
 > nature des valeurs (`observee` / `estimation` / `projection`) · niveau de zone `academie` ·
@@ -75,9 +75,17 @@ switch (r.reponse.issue) {
 - `valeur_affichee` est déjà formatée (`2 463 677` avec espaces fines U+202F, virgule décimale). **Le front ne reformate jamais un nombre** : il affiche `valeur_affichee`. `valeur` sert aux graphiques et au CSV.
 - `periode_par_defaut: true` → afficher « dernière donnée publiée : 2023 » (US-06).
 - **Graphique** (décision 0004 §3) : pour une **valeur unique**, graphique de **contexte** si les données
-  existent — classement des régions avec la zone demandée en `mise_en_evidence`, sinon évolution dans
-  le temps — et `null` sinon. Jamais un graphique d'un seul point (5.4). `svg_url` pour l'image,
-  `series` pour le tableau alternatif (EF-28).
+  existent, `null` sinon ; jamais un graphique d'un seul point (5.4). Selon le niveau de la zone :
+
+  | Zone demandée | Graphique de contexte (même indicateur, même période) | À défaut |
+  |---|---|---|
+  | pays | — (rien à quoi la comparer à la même date) | évolution dans le temps |
+  | région | classement des 14 régions, zone demandée en `mise_en_evidence` | évolution dans le temps |
+  | département | classement des départements **de la même région** | évolution, sinon `null` |
+  | académie | classement des 16 académies (libellé « académies », pas « régions ») | évolution, sinon `null` |
+
+  `svg_url` pour l'image, `series` pour le tableau alternatif (EF-28). Exemple : `exacte_valeur.json`
+  (population de Thiès, classement des 14 régions).
 - **`nature`** (v1.1.0, décision 0002) : `observee`, `estimation` ou `projection`. Pour `estimation`
   et `projection`, afficher un **badge** avec `base_projection` (« Projection officielle ANSD —
   Projections démographiques 2023-2073 »). `null` = non renseigné, traiter comme observée.
@@ -127,7 +135,11 @@ Le portail ne publie **aucun seuil** de décile ni de quintile : on compare le m
   - `contexte` : repères publiés (pauvreté des ménages de même taille — **niveau national** : le
     portail ne la publie pas par région —, part de la région dans le quintile de bien-être le plus
     bas, accès à l'électricité…) ;
-  - `explication` : gabarit, avec l'encadré « C'est quoi une moyenne ? » (EF-39).
+  - `explication` : gabarit, avec l'encadré « C'est quoi une moyenne ? » (EF-39). Elle **doit**
+    signaler les deux biais de la comparaison : la moyenne est mesurée à sa date (2022, en FCFA de
+    2022) face à une dépense actuelle, et la consommation de l'enquête (EHCVM) inclut
+    l'autoconsommation et les loyers imputés, souvent absents des dépenses déclarées. Sinon un ménage
+    peut se croire plus aisé qu'il ne l'est.
 - **Rien n'est conservé** : ni base, ni journal, ni compte (EF-40, US-21).
 - Exemple : `situer.json` (Kolda, 7 personnes, 100 000 à 200 000 FCFA par mois).
 
@@ -158,7 +170,10 @@ Procédure :
 - [ ] **Codes d'indicateurs** des suggestions (`nombre_menages`, `taille_moyenne_menage`) : provisoires, fixés avec le socle curé.
 - [ ] **Explication wolof** : les gabarits WO sont marqués « à valider par un linguiste » (7.4).
 - [x] **`/v1/situate`** : écrit en v1.1.0 (décision 0004 §2).
-- [ ] **Tranches de dépenses** de « Où je me situe » : proposition KBD, à confirmer avec SAN et les maquettes.
+- [x] **Tranches de dépenses** de « Où je me situe » : les 6 tranches sont validées par SAN.
+- [ ] **Écarts à noter pour la v1.2 du cahier** : taille du ménage saisie en nombre (sélecteur) et non
+  par tranches ; niveau d'instruction **non demandé** par le web tant qu'il n'est pas exploité
+  (minimisation, EF-40) — écart à EF-37.
 - [ ] **Domaine** : les URL d'exemple utilisent `app.gestukaay.test` (domaine réservé aux tests).
 
 ## 8. Historique des versions
@@ -167,3 +182,4 @@ Procédure :
 |---|---|---|
 | 1.0.0 | 2026-09-30 | Version initiale : `/v1/ask`, trois issues, exports, feedback |
 | 1.1.0 | 2026-10-01 | `Resultat.nature` + `base_projection` ; `RefZone.niveau = academie` ; `AskRequest.source` + `transcription_brute` ; `POST /v1/transcrire` ; `POST /v1/situate` ; graphique de contexte (doc) |
+| 1.1.1 | 2026-10-02 | Retours de SAN, sans changement de format : exemple `exacte_valeur.json` avec graphique de contexte ; graphique de contexte par niveau de zone (doc) ; biais à signaler dans l'explication de « Où je me situe » ; citation d'une projection ; tests en UTF-8 (Windows) ; version du paquet |

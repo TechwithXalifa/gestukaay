@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { EnregistrerSW } from "@/components/EnregistrerSW";
+import { LangueProvider } from "@/i18n/langue";
+
+export const viewport = { width: "device-width", initialScale: 1, themeColor: "#1D4448" };
 
 export const metadata: Metadata = {
   title: "Gëstukaay",
@@ -9,7 +13,17 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Poppins:wght@400;500;600;700&display=swap"
+        />
+      </head>
+      <body>
+        <LangueProvider>{children}</LangueProvider>
+        <EnregistrerSW />
+      </body>
     </html>
   );
 }

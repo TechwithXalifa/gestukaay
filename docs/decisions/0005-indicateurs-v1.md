@@ -16,7 +16,7 @@ plusieurs unités (comptes nationaux en prix courants et constants, captures en 
    des désagrégations. Un jeu sans dimension « Indicateur » compte pour un indicateur par unité. Les
    graphies d'une même valeur (« Effectif » / « effectif ») sont fusionnées.
 2. **Tout le socle entre dans le référentiel** (4 149 indicateurs), pas une sélection de 200. La colonne
-   `verification` dit ce qui a été contrôlé à la main, par priorité : **P1** jeu de test (24), **P2**
+   `verification` dit ce qui a été contrôlé à la main, par priorité : **P1** jeu de test (26), **P2**
    domaines des questions types du cahier (1 272), **P3** le reste.
 3. **Noms wolof des indicateurs : écrits par KBD, pour les prioritaires** (P1 d'abord). Aucun nom wolof
    n'est généré. Sans nom wolof, une réponse en wolof cite le nom français.
@@ -25,8 +25,11 @@ plusieurs unités (comptes nationaux en prix courants et constants, captures en 
 
 ## Conséquences
 
-- **Écart au cahier** : 2.3 parle de 200+ indicateurs « curés » ; ici tout est servi, mais seuls les
-  indicateurs `verifie` sont garantis relus. Le benchmark (#19) ne porte que sur des P1.
+- **Écarts au cahier** :
+  - 2.3 parle de 200+ indicateurs « curés » ; ici tout est servi, mais seuls les indicateurs `verifie`
+    sont garantis relus. Le benchmark (#19) ne porte que sur des P1 ;
+  - 12.1 prévoit 100 questions, 70 FR / 30 WO : le jeu en compte **103, 72 FR / 31 WO** (voir plus bas) ;
+  - §5 et annexe : « Nombre de voitures à Kolda » n'est plus l'exemple de refus (voir plus bas).
 - **#4 (extraction)** filtre le socle brut par `dataset_id` + `dimension_indicateur` /
   `valeur_portail` + unité. Deux points y restent à régler : le sens de la colonne `echelle`
   (189 indicateurs à 10⁶ ou 10⁹) et l'unité « prix constants de 1999… 2041 » incrémentée à tort dans

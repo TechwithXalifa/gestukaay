@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.1.0",
+  "version_contrat": "1.1.1",
   "reponse": {
     "id": "ex-exacte-valeur",
     "url": "https://app.gestukaay.test/r/ex-exacte-valeur",
@@ -53,7 +53,7 @@
           "libelle": "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
         },
         "observation_id": "pvswjnd:SN-TH:2023:total",
-        "mise_en_evidence": false,
+        "mise_en_evidence": true,
         "nature": "observee",
         "base_projection": null
       }
@@ -61,7 +61,90 @@
     "explication": "La région de Thiès compte 2 463 677 habitants selon le recensement de 2023 (RGPH-5). Ce chiffre couvre toute la région, pas seulement la ville de Thiès.",
     "periode_par_defaut": true,
     "note_perimetre": "Région administrative, pas la ville.",
-    "graphique": null,
+    "graphique": {
+      "type": "barres_horizontales",
+      "titre": "Population des régions en 2023 (habitants)",
+      "unite": "habitants",
+      "series": [
+        {
+          "nom": "Population totale",
+          "points": [
+            {
+              "x": "Dakar",
+              "y": 4004426.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Thiès",
+              "y": 2463677.0,
+              "mise_en_evidence": true
+            },
+            {
+              "x": "Diourbel",
+              "y": 2080333.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Kaolack",
+              "y": 1336720.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Saint-Louis",
+              "y": 1202441.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Louga",
+              "y": 1125908.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Tambacounda",
+              "y": 987152.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Kolda",
+              "y": 914798.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Fatick",
+              "y": 906918.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Matam",
+              "y": 831630.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Kaffrine",
+              "y": 820405.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Ziguinchor",
+              "y": 617567.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Sédhiou",
+              "y": 589266.0,
+              "mise_en_evidence": false
+            },
+            {
+              "x": "Kédougou",
+              "y": 245147.0,
+              "mise_en_evidence": false
+            }
+          ]
+        }
+      ],
+      "pied": "Source : ANSD, RGPH-5, publié le 31 octobre 2023 · gestukaay",
+      "svg_url": "https://app.gestukaay.test/v1/answers/ex-exacte-valeur/chart.svg"
+    },
     "citation": "Source : ANSD, RGPH-5 (2023), publié le 31 octobre 2023. Consulté via Gëstukaay le 30 septembre 2026, https://app.gestukaay.test/r/ex-exacte-valeur.",
     "audio_url": null
   }
