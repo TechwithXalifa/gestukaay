@@ -1,0 +1,173 @@
+{
+  "version_contrat": "1.1.0",
+  "depense_par_personne_an": {
+    "minimum": 171429,
+    "maximum": 342857,
+    "libelle": "entre 171 429 et 342 857 FCFA par personne et par an"
+  },
+  "moyenne_region": {
+    "indicateur": {
+      "code": "consommation_par_tete",
+      "libelle": "Consommation moyenne par tête"
+    },
+    "zone": {
+      "code": "SN-KD",
+      "libelle": "Kolda",
+      "niveau": "region"
+    },
+    "periode": {
+      "valeur": "2022",
+      "libelle": "2022"
+    },
+    "desagregation": null,
+    "valeur": 387934,
+    "valeur_affichee": "387 934",
+    "unite": "FCFA par personne et par an",
+    "source": {
+      "producteur": "ANSD",
+      "operation": "EHCVM",
+      "titre": "10.1_Indices de pauvreté",
+      "date_publication": "2024-07-15",
+      "licence": "CC BY 4.0",
+      "url": "https://senegal.opendataforafrica.org/jcvcajc",
+      "libelle": "ANSD · EHCVM · publié le 15 juillet 2024 · CC BY 4.0"
+    },
+    "observation_id": "jcvcajc:SN-KD:2022:conso",
+    "mise_en_evidence": false,
+    "nature": "observee",
+    "base_projection": null
+  },
+  "moyenne_pays": {
+    "indicateur": {
+      "code": "consommation_par_tete",
+      "libelle": "Consommation moyenne par tête"
+    },
+    "zone": {
+      "code": "SN",
+      "libelle": "Sénégal",
+      "niveau": "pays"
+    },
+    "periode": {
+      "valeur": "2022",
+      "libelle": "2022"
+    },
+    "desagregation": null,
+    "valeur": 542706,
+    "valeur_affichee": "542 706",
+    "unite": "FCFA par personne et par an",
+    "source": {
+      "producteur": "ANSD",
+      "operation": "EHCVM",
+      "titre": "10.1_Indices de pauvreté",
+      "date_publication": "2024-07-15",
+      "licence": "CC BY 4.0",
+      "url": "https://senegal.opendataforafrica.org/jcvcajc",
+      "libelle": "ANSD · EHCVM · publié le 15 juillet 2024 · CC BY 4.0"
+    },
+    "observation_id": "jcvcajc:SN:2022:conso",
+    "mise_en_evidence": false,
+    "nature": "observee",
+    "base_projection": null
+  },
+  "position_region": "en_dessous",
+  "position_pays": "en_dessous",
+  "contexte": [
+    {
+      "indicateur": {
+        "code": "taux_pauvrete_taille_menage",
+        "libelle": "Taux de pauvreté des ménages de 5 à 9 personnes"
+      },
+      "zone": {
+        "code": "SN",
+        "libelle": "Sénégal",
+        "niveau": "pays"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 24.2,
+      "valeur_affichee": "24,2",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "CC BY 4.0",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024 · CC BY 4.0"
+      },
+      "observation_id": "jcvcajc:SN:2022:5-9",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "quintile_bien_etre_plus_bas",
+        "libelle": "Population dans le quintile de bien-être le plus bas"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": null,
+      "valeur": 63.0,
+      "valeur_affichee": "63,0",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EDS",
+        "titre": "Quintile de bien-être économique et coefficients de GINI",
+        "date_publication": "2024-07-15",
+        "licence": "CC BY 4.0",
+        "url": "https://senegal.opendataforafrica.org/qjyrtof",
+        "libelle": "ANSD · EDS · publié le 15 juillet 2024 · CC BY 4.0"
+      },
+      "observation_id": "qjyrtof:SN-KD:2023:bas",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "menages_electricite",
+        "libelle": "Ménages éclairés à l'électricité"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": null,
+      "valeur": 39.6,
+      "valeur_affichee": "39,6",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EDS",
+        "titre": "22.4a_Pourcentage de ménages selon leur principale source d'éclairage",
+        "date_publication": "2026-07-11",
+        "licence": "CC BY 4.0",
+        "url": "https://senegal.opendataforafrica.org/asongtc",
+        "libelle": "ANSD · EDS · publié le 11 juillet 2026 · CC BY 4.0"
+      },
+      "observation_id": "asongtc:SN-KD:2023",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    }
+  ],
+  "explication": "Votre ménage dépense entre 171 429 et 342 857 FCFA par personne et par an. C'est moins que la consommation moyenne par tête publiée pour la région de Kolda (387 934 FCFA) et pour le Sénégal (542 706 FCFA). Une moyenne additionne les dépenses de tous les ménages puis divise par le nombre de personnes : elle ne dit pas où se situe la majorité."
+}

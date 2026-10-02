@@ -4,7 +4,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 uv run python -m gestukaay_contracts.export
-for s in ask_request ask_response confirm_request feedback_request problem; do
+for s in ask_request ask_response confirm_request feedback_request problem \
+         transcription_response situate_request situate_response; do
   npx --yes json-schema-to-typescript@15 --no-additionalProperties --bannerComment \
     "/* GÉNÉRÉ depuis contracts/src/gestukaay_contracts/models.py — ne pas modifier à la main. */" \
     -i "contracts/generated/$s.schema.json" -o "contracts/generated/$s.d.ts"

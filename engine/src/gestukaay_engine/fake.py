@@ -5,6 +5,7 @@ Questions reconnues (insensible à la casse) :
   « wolof » / « ñaata » -> exacte_wolof_vocal
   « et »  + deux villes -> exacte_comparaison     (ex. « Dakar et Thiès »)
   « ville »             -> approchee
+  « 2035 »              -> exacte_projection (badge « projection »)
   « 2040 » / « 2050 »   -> aucune_projection
   « voiture »           -> aucune_hors_socle
   « thiès » / « thies » -> exacte_valeur
@@ -17,7 +18,14 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from gestukaay_contracts.models import AskRequest, AskResponse, RequeteStructuree
+from gestukaay_contracts.models import (
+    AskRequest,
+    AskResponse,
+    RequeteStructuree,
+    SituateRequest,
+    SituateResponse,
+    TranscriptionResponse,
+)
 
 EXEMPLES = Path(__file__).resolve().parents[3] / "contracts" / "examples"
 
@@ -41,6 +49,8 @@ class MoteurFactice:
             nom = "exacte_comparaison"
         elif "ville" in q:
             nom = "approchee"
+        elif "2035" in q:
+            nom = "exacte_projection"
         elif "2040" in q or "2050" in q:
             nom = "aucune_projection"
         elif "voiture" in q:
@@ -53,6 +63,13 @@ class MoteurFactice:
 
     def executer(self, requete: RequeteStructuree, question: str, langue: str) -> AskResponse:
         return _charger("exacte_valeur", question)
+
+    def transcrire(self, audio: bytes, format_audio: str, langue: str = "auto") -> TranscriptionResponse:
+        return TranscriptionResponse.model_validate_json((EXEMPLES / "transcription.json").read_text(encoding="utf-8"))
+
+    def situer(self, req: SituateRequest) -> SituateResponse:
+        # Toujours l'exemple de Kolda, quelle que soit la saisie (faux moteur)
+        return SituateResponse.model_validate_json((EXEMPLES / "situer.json").read_text(encoding="utf-8"))
 
     def version_socle(self) -> str:
         return "fake"

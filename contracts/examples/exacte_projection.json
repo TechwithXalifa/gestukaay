@@ -1,0 +1,68 @@
+{
+  "version_contrat": "1.1.0",
+  "reponse": {
+    "id": "ex-exacte-projection",
+    "url": "https://app.gestukaay.test/r/ex-exacte-projection",
+    "question": "Quelle sera l'espérance de vie au Sénégal en 2035 ?",
+    "langue": "fr",
+    "transcription": null,
+    "requete": {
+      "intention": "valeur",
+      "indicateur": "esperance_de_vie",
+      "zones": [
+        "SN"
+      ],
+      "periode": {
+        "type": "annee",
+        "valeur": "2035"
+      },
+      "desagregation": null,
+      "confiance": 0.93
+    },
+    "version_socle": "2026.10.0",
+    "cree_le": "2026-10-01T10:00:00Z",
+    "latence_ms": 1310,
+    "issue": "exacte",
+    "intention": "valeur",
+    "resultats": [
+      {
+        "indicateur": {
+          "code": "esperance_de_vie",
+          "libelle": "Espérance de vie à la naissance"
+        },
+        "zone": {
+          "code": "SN",
+          "libelle": "Sénégal",
+          "niveau": "pays"
+        },
+        "periode": {
+          "valeur": "2035",
+          "libelle": "2035"
+        },
+        "desagregation": null,
+        "valeur": 74.6,
+        "valeur_affichee": "74,6",
+        "unite": "ans",
+        "source": {
+          "producteur": "ANSD",
+          "operation": "Statistiques d'état civil",
+          "titre": "Statistiques d'état civil : natalité, mortalité, espérance de vie, etc.",
+          "date_publication": "2022-12-01",
+          "licence": "CC BY 4.0",
+          "url": "https://senegal.opendataforafrica.org/pexioke",
+          "libelle": "ANSD · Statistiques d'état civil · publié le 1er décembre 2022 · CC BY 4.0"
+        },
+        "observation_id": "pexioke:SN:2035:total",
+        "mise_en_evidence": false,
+        "nature": "projection",
+        "base_projection": "Projections démographiques de l'ANSD"
+      }
+    ],
+    "explication": "Selon les projections officielles de l'ANSD, l'espérance de vie à la naissance au Sénégal serait de 74,6 ans en 2035. C'est une projection, pas une valeur observée.",
+    "periode_par_defaut": false,
+    "note_perimetre": "Projection officielle de l'ANSD : Gëstukaay ne produit aucune prévision.",
+    "graphique": null,
+    "citation": "Source : ANSD, Statistiques d'état civil (2035), publié le 1er décembre 2022. Consulté via Gëstukaay le 1er octobre 2026, https://app.gestukaay.test/r/ex-exacte-projection.",
+    "audio_url": null
+  }
+}

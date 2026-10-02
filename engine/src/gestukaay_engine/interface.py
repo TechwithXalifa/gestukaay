@@ -15,7 +15,14 @@ from __future__ import annotations
 import os
 from typing import Protocol
 
-from gestukaay_contracts.models import AskRequest, AskResponse, RequeteStructuree
+from gestukaay_contracts.models import (
+    AskRequest,
+    AskResponse,
+    RequeteStructuree,
+    SituateRequest,
+    SituateResponse,
+    TranscriptionResponse,
+)
 
 
 class Moteur(Protocol):
@@ -33,6 +40,16 @@ class Moteur(Protocol):
         Utilisé pour confirmer un choix d'une réponse approchée : le backend
         renvoie la `requete` du `Choix` sélectionné [EF-06, US-13].
         """
+        ...
+
+    def transcrire(self, audio: bytes, format_audio: str, langue: str = "auto") -> TranscriptionResponse:
+        """Audio (webm/ogg Opus, 60 s max) -> texte, sans répondre (v1.1.0, décision 0004 §1).
+        Le web affiche le texte, l'utilisateur le corrige, puis appelle repondre()."""
+        ...
+
+    def situer(self, req: SituateRequest) -> SituateResponse:
+        """« Où je me situe » : comparaison aux moyennes publiées (v1.1.0, décision 0004 §2).
+        Ne conserve RIEN de ce qui est saisi [EF-40]."""
         ...
 
     def version_socle(self) -> str: ...

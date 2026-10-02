@@ -9,4 +9,6 @@ export interface AskRequest {
   canal?: "web" | "whatsapp" | "telegram" | "api";
   conversation_id?: string | null;
   audio_retour?: boolean;
+  source?: "texte" | "voix";
+  transcription_brute?: string | null;
 }

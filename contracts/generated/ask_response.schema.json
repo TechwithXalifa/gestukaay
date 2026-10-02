@@ -187,7 +187,8 @@
             "pays",
             "region",
             "departement",
-            "commune"
+            "commune",
+            "academie"
           ],
           "type": "string"
         }
@@ -669,6 +670,36 @@
         "mise_en_evidence": {
           "default": false,
           "type": "boolean"
+        },
+        "nature": {
+          "anyOf": [
+            {
+              "enum": [
+                "observee",
+                "estimation",
+                "projection"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "base_projection": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "examples": [
+            "Projections démographiques 2023-2073"
+          ]
         }
       },
       "required": [
@@ -681,7 +712,9 @@
         "unite",
         "source",
         "observation_id",
-        "mise_en_evidence"
+        "mise_en_evidence",
+        "nature",
+        "base_projection"
       ],
       "title": "Resultat",
       "type": "object"
@@ -780,7 +813,7 @@
   "description": "Enveloppe HTTP de toutes les routes qui renvoient une réponse.",
   "properties": {
     "version_contrat": {
-      "default": "1.0.0",
+      "default": "1.1.0",
       "type": "string"
     },
     "reponse": {

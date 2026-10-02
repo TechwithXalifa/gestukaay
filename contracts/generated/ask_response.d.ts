@@ -67,6 +67,8 @@ export interface Resultat {
   source: Source;
   observation_id: string;
   mise_en_evidence: boolean;
+  nature: ("observee" | "estimation" | "projection") | null;
+  base_projection: string | null;
 }
 export interface RefIndicateur {
   code: string;
@@ -75,7 +77,7 @@ export interface RefIndicateur {
 export interface RefZone {
   code: string;
   libelle: string;
-  niveau: "pays" | "region" | "departement" | "commune";
+  niveau: "pays" | "region" | "departement" | "commune" | "academie";
 }
 export interface PeriodeResolue {
   valeur: string;

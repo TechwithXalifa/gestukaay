@@ -1,5 +1,5 @@
 {
-  "version_contrat": "1.0.0",
+  "version_contrat": "1.1.0",
   "reponse": {
     "id": "ex-exacte-wolof-vocal",
     "url": "https://app.gestukaay.test/r/ex-exacte-wolof-vocal",
@@ -53,7 +53,9 @@
           "libelle": "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
         },
         "observation_id": "pvswjnd:SN-TH:2023:total",
-        "mise_en_evidence": false
+        "mise_en_evidence": false,
+        "nature": "observee",
+        "base_projection": null
       }
     ],
     "explication": "[WO — gabarit à valider par un linguiste] Diiwaanu Tiés am na 2 463 677 nit, ci limu 2023 (RGPH-5).",

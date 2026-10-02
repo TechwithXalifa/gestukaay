@@ -70,7 +70,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [ ] **2.7** Contexte de suivi sur 3 échanges — [#15](https://github.com/TechwithXalifa/gestukaay/issues/15) · échéance 05/10 · après 2.2
 - [ ] **2.8** Gabarits d'explication FR, formatage des nombres, citation — [#16](https://github.com/TechwithXalifa/gestukaay/issues/16) · échéance 04/10 · après 2.3
 - [ ] **2.9** Basculer du faux moteur au vrai — [#17](https://github.com/TechwithXalifa/gestukaay/issues/17) · échéance 05/10 · après 2.3, 2.4, 2.5
-- [ ] **2.10** Contrat v1.1.0 : nature de la valeur et niveau « académie » — [#45](https://github.com/TechwithXalifa/gestukaay/issues/45) · échéance 03/10 · après décisions 0002 et 0003
+- [x] **2.10** Contrat v1.1.0 : nature, académie, /v1/transcrire, /v1/situate, graphique de contexte — [#45](https://github.com/TechwithXalifa/gestukaay/issues/45) · échéance 03/10 · après décisions 0002 et 0003
 
 ## 3 · Jeu de test et mesure
 
