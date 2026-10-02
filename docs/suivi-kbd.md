@@ -10,13 +10,13 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 |---|---|---|---|
 | 0 · Fondations | 4 | 4 | ✅ terminé |
 | 1 · Socle | 2 | 8 | Préparation |
-| 2 · Moteur | 1 | 10 | Préparation |
+| 2 · Moteur | 2 | 10 | Préparation |
 | 3 · Jeu de test et mesure | 1 | 4 | Préparation |
 | 4 · Wolof | 0 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **8** | **46** | |
+| **Total** | **9** | **46** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -61,7 +61,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 
 ## 2 · Moteur
 
-- [ ] **2.1** Client LLM multi-fournisseur (OpenRouter, repli, délai 2 s) — [#9](https://github.com/TechwithXalifa/gestukaay/issues/9) · échéance 01/10
+- [x] **2.1** Client LLM multi-fournisseur (OpenRouter, repli, délai 2 s) — [#9](https://github.com/TechwithXalifa/gestukaay/issues/9) · échéance 01/10
 - [ ] **2.2** Compréhension : question → requête structurée validée — [#10](https://github.com/TechwithXalifa/gestukaay/issues/10) · échéance 03/10 · après 2.1, 1.3
 - [ ] **2.3** Résolution exacte + valeurs par défaut — [#11](https://github.com/TechwithXalifa/gestukaay/issues/11) · échéance 04/10 · après 1.8
 - [ ] **2.4** Correspondance approchée (zone parente/enfant, période voisine) — [#12](https://github.com/TechwithXalifa/gestukaay/issues/12) · échéance 04/10 · après 2.3
