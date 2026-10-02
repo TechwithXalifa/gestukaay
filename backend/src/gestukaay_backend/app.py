@@ -11,10 +11,11 @@ from __future__ import annotations
 
 import os
 import time
+from typing import Literal
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from gestukaay_contracts.models import (
     AskRequest,
     AskResponse,
@@ -22,8 +23,11 @@ from gestukaay_contracts.models import (
     FeedbackRequest,
     Problem,
     ReponseApprochee,
+    ReponseExacte,
 )
 from gestukaay_engine import charger_moteur
+
+from .exports import vers_csv, vers_pdf
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
 app.add_middleware(
@@ -94,6 +98,33 @@ def lire(rid: str) -> AskResponse:
     if rid not in _reponses:
         raise ErreurApi(404, "Réponse introuvable")
     return _reponses[rid]
+
+
+def _exacte(rid: str) -> ReponseExacte:
+    if rid not in _reponses:
+        raise ErreurApi(404, "Réponse introuvable")
+    rep = _reponses[rid].reponse
+    if not isinstance(rep, ReponseExacte):
+        raise ErreurApi(409, "Aucune valeur à exporter", "Seule une réponse exacte s'exporte.")
+    return rep
+
+
+@app.get("/v1/answers/{rid}/export.csv")
+def export_csv(rid: str, decimale: Literal["point", "virgule"] = "point") -> Response:
+    return Response(
+        vers_csv(_exacte(rid), virgule_decimale=decimale == "virgule"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="gestukaay-{rid}.csv"'},
+    )
+
+
+@app.get("/v1/answers/{rid}/export.pdf")
+def export_pdf(rid: str) -> Response:
+    return Response(
+        vers_pdf(_exacte(rid)),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="gestukaay-{rid}.pdf"'},
+    )
 
 
 @app.post("/v1/feedback", status_code=204)

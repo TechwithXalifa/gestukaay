@@ -53,7 +53,7 @@ a { color: var(--gk-feuille); }
 .bouton-icone:disabled { background: var(--gk-squelette); color: var(--gk-champ); cursor: not-allowed; }
 
 /* ---- Boutons ---------------------------------------------------------- */
-.primaire, .secondaire, .tertiaire { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
+.primaire, .secondaire, .tertiaire { text-decoration: none; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
 .primaire { border: 0; background: var(--gk-feuille); color: var(--gk-sur-action); }
 .secondaire { border: 1px solid var(--gk-lin); background: var(--gk-blanc); color: var(--gk-baobab); }
 .tertiaire { border: 0; background: transparent; color: var(--gk-baobab); }

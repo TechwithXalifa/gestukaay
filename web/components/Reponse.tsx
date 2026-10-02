@@ -96,7 +96,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
         </aside>
       </div>
 
-      <Actions citation={r.citation} url={r.url} />
+      <Actions id={r.id} citation={r.citation} url={r.url} />
       <Retour reponseId={r.id} />
     </article>
   );

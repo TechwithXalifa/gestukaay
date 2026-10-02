@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copier, Partager } from "./icones";
+import { exportUrl } from "@/lib/api";
+import { Copier, Partager, Telecharger } from "./icones";
 
 /** Copier la citation (EF-35) et partager l'adresse stable (EF-29). Toast 3 s (9.7). */
-export function Actions({ citation, url }: { citation: string; url: string }) {
+export function Actions({ id, citation, url }: { id: string; citation: string; url: string }) {
   const [toast, setToast] = useState<string | null>(null);
   useEffect(() => {
     if (!toast) return;
@@ -35,6 +36,12 @@ export function Actions({ citation, url }: { citation: string; url: string }) {
 
   return (
     <div className="actions">
+      <a className="primaire" href={exportUrl(id, "pdf")} download>
+        <Telecharger />Exporter PDF
+      </a>
+      <a className="secondaire" href={exportUrl(id, "csv")} download>
+        <Telecharger />Exporter CSV
+      </a>
       <button type="button" className="secondaire" onClick={() => copier(citation, "Citation copiée")}>
         <Copier />Copier la citation
       </button>
