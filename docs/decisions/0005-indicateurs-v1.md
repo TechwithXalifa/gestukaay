@@ -42,3 +42,19 @@ plusieurs unités (comptes nationaux en prix courants et constants, captures en 
   annexe), devient une question **approchée** : le parc de véhicules par région existe (`qbvttzc`, DTT).
   Idem pour Ziguinchor (WO-024) et la criminalité (FR-067, nationale seulement). Trois refus ajoutés
   pour garder 20 refus ; l'exemple de refus de la démo devient FR-071 (langues parlées).
+
+## Révision du 2026-10-02 (relecture de SAN, #56)
+
+- **Dimension de mesure** : « Quota », « Mesure », « Unités » portent aussi l'indicateur, seules ou avec
+  « Indicateur ». Sans cela, `ovothxc` (P1) mélangeait production, rendement et superficie, et une dizaine
+  de jeux de comptes nationaux mélangeaient prix courants et volume, faute d'unité sur le portail.
+  4 282 indicateurs (au lieu de 4 149) ; 307 codes changent, dont deux P1 (`wrqfsxb.quantite`,
+  `ovothxc.production`), repris à la main.
+- **`unite_affichee`** : colonne manuelle, unité montrée au public. `unite` reste celle du portail, qui
+  fait partie de l'identité ; on ne la modifie jamais.
+- **Libellés** : les doublons générés sont départagés par le nom du jeu, puis l'unité, puis la période
+  (440 libellés partagés → 1).
+- **P1 vérifiés : 24 sur 26.** Vérifié = libellé FR et nom wolof écrits, unité affichable, zone confirmée
+  (description du jeu), valeurs du jeu de test retrouvées. Restent `a_verifier`, avec leur raison dans
+  `note` : `qjyrtof.gini` (portail arrondi à 0,1 : 118 valeurs sur 187 à 0,0, à exclure en #6) et
+  `ovothxc.production` (unité « tonnes » déduite de l'ordre de grandeur).

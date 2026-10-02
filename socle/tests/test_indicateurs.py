@@ -11,11 +11,12 @@ from gestukaay_socle.indicateurs import (
     PRIORITES,
     VERIFICATIONS,
     codes,
-    dimension_indicateur,
+    dimensions_indicateur,
     domaines,
     indicateurs,
     libelle,
     nom_du_jeu,
+    valeur_indicateur,
 )
 from gestukaay_socle.zones import normaliser
 
@@ -65,12 +66,11 @@ def test_chaque_question_couverte_ou_hors_perimetre(q):
         assert not utilisees and q["motif"]
         return
     assert utilisees, f"{q['id']} : aucun indicateur"
-    filtres = json.loads(q["filtres"])
-    ik = dimension_indicateur(filtres)
+    v = valeur_indicateur(json.loads(q["filtres"]))
     for x in utilisees:
         assert x.dataset_id == q["dataset_id"]
-        if ik:
-            assert normaliser(filtres[ik]) in {normaliser(v) for v in x.valeur_portail.split("|")}
+        if v:
+            assert normaliser(v) in {normaliser(g) for g in x.valeur_portail.split("|")}
 
 
 def test_questions_test_existent():
@@ -103,6 +103,35 @@ def test_libelles():
     assert nom_du_jeu("18.3-b_Résultats des campagnes") == "Résultats des campagnes"
     assert libelle("11.1_Produit intérieur brut", "Total") == "Produit intérieur brut — Total"
     assert libelle("x", "Taux  de pauvreté") == "Taux de pauvreté"
-    assert dimension_indicateur({"sexe": "Total", "indicateurs-vaccination": "x"}) == "indicateurs-vaccination"
-    assert dimension_indicateur({"indicator": "Salaire"}) == "indicator"
-    assert dimension_indicateur({"régions": "Dakar"}) is None
+    assert dimensions_indicateur({"sexe": "Total", "indicateurs-vaccination": "x"}) == ("indicateurs-vaccination",)
+    assert dimensions_indicateur({"indicator": "Salaire"}) == ("indicator",)
+    assert dimensions_indicateur({"régions": "Dakar"}) == ()
+    assert libelle("Production des céréales", "PRODUCTION", mesure_seule=True) == "Production des céréales — PRODUCTION"
+
+
+def test_dimension_de_mesure_porte_l_indicateur():
+    """Production / rendement / superficie sans unité sur le portail : trois indicateurs (ovothxc)."""
+    assert valeur_indicateur({"culture": "RIZ", "quota": "PRODUCTION"}) == "PRODUCTION"
+    assert valeur_indicateur({"indicateurs": "PIB", "unités": "En valeur"}) == "PIB — En valeur"
+    assert valeur_indicateur({"mesure": "Quantité", "type-de-pêche": "Artisanale"}) == "Quantité"
+    codes_ovothxc = {c for c in indicateurs() if c.startswith("ovothxc")}
+    assert codes_ovothxc == {"ovothxc.production", "ovothxc.rendement", "ovothxc.superficie"}
+
+
+def test_p1_prets_pour_l_affichage():
+    """Relecture de SAN (#56) : chaque P1 a un libellé, une unité affichable et un nom wolof,
+    et n'est « verifie » que sans réserve écrite dans la note."""
+    for x in indicateurs().values():
+        if x.priorite != "P1":
+            continue
+        assert x.unite_affichee or x.unite, f"{x.code} : aucune unité à afficher"
+        assert x.libelle_wo or x.note, f"{x.code} : ni nom wolof ni raison écrite"
+        assert (x.verification == "verifie") == (not x.note), x.code
+
+
+def test_libelles_distincts():
+    vus = {}
+    for x in indicateurs().values():
+        vus.setdefault(normaliser(x.libelle_fr), []).append(x.code)
+    doubles = {k: v for k, v in vus.items() if len(v) > 1}
+    assert len(doubles) <= 1, list(doubles.items())[:5]

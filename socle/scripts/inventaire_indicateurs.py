@@ -29,9 +29,12 @@ from gestukaay_socle.indicateurs import (
     FICHIER,
     MANUELLES,
     codes,
-    dimension_indicateur,
+    dimensions_indicateur,
     domaines,
+    est_dimension_indicateur,
     libelle,
+    nom_du_jeu,
+    valeur_indicateur,
 )
 from gestukaay_socle.zones import niveau_de_colonne, normaliser, resoudre, zones
 
@@ -93,10 +96,10 @@ def lire_observations():
                 dims = json.loads(ligne["desagregation_json"] or "{}")
             except ValueError:
                 dims = {}
-            ik = dimension_indicateur(dims)
-            if ik:
-                cle_indic[ds] = ik
-            valeur = " ".join(str(dims.get(ik, "")).split()) if ik else ""
+            cles = dimensions_indicateur(dims)
+            if cles:
+                cle_indic[ds] = "+".join(cles)
+            valeur = valeur_indicateur(dims)
             c = cumuls[(ds, normaliser(valeur), ligne["unite"].strip())]
             c.nb += 1
             c.variantes[valeur] += 1
@@ -110,7 +113,7 @@ def lire_observations():
             elif len(rid) == 5 and rid.startswith("SN-"):
                 c.niveaux_portail.add("region")
             for k, v in dims.items():
-                if k == ik:
+                if k in cles:
                     continue
                 c.dims.add(k)
                 if isinstance(v, str) and (code := resoudre(v, niveau_de_colonne(k))):
@@ -134,8 +137,8 @@ def rattacher_questions(questions, identites) -> dict[tuple, list[str]]:
         if not q["dataset_id"]:
             continue
         filtres = json.loads(q["filtres"] or "{}")
-        ik = dimension_indicateur(filtres)
-        cand = [i for i in par_jeu[q["dataset_id"]] if not ik or i[1] == normaliser(filtres[ik])]
+        v = valeur_indicateur(filtres)
+        cand = [i for i in par_jeu[q["dataset_id"]] if not v or i[1] == normaliser(v)]
         # plusieurs unités pour le même indicateur : celle de la question, si elle est donnée
         meme_unite = [i for i in cand if q["unite"] and normaliser(i[2]) == normaliser(q["unite"])]
         for i in meme_unite or cand:
@@ -148,6 +151,26 @@ def lire_existant() -> dict[str, dict]:
         return {}
     with FICHIER.open(encoding="utf-8") as f:
         return {r["code"]: r for r in csv.DictReader(f, delimiter=";")}
+
+
+def departager(lignes) -> None:
+    """Deux indicateurs ne doivent pas porter le même libellé (catalogue, compréhension).
+    Les libellés générés en double reçoivent le nom du jeu, puis l'unité, puis la période.
+    Un libellé écrit à la main n'est jamais modifié."""
+    etapes = (
+        (lambda r: r["dataset_id"], lambda r: f" — {nom_du_jeu(r['jeu'])}"),
+        (lambda r: r["unite"], lambda r: f" ({r['unite'] or 'sans unité'})"),
+        (lambda r: (r["periode_debut"], r["periode_fin"]), lambda r: f" ({r['periode_debut']}–{r['periode_fin']})"),
+    )
+    for distinguer, suffixe in etapes:
+        groupes = defaultdict(list)
+        for r in lignes:
+            groupes[normaliser(r["libelle_fr"])].append(r)
+        for g in groupes.values():
+            if len(g) > 1 and len({distinguer(r) for r in g}) > 1:
+                for r in g:
+                    if r["_auto"] and suffixe(r).strip(" —()") not in r["libelle_fr"]:
+                        r["libelle_fr"] += suffixe(r)
 
 
 def construire(catalogue, cumuls, cle_indic, geo, questions):
@@ -172,8 +195,9 @@ def construire(catalogue, cumuls, cle_indic, geo, questions):
         qs = sorted(set(usages.get(i, [])))
         code = les_codes[i]
         ligne = {
-            "code": code, "dataset_id": ds, "libelle_fr": libelle(cat["nom"], valeur),
-            "libelle_wo": "", "statut_wo": "", "unite": unite, "domaine": dom.domaine,
+            "code": code, "dataset_id": ds, "libelle_fr": libelle(cat["nom"], valeur, mesure_seule=bool(valeur) and not
+                                                          est_dimension_indicateur(cle_indic[ds].split("+")[0])),
+            "libelle_wo": "", "statut_wo": "", "unite": unite, "unite_affichee": "", "domaine": dom.domaine,
             "priorite": "P1" if qs else "P2" if dom.questions_types else "P3",
             "verification": "a_verifier" if dom.domaine else "ecarte",
             "questions_test": "|".join(qs), "producteur": cat["producteur"],
@@ -185,9 +209,11 @@ def construire(catalogue, cumuls, cle_indic, geo, questions):
             "valeur_portail": "|".join(sorted(c.variantes)) if valeur else "", "jeu": cat["nom"],
             "note": "" if dom.domaine else dom.note,
         }
+        ligne["_auto"] = code not in existant or not existant[code]["libelle_fr"]
         if code in existant:  # le travail fait à la main est conservé
-            ligne.update({k: existant[code][k] for k in MANUELLES})
+            ligne.update({k: existant[code].get(k, "") for k in MANUELLES if existant[code].get(k)})
         lignes.append(ligne)
+    departager(lignes)
     ordre = {d.domaine: n for n, d in enumerate(sorted(doms.values(), key=lambda d: (not d.questions_types, d.domaine)))}
     lignes.sort(key=lambda r: (r["priorite"], ordre.get(r["domaine"], 99), r["dataset_id"], r["code"]))
     perdus = sorted(set(existant) - {r["code"] for r in lignes})
@@ -196,7 +222,7 @@ def construire(catalogue, cumuls, cle_indic, geo, questions):
 
 def ecrire(lignes) -> None:
     with FICHIER.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=COLONNES, delimiter=";", lineterminator="\n")
+        w = csv.DictWriter(f, fieldnames=COLONNES, delimiter=";", lineterminator="\n", extrasaction="ignore")
         w.writeheader()
         w.writerows(lignes)
 
