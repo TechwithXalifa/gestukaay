@@ -10,6 +10,7 @@ import { HorsLigne } from "@/components/HorsLigne";
 import { MicroRefuse } from "@/components/MicroRefuse";
 import { Reponse } from "@/components/Reponse";
 import { useEnLigne } from "@/hooks/useEnLigne";
+import { useLangue } from "@/i18n/langue";
 import { confirmer, demander, ErreurApi, lireReponse } from "@/lib/api";
 import { memoriser, retrouver } from "@/lib/historique";
 import { demanderMicro } from "@/lib/micro";
@@ -19,6 +20,7 @@ export default function PageReponse({ params }: { params: Promise<{ id: string }
   const { id } = use(params);
   const router = useRouter();
   const enLigne = useEnLigne();
+  const { t } = useLangue();
   const [reponse, setReponse] = useState<AskResponse | null>(null);
   const [depuisAppareil, setDepuisAppareil] = useState(false);
   const [erreur, setErreur] = useState<unknown>(null);
@@ -76,7 +78,7 @@ export default function PageReponse({ params }: { params: Promise<{ id: string }
         />
         {microRefuse && <MicroRefuse onReessayer={micro} />}
         {horsLigne && lisible && (
-          <p className="bandeau-discret" role="status">Hors ligne · réponse enregistrée sur cet appareil.</p>
+          <p className="bandeau-discret" role="status">{t("reponse.horsligne")}</p>
         )}
         {lisible ? (
           <Reponse

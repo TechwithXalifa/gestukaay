@@ -2,19 +2,16 @@
 
 import { useState } from "react";
 import type { FeedbackRequest } from "@contracts/feedback_request";
+import { useLangue } from "@/i18n/langue";
 import { envoyerRetour } from "@/lib/api";
 import { Drapeau, Pouce } from "./icones";
 
 type Motif = NonNullable<FeedbackRequest["motif"]>;
-const MOTIFS: [Motif, string][] = [
-  ["chiffre_faux", "Le chiffre me semble faux"],
-  ["mauvaise_zone", "Ce n'est pas la bonne zone"],
-  ["mauvaise_comprehension", "Ma question a été mal comprise"],
-  ["autre", "Autre chose"],
-];
+const MOTIFS: Motif[] = ["chiffre_faux", "mauvaise_zone", "mauvaise_comprehension", "autre"];
 
 /** Vote et signalement (EF-49 à EF-51). */
 export function Retour({ reponseId }: { reponseId: string }) {
+  const { t } = useLangue();
   const [etat, setEtat] = useState<"repos" | "signaler" | "merci" | "erreur">("repos");
   const [motif, setMotif] = useState<Motif>("chiffre_faux");
   const [commentaire, setCommentaire] = useState("");
@@ -28,7 +25,7 @@ export function Retour({ reponseId }: { reponseId: string }) {
     }
   }
 
-  if (etat === "merci") return <p className="retour" role="status">Merci, votre retour a été transmis à l'équipe.</p>;
+  if (etat === "merci") return <p className="retour" role="status">{t("retour.merci")}</p>;
 
   if (etat === "signaler")
     return (
@@ -40,36 +37,36 @@ export function Retour({ reponseId }: { reponseId: string }) {
         }}
       >
         <fieldset>
-          <legend>Qu'est-ce qui ne va pas ?</legend>
-          {MOTIFS.map(([valeur, libelle]) => (
+          <legend>{t("retour.quoi")}</legend>
+          {MOTIFS.map((valeur) => (
             <label key={valeur}>
               <input type="radio" name="motif" checked={motif === valeur} onChange={() => setMotif(valeur)} />
-              {libelle}
+              {t(`retour.${valeur}`)}
             </label>
           ))}
         </fieldset>
-        <label htmlFor="commentaire">Précisez (facultatif)</label>
+        <label htmlFor="commentaire">{t("retour.preciser")}</label>
         <textarea id="commentaire" maxLength={1000} value={commentaire} onChange={(e) => setCommentaire(e.target.value)} />
         <div className="actions">
-          <button type="submit" className="primaire">Envoyer le signalement</button>
-          <button type="button" className="tertiaire" onClick={() => setEtat("repos")}>Annuler</button>
+          <button type="submit" className="primaire">{t("retour.envoyer")}</button>
+          <button type="button" className="tertiaire" onClick={() => setEtat("repos")}>{t("retour.annuler")}</button>
         </div>
       </form>
     );
 
   return (
     <div className="retour">
-      <span>Cette réponse vous a-t-elle été utile ?</span>
+      <span>{t("retour.question")}</span>
       <button type="button" className="secondaire petit" onClick={() => envoyer({ type: "vote", vote: "utile" })}>
-        <Pouce taille={16} />Oui
+        <Pouce taille={16} />{t("retour.oui")}
       </button>
       <button type="button" className="secondaire petit" onClick={() => envoyer({ type: "vote", vote: "pas_utile" })}>
-        <Pouce taille={16} bas />Non
+        <Pouce taille={16} bas />{t("retour.non")}
       </button>
       <button type="button" className="tertiaire lien-signaler" onClick={() => setEtat("signaler")}>
-        <Drapeau taille={16} />Signaler une erreur
+        <Drapeau taille={16} />{t("retour.signaler")}
       </button>
-      {etat === "erreur" && <span role="alert">L'envoi a échoué, réessayez.</span>}
+      {etat === "erreur" && <span role="alert">{t("retour.echec")}</span>}
     </div>
   );
 }
