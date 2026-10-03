@@ -331,3 +331,16 @@ a { color: var(--gk-feuille); }
 .evitement:focus { top: 8px; }
 main:focus { outline: none; }
 
+/* Pages d'information : Méthode, À propos, Confidentialité */
+.page-texte { max-width: 720px !important; }
+.page-texte p { margin: 8px 0 0; max-width: 660px; }
+.page-texte section { width: 100%; }
+.etapes { margin: 12px 0 0; padding: 0; list-style: none; counter-reset: etape; display: flex; flex-direction: column; gap: 12px; }
+.etapes li { counter-increment: etape; display: grid; grid-template-columns: 36px 1fr; column-gap: 12px; }
+.etapes li::before { content: counter(etape); grid-row: span 2; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 999px; background: var(--gk-feuille-50); color: var(--gk-feuille); font-weight: 700; }
+.etapes strong, .mesures strong { color: var(--gk-baobab); }
+.etapes span, .mesures span { color: var(--gk-ardoise); }
+.mesures { margin: 12px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.mesures li { display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid var(--gk-lin); border-radius: var(--radius-md); background: var(--gk-blanc); }
+.encadre { padding: 16px 20px; border-left: 4px solid var(--gk-baobab); border-radius: var(--radius-md); background: var(--gk-baobab-50); }
+

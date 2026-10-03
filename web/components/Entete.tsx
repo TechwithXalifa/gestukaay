@@ -5,7 +5,7 @@ import { useLangue } from "@/i18n/langue";
 import { Baobab } from "./icones";
 
 /** En-tête commun : logo, navigation, bascule FR/WO toujours visible (9.7). */
-export function Entete({ actif = "question" }: { actif?: "question" | "situer" }) {
+export function Entete({ actif = "question" }: { actif?: "question" | "situer" | null }) {
   const { langue, setLangue, t, incomplet } = useLangue();
   return (
     <>
@@ -40,9 +40,9 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
       <div className="pied-int">
         <p>{adresse ? t("pied.adresse", { adresse: adresse.replace(/^https?:\/\//, "") }) : "Gëstukaay"}</p>
         <nav aria-label={t("pied.nav")}>
-          <a href="#">{t("pied.methode")}</a>
-          <a href="#">{t("pied.apropos")}</a>
-          <a href="#">{t("pied.confidentialite")}</a>
+          <Link href="/methode">{t("pied.methode")}</Link>
+          <Link href="/a-propos">{t("pied.apropos")}</Link>
+          <Link href="/confidentialite">{t("pied.confidentialite")}</Link>
         </nav>
       </div>
     </footer>
