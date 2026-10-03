@@ -45,11 +45,13 @@ export interface RequeteStructuree {
   desagregation: {
     [k: string]: string;
   } | null;
+  ordre: "desc" | "asc";
   confiance: number;
 }
 export interface Periode {
   type: "annee" | "trimestre" | "mois" | "derniere";
   valeur: string | null;
+  fin: string | null;
 }
 /**
  * Une valeur officielle et tout ce qu'il faut pour la citer.

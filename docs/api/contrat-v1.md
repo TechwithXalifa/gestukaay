@@ -1,10 +1,9 @@
-# Contrat d'API Gëstukaay — v1.1.2
+# Contrat d'API Gëstukaay — v1.2.0
 
-> **Nouveautés v1.1.0** (décisions 0002, 0003, 0004) — toutes **additives**, rien ne casse :
-> nature des valeurs (`observee` / `estimation` / `projection`) · niveau de zone `academie` ·
-> route `POST /v1/transcrire` (voix corrigeable sur le web) · route `POST /v1/situate`
-> (comparaison aux moyennes publiées, sans déciles) · graphique de contexte pour une valeur unique.
-> Détail : §3 (nature, académie, graphique), §4 (voix, « Où je me situe »), §8 (historique).
+> **Nouveautés v1.2.0** (additif comparaison & classement, issue #14) — **additif**, rien ne casse :
+> `Periode.fin` (seconde borne d'une comparaison temporelle) · `RequeteStructuree.ordre` (`desc` par défaut, `asc`).
+> **Nouveautés v1.1.0** (décisions 0002, 0003, 0004) : nature des valeurs (`observee` / `estimation` / `projection`) ·
+> niveau de zone `academie` · route `POST /v1/transcrire` · route `POST /v1/situate` · graphique de contexte.
 
 > **Source de vérité :** [`contracts/src/gestukaay_contracts/models.py`](../../contracts/src/gestukaay_contracts/models.py).
 > Ce document l'explique ; en cas de désaccord, c'est le code qui a raison.
@@ -184,3 +183,4 @@ Procédure :
 | 1.1.0 | 2026-10-01 | `Resultat.nature` + `base_projection` ; `RefZone.niveau = academie` ; `AskRequest.source` + `transcription_brute` ; `POST /v1/transcrire` ; `POST /v1/situate` ; graphique de contexte (doc) |
 | 1.1.1 | 2026-10-02 | Retours de SAN, sans changement de format : exemple `exacte_valeur.json` avec graphique de contexte ; graphique de contexte par niveau de zone (doc) ; biais à signaler dans l'explication de « Où je me situe » ; citation d'une projection ; tests en UTF-8 (Windows) ; version du paquet |
 | 1.1.2 | 2026-10-02 | Exemples seuls, sans changement de format : codes d'indicateurs du référentiel (`pvswjnd`…) ; `aucune_hors_socle.json` = FR-071 (« sérère »), « voitures à Kolda » étant devenue une question approchée (décision 0005) |
+| 1.2.0 | 2026-10-03 | Additif comparaison & classement (#14) : `Periode.fin` (deuxième borne temporelle) ; `RequeteStructuree.ordre` (`"desc"` / `"asc"`) |
