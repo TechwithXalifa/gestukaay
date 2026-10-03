@@ -57,6 +57,10 @@ export const fr = {
   "audio.pause": "Mettre la lecture en pause",
   "audio.lue": "réponse lue",
 
+  // Refus (EF-51)
+  "refus.suggerer": "Suggérer cet indicateur à l'équipe",
+  "refus.merci": "Merci, votre suggestion est transmise à l'équipe Gëstukaay.",
+
   // Actions
   "actions.pdf": "Exporter PDF",
   "actions.csv": "Exporter CSV",

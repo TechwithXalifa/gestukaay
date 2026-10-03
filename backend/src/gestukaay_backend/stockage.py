@@ -200,8 +200,10 @@ class Stockage:
                        (SELECT r.vote FROM retours r WHERE r.reponse_id = j.reponse_id AND r.type = 'vote'
                         ORDER BY r.recu_le DESC LIMIT 1),
                        (SELECT r.motif FROM retours r WHERE r.reponse_id = j.reponse_id
-                        AND r.type = 'signalement' ORDER BY r.recu_le DESC LIMIT 1)
+                        AND r.type = 'signalement' ORDER BY r.recu_le DESC LIMIT 1),
+                       (SELECT COUNT(*) FROM retours r WHERE r.reponse_id = j.reponse_id
+                        AND r.type = 'suggestion_indicateur')
                 FROM journal j {where} ORDER BY j.recu_le DESC, j.reponse_id LIMIT ? OFFSET ?""",
             (*params, f.limite, f.decalage),
         )
-        return total, [dict(zip([*COLONNES_JOURNAL, "vote", "signalement"], ligne, strict=True)) for ligne in lignes]
+        return total, [dict(zip([*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], ligne, strict=True)) for ligne in lignes]

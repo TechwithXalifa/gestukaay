@@ -48,6 +48,12 @@ test("refus : message honnête et indicateurs proches qui se posent en un clic",
   await expect(page).toHaveURL(/\/r\/[\w-]+$/);
 });
 
+test("refus : suggérer l'indicateur manquant à l'équipe (EF-51)", async ({ page }) => {
+  await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
+  await page.getByRole("button", { name: "Suggérer cet indicateur à l'équipe" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "votre suggestion est transmise" })).toBeVisible();
+});
+
 test("projection : badge et base, jamais présentée comme observée", async ({ page }) => {
   await poser(page, "Espérance de vie au Sénégal en 2035");
   await expect(page.locator(".badge.projection")).toHaveText("Projection");

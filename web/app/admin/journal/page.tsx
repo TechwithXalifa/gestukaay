@@ -27,6 +27,7 @@ type Ligne = {
   reponse_id: string;
   vote: "utile" | "pas_utile" | null;
   signalement: string | null;
+  suggestions: number; // EF-51 : indicateur manquant suggéré depuis le refus
 };
 
 const PAR_PAGE = 50;
@@ -226,7 +227,7 @@ export default function Journal() {
                   </th>
                   <td><span className={`badge ${l.issue === "exacte" ? "exacte" : l.issue === "approchee" ? "approchee" : "projection"}`}>{ISSUES[l.issue]}</span></td>
                   <td className={`nombre${(l.latence_ms ?? 0) > LENTE_MS ? " lente" : ""}`}>{secondes(l.latence_ms)}</td>
-                  <td>{[l.vote === "utile" ? "utile" : l.vote === "pas_utile" ? "pas utile" : null, l.signalement && "signalé"].filter(Boolean).join(" · ") || "–"}</td>
+                  <td>{[l.vote === "utile" ? "utile" : l.vote === "pas_utile" ? "pas utile" : null, l.signalement && "signalé", l.suggestions > 0 && "suggéré"].filter(Boolean).join(" · ") || "–"}</td>
                 </tr>
               ))}
               {donnees && donnees.lignes.length === 0 && (
