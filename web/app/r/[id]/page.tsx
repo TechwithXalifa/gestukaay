@@ -101,7 +101,7 @@ export default function PageReponse({ params }: { params: Promise<{ id: string }
         <Ecoute
           onEnvoyer={(q, brute, langue) => {
             setEcoute(false);
-            charger(() => demander({ question: q, source: "voix", transcription_brute: brute, langue }), true);
+            charger(() => demander({ question: q, source: "voix", audio_retour: true, transcription_brute: brute, langue }), true);
           }}
           onFermer={() => setEcoute(false)}
           onRefus={() => {

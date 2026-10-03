@@ -344,3 +344,11 @@ main:focus { outline: none; }
 .mesures li { display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid var(--gk-lin); border-radius: var(--radius-md); background: var(--gk-blanc); }
 .encadre { padding: 16px 20px; border-left: 4px solid var(--gk-baobab); border-radius: var(--radius-md); background: var(--gk-baobab-50); }
 
+/* Lecteur audio de la réponse (maquette M-Reponse) */
+.lecteur-audio { margin-top: 12px; width: 100%; max-width: 420px; display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: var(--radius-md); background: var(--gk-sable-50); }
+.lecteur-bouton { flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 999px; background: var(--gk-baobab); color: var(--gk-sur-marque); cursor: pointer; }
+.lecteur-bouton svg { width: 16px; height: 16px; fill: currentColor; }
+.lecteur-texte { min-width: 0; display: flex; flex-direction: column; }
+.lecteur-texte strong { font-size: 15px; line-height: 24px; color: var(--gk-baobab); }
+.lecteur-texte span { font-size: 13px; line-height: 18px; color: var(--gk-ardoise); font-variant-numeric: tabular-nums; }
+

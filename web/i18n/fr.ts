@@ -49,6 +49,14 @@ export const fr = {
   "graphique.libelle": "Libellé",
   "graphique.valeur": "Valeur ({unite})",
 
+  // Lecteur audio (EF-16, maquette M-Reponse)
+  "audio.titre": "Écouter la réponse",
+  "audio.titreWo": "Écouter en wolof",
+  "audio.ecouter": "Écouter la réponse, {s} secondes",
+  "audio.ecouterWo": "Écouter la réponse en wolof, {s} secondes",
+  "audio.pause": "Mettre la lecture en pause",
+  "audio.lue": "réponse lue",
+
   // Actions
   "actions.pdf": "Exporter PDF",
   "actions.csv": "Exporter CSV",

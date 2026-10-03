@@ -4,6 +4,7 @@ import type { AskResponse, ReponseExacte } from "@contracts/ask_response";
 import { useLangue } from "@/i18n/langue";
 import { Actions } from "./Actions";
 import { Graphique } from "./Graphique";
+import { LecteurAudio } from "./LecteurAudio";
 import { Retour } from "./Retour";
 import { Base, Coche, Externe, Fleche, Info, Livre, Tendance } from "./icones";
 
@@ -96,6 +97,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
         </div>
       ))}
       <p className="explication">{r.explication}</p>
+      {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
 
       <div className="corps">
         {r.graphique && <Graphique g={r.graphique} />}

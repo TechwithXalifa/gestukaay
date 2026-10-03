@@ -11,6 +11,8 @@ export const JETON_ADMIN = "jeton-des-tests-e2e";
 export default defineConfig({
   testDir: "e2e",
   fullyParallel: true,
+  // En local, 2 à la fois : au-delà, un poste chargé fait dépasser les délais (faux échecs)
+  workers: process.env.CI ? undefined : 2,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
