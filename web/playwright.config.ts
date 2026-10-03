@@ -39,7 +39,8 @@ export default defineConfig({
       command: "uv run python -m uvicorn gestukaay_backend.app:app --port 8000",
       cwd: "..",
       url: "http://localhost:8000/health",
-      env: { GESTUKAAY_MOTEUR: "fake", GESTUKAAY_ADMIN_JETON: JETON_ADMIN, PYTHONUTF8: "1" },
+      // Limites de requêtes coupées : les tests posent des dizaines de questions par minute
+      env: { GESTUKAAY_MOTEUR: "fake", GESTUKAAY_ADMIN_JETON: JETON_ADMIN, GESTUKAAY_LIMITES: "off", PYTHONUTF8: "1" },
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
