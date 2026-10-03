@@ -1,6 +1,6 @@
 # 0012 · « Où je me situe » : tranches de dépenses au-delà de 500 000 FCFA
 
-**Date** : 2026-10-02 · **Statut** : proposé par SAN, **à valider par KBD** · **Complète** : 0004 §2
+**Date** : 2026-10-02 · **Statut** : accepté (SAN, KBD le 03/10) · **Complète** : 0004 §2
 · **Touche** : contrat (`TrancheDepense`), donc PR `contrat/…` approuvée par les deux
 
 ## Contexte
@@ -37,13 +37,18 @@ C'est faux, et c'est la région où le module sera le plus utilisé.
 3. **Pas d'autre changement de méthode.** Le niveau d'instruction reste hors de l'interface (déjà le
    cas dans `web/app/situer/page.tsx`) tant qu'aucune donnée publiée ne le croise.
 
+4. **Tranche ouverte `plus_1m`** (ajout de KBD) : le problème revient pour les très grands ménages
+   (≈ 20 personnes à Dakar). Règle : si la borne basse par personne (`12 000 000 / taille`) dépasse la
+   moyenne, la position est `au_dessus` ; sinon `autour`, et l'explication dit « au moins X FCFA par
+   personne » au lieu d'une fourchette.
+
 ## Conséquences
 
-- **Contrat** : supprimer `plus_500k` est un changement **majeur** au sens de `contrat-v1.md` §5.
-  Aucune version n'étant en production, on propose de le faire maintenant, en v1.2.0, plutôt que de
-  traîner une tranche fausse pendant le hackathon. À défaut, ajouter les trois tranches et conserver
-  `plus_500k` comme alias déprécié (mineur, v1.1.2).
+- **Contrat v1.2.0** (choix retenu) : suppression de `plus_500k`, changement **majeur** au sens de
+  `contrat-v1.md` §5, sans alias. La même v1.2.0 porte la période « entre A et B » proposée par KBD
+  (FR-031, FR-032, FR-036, FR-039, WO-014) : un seul changement majeur avant le hackathon.
 - **Moteur** (`situer`) et **web** (`TRANCHES`, libellés FR/WO) à mettre à jour dans la même PR.
-- **Tests** : ajouter un cas « Dakar, 7 personnes, `plus_1m` » qui doit renvoyer `au_dessus`.
+- **Tests** : « Dakar, 7 personnes, `plus_1m` » -> `au_dessus` ; « Dakar, 25 personnes, `plus_1m` » ->
+  `autour`, avec « au moins » dans l'explication.
 - **Point resté ouvert, hors de cette décision** : les exemples affichent « CC BY 4.0 », alors que le
   champ licence est vide sur les 376 jeux du portail (contrat-v1 §6).
