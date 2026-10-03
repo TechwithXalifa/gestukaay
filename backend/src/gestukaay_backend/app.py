@@ -34,6 +34,7 @@ from gestukaay_contracts.models import (
 )
 from gestukaay_engine import charger_moteur
 
+from . import securite
 from .exports import vers_csv, vers_pdf
 from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
 
@@ -47,6 +48,28 @@ app.add_middleware(
 
 moteur = charger_moteur()
 stockage = Stockage()
+limiteur = securite.Limiteur()
+
+
+@app.middleware("http")
+async def _proteger(requete: Request, suite):
+    """Limite de requêtes par adresse (429 + Retry-After) et en-têtes de sécurité (securite.py)."""
+    grp = securite.groupe(requete.url.path)
+    if grp and requete.method != "OPTIONS" and securite.limites_actives():
+        attente = limiteur.attente(securite.adresse(requete), grp)
+        if attente:
+            probleme = Problem(title="Trop de requêtes", status=429,
+                               detail="Patientez un instant avant de réessayer.")
+            return JSONResponse(probleme.model_dump(), status_code=429, media_type="application/problem+json",
+                                headers={"Retry-After": str(max(1, round(attente)))})
+    reponse = await suite(requete)
+    for nom, valeur in securite.ENTETES.items():
+        if nom == "Content-Security-Policy" and requete.url.path.startswith(securite.SANS_CSP):
+            continue
+        reponse.headers.setdefault(nom, valeur)
+    if requete.url.path.startswith("/admin"):
+        reponse.headers["Cache-Control"] = "no-store"  # le journal ne doit rester dans aucun cache
+    return reponse
 
 
 class ErreurApi(Exception):
