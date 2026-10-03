@@ -1,0 +1,8 @@
+id;action;dataset_id;indicateur;zones;periode_debut;periode_fin;condition;valeur;motif;preuve
+C01;exclure;rnumqzf;;SN-KD|SN-KE;2016;2022;;;Kolda et Kédougou inversés par le portail;"rnumqzf 2022 : Kolda 231 217, Kédougou 881 677 ; RGPH-5 2023 (pvswjnd) : Kolda 914 798, Kédougou 245 147"
+C02;exclure;qjyrtof;qjyrtof.gini;;;;valeur=0;;Gini nul impossible : valeurs arrondies au dixième par le portail;118 valeurs sur 187 à 0,0
+C03;exclure;idtepgd;;;;;journalier;;Doublons des séries annuelles 2016-2018 datés « 0016 », « 0017 », « 0018 » (fréquence D);Mêmes effectifs que les lignes annuelles 2016-2018 (475, 470, 495 valeurs)
+C04;exclure;dwehszb;;;;;journalier;;Doublon de la série annuelle 2008 daté 2008-09-01 (fréquence D);Mêmes valeurs à l'arrondi près (maïs : 263 427,1 et 263 427,138)
+C05;unite_affichee;uipcgjd;unite:*prix constants de*;;;;;milliards de FCFA aux prix constants de 1999;Unité incrémentée d'un indicateur à l'autre (« constants de 1999 » … « de 2041 »);"Première ligne « de 1999 » ; base 1999 des jeux voisins (fruuksc, efrliqb)"
+C06;unite_affichee;fsrvlqe;unite:*prix constants de*;;;;;milliards de FCFA aux prix constants de 1999;Unité incrémentée d'un indicateur à l'autre (« constants de 1999 » … « de 2041 »);"Première ligne « de 1999 » ; base 1999 des jeux voisins (fruuksc, efrliqb)"
+C07;unite_affichee;chnqiuf;unite:*prix constants de*;;;;;milliards de FCFA aux prix constants de 1999;Unité incrémentée d'un indicateur à l'autre (« constants de 1999 » … « de 2041 »);"Première ligne « de 1999 » ; base 1999 des jeux voisins (fruuksc, efrliqb)"

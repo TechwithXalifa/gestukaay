@@ -104,3 +104,15 @@ uv run python socle/scripts/extraire.py   # ~45 s
 
 Contrôle : le script échoue si une valeur attendue du jeu de test n'est pas retrouvée à l'identique.
 Rapport : `rapports/extraction.md`.
+
+## Contrôles et corrections — `referentiels/corrections.csv` (issue #6, décision 0008)
+
+Appliquées par `scripts/extraire.py` après l'extraction. Une ligne par correction, décidée à la main,
+avec `motif` et `preuve` :
+
+| Action | Effet |
+|---|---|
+| `exclure` | les valeurs visées (jeu, indicateur ou `unite:<motif>`, zones, période, condition `valeur=0` ou `journalier`) partent dans `rejets.csv` avec le motif « correction Cxx » |
+| `unite_affichee` | unité montrée au public (reportée dans `indicateurs.csv`) ; le nombre n'est jamais modifié |
+
+Les contrôles automatiques ne font que signaler : `rapports/controles.md`.

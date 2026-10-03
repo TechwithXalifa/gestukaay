@@ -7,12 +7,12 @@ Socle brut : `socle_opendata_par_themes/observations.csv` · sortie : `socle_ges
 | | Valeurs |
 |---|---|
 | Valeurs non vides lues | 673240 |
-| → extraites | 646445 |
+| → extraites | 644827 |
 | → doublons identiques fusionnés | 1654 |
-| → rejetées (voir `rejets.csv`) | 25141 |
+| → rejetées (voir `rejets.csv`) | 26759 |
 | Indicateurs représentés | 4247 |
-| Zones : pays / régions / départements / académies | 334438 / 249292 / 25506 / 37209 |
-| Zone présumée (jeu sans colonne géographique → Sénégal) | 274347 valeurs, 218 jeux |
+| Zones : pays / régions / départements / académies | 334315 / 247797 / 25506 / 37209 |
+| Zone présumée (jeu sans colonne géographique → Sénégal) | 274329 valeurs, 218 jeux |
 
 ## Contrôle de bout en bout : jeu de test
 
@@ -27,8 +27,8 @@ Réponses attendues qui ne sont pas des valeurs observées (le badge doit s'affi
 
 | Nature | Valeurs | Jeux |
 |---|---|---|
-| observee | 551760 | 361 |
-| estimation | 1388 | 3 |
+| observee | 550184 | 361 |
+| estimation | 1346 | 3 |
 | projection | 93297 | 15 |
 
 Projections repérées par la règle automatique (année postérieure à la dernière mise à jour du jeu), sans base déclarée dans `natures.csv` : aucune.
@@ -39,8 +39,12 @@ Projections repérées par la règle automatique (année postérieure à la dern
 |---|---|---|---|
 | infra | 14297 | 2 | infra : ARD MBADAKHOUNE, infra : ARD NGUELOU, infra : ARD. KOUMBAL |
 | doublon conflictuel | 10451 | 20 | SN 1980 : 19.6132776013803 / 4.7067671255767, SN 1980 : 24.7587639167721 / 4.71790090867977, SN 1980 : 73.1083585755478  |
+| correction C03 | 1440 | 1 | Doublons des séries annuelles 2016-2018 datés « 0016 », « 0017 », « 0018 » (fréquence D) |
 | non_admin | 345 | 5 | non_admin : Centre, non_admin : Diourbel et Fatick, non_admin : Gorom-Lampsar |
+| correction C02 | 118 | 1 | Gini nul impossible : valeurs arrondies au dixième par le portail |
 | total ambigu (colonne non nationale) | 48 | 2 | total ambigu (colonne non nationale) |
+| correction C01 | 42 | 1 | Kolda et Kédougou inversés par le portail |
+| correction C04 | 18 | 1 | Doublon de la série annuelle 2008 daté 2008-09-01 (fréquence D) |
 
 ### Doublons conflictuels (à trancher en #6)
 

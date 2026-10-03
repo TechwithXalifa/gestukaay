@@ -12,7 +12,7 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 | Priorité P1 (jeu de test) | 27 |
 | Priorité P2 (domaines des questions types) | 1277 |
 | Priorité P3 (autres) | 2978 |
-| Vérifiés à la main | 25 |
+| Vérifiés à la main | 26 |
 | Avec un libellé wolof | 27 |
 | Écartés | 0 |
 
