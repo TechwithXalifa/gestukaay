@@ -40,6 +40,9 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports: ["3000:3000"]
+    environment:
+      # Rendu serveur de la page réponse : le serveur web joint l'API par le réseau interne
+      API_INTERNE: http://api:8000
     depends_on:
       api:
         condition: service_healthy
