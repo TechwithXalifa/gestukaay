@@ -66,3 +66,14 @@ def test_admin_journal(monkeypatch):
     assert r.status_code == 200 and r.json()["total"] >= 1 and len(r.json()["lignes"]) == 1
     csv = client.get("/admin/journal.csv", headers=ADMIN)
     assert csv.status_code == 200 and csv.text.startswith("﻿recu_le;canal;")
+
+
+def test_suggestion_d_indicateur_depuis_un_refus():
+    """EF-51 : la suggestion est gardée et visible dans le journal."""
+    s = Stockage("")
+    req = AskRequest(question="Combien de personnes parlent sérère au Sénégal ?")
+    rep = MoteurFactice().repondre(req)
+    s.enregistrer(rep, req)
+    s.retour(FeedbackRequest(reponse_id=rep.reponse.id, type="suggestion_indicateur", commentaire=req.question))
+    _, (ligne,) = s.journal(FiltreJournal())
+    assert ligne["suggestions"] == 1

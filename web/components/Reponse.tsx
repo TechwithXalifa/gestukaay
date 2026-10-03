@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import type { AskResponse, ReponseExacte } from "@contracts/ask_response";
 import { useLangue } from "@/i18n/langue";
+import { envoyerRetour } from "@/lib/api";
 import { Actions } from "./Actions";
 import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
@@ -59,9 +61,33 @@ export function Reponse({
               ))}
             </ul>
           )}
+          <SuggererIndicateur reponseId={r.id} question={r.question} />
         </article>
       );
   }
+}
+
+/** EF-51 : depuis un refus, suggérer l'indicateur manquant à l'équipe (maquette M-Refus). */
+function SuggererIndicateur({ reponseId, question }: { reponseId: string; question: string }) {
+  const { t } = useLangue();
+  const [etat, setEtat] = useState<"repos" | "merci" | "erreur">("repos");
+  if (etat === "merci") return <p className="retour" role="status">{t("refus.merci")}</p>;
+  return (
+    <>
+      <button
+        type="button"
+        className="lien-bouton lien-suggerer"
+        onClick={() =>
+          envoyerRetour({ reponse_id: reponseId, type: "suggestion_indicateur", commentaire: question.slice(0, 1000) })
+            .then(() => setEtat("merci"))
+            .catch(() => setEtat("erreur"))
+        }
+      >
+        {t("refus.suggerer")} <Fleche taille={16} />
+      </button>
+      {etat === "erreur" && <p className="note" role="alert">{t("retour.echec")}</p>}
+    </>
+  );
 }
 
 function Exacte({ r }: { r: ReponseExacte }) {

@@ -248,7 +248,7 @@ def journal_csv(
     _admin(authorization)
     _, lignes = stockage.journal(_filtre(issue, canal, langue, q, 100_000, 0))
     sortie = io.StringIO()
-    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, "vote", "signalement"], delimiter=";")
+    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], delimiter=";")
     w.writeheader()
     w.writerows(lignes)
     return Response(
