@@ -88,6 +88,18 @@ def _baobab(pdf, x: float, y: float, hauteur: float) -> None:
         pdf.ellipse(x + bx * k - r, y + by * k - r, 2 * r, 2 * r, style="F")
 
 
+# Décision 0016 §2 (EF-33) : la mise en forme Gëstukaay (texte, graphique, PDF) est sous CC BY 4.0 ;
+# la licence des données est celle que publie l'ANSD, jamais supposée quand le portail ne la dit pas.
+LICENCE_EXPORT = "sous licence CC BY 4.0"
+
+
+def mention_licence_donnees(sources) -> str:
+    licences = sorted({s.licence for s in sources if s.licence.strip()})
+    if licences:
+        return f"Licence des données : {', '.join(licences)}"
+    return "Licence des données : non précisée par le portail ; voir la publication de l'ANSD"
+
+
 def _nombre(v: float) -> str:
     """4004426 -> « 4 004 426 » ; 25.7 -> « 25,7 » (comme le graphique du site)."""
     texte = f"{v:,.0f}" if v == int(v) else f"{v:,.1f}"
@@ -209,6 +221,7 @@ def vers_pdf(rep: ReponseExacte, genere_le: datetime | None = None) -> bytes:
         lignes += [s.titre, s.libelle, s.url]
     if rep.note_perimetre:
         lignes.append(f"Périmètre : {rep.note_perimetre}")
+    lignes.append(mention_licence_donnees(sources))
     # Hauteurs mesurées d'abord : fond Coton sous le texte, et place restante pour le graphique
     pdf.set_font("Poppins", "", 9.5)
     nb = sum(len(pdf.multi_cell(largeur - 12, 5, _texte(t), dry_run=True, output="LINES")) for t in lignes)
@@ -256,7 +269,6 @@ def vers_pdf(rep: ReponseExacte, genere_le: datetime | None = None) -> bytes:
     pdf.set_y(pdf.h - 19)
     pdf.set_font("Poppins", "", 8.5)
     pdf.set_text_color(*ARDOISE)
-    licences = ", ".join(sorted({s.licence for s in sources}))
-    pdf.cell(largeur * 0.6, 5, _texte(rep.url.replace("https://", "").replace("http://", "")))
-    pdf.cell(largeur * 0.4, 5, _texte(f"Licence {licences} · page 1/1"), align="R")
+    pdf.cell(largeur * 0.55, 5, _texte(rep.url.replace("https://", "").replace("http://", "")))
+    pdf.cell(largeur * 0.45, 5, _texte(f"Export Gëstukaay {LICENCE_EXPORT} · page 1/1"), align="R")
     return bytes(pdf.output())

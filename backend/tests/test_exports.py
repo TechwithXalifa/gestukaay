@@ -47,3 +47,15 @@ def test_pas_d_export_sans_valeur():
     r = client.get(f"/v1/answers/{_id('Population de la ville de Thiès en 2023')}/export.pdf")
     assert r.status_code == 409
     assert r.headers["content-type"].startswith("application/problem+json")
+
+
+def test_mention_de_licence_jamais_supposee():
+    """Décision 0016 §2 : licence publiée si le portail la donne, sinon on le dit (jamais « CC BY » inventé)."""
+    from types import SimpleNamespace
+
+    from gestukaay_backend.exports import mention_licence_donnees
+
+    assert mention_licence_donnees([SimpleNamespace(licence="CC BY 4.0")]) == "Licence des données : CC BY 4.0"
+    vide = mention_licence_donnees([SimpleNamespace(licence="")])
+    assert "non précisée" in vide and "CC BY" not in vide
+
