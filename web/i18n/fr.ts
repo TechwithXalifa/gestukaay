@@ -35,9 +35,18 @@ export const fr = {
   "reponse.source": "Source officielle",
   "reponse.perimetre": "Périmètre : {note}",
   "reponse.publication": "Voir la publication",
-  "reponse.graphique": "Graphique : {titre}",
+  "reponse.projection": "Projection",
+  "reponse.estimation": "Estimation",
+  "reponse.base": "Ce n'est pas une valeur observée. Base : {base}.",
   "reponse.sansEstimation": "Gëstukaay ne remplace jamais un chiffre manquant par une estimation. Aucune valeur n'est affichée avant votre choix.",
   "reponse.horsligne": "Hors ligne · réponse enregistrée sur cet appareil.",
+
+  // Graphique (EF-26 à EF-28)
+  "graphique.voirTableau": "Voir les {n} valeurs en tableau",
+  "graphique.voirGraphique": "Voir le graphique",
+  "graphique.serie": "Série",
+  "graphique.libelle": "Libellé",
+  "graphique.valeur": "Valeur ({unite})",
 
   // Actions
   "actions.pdf": "Exporter PDF",

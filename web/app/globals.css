@@ -66,6 +66,7 @@ a { color: var(--gk-feuille); }
 .badge { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 12px; border-radius: 999px; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; }
 .badge.exacte { background: var(--gk-feuille-50); color: var(--gk-feuille); }
 .badge.approchee { background: var(--gk-ocre-50); color: var(--gk-ocre); }
+.badge.projection { background: var(--gk-baobab-50); color: var(--gk-baobab); }
 .resultat + .resultat { margin-top: 8px; }
 .libelle { margin: 20px 0 0; font-size: 16px; line-height: 24px; font-weight: 400; color: var(--gk-ardoise); }
 .valeur { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; font-size: 40px; line-height: 44px; font-weight: 700; letter-spacing: -.02em; color: var(--gk-baobab); font-variant-numeric: tabular-nums; }
@@ -74,6 +75,35 @@ a { color: var(--gk-feuille); }
 .explication { margin: 12px 0 0; max-width: 660px; font-family: var(--font-serif); font-size: 17px; line-height: 28px; }
 .note, .discret { margin: 8px 0 0; font-size: 13px; line-height: 18px; color: var(--gk-ardoise); }
 .corps { width: 100%; margin-top: 24px; display: flex; flex-wrap: wrap; gap: 24px; }
+/* Graphique (maquette Reponse, EF-26 à EF-28) */
+.graphique { flex: 1 1 340px; min-width: 0; margin: 0; }
+.graphique-entete { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.graphique figcaption { font-size: 14px; line-height: 20px; font-weight: 600; }
+.lien-bouton { min-height: 44px; padding: 0; border: 0; background: none; color: var(--gk-feuille); font-size: 13px; line-height: 18px; font-weight: 500; cursor: pointer; }
+.lien-bouton:hover { text-decoration: underline; }
+.barres { margin-top: 8px; display: grid; grid-template-columns: minmax(72px, max-content) minmax(0, 1fr); column-gap: 12px; row-gap: 8px; align-items: center; font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; }
+.barre { display: contents; }
+.barre-libelle { text-align: right; color: var(--gk-ardoise); overflow-wrap: anywhere; }
+.barre-piste { display: flex; align-items: center; gap: 8px; min-width: 0; border-left: 1px solid var(--gk-trait); }
+.barre-trait { display: block; flex: none; max-width: calc(100% - 88px); height: 16px; border-radius: 0 4px 4px 0; background: var(--gk-data-neutre); }
+.barre-valeur { white-space: nowrap; color: var(--gk-ardoise); }
+.barre.en-evidence .barre-libelle, .barre.en-evidence .barre-valeur { font-weight: 600; color: var(--gk-encre); }
+.barre.en-evidence .barre-trait { background: var(--gk-feuille); }
+.courbe { display: block; width: 100%; height: auto; margin-top: 8px; font-size: 12px; fill: var(--gk-ardoise); }
+.courbe .axe { stroke: var(--gk-trait); }
+.courbe polyline { fill: none; stroke-width: 2.5; stroke-linejoin: round; }
+.courbe .serie-0 polyline { stroke: var(--gk-feuille); } .courbe .serie-0 circle { fill: var(--gk-feuille); }
+.courbe .serie-1 polyline { stroke: var(--gk-baobab); } .courbe .serie-1 circle { fill: var(--gk-baobab); }
+.courbe .serie-2 polyline, .courbe .serie-3 polyline, .courbe .serie-4 polyline, .courbe .serie-5 polyline { stroke: var(--gk-data-neutre); }
+.courbe .etiquette { font-weight: 600; fill: var(--gk-encre); }
+.tableau-defile { margin-top: 8px; max-height: 360px; overflow: auto; }
+.tableau { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; }
+.tableau th, .tableau td { padding: 6px 8px; border-bottom: 1px solid var(--gk-lin); text-align: left; font-weight: 400; }
+.tableau thead th { font-weight: 600; color: var(--gk-ardoise); }
+.tableau .nombre { text-align: right; }
+.tableau tr.en-evidence th, .tableau tr.en-evidence td { font-weight: 600; background: var(--gk-feuille-50); }
+.graphique-pied { margin: 16px 0 0; display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; color: var(--gk-ardoise); }
+.graphique-pied .baobab { width: 10px; height: 13px; flex: none; }
 .bloc-source { flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px; padding: 20px 24px 8px; border-radius: var(--radius-md); background: var(--gk-coton); font-size: 14px; line-height: 20px; }
 .bloc-source p { margin: 0; }
 .bloc-source-titre { display: flex; align-items: center; gap: 8px; font-size: 15px !important; font-weight: 600; color: var(--gk-baobab); }

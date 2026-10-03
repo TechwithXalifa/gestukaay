@@ -35,6 +35,7 @@ export const Partager = (p: P) => (
   <Ic {...p}><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /></Ic>
 );
 export const Fleche = (p: P) => <Ic {...p}><path d="M5 12h14M12 5l7 7-7 7" /></Ic>;
+export const Tendance = (p: P) => <Ic {...p}><path d="M22 7 13.5 15.5l-5-5L2 17" /><path d="M16 7h6v6" /></Ic>;
 export const Externe = (p: P) => <Ic {...p}><path d="M7 7h10v10M7 17 17 7" /></Ic>;
 export const Drapeau = (p: P) => (
   <Ic {...p}><path d="M4 22V4M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1" /></Ic>

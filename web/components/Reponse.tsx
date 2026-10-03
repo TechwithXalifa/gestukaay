@@ -3,8 +3,9 @@
 import type { AskResponse, ReponseExacte } from "@contracts/ask_response";
 import { useLangue } from "@/i18n/langue";
 import { Actions } from "./Actions";
+import { Graphique } from "./Graphique";
 import { Retour } from "./Retour";
-import { Base, Coche, Externe, Fleche, Info, Livre } from "./icones";
+import { Base, Coche, Externe, Fleche, Info, Livre, Tendance } from "./icones";
 
 type R = AskResponse["reponse"];
 
@@ -65,11 +66,19 @@ export function Reponse({
 function Exacte({ r }: { r: ReponseExacte }) {
   const { t } = useLangue();
   const sources = [...new Map(r.resultats.map((v) => [v.source.url, v.source])).values()];
+  // Décision 0002 : une projection ou une estimation officielle est toujours étiquetée.
+  const nonObservee = r.resultats.find((v) => v.nature === "projection" || v.nature === "estimation");
   return (
     <article className="carte" aria-labelledby="titre-reponse">
       <div className="ligne-badges">
         <span className="badge exacte"><Coche taille={16} />{t("reponse.exacte")}</span>
+        {nonObservee?.nature && (
+          <span className="badge projection"><Tendance taille={16} />{t(nonObservee.nature === "projection" ? "reponse.projection" : "reponse.estimation")}</span>
+        )}
       </div>
+      {nonObservee?.base_projection && (
+        <p className="note">{t("reponse.base", { base: nonObservee.base_projection })}</p>
+      )}
 
       {r.resultats.map((v, i) => (
         <div key={v.observation_id} className="resultat">
@@ -89,7 +98,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
       <p className="explication">{r.explication}</p>
 
       <div className="corps">
-        {r.graphique && <p className="note">{t("reponse.graphique", { titre: r.graphique.titre })}</p>}
+        {r.graphique && <Graphique g={r.graphique} />}
         <aside aria-label={t("reponse.source")} className="bloc-source">
           <p className="bloc-source-titre"><Livre />{t("reponse.source")}</p>
           {sources.map((s) => (
