@@ -64,7 +64,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [x] **2.1** Client LLM multi-fournisseur (OpenRouter, repli, délai 2 s) — [#9](https://github.com/TechwithXalifa/gestukaay/issues/9) · échéance 01/10
 - [x] **2.2** Compréhension : question → requête structurée validée — [#10](https://github.com/TechwithXalifa/gestukaay/issues/10) · échéance 03/10 · après 2.1, 1.3
 - [x] **2.3** Résolution exacte + valeurs par défaut — [#11](https://github.com/TechwithXalifa/gestukaay/issues/11) · échéance 04/10 · après 1.8
-- [ ] **2.4** Correspondance approchée (zone parente/enfant, période voisine) — [#12](https://github.com/TechwithXalifa/gestukaay/issues/12) · échéance 04/10 · après 2.3
+- [x] **2.4** Correspondance approchée (zone parente/enfant, période voisine) — [#12](https://github.com/TechwithXalifa/gestukaay/issues/12) · échéance 04/10 · après 2.3
 - [ ] **2.5** Refus + 3 indicateurs proches ; refus des projections — [#13](https://github.com/TechwithXalifa/gestukaay/issues/13) · échéance 04/10 · après 2.3
 - [ ] **2.6** Comparaison et classement — [#14](https://github.com/TechwithXalifa/gestukaay/issues/14) · échéance 04/10 · après 2.3
 - [ ] **2.7** Contexte de suivi sur 3 échanges — [#15](https://github.com/TechwithXalifa/gestukaay/issues/15) · échéance 05/10 · après 2.2

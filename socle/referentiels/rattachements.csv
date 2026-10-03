@@ -1,0 +1,5 @@
+type;terme;propositions;preuve
+lieu;touba;SN-DB-MBACKE|SN-DB;Commune du département de Mbacké, région de Diourbel
+lieu;ville de thies;SN-TH-THIES|SN-TH;Commune chef-lieu du département et de la région de Thiès
+lieu;ville de kaolack;SN-KL-KAOLACK|SN-KL;Commune chef-lieu du département et de la région de Kaolack
+modalite;voitures;qbvttzc:catégories=TOTAL|qbvttzc:catégories=VPP;DTT (2021) : parc total de véhicules (TOTAL) ou véhicules particuliers (VPP)
