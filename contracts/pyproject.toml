@@ -1,6 +1,6 @@
 [project]
 name = "gestukaay-contracts"
-version = "1.1.2"
+version = "1.2.0"
 description = "Contrat d'échange Gëstukaay (moteur <-> backend <-> web <-> canaux)"
 requires-python = ">=3.12"
 dependencies = ["pydantic>=2.8"]

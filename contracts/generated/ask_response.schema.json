@@ -99,11 +99,23 @@
             }
           ],
           "default": null
+        },
+        "fin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
         "type",
-        "valeur"
+        "valeur",
+        "fin"
       ],
       "title": "Periode",
       "type": "object"
@@ -602,6 +614,14 @@
             }
           ]
         },
+        "ordre": {
+          "default": "desc",
+          "enum": [
+            "desc",
+            "asc"
+          ],
+          "type": "string"
+        },
         "confiance": {
           "maximum": 1,
           "minimum": 0,
@@ -614,6 +634,7 @@
         "zones",
         "periode",
         "desagregation",
+        "ordre",
         "confiance"
       ],
       "title": "RequeteStructuree",
@@ -813,7 +834,7 @@
   "description": "Enveloppe HTTP de toutes les routes qui renvoient une réponse.",
   "properties": {
     "version_contrat": {
-      "default": "1.1.2",
+      "default": "1.2.0",
       "type": "string"
     },
     "reponse": {

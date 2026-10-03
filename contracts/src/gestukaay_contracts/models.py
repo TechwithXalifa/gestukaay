@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_CONTRAT = "1.1.2"
+VERSION_CONTRAT = "1.2.0"
 
 
 class _Strict(BaseModel):
@@ -43,6 +43,8 @@ class Periode(_Strict):
     type: Literal["annee", "trimestre", "mois", "derniere"]
     # "2023", "2024-T2", "2024-03" ; None quand type = "derniere" [EF-08]
     valeur: str | None = None
+    # v1.2.0 : borne de fin pour les comparaisons temporelles (« entre 2011 et 2022 »)
+    fin: str | None = None
 
 
 class RequeteStructuree(_Strict):
@@ -58,6 +60,8 @@ class RequeteStructuree(_Strict):
     zones: list[str] = Field(default_factory=list, examples=[["SN-TH"]])
     periode: Periode = Field(default_factory=lambda: Periode(type="derniere"))
     desagregation: dict[str, str] | None = Field(None, examples=[{"sexe": "Féminin"}])
+    # v1.2.0 : sens du tri pour les classements (« le plus » -> desc, « le moins » -> asc)
+    ordre: Literal["desc", "asc"] = "desc"
     confiance: float = Field(ge=0, le=1)
 
 
