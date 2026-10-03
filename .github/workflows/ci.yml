@@ -41,6 +41,21 @@ jobs:
         run: npm run build
       - name: Budget JavaScript (cahier 7.6)
         run: npm run budget
+      # Parcours de bout en bout et accessibilité : l'API tourne sur le faux moteur
+      - uses: astral-sh/setup-uv@v6
+      - name: API (dépendances Python)
+        run: uv sync --locked
+        working-directory: .
+      - name: Navigateur des tests
+        run: npx playwright install --with-deps chromium
+      - name: Parcours et accessibilité (Playwright + axe)
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: rapport-playwright
+          path: web/playwright-report/
+          retention-days: 7
 
   docker:
     runs-on: ubuntu-latest

@@ -61,11 +61,15 @@ export default function PageReponse({ params }: { params: Promise<{ id: string }
   const horsLigne = !enLigne || (erreur instanceof ErreurApi && erreur.horsLigne);
   const lisible = r && (!erreur || depuisAppareil);
 
+  // Titre de l'onglet = la question (WCAG 2.4.2), annoncé par Next au changement de page
+  useEffect(() => {
+    if (r?.question) document.title = `${r.question} · Gëstukaay`;
+  }, [r?.question]);
 
   return (
     <div className="site">
       <Entete />
-      <main className="page-reponse">
+      <main id="contenu" tabIndex={-1} className="page-reponse">
         <ChampQuestion
           key={r?.id}
           initiale={r?.question}

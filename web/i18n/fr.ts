@@ -7,6 +7,7 @@
 export const fr = {
   // En-tête et pied
   "nav.poser": "Poser une question",
+  "nav.evitement": "Aller au contenu",
   "nav.principale": "Navigation principale",
   "langue.groupe": "Langue de l'interface",
   "pied.adresse": "{adresse} · adresse stable et partageable",

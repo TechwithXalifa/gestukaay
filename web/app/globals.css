@@ -326,3 +326,8 @@ a { color: var(--gk-feuille); }
 .admin-connexion .primaire { align-self: flex-start; margin-top: 8px; }
 .erreur-admin { margin: 0; padding: 10px 14px; border-radius: var(--radius-md); background: var(--gk-ocre-50); color: var(--gk-ocre); font-size: 14px; }
 
+/* Lien d'évitement (WCAG 2.4.1) : invisible jusqu'au premier Tab */
+.evitement { position: absolute; left: 16px; top: -48px; z-index: 100; padding: 8px 16px; border-radius: var(--radius-md); background: var(--gk-baobab); color: var(--gk-sur-marque); font-weight: 600; text-decoration: none; }
+.evitement:focus { top: 8px; }
+main:focus { outline: none; }
+

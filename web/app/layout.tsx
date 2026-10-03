@@ -18,7 +18,7 @@ const lora = Lora({ subsets: ["latin", "latin-ext"], weight: ["400"], display: "
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#1D4448" };
 
 export const metadata: Metadata = {
-  title: "Gëstukaay",
+  title: { default: "Gëstukaay · le chiffre officiel du Sénégal", template: "%s · Gëstukaay" },
   description: "Le chiffre officiel, avec sa source et sa date.",
 };
 
