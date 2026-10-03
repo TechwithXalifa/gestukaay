@@ -6,7 +6,8 @@ import type { SituateRequest } from "@contracts/situate_request";
 import type { SituateResponse } from "@contracts/situate_response";
 import type { TranscriptionResponse } from "@contracts/transcription_response";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE = API_URL;
 
 /** Erreur affichable : jamais de trace technique, un code d'incident discret (7.3). */
 export class ErreurApi extends Error {
