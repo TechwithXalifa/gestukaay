@@ -48,6 +48,8 @@ def vers_csv(rep: ReponseExacte, virgule_decimale: bool = False) -> bytes:
 BAOBAB, FEUILLE, ARDOISE, ENCRE, LIN, COTON = (
     (29, 68, 72), (15, 110, 86), (92, 104, 103), (26, 26, 24), (228, 223, 213), (246, 242, 234),
 )
+DATA_NEUTRE, TRAIT, BAOBAB_50 = (185, 207, 203), (169, 183, 181), (230, 238, 237)
+BARRES_MAX = 8  # comme la page réponse (maquettes Reponse et ExportPDF)
 
 
 POLICES = Path(__file__).parent / "polices"  # Poppins et Lora, licence OFL (charte 9.4)
@@ -84,6 +86,50 @@ def _baobab(pdf, x: float, y: float, hauteur: float) -> None:
     for bx, by in _BRANCHES:
         r = 2.3 * k
         pdf.ellipse(x + bx * k - r, y + by * k - r, 2 * r, 2 * r, style="F")
+
+
+def _nombre(v: float) -> str:
+    """4004426 -> « 4 004 426 » ; 25.7 -> « 25,7 » (comme le graphique du site)."""
+    texte = f"{v:,.0f}" if v == int(v) else f"{v:,.1f}"
+    return texte.replace(",", " ").replace(".", ",")
+
+
+def _barres(pdf, g, y: float, largeur: float, n: int) -> float:
+    """Graphique en barres horizontales (une série), n barres au plus. Rend le y de fin."""
+    points = sorted(g.series[0].points, key=lambda p: p.y, reverse=True)
+    visibles = points[:n]
+    for p in points[n:]:
+        if p.mise_en_evidence:  # la zone demandée reste toujours visible
+            visibles[-1] = p
+    maxi = max((p.y for p in points), default=0) or 1
+    pdf.set_y(y)
+    pdf.set_font("PoppinsSB", "", 10)
+    pdf.set_text_color(*ENCRE)
+    pdf.multi_cell(largeur, 5, _texte(g.titre), new_x="LMARGIN", new_y="NEXT")
+    y = pdf.get_y() + 2
+    x_axe, piste = 20 + 32, largeur - 32 - 24  # libellés à gauche, valeurs à droite des barres
+    pdf.set_draw_color(*TRAIT)
+    pdf.set_line_width(0.3)
+    pdf.line(x_axe, y, x_axe, y + len(visibles) * 6)
+    for i, p in enumerate(visibles):
+        yb = y + i * 6
+        fort = p.mise_en_evidence
+        pdf.set_font("PoppinsSB" if fort else "Poppins", "", 8.5)
+        pdf.set_text_color(*(ENCRE if fort else ARDOISE))
+        pdf.set_xy(20, yb)
+        pdf.cell(29, 6, _texte(p.x), align="R")
+        w = max(p.y / maxi * piste, 0.5)
+        pdf.set_fill_color(*(FEUILLE if fort else DATA_NEUTRE))
+        pdf.rect(x_axe, yb + 1.25, w, 3.5, style="F")
+        pdf.set_xy(x_axe + w + 2, yb)
+        pdf.cell(24, 6, _texte(_nombre(p.y)))
+    y += len(visibles) * 6 + 2
+    _baobab(pdf, 20, y + 0.6, 3.4)
+    pdf.set_xy(23.5, y)
+    pdf.set_font("Poppins", "", 7.5)
+    pdf.set_text_color(*ARDOISE)
+    pdf.cell(largeur - 4, 4.5, _texte(g.pied))
+    return y + 4.5
 
 
 def vers_pdf(rep: ReponseExacte, genere_le: datetime | None = None) -> bytes:
@@ -124,6 +170,15 @@ def vers_pdf(rep: ReponseExacte, genere_le: datetime | None = None) -> bytes:
     pdf.set_font("PoppinsSB", "", 9)
     pdf.set_text_color(*FEUILLE)
     pdf.cell(0, 5, _texte("Correspondance exacte"), new_x="LMARGIN", new_y="NEXT")
+    # Décision 0002 : une projection ou une estimation est toujours étiquetée, jusque dans l'export
+    autre = next((r for r in rep.resultats if r.nature in ("projection", "estimation")), None)
+    if autre:
+        etiquette = "Projection" if autre.nature == "projection" else "Estimation"
+        base = f" · ce n'est pas une valeur observée. Base : {autre.base_projection}" if autre.base_projection             else " · ce n'est pas une valeur observée"
+        pdf.set_font("PoppinsSB", "", 9)
+        pdf.set_fill_color(*BAOBAB_50)
+        pdf.set_text_color(*BAOBAB)
+        pdf.multi_cell(largeur, 5.5, _texte(etiquette + base), fill=True, new_x="LMARGIN", new_y="NEXT")
 
     # Valeurs
     for r in rep.resultats:
@@ -154,12 +209,24 @@ def vers_pdf(rep: ReponseExacte, genere_le: datetime | None = None) -> bytes:
         lignes += [s.titre, s.libelle, s.url]
     if rep.note_perimetre:
         lignes.append(f"Périmètre : {rep.note_perimetre}")
-    pdf.ln(5)
-    y0 = pdf.get_y()
-    # Hauteur mesurée d'abord, pour dessiner le fond Coton sous le texte
+    # Hauteurs mesurées d'abord : fond Coton sous le texte, et place restante pour le graphique
     pdf.set_font("Poppins", "", 9.5)
     nb = sum(len(pdf.multi_cell(largeur - 12, 5, _texte(t), dry_run=True, output="LINES")) for t in lignes)
-    y1 = y0 + 5 + 5 + nb * 5 + 4
+    h_source = 5 + 5 + nb * 5 + 4
+    h_citation = 5 + 5 * len(pdf.multi_cell(largeur, 5, _texte(rep.citation), dry_run=True, output="LINES"))
+
+    # Graphique (EF-26) : autant de barres que la page A4 unique le permet (8 au plus)
+    g = rep.graphique
+    if g and g.type == "barres_horizontales" and len(g.series) == 1 and g.series[0].points:
+        y = pdf.get_y() + 6
+        place = (pdf.h - 26) - (5 + h_source + 5 + h_citation) - y - 6 - 2 - 4.5 - 6
+        n = min(BARRES_MAX, len(g.series[0].points), int(place // 6))
+        if n >= 2:
+            pdf.set_y(_barres(pdf, g, y, largeur, n))
+
+    pdf.ln(5)
+    y0 = pdf.get_y()
+    y1 = y0 + h_source
     pdf.set_fill_color(*COTON)
     pdf.rect(20, y0, largeur, y1 - y0, style="F")
     pdf.set_y(y0 + 5)

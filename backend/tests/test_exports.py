@@ -35,9 +35,12 @@ def test_pdf_une_page_a4():
         import fontTools.misc.bezierTools  # noqa: F401
     except ImportError:
         pytest.skip("fpdf2 bloqué sur ce poste : vérifié en CI et dans Docker")
-    r = client.get(f"/v1/answers/{_id('Combien d’habitants à Thiès ?')}/export.pdf")
-    assert r.status_code == 200 and r.headers["content-type"] == "application/pdf"
-    assert r.content.startswith(b"%PDF") and r.content.count(b"/Type /Page\n") <= 1
+    # Avec graphique (Thiès), deux valeurs (comparaison), projection : toujours une seule page
+    for question in ("Combien d’habitants à Thiès ?", "Population de Dakar et de Thiès en 2023",
+                     "Espérance de vie au Sénégal en 2035"):
+        r = client.get(f"/v1/answers/{_id(question)}/export.pdf")
+        assert r.status_code == 200 and r.headers["content-type"] == "application/pdf"
+        assert r.content.startswith(b"%PDF") and r.content.count(b"/Type /Page\n") <= 1
 
 
 def test_pas_d_export_sans_valeur():
