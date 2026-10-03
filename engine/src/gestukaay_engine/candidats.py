@@ -30,6 +30,10 @@ _VIDES = {
     "on", "ont", "entre", "plus", "moins", "tres", "niveau", "ci", "ak", "ba", "bi", "yi", "gi",
     "ji", "wi", "mi", "si", "lan", "ban", "nak", "na", "ndax", "naka", "mooy", "moy", "lay", "di",
     "nio", "nioy", "noo", "ngi", "moo", "epp", "bou", "bu", "yu", "ndaw",
+    "personne", "personnes", "temp", "temps", "fera", "fait", "faire", "demain",
+    "mon", "ma", "mes", "ton", "ta", "tes", "son", "sa", "ses", "notre", "nos", "votre", "vos", "leur", "leurs",
+    "euh", "bon", "voila", "voici", "hein", "bah", "trop",
+    "waa", "man", "tay", "dama", "xiif", "lii", "mbaa", "diamm", "tamit",
 }
 
 # Amorce du lexique métier (#23) : mot de la question -> mots des libellés.
@@ -111,8 +115,8 @@ def zones_citees(question: str) -> list[str]:
     return trouvees
 
 
-# « à Touba », « ci Touba », « la ville de Thiès » : un lieu nommé hors du référentiel des zones
-_LIEU = re.compile(r"\b(?:à|a|au|aux|dans|ci)\s+(?:la\s+)?(?:ville\s+(?:de\s+)?)?([A-ZÉÈÎ][\w'’-]+)")
+# « à Touba », « ci Touba », « la ville de Thiès », « sur la Casamance » : un lieu nommé hors du référentiel
+_LIEU = re.compile(r"\b(?:à|a|au|aux|dans|ci|sur|en)\s+(?:la\s+)?(?:ville\s+(?:de\s+)?)?([A-ZÉÈÎ][\w'’-]+)")
 _VILLE = re.compile(r"\bville\s+(?:de\s+)?([A-ZÉÈÎa-zéèî][\w'’-]+)", re.IGNORECASE)
 _PAS_UN_LIEU = {"sénégal", "senegal", "senegaal", "ndakaaru", "la", "le", "les", "l"}
 
@@ -227,3 +231,23 @@ class Index:
 @cache
 def index() -> Index:
     return Index(indicateurs())
+
+
+def aucun_mot_connu(question: str) -> bool:
+    """Détermine si la question ne contient aucun mot connu (incompréhension locale)."""
+    if zones_citees(question):
+        return False
+    if periodes_citees(question):
+        return False
+    if lieux_inconnus(question):
+        return False
+    m = mots(question)
+    if not m:
+        return True
+    idx = index()
+    for w in m:
+        w_f = forme(w)
+        if w in SYNONYMES or w_f in _SYN or w in idx.idf or w_f in idx.idf:
+            return False
+    return True
+

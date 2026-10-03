@@ -29,6 +29,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .candidats import (
     Candidat,
+    aucun_mot_connu,
     desagregation_citee,
     index,
     lieux_inconnus,
@@ -55,6 +56,14 @@ class SortieLLM(BaseModel):
     cycle: str | None = Field(None, description="cycle d'enseignement : elementaire, moyen, secondaire…")
     produit: str | None = Field(None, description="produit ou culture précisé, ex. riz, mil")
     confiance: float = Field(ge=0, le=1)
+    proches: list[int] = Field(
+        default_factory=list,
+        description="au plus 3 numéros de candidats réellement liés au thème, ou vide",
+    )
+    incomprehensible: bool = Field(
+        False,
+        description="vrai si la question est inintelligible ou incompréhensible",
+    )
 
 
 SYSTEME = """Tu traduis une question sur les statistiques officielles du Sénégal en requête structurée.
@@ -78,6 +87,13 @@ Réponds :
   demandés ; « derniere » et null si la question n'en cite pas.
 - sexe, milieu, age, cycle, produit : seulement si la question les précise, sinon null.
 - confiance : entre 0 et 1.
+- proches : si intention est « hors_perimetre » ou en cas de refus, les numéros (au plus 3)
+  de candidats de la liste qui sont RÉELLEMENT liés au thème de la question, ou [] si aucun
+  n'est pertinent. Ne propose jamais un candidat sans rapport (ex. pour une langue, ne propose
+  jamais la prison).
+- incomprehensible : true seulement si la question est inintelligible, du charabia ou impossible
+  à comprendre (ex. « asdkjh », « euh bon voilà »). Dans ce cas, intention = « hors_perimetre »,
+  candidat = null et proches = [].
 Si un échange précédent est donné et que la question le prolonge (« Et pour Kaolack ? »,
 « Kaolack nak ? »), reprends son indicateur, sauf si la question en demande un autre."""
 
@@ -90,6 +106,8 @@ class Comprise:
     appel: Appel | None = None
     detail: dict = field(default_factory=dict)
     lieux_inconnus: list[str] = field(default_factory=list)  # « Touba » : jamais remplacé par le national
+    proches: list[Candidat] = field(default_factory=list)
+    incomprehensible: bool = False
 
 
 _PERIODE = {"annee": r"(19|20)\d\d", "trimestre": r"(19|20)\d\d-T[1-4]", "mois": r"(19|20)\d\d-(0[1-9]|1[0-2])"}
@@ -152,14 +170,20 @@ class Comprehension:
                 sortie, appel = self.client.structurer(SYSTEME, self._message(question, zones, periodes,
                                                                               candidats, precedente), SortieLLM)
                 req = self._requete(sortie, candidats, zones, periodes, precedente, question)
+                proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
                 return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
-                                lieux_inconnus(question))
+                                lieux_inconnus(question), proches=proches,
+                                incomprehensible=sortie.incomprehensible)
             except EchecLLM as e:
                 appel = e.appel
         else:
             appel = None
-        return Comprise(regles(question, candidats, zones, periodes, precedente), candidats, "regles", appel,
-                        lieux_inconnus=lieux_inconnus(question))
+        incomp = aucun_mot_connu(question)
+        req = regles(question, candidats, zones, periodes, precedente)
+        proches = [] if incomp else [c for c in candidats if c.score >= SEUIL_REGLES][:3]
+        return Comprise(req, candidats, "regles", appel,
+                        lieux_inconnus=lieux_inconnus(question), proches=proches,
+                        incomprehensible=incomp)
 
     # ------------------------------------------------------------------
 
@@ -217,6 +241,8 @@ _COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)
 
 def regles(question: str, candidats: list[Candidat], zones: list[str], periodes: list[str],
            precedente: RequeteStructuree | None) -> RequeteStructuree:
+    if aucun_mot_connu(question):
+        return RequeteStructuree(intention="hors_perimetre", zones=zones, confiance=0.1)
     t = normaliser(question)
     meilleur = max(candidats, key=lambda c: c.score, default=None)  # le tri par couverture ne compte pas ici
     meilleur = meilleur if meilleur and meilleur.score >= SEUIL_REGLES else None

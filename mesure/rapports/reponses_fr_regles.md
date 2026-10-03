@@ -314,14 +314,6 @@ Gabarits FR appliqués aux réponses du jeu de test, sans LLM pour la rédaction
 
 *Citation* : Source : ANSD, Prix à la consommation, agglomération de Dakar (2024), publié le 10 juin 2026. Consulté via Gëstukaay le 3 octobre 2026, https://gestukaay.sn/r/….
 
-### FR-071 · Combien de personnes parlent sérère au Sénégal ?
-
-> On compte 15 721 personnes emprisonnées au Sénégal en 2025, dernière donnée publiée.
-
-*Périmètre* : — · *Résultat* : servi_a_tort
-
-*Citation* : Source : Administration pénitentiaire, Enregistrements des instances de la justice (2025), publié le 11 juillet 2026. Consulté via Gëstukaay le 3 octobre 2026, https://gestukaay.sn/r/….
-
 ### WO-001 · Ñaata nit ñoo dëkk Tiés ?
 
 > Le taux d'urbanisation de la région de Thiès est de 57,5 % en 2023, dernière donnée publiée.
@@ -449,14 +441,6 @@ Gabarits FR appliqués aux réponses du jeu de test, sans LLM pour la rédaction
 *Périmètre* : Région administrative, pas la ville. · *Résultat* : servi_a_tort
 
 *Citation* : Source : MITTA, Parc de véhicules (Direction des transports terrestres) (2021), publié le 12 juillet 2024. Consulté via Gëstukaay le 3 octobre 2026, https://gestukaay.sn/r/….
-
-### WO-028 · waa man tay dama xiif trop lii mbaa diamm la tamit
-
-> Ménages rencontrant des contraintes pouvant empêcher le développement de l'exploitation, liées aux prix de vente trop faibles (%) au Sénégal en 2024, dernière donnée publiée : 3,3. Valeur arrondie à l'affichage, la valeur exacte figure dans les exports.
-
-*Périmètre* : — · *Résultat* : servi_a_tort
-
-*Citation* : Source : DAPSA, Caractéristiques des ménages agricoles selon le sexe du chef (2024), publié le 5 décembre 2023. Consulté via Gëstukaay le 3 octobre 2026, https://gestukaay.sn/r/….
 
 ### WO-031 · niaata nit ñooy lakk sereer fatik
 
