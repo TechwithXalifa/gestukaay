@@ -143,6 +143,13 @@ export const fr = {
   "accueil.situer": "Où je me situe : comparez votre ménage aux moyennes officielles",
   "situer.question": "Poser une question",
 
+  // Domaines (décision 0005)
+  "domaines.accueil": "Parcourir par domaine",
+  "domaines.tous": "Tous les domaines",
+  "domaines.eyebrow": "Domaines",
+  "domaines.titre": "{n} domaines de données officielles",
+  "domaines.intro": "Posez votre question sur l'un de ces sujets, en français ou en wolof. Le catalogue détaillé des indicateurs arrive bientôt.",
+
   // Interface wolof incomplète
   "wo.enCours": "L'interface en wolof est en cours de validation par un linguiste : les textes pas encore validés restent en français.",
 } as const;
