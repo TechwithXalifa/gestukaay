@@ -16,10 +16,12 @@ import csv
 import sys
 import time
 from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
 
 from gestukaay_engine.comprehension import Comprehension
-from gestukaay_engine.resolution import Introuvable, resoudre
+from gestukaay_engine.gabarits import citation, explication, note_perimetre
+from gestukaay_engine.resolution import Introuvable, national, resoudre
 from gestukaay_engine.socle import socle
 
 RACINE = Path(__file__).resolve().parents[2]
@@ -72,7 +74,7 @@ def main() -> int:
 
     with open(JEU, encoding="utf-8-sig", newline="") as f:
         questions = list(csv.DictReader(f, delimiter=";"))
-    requetes, lignes, compte, durees = {}, [], Counter(), []
+    requetes, lignes, compte, durees, textes = {}, [], Counter(), [], []
     for q in sorted(questions, key=lambda q: bool(q["suite_de"])):
         contexte = [requetes[q["suite_de"]]] if q["suite_de"] in requetes else None
         c = comp.comprendre(q["question"], contexte)
@@ -82,6 +84,11 @@ def main() -> int:
         durees.append((time.perf_counter() - t) * 1000)
         cat, detail = classer(q, r)
         compte[cat] += 1
+        if not isinstance(r, Introuvable):  # la réponse rédigée (#16), pour relecture
+            nat = {x.indicateur.code: n for x in r.resultats if (n := national(s, x))}
+            textes.append(f"### {q['id']} · {q['question']}\n\n> {explication(r.resultats, r.defauts['periode'], nat)}"
+                          f"\n\n*Périmètre* : {note_perimetre(r.resultats[0]) or '—'} · *Résultat* : {cat}\n\n"
+                          f"*Citation* : {citation(r.resultats[0], datetime.now(UTC).date(), 'https://gestukaay.sn/r/…')}\n")
         if cat not in ("juste", "refus_ok"):
             attendu = "|".join(f"{z} {p} = {v:g}" for z, p, v in sorted(attendus(q))) \
                 if q["issue_attendue"] == "exacte" else q["issue_attendue"]
@@ -102,6 +109,9 @@ def main() -> int:
          "|---|---|---|---|---|---|", *lignes]
     sortie = RACINE / "mesure" / "rapports" / f"bout_en_bout_{mode}.md"
     sortie.write_text("\n".join(L) + "\n", encoding="utf-8")
+    redaction = RACINE / "mesure" / "rapports" / f"reponses_fr_{mode}.md"
+    redaction.write_text(f"# Réponses rédigées (#16, {mode})\n\nGabarits FR appliqués aux réponses du jeu de "
+                         "test, sans LLM pour la rédaction.\n\n" + "\n".join(textes), encoding="utf-8")
     print("\n".join(L[2:12]))
     print(f"Rapport : {sortie.relative_to(RACINE)}")
     return 0
