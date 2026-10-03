@@ -89,3 +89,17 @@ test("mode sombre : contrastes sur l'accueil, la réponse et le refus", async ({
   await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
   await accessible(page, "refus, mode sombre");
 });
+
+test("pied de page : Méthode, À propos et Confidentialité", async ({ page }) => {
+  for (const [lien, titre, h1] of [
+    ["Méthode et transparence", "Méthode et transparence · Gëstukaay", "Comment Gëstukaay trouve vos chiffres"],
+    ["À propos", "À propos · Gëstukaay", "Le chiffre officiel, avec sa source et sa date"],
+    ["Confidentialité", "Confidentialité · Gëstukaay", "Ce que Gëstukaay garde, et ce qu'il ne garde pas"],
+  ]) {
+    await page.goto("/");
+    await page.getByRole("navigation", { name: "Pied de page" }).getByRole("link", { name: lien }).click();
+    await expect(page).toHaveTitle(titre);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(h1);
+    await accessible(page, lien);
+  }
+});
