@@ -1,22 +1,24 @@
-"""Extraction du socle brut vers le schéma du cahier (issue #4).
+"""Extraction du socle brut vers le schéma du cahier (issues #4, #5, #6, #8).
 
-    uv run python socle/scripts/extraire.py
+    uv run python socle/scripts/extraire.py                       # brouillon, écrasable
+    uv run python socle/scripts/extraire.py --version 2026.10.0   # version publiée, figée
 
-Lit $GESTUKAAY_SOCLE_BRUT/{observations,catalogue}.csv et le référentiel des
-indicateurs ; écrit dans $GESTUKAAY_SOCLE_EXTRAIT (défaut : ../socle_gestukaay,
-hors Git) :
-  - observations.csv : une ligne par valeur (schéma 10.3), avec sa ligne d'origine ;
+Lit $GESTUKAAY_SOCLE_BRUT/{observations,catalogue}.csv et les référentiels ; écrit dans
+../socle_gestukaay/<version>/ (ou --sortie), hors Git :
+  - observations.csv : une ligne par valeur (schéma 10.3), avec sa nature et sa ligne d'origine ;
   - sources.csv : une ligne par jeu du portail ;
-  - rejets.csv : chaque valeur écartée et son motif ;
-et le rapport socle/rapports/extraction.md (versionné).
+  - rejets.csv : chaque valeur écartée et son motif (dont les corrections de #6) ;
+  - VERSION et MANIFEST.json : version, commit Git des référentiels, empreintes (décision 0013).
+Une version publiée n'est jamais réécrite : nouvelle version = nouveau dossier.
+Rapports versionnés : socle/rapports/extraction.md et controles.md.
 
-Contrôle de bout en bout : chaque valeur attendue du jeu de test doit se
-retrouver, une seule fois et à l'identique, dans la table extraite. Échoue
-(code 1) sinon.
+Contrôle de bout en bout : chaque valeur attendue du jeu de test doit se retrouver, une seule
+fois et à l'identique, dans la table extraite. Échoue (code 1) sinon.
 """
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import os
@@ -42,11 +44,13 @@ from gestukaay_socle.extraction import (
     zones_par_jeu,
 )
 from gestukaay_socle.indicateurs import dimensions_indicateur, indicateurs
+from gestukaay_socle.version import BROUILLON, FORMAT_VERSION, ecrire_manifeste
 from gestukaay_socle.zones import zones
 
 RACINE = Path(__file__).resolve().parents[2]
 SOCLE = Path(os.environ.get("GESTUKAAY_SOCLE_BRUT", RACINE.parent / "socle_opendata_par_themes"))
-SORTIE = Path(os.environ.get("GESTUKAAY_SOCLE_EXTRAIT", RACINE.parent / "socle_gestukaay"))
+RACINE_SOCLES = RACINE.parent / "socle_gestukaay"
+SORTIE = RACINE_SOCLES / BROUILLON  # fixé par main() selon --version / --sortie
 JEU = RACINE / "mesure" / "jeu_de_test" / "questions.csv"
 RAPPORT = RACINE / "socle" / "rapports" / "extraction.md"
 RAPPORT_CONTROLES = RACINE / "socle" / "rapports" / "controles.md"
@@ -210,6 +214,18 @@ def _p1() -> set[str]:
 
 
 def main() -> int:
+    global SORTIE
+    p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    p.add_argument("--version", help="version publiée, ex. 2026.10.0 (sinon : brouillon écrasable)")
+    p.add_argument("--sortie", type=Path, help="dossier de sortie (défaut : ../socle_gestukaay/<version>)")
+    args = p.parse_args()
+    if args.version and not FORMAT_VERSION.match(args.version):
+        sys.exit(f"version « {args.version} » : attendu AAAA.MM.N, ex. 2026.10.0")
+    version = args.version or BROUILLON
+    SORTIE = args.sortie or RACINE_SOCLES / version
+    if args.version and (SORTIE / "VERSION").exists():
+        sys.exit(f"{SORTIE} existe déjà : une version publiée ne se réécrit pas (nouvelle version = "
+                 "nouveau dossier).")
     if not (SOCLE / "observations.csv").exists():
         sys.exit(f"{SOCLE}/observations.csv introuvable : définir GESTUKAAY_SOCLE_BRUT.")
     SORTIE.mkdir(parents=True, exist_ok=True)
@@ -227,6 +243,14 @@ def main() -> int:
     total, erreurs, non_observees = verifier_jeu_de_test(res.observations)
     rapport(res, total, erreurs, non_observees)
     rapport_controles(res.observations, corr, exclusions)
+    if erreurs:  # une version ne se fige jamais avec une valeur attendue manquante
+        (SORTIE / "VERSION").unlink(missing_ok=True)
+    else:
+        m = ecrire_manifeste(SORTIE, version, RACINE, {
+            "valeurs": len(res.observations), "rejets": len(res.rejets),
+            "indicateurs": len({o[1] for o in res.observations}), "jeu_de_test": f"{total}/{total}"})
+        print(f"Version {version} : {len(m['fichiers'])} fichiers, commit {str(m['commit'])[:7]}"
+              + (" (référentiels modifiés non commités !)" if m["referentiels_modifies_non_commites"] else ""))
     print(f"{res.stats['valeurs lues']} valeurs lues : {len(res.observations)} extraites, "
           f"{len(res.rejets)} rejetées -> {SORTIE}")
     print(f"Jeu de test : {total - len(erreurs)}/{total} valeurs attendues retrouvées")
