@@ -108,7 +108,7 @@ def _nombre(v: float) -> str:
 
 def _barres(pdf, g, y: float, largeur: float, n: int) -> float:
     """Graphique en barres horizontales (une série), n barres au plus. Rend le y de fin."""
-    points = sorted(g.series[0].points, key=lambda p: p.y, reverse=True)
+    points = list(g.series[0].points)  # ordre du moteur (classement croissant possible, #14)
     visibles = points[:n]
     for p in points[n:]:
         if p.mise_en_evidence:  # la zone demandée reste toujours visible

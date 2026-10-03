@@ -47,10 +47,11 @@ export function Graphique({ g }: { g: G }) {
 }
 
 function Barres({ points }: { points: G["series"][number]["points"] }) {
-  // Les plus grandes d'abord, la zone demandée toujours visible.
-  const tries = [...points].sort((a, b) => b.y - a.y);
-  const visibles = tries.slice(0, MAX_BARRES);
-  for (const p of tries.slice(MAX_BARRES)) if (p.mise_en_evidence) visibles[visibles.length - 1] = p;
+  // L'ordre est celui du moteur : décroissant pour un graphique de contexte, croissant pour un
+  // classement « le plus faible » (ordre: asc, #14). On garde les premières, et la zone demandée
+  // reste toujours visible.
+  const visibles = points.slice(0, MAX_BARRES);
+  for (const p of points.slice(MAX_BARRES)) if (p.mise_en_evidence) visibles[visibles.length - 1] = p;
   const max = Math.max(...points.map((p) => p.y), 0) || 1;
   return (
     <div className="barres" aria-hidden="true">
