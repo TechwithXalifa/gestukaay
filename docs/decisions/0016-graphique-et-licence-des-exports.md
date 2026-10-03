@@ -1,6 +1,6 @@
 # 0016 · Graphiques dessinés par le navigateur, licence dans les exports
 
-**Date** : 2026-10-03 · **Statut** : proposé par SAN, **à valider par KBD** · **Exigences** : EF-26, EF-33
+**Date** : 2026-10-03 · **Statut** : accepté (SAN, KBD le 03/10) · **Exigences** : EF-26, EF-33
 
 ## Contexte
 
