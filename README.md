@@ -33,9 +33,10 @@ Ou, sans rien installer d'autre que Docker :
 docker compose up --build   # site : http://localhost:3000 · API : http://localhost:8000/docs
 ```
 
-Pour le vrai moteur : `GESTUKAAY_MOTEUR=reel` et la clé `LLM_PRINCIPAL_CLE` dans `.env`, et le socle
-extrait dans `../socle_gestukaay` (ou le chemin donné par `GESTUKAAY_SOCLE_EXTRAIT`). Il est monté en
-lecture seule dans l'API.
+Pour le vrai moteur : `GESTUKAAY_MOTEUR=reel`, la chaîne LLM dans `.env` (`LLM_CHAINE`,
+`LLM_PRINCIPAL_CLE`… ; sans elle, compréhension par règles locales), et le socle extrait dans
+`../socle_gestukaay` (ou le chemin donné par `GESTUKAAY_SOCLE_EXTRAIT`). Il est monté en lecture seule
+dans l'API. La voix et « Où je me situe » ne sont pas encore construits dans le vrai moteur (décision 0019).
 
 Les réponses, le journal des requêtes et les retours sont gardés dans PostgreSQL (service `db`), donc
 les liens `/r/…` survivent à un redémarrage. Hors Docker, l'API utilise SQLite en mémoire, ou un

@@ -336,6 +336,14 @@ def _chercher_indicateur(code: str | None) -> Indicateur | None:
 _ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\bmoins d[e']\b")
 
 
+def ordre_effectif(requete: RequeteStructuree, question: str = "") -> str:
+    """Sens du classement : requete.ordre, sinon repli lexical (« le moins », « le plus faible »).
+    Partagé par le tri (ici) et la phrase (gabarits), pour qu'ils ne se contredisent jamais."""
+    if requete.ordre == "desc" and _ORDRE_ASC.search(normaliser(question)):
+        return "asc"
+    return requete.ordre
+
+
 def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", question: str = "",
              lieux_inconnus: list[str] | None = None) -> Resolution | Introuvable:
     """Intentions « valeur », « comparaison » et « classement » (issue #14).
@@ -382,12 +390,7 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
         if not resultats:
             return Introuvable("zone_non_couverte", "aucune zone disponible pour le classement")
 
-        # Sens du tri : requete.ordre sinon repli lexical dans la question
-        ordre = getattr(requete, "ordre", "desc") or "desc"
-        if ordre == "desc" and _ORDRE_ASC.search(normaliser(question)):
-            ordre = "asc"
-
-        reverse = (ordre == "desc")
+        reverse = ordre_effectif(requete, question) == "desc"
         resultats.sort(key=lambda r: r.valeur, reverse=reverse)
 
         # Mise en évidence de la zone citée si la question en cite une, sinon de la tête

@@ -1,3 +1,3 @@
-from .interface import Moteur, charger_moteur
+from .interface import Moteur, NonDisponible, charger_moteur
 
-__all__ = ["Moteur", "charger_moteur"]
+__all__ = ["Moteur", "NonDisponible", "charger_moteur"]
