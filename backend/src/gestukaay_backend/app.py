@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import io
 import os
+import re
 import secrets
 import time
 from typing import Literal
@@ -63,6 +64,7 @@ async def _probleme(_: Request, exc: ErreurApi) -> JSONResponse:
     )
 
 
+_URL_CITEE = re.compile(r"https?://\S+?/r/[\w-]+")
 URL_PUBLIQUE = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(",")[0]
 
 
@@ -70,6 +72,9 @@ def _conserver(rep: AskResponse, debut: float, req: AskRequest | None = None,
                confirme_depuis: str | None = None) -> AskResponse:
     # Les URL relèvent du backend (interface.py) : adresse stable du site [EF-29]
     rep.reponse.url = f"{URL_PUBLIQUE.rstrip('/')}/r/{rep.reponse.id}"
+    if isinstance(rep.reponse, ReponseExacte):
+        # La citation (EF-35) renvoie à la même adresse stable que la réponse
+        rep.reponse.citation = _URL_CITEE.sub(rep.reponse.url, rep.reponse.citation)
     rep.reponse.latence_ms = round((time.perf_counter() - debut) * 1000)
     stockage.enregistrer(rep, req, confirme_depuis)
     return rep

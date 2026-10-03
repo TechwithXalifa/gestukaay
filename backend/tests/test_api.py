@@ -47,3 +47,10 @@ def test_feedback():
     rep = _demander("Combien d'habitants à Thiès ?")
     r = client.post("/v1/feedback", json={"reponse_id": rep["id"], "type": "vote", "vote": "utile"})
     assert r.status_code == 204
+
+
+def test_citation_pointe_vers_l_adresse_de_la_reponse():
+    rep = _demander("Combien d'habitants à Thiès ?")
+    assert rep["citation"].rstrip(".").endswith(rep["url"])
+    assert "gestukaay.test" not in rep["citation"]
+
