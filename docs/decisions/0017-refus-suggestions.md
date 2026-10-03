@@ -1,4 +1,4 @@
-# 0016 — Refus, motifs et suggestions d'indicateurs proches (Chantier 2.5)
+# 0017 — Refus, motifs et suggestions d'indicateurs proches (Chantier 2.5)
 
 **Date** : 2026-10-03 · **Statut** : accepté (KBD) · **Issue** : #13
 
