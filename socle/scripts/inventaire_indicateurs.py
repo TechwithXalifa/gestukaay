@@ -83,7 +83,7 @@ def lire_observations():
     La valeur « Indicateur » est normalisée (casse, accents) : le portail écrit parfois le
     même indicateur de deux façons dans un jeu (« Effectif » / « effectif »). Les graphies
     sont gardées pour l'extraction."""
-    csv.field_size_limit(sys.maxsize)
+    csv.field_size_limit(2**31 - 1)  # sys.maxsize déborde sous Windows (long C sur 32 bits)
     cumuls: dict[tuple[str, str, str], Cumul] = defaultdict(Cumul)
     cle_indic: dict[str, str] = {}
     geo: dict[tuple[str, str], set] = defaultdict(set)

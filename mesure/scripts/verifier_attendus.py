@@ -59,7 +59,7 @@ def main() -> int:
         questions = [q for q in csv.DictReader(f, delimiter=";") if q["issue_attendue"] == "exacte"]
     jeux = {q["dataset_id"] for q in questions}
 
-    csv.field_size_limit(sys.maxsize)
+    csv.field_size_limit(2**31 - 1)  # sys.maxsize déborde sous Windows (long C sur 32 bits)
     lignes: dict[str, list] = defaultdict(list)
     with open(SOCLE / "observations.csv", encoding="utf-8-sig", newline="") as f:
         for l in csv.DictReader(f):

@@ -78,7 +78,7 @@ def _date(texte: str) -> date | None:
 
 def charger(dossier: Path) -> Socle:
     """Lit le socle extrait (CSV). Seule fonction liée au format de stockage."""
-    csv.field_size_limit(sys.maxsize)
+    csv.field_size_limit(2**31 - 1)  # sys.maxsize déborde sous Windows (long C sur 32 bits)
     i = sys.intern  # mêmes codes, unités et libellés répétés des centaines de milliers de fois
     desags: dict[str, tuple] = {}
     observations = []
