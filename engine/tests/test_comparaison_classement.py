@@ -10,7 +10,8 @@ from gestukaay_contracts.models import Periode, RequeteStructuree
 from gestukaay_engine.candidats import index
 from gestukaay_engine.comprehension import regles
 from gestukaay_engine.gabarits import comparaison, explication
-from gestukaay_engine.resolution import Resolution, resoudre
+from gestukaay_engine.graphique import graphique_contexte_valeur
+from gestukaay_engine.resolution import Resolution, resoudre, resultat
 from gestukaay_engine.socle import Observation, Socle, SourceJeu
 from gestukaay_socle.indicateurs import indicateurs
 
@@ -358,3 +359,20 @@ def test_regles_comprehension_comparaison_temporelle():
     assert r.intention == "comparaison"
     assert r.periode.valeur == "2011"
     assert r.periode.fin == "2022"
+
+
+def test_graphique_contexte_meme_niveau_que_la_zone():
+    """Un jeu qui publie régions ET départements pour la même période : le graphique de contexte
+    d'une région ne montre que des régions (valeurs fictives : seul le niveau est testé)."""
+    s = Socle([
+        obs("pvswjnd", "SN", "2023", 100, sexe="Total", age="Total"),
+        obs("pvswjnd", "SN-KA", "2023", 30, sexe="Total", age="Total"),
+        obs("pvswjnd", "SN-TH", "2023", 70, sexe="Total", age="Total"),
+        obs("pvswjnd", "SN-KA-BIRKELANE", "2023", 10, sexe="Total", age="Total"),
+        obs("pvswjnd", "SN-KA-KOUNGHEUL", "2023", 20, sexe="Total", age="Total"),
+    ], SOURCES, "test")
+    ind = indicateurs()["pvswjnd"]
+    o = next(x for x in s.observations("pvswjnd") if x.zone == "SN-KA")
+    g = graphique_contexte_valeur(s, resultat(s, o, ind), ind)
+    assert [(p.x, p.y, p.mise_en_evidence) for p in g.series[0].points] == [
+        ("Thiès", 70, False), ("Kaffrine", 30, True)]
