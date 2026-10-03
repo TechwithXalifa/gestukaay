@@ -1,13 +1,13 @@
 # Bout en bout — compréhension + résolution (regles)
 
-Socle : 644827 valeurs chargées en 2.2 s ; résolution : 0.1 ms en médiane.
+Socle : 644827 valeurs chargées en 2.3 s ; résolution : 0.1 ms en médiane.
 
 | | |
 |---|---|
-| **Chiffres faux affichés** | **9** |
+| **Chiffres faux affichés** | **7** |
 | Questions exactes : valeur juste au chiffre près | 49/57 |
 | Questions exactes : sans réponse | 5/57 |
-| Approchées et refus : aucune valeur servie | 25/31 |
+| Approchées et refus : aucune valeur servie | 27/31 |
 | Hors #11 (classement #14, deux périodes : contrat) | 15 |
 
 ## À traiter
@@ -30,7 +30,6 @@ Socle : 644827 valeurs chargées en 2.2 s ; résolution : 0.1 ms en médiane.
 | FR-049 | Combien coûte le riz à Thiès ? | **sans_reponse** | feujxob.riz-brise-ordinaire-au-detail | zone_non_couverte : SN-TH non publié | SN-TH 2023 = 391.146 |
 | FR-054 | Nombre de voitures à Kolda | **servi_a_tort** | qbvttzc | SN-KD 2021 = 9317 | approchee |
 | FR-062 | Combien gagne un chauffeur de taxi à Dakar ? | **servi_a_tort** | feujxob.transport-collectif-en-taxi-7-places-dakar-thies | SN-DK 2024-12 = 3000 | aucune |
-| FR-071 | Combien de personnes parlent sérère au Sénégal ? | **servi_a_tort** | ioxbglg.nombre-de-personnes-emprisonnees | SN 2025 = 15721 | aucune |
 | WO-001 | Ñaata nit ñoo dëkk Tiés ? | **faux** | rfegvpb.taux-durbanisation | SN-TH 2023 = 57.5 | SN-TH 2023 = 2.46368e+06 |
 | WO-005 | Taux scolarisation primaire filles academie louga | **faux** | ervtjfc.pourcentage-de-filles-dans-les-effectifs | SN-IA-LOUGA 2025 = 56.3 | SN-IA-LOUGA 2025 = 86.6806 |
 | WO-009 | Ban natt ci yàpp géej la nappkat yu ndaw yi indi ci 2024 ? | **sans_reponse** | wrqfsxb.quantite | desagregation_ambigue : préciser : type-de-pêche | SN 2024 = 361077 |
@@ -40,6 +39,5 @@ Socle : 644827 valeurs chargées en 2.2 s ; résolution : 0.1 ms en médiane.
 | WO-019 | Ban diiwaan moo ëpp kër yu am kouran ? | **hors_11** | asongtc | non_traite : classement : #14 | SN-DB 2023 = 87|SN-DK 2023 = 98.2|SN-FK 2023 = 55.8|SN-KA 2023 = 47.4|SN-KD 2023 = 39.6|SN-KE 2023 = 42.1|SN-KL 2023 = 74.7|SN-LG 2023 = 68.5|SN-MT 2023 = 51.8|SN-SE 2023 = 45.6|SN-SL 2023 = 64.9|SN-TC 2023 = 45.4|SN-TH 2023 = 92.2|SN-ZG 2023 = 66.6 |
 | WO-021 | Ñata lay diar thieb kaolack ? | **sans_reponse** | feujxob.riz-brise-ordinaire-au-detail | zone_non_couverte : SN-KL non publié | SN-KL 2016 = 273.5 |
 | WO-024 | Ñata voitures nio nek ziguinchor ? | **servi_a_tort** | qbvttzc | SN-ZG 2021 = 16221 | approchee |
-| WO-028 | waa man tay dama xiif trop lii mbaa diamm la tamit | **servi_a_tort** | ewnjbnf.menages-rencontrant-des-contraintes-pouvant-empecher-le-developpement-de-lexploitation-liees | SN 2024 = 3.33914 | aucune |
 | WO-031 | niaata nit ñooy lakk sereer fatik | **servi_a_tort** | ioxbglg.nombre-de-personnes-emprisonnees | SN-FK 2025 = 442 | aucune |
 | WO-029 | Kaolack nak ? | **faux** | rfegvpb.taux-durbanisation | SN-KL 2023 = 38.2 | SN-KL 2023 = 1.33672e+06 |

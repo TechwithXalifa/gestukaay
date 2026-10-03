@@ -225,7 +225,8 @@ def test_approchee_modalite_ambigue_voitures():
         assert hasattr(r_verif, "resultats") and len(r_verif.resultats) >= 1
 
 
-def test_approchee_wolof_style():
+def test_approchee_reformulation_fr_seulement():
+    # V1.0 : FR seulement en attendant #25 (règle 6, décision 0009)
     req = RequeteStructuree(
         intention="valeur",
         indicateur="qbvttzc",
@@ -235,4 +236,4 @@ def test_approchee_wolof_style():
     )
     res = proposer_approchee(SOCLE, req, None, "Ñata voitures nio nek ziguinchor ?", "wo")
     assert isinstance(res, Approchee)
-    assert res.reformulation.endswith("Ndax lii nga bëgg ?")
+    assert res.reformulation.endswith("Est-ce ce que vous cherchez ?")

@@ -84,8 +84,6 @@ def _nom_indicateur(code: str | None, langue: str = "fr") -> str:
     ind = indicateurs().get(code)
     if not ind:
         return code
-    if langue == "wo" and ind.libelle_wo:
-        return ind.libelle_wo
     return ind.libelle_fr
 
 
@@ -171,8 +169,6 @@ def proposer_approchee(
                 reformulation = (
                     "Veuillez préciser la catégorie souhaitée pour le nombre de voitures. "
                     "Est-ce ce que vous cherchez ?"
-                    if langue == "fr" else
-                    "Waxal ban xeetu woto nga bëgg. Ndax lii nga bëgg ?"
                 )
                 break
 
@@ -203,8 +199,6 @@ def proposer_approchee(
         reformulation = (
             "Veuillez préciser la catégorie souhaitée parmi celles pour lesquelles l'ANSD publie ce chiffre. "
             "Est-ce ce que vous cherchez ?"
-            if langue == "fr" else
-            "Tànnal xeet bi nga bëgg ci yii ANSD génne. Ndax lii nga bëgg ?"
         )
 
     # -----------------------------------------------------------------------
@@ -224,8 +218,6 @@ def proposer_approchee(
             reformulation = (
                 f"Ce chiffre n'est pas publié pour {lieu_brut} ; "
                 "voici les zones pour lesquelles l'ANSD publie ce chiffre. Est-ce ce que vous cherchez ?"
-                if langue == "fr" else
-                f"Limu bi amul ci {lieu_brut} ; yii la ANSD génne. Ndax lii nga bëgg ?"
             )
 
     # -----------------------------------------------------------------------
@@ -253,9 +245,6 @@ def proposer_approchee(
             reformulation = (
                 f"Les statistiques scolaires de la région de {z_obj.libelle_fr if z_obj else z_demandee} "
                 "sont publiées par inspection d'académie. Est-ce ce que vous cherchez ?"
-                if langue == "fr" else
-                f"Limu lekool yu diiwaanu {z_obj.libelle_wo if z_obj and z_obj.libelle_wo else z_demandee} "
-                "ci inspection d'académie lañu leen génne. Ndax lii nga bëgg ?"
             )
         else:
             # 4b. Ordre de repli (a) : zone parente, puis niveau au-dessus (département -> région -> Sénégal)
@@ -274,8 +263,6 @@ def proposer_approchee(
             reformulation = (
                 f"Ce chiffre n'est pas publié pour {_nom_zone(z_demandee, langue)} ; "
                 "voici les zones pour lesquelles l'ANSD publie ce chiffre. Est-ce ce que vous cherchez ?"
-                if langue == "fr" else
-                f"Limu bi amul ci {_nom_zone(z_demandee, langue)} ; yii la ANSD génne. Ndax lii nga bëgg ?"
             )
 
     # -----------------------------------------------------------------------
@@ -300,8 +287,6 @@ def proposer_approchee(
             f"Ce chiffre n'a pas été publié pour l'année {p_demandee} ; "
             "voici les années les plus proches pour lesquelles l'ANSD publie ce chiffre. "
             "Est-ce ce que vous cherchez ?"
-            if langue == "fr" else
-            f"Limu atum {p_demandee} amul ; yii la ANSD génne ci at yi ko jege. Ndax lii nga bëgg ?"
         )
 
     # -----------------------------------------------------------------------
@@ -365,20 +350,12 @@ def proposer_approchee(
         )
         ref_ind = RefIndicateur(code=code_ind, libelle=_nom_indicateur(code_ind, langue))
         sugg = Suggestion(indicateur=ref_ind, question_suggeree=choix_valides[0].libelle)
-        msg = (
-            f"Cette statistique n'est pas disponible pour {lieu_nom}."
-            if langue == "fr" else
-            f"Limu bi amul ci {lieu_nom}."
-        )
+        msg = f"Cette statistique n'est pas disponible pour {lieu_nom}."
         return RepliAucune(motif="hors_socle", message=msg, suggestions=[sugg])
 
     # 0 choix valide -> Refus hors socle complet
     lieu_nom = nom_lieu_concerne or (
         _nom_zone(requete.zones[0], langue) if requete.zones else "cette zone"
     )
-    msg = (
-        f"Cette donnée n'est pas publiée par l'ANSD pour {lieu_nom}."
-        if langue == "fr" else
-        f"ANSD génnul limu bi ci {lieu_nom}."
-    )
+    msg = f"Cette donnée n'est pas publiée par l'ANSD pour {lieu_nom}."
     return RepliAucune(motif="hors_socle", message=msg, suggestions=[])
