@@ -37,4 +37,10 @@ Pour le vrai moteur : `GESTUKAAY_MOTEUR=reel` et la clé `LLM_PRINCIPAL_CLE` dan
 extrait dans `../socle_gestukaay` (ou le chemin donné par `GESTUKAAY_SOCLE_EXTRAIT`). Il est monté en
 lecture seule dans l'API.
 
+Les réponses, le journal des requêtes et les retours sont gardés dans PostgreSQL (service `db`), donc
+les liens `/r/…` survivent à un redémarrage. Hors Docker, l'API utilise SQLite en mémoire, ou un
+fichier avec `GESTUKAAY_BASE=sqlite:///gestukaay.db`. Le journal se lit sur `/admin/journal` (et
+`/admin/journal.csv`) avec l'en-tête `Authorization: Bearer <GESTUKAAY_ADMIN_JETON>`. Sans ce jeton,
+le back-office est fermé.
+
 Référence fonctionnelle : cahier des charges v1.1 (30 septembre 2026).

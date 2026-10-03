@@ -4,16 +4,19 @@
 
 Le backend ne transforme pas la réponse du moteur : il la complète
 (`latence_ms`), la stocke et la renvoie telle quelle (contrat-v1 §1).
-Stockage en mémoire pour le squelette ; la persistance viendra ensuite.
+Stockage : voir stockage.py (GESTUKAAY_BASE, SQLite en mémoire par défaut).
 """
 
 from __future__ import annotations
 
+import csv
+import io
 import os
+import secrets
 import time
 from typing import Literal
 
-from fastapi import FastAPI, Form, Request, UploadFile
+from fastapi import FastAPI, Form, Header, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from gestukaay_contracts.models import (
@@ -31,17 +34,18 @@ from gestukaay_contracts.models import (
 from gestukaay_engine import charger_moteur
 
 from .exports import vers_csv, vers_pdf
+from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(","),
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 moteur = charger_moteur()
-_reponses: dict[str, AskResponse] = {}
+stockage = Stockage()
 
 
 class ErreurApi(Exception):
@@ -62,11 +66,19 @@ async def _probleme(_: Request, exc: ErreurApi) -> JSONResponse:
 URL_PUBLIQUE = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(",")[0]
 
 
-def _conserver(rep: AskResponse, debut: float) -> AskResponse:
+def _conserver(rep: AskResponse, debut: float, req: AskRequest | None = None,
+               confirme_depuis: str | None = None) -> AskResponse:
     # Les URL relèvent du backend (interface.py) : adresse stable du site [EF-29]
     rep.reponse.url = f"{URL_PUBLIQUE.rstrip('/')}/r/{rep.reponse.id}"
     rep.reponse.latence_ms = round((time.perf_counter() - debut) * 1000)
-    _reponses[rep.reponse.id] = rep
+    stockage.enregistrer(rep, req, confirme_depuis)
+    return rep
+
+
+def _stockee(rid: str) -> AskResponse:
+    rep = stockage.lire(rid)
+    if rep is None:
+        raise ErreurApi(404, "Réponse introuvable")
     return rep
 
 
@@ -78,7 +90,7 @@ def sante() -> dict:
 @app.post("/v1/ask", response_model=AskResponse)
 def demander(req: AskRequest) -> AskResponse:
     debut = time.perf_counter()
-    return _conserver(moteur.repondre(req), debut)
+    return _conserver(moteur.repondre(req), debut, req)
 
 
 # Opus à 60 s dépasse rarement 600 Ko : 2 Mo laisse de la marge sans ouvrir la porte aux abus
@@ -118,29 +130,22 @@ def situer(req: SituateRequest) -> SituateResponse:
 @app.post("/v1/ask/{rid}/confirm", response_model=AskResponse)
 def confirmer(rid: str, req: ConfirmRequest) -> AskResponse:
     debut = time.perf_counter()
-    stockee = _reponses.get(rid)
-    if stockee is None:
-        raise ErreurApi(404, "Réponse introuvable")
-    rep = stockee.reponse
+    rep = _stockee(rid).reponse
     if not isinstance(rep, ReponseApprochee):
         raise ErreurApi(409, "Cette réponse n'attend pas de confirmation")
     choix = next((c for c in rep.choix if c.id == req.choix_id), None)
     if choix is None:
         raise ErreurApi(422, "Choix inconnu", f"choix_id={req.choix_id!r}")
-    return _conserver(moteur.executer(choix.requete, rep.question, rep.langue), debut)
+    return _conserver(moteur.executer(choix.requete, rep.question, rep.langue), debut, confirme_depuis=rid)
 
 
 @app.get("/v1/answers/{rid}", response_model=AskResponse)
 def lire(rid: str) -> AskResponse:
-    if rid not in _reponses:
-        raise ErreurApi(404, "Réponse introuvable")
-    return _reponses[rid]
+    return _stockee(rid)
 
 
 def _exacte(rid: str) -> ReponseExacte:
-    if rid not in _reponses:
-        raise ErreurApi(404, "Réponse introuvable")
-    rep = _reponses[rid].reponse
+    rep = _stockee(rid).reponse
     if not isinstance(rep, ReponseExacte):
         raise ErreurApi(409, "Aucune valeur à exporter", "Seule une réponse exacte s'exporte.")
     return rep
@@ -166,5 +171,60 @@ def export_pdf(rid: str) -> Response:
 
 @app.post("/v1/feedback", status_code=204)
 def retour(req: FeedbackRequest) -> None:
-    if req.reponse_id not in _reponses:
-        raise ErreurApi(404, "Réponse introuvable")
+    _stockee(req.reponse_id)
+    stockage.retour(req)
+
+
+# ---------------------------------------------------------------------------
+# Back-office : journal des requêtes (hors contrat public, réservé à l'équipe)
+# ---------------------------------------------------------------------------
+
+
+def _admin(authorization: str | None) -> None:
+    """Jeton GESTUKAAY_ADMIN_JETON. Sans jeton configuré, le back-office n'existe pas (404)."""
+    jeton = os.environ.get("GESTUKAAY_ADMIN_JETON")
+    if not jeton:
+        raise ErreurApi(404, "Not Found")
+    if not authorization or not secrets.compare_digest(authorization, f"Bearer {jeton}"):
+        raise ErreurApi(401, "Jeton d'administration requis")
+
+
+def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | None,
+            limite: int, decalage: int) -> FiltreJournal:
+    return FiltreJournal(issue=issue, canal=canal, langue=langue, texte=q, limite=limite, decalage=decalage)
+
+
+@app.get("/admin/journal")
+def journal(
+    authorization: str | None = Header(None),
+    issue: Literal["exacte", "approchee", "aucune"] | None = None,
+    canal: str | None = None,
+    langue: str | None = None,
+    q: str | None = Query(None, max_length=100),
+    limite: int = Query(50, ge=1, le=500),
+    decalage: int = Query(0, ge=0),
+) -> dict:
+    _admin(authorization)
+    total, lignes = stockage.journal(_filtre(issue, canal, langue, q, limite, decalage))
+    return {"total": total, "lignes": lignes}
+
+
+@app.get("/admin/journal.csv")
+def journal_csv(
+    authorization: str | None = Header(None),
+    issue: Literal["exacte", "approchee", "aucune"] | None = None,
+    canal: str | None = None,
+    langue: str | None = None,
+    q: str | None = Query(None, max_length=100),
+) -> Response:
+    _admin(authorization)
+    _, lignes = stockage.journal(_filtre(issue, canal, langue, q, 100_000, 0))
+    sortie = io.StringIO()
+    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, "vote", "signalement"], delimiter=";")
+    w.writeheader()
+    w.writerows(lignes)
+    return Response(
+        "﻿" + sortie.getvalue(),  # BOM : Excel ouvre l'UTF-8 correctement
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="gestukaay-journal.csv"'},
+    )
