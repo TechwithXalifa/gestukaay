@@ -9,9 +9,17 @@ services:
     environment:
       GESTUKAAY_MOTEUR: ${GESTUKAAY_MOTEUR:-fake}
       GESTUKAAY_URL_PUBLIQUE: ${GESTUKAAY_URL_PUBLIQUE:-http://localhost:3000}
+      # Dans le conteneur, le socle est toujours ici (monté ci-dessous)
+      GESTUKAAY_SOCLE_EXTRAIT: /socle
+    # Clés du moteur (LLM_PRINCIPAL_CLE…) : dans .env, jamais dans Git
     env_file:
       - path: .env
         required: false
+    # Socle extrait (#4, décision 0006), en lecture seule. Le chemin sur la
+    # machine vient de GESTUKAAY_SOCLE_EXTRAIT (défaut : ../socle_gestukaay).
+    # Avec le faux moteur, un dossier vide suffit.
+    volumes:
+      - ${GESTUKAAY_SOCLE_EXTRAIT:-../socle_gestukaay}:/socle:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
