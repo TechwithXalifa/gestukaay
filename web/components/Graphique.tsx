@@ -111,7 +111,8 @@ function Tableau({ g }: { g: G }) {
   const { t } = useLangue();
   const plusieurs = g.series.length > 1;
   return (
-    <div className="tableau-defile">
+    // Zone qui défile : atteignable au clavier, et nommée pour les lecteurs d'écran
+    <div className="tableau-defile" role="region" aria-label={g.titre} tabIndex={0}>
       <table className="tableau">
         <thead>
           <tr>

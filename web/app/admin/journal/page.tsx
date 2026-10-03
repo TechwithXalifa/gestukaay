@@ -202,7 +202,7 @@ export default function Journal() {
       {erreur && <p className="erreur-admin" role="alert">{erreur}</p>}
 
       <div className="admin-corps">
-        <div className="tableau-defile admin-table">
+        <div className="tableau-defile admin-table" role="region" aria-label="Requêtes" tabIndex={0}>
           <table className="tableau">
             <thead>
               <tr>
@@ -279,7 +279,7 @@ function Cadre({ children, actions }: { children: React.ReactNode; actions?: Rea
         <span className="admin-pastille">Admin</span>
         <div className="admin-actions">{actions}</div>
       </header>
-      <main className="admin-main">{children}</main>
+      <main id="contenu" tabIndex={-1} className="admin-main">{children}</main>
     </div>
   );
 }

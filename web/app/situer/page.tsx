@@ -55,7 +55,7 @@ export default function Situer() {
   return (
     <div className="site">
       <Entete actif="situer" />
-      <main className="situer">
+      <main id="contenu" tabIndex={-1} className="situer">
         {etape === 0 && (
           <section className="carte">
             <p className="eyebrow">{t("situer.eyebrow")}</p>

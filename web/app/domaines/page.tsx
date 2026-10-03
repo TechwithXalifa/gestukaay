@@ -11,7 +11,7 @@ export default function Domaines() {
   return (
     <div className="site">
       <Entete />
-      <main className="domaines-page">
+      <main id="contenu" tabIndex={-1} className="domaines-page">
         <p className="eyebrow">{t("domaines.eyebrow")}</p>
         <h1 className="titre-situer">{t("domaines.titre", { n: String(TOUS_LES_DOMAINES.length) })}</h1>
         <p className="explication">{t("domaines.intro")}</p>

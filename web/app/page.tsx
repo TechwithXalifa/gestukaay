@@ -50,7 +50,7 @@ export default function Accueil() {
   return (
     <div className="site">
       <Entete />
-      <main className="accueil">
+      <main id="contenu" tabIndex={-1} className="accueil">
         <p className="eyebrow">{t("accueil.eyebrow")}</p>
         <h1 className="titre-accueil">{t("accueil.titre1")}<br />{t("accueil.titre2")}</h1>
         <p className="chapeau">{t("accueil.chapeau")}</p>

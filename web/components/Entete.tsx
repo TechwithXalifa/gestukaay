@@ -9,6 +9,7 @@ export function Entete({ actif = "question" }: { actif?: "question" | "situer" }
   const { langue, setLangue, t, incomplet } = useLangue();
   return (
     <>
+      <a href="#contenu" className="evitement">{t("nav.evitement")}</a>
       <header className="entete">
         <div className="entete-int">
           <Link href="/" className="logo">

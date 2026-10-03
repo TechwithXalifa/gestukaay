@@ -73,9 +73,32 @@ export function Ecoute({
     return () => enCours.current?.annuler();
   }, [demarrer]);
 
-  // Échap = Annuler, comme le bouton
+  // Fenêtre modale (WCAG 2.4.3) : le focus entre à l'ouverture, ne sort pas avec Tab,
+  // et revient sur le bouton micro à la fermeture.
+  const fenetre = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const touche = (e: KeyboardEvent) => e.key === "Escape" && fermer();
+    const avant = document.activeElement as HTMLElement | null;
+    fenetre.current?.querySelector<HTMLElement>(".ecoute-bas button:last-child, button")?.focus();
+    return () => avant?.focus();
+  }, []);
+
+  // Échap = Annuler, comme le bouton ; Tab tourne dans la fenêtre
+  useEffect(() => {
+    const touche = (e: KeyboardEvent) => {
+      if (e.key === "Escape") fermer();
+      if (e.key !== "Tab" || !fenetre.current) return;
+      const focusables = [...fenetre.current.querySelectorAll<HTMLElement>("button, textarea, a[href], input")]
+        .filter((el) => !el.hasAttribute("disabled"));
+      const premier = focusables[0];
+      const dernier = focusables.at(-1);
+      if (e.shiftKey && document.activeElement === premier) {
+        e.preventDefault();
+        dernier?.focus();
+      } else if (!e.shiftKey && document.activeElement === dernier) {
+        e.preventDefault();
+        premier?.focus();
+      }
+    };
     window.addEventListener("keydown", touche);
     return () => window.removeEventListener("keydown", touche);
   });
@@ -88,7 +111,7 @@ export function Ecoute({
   const minuteur = `0:${String(secondes).padStart(2, "0")}`;
 
   return (
-    <div className="ecoute gk-dark" role="dialog" aria-modal="true" aria-labelledby="ecoute-titre">
+    <div ref={fenetre} className="ecoute gk-dark" role="dialog" aria-modal="true" aria-labelledby="ecoute-titre">
       <div className="ecoute-haut">
         <button type="button" className="bouton-contour" aria-label={t("ecoute.annuler")} onClick={fermer}>
           ✕
