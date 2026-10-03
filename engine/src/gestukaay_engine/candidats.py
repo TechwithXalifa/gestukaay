@@ -111,6 +111,24 @@ def zones_citees(question: str) -> list[str]:
     return trouvees
 
 
+# « à Touba », « ci Touba », « la ville de Thiès » : un lieu nommé hors du référentiel des zones
+_LIEU = re.compile(r"\b(?:à|a|au|aux|dans|ci)\s+(?:la\s+)?(?:ville\s+(?:de\s+)?)?([A-ZÉÈÎ][\w'’-]+)")
+_VILLE = re.compile(r"\bville\s+(?:de\s+)?([A-ZÉÈÎa-zéèî][\w'’-]+)", re.IGNORECASE)
+_PAS_UN_LIEU = {"sénégal", "senegal", "senegaal", "ndakaaru", "la", "le", "les", "l"}
+
+
+def lieux_inconnus(question: str) -> list[str]:
+    """Lieux cités mais absents du référentiel : ils ne doivent jamais devenir « le Sénégal ».
+    « la ville de Thiès » n'est pas la région de Thiès : signalée aussi (réponse approchée, #12)."""
+    out = [f"ville de {m[1]}" for m in _VILLE.finditer(question)]
+    for m in _LIEU.finditer(question):
+        nom = m[1]
+        gentile = re.search(r"(ais|aise|ien|ienne|ain|aine)s?$", nom.lower())  # Sénégalais, Kaolackois…
+        if nom.lower() not in _PAS_UN_LIEU and not gentile and not resoudre(nom) and not any(nom in o for o in out):
+            out.append(nom)
+    return out
+
+
 def periodes_citees(question: str) -> list[str]:
     """« mars 2025 » -> 2025-03 ; « 2023 » -> 2023 ; « T2 2024 » -> 2024-T2. Dans l'ordre."""
     t = _texte(question)
@@ -124,6 +142,32 @@ def periodes_citees(question: str) -> list[str]:
         else:
             out.append(m["an"])
     return out
+
+
+def desagregation_citee(question: str) -> dict[str, str]:
+    """Désagrégation sans ambiguïté, en vocabulaire fixe (décision 0010), pour les règles locales.
+    Prudente : « une femme » (ISF) n'est pas une désagrégation, « les femmes » en est une."""
+    t = _texte(question)
+    d: dict[str, str] = {}
+    if re.search(r"\b(femmes|filles|jigeen|djiguene)\b", t):
+        d["sexe"] = "femmes"
+    elif re.search(r"\b(hommes|garcons|goor)\b", t):
+        d["sexe"] = "hommes"
+    if re.search(r"\b(ruraux|rurales?|rural)\b", t):
+        d["milieu"] = "rural"
+    elif re.search(r"\b(urbains?|urbaines?)\b", t):
+        d["milieu"] = "urbain"
+    if m := re.search(r"\b(\d{1,2})\s*(?:a|ba|-)\s*(\d{1,2})\s*ans\b", t):
+        d["age"] = f"{m[1]}-{m[2]}"
+    elif m := re.search(r"\bmoins de (\d{1,2}) ans\b", t):
+        d["age"] = f"moins de {m[1]}"
+    if re.search(r"\b(elementaire|primaire)\b", t):
+        d["cycle"] = "elementaire"
+    elif re.search(r"\bsecondaire\b", t):
+        d["cycle"] = "secondaire"
+    if m := re.search(r"\b(riz|thieb|ceeb|mil|dugub|mais|sorgho)\b", t):
+        d["produit"] = {"thieb": "riz", "ceeb": "riz", "dugub": "mil"}.get(m[1], m[1])
+    return d
 
 
 # --------------------------------------------------------------------------
@@ -154,7 +198,7 @@ class Index:
     def requete(self, question: str) -> list[str]:
         """Mots de la question, sans les noms de zones (« Matam » ne doit pas faire remonter
         « femmes écrouées à Matam »), élargis par le vocabulaire FR / WO."""
-        q = [m for m in mots(question) if not resoudre(m)]
+        q = [m for m in mots(question) if not resoudre(m) and not m.isdigit()]  # ni zones ni années
         return q + [s for m in q for s in _SYN.get(m, ())]
 
     def chercher(self, question: str, k: int = 15, niveaux: set[str] | None = None) -> list[Candidat]:

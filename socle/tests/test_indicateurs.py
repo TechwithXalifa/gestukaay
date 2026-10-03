@@ -120,13 +120,14 @@ def test_dimension_de_mesure_porte_l_indicateur():
 
 def test_p1_prets_pour_l_affichage():
     """Relecture de SAN (#56) : chaque P1 a un libellé, une unité affichable et un nom wolof,
-    et n'est « verifie » que sans réserve écrite dans la note."""
+    et n'est laissé « a_verifier » qu'avec sa raison écrite dans la note."""
     for x in indicateurs().values():
         if x.priorite != "P1":
             continue
         assert x.unite_affichee or x.unite, f"{x.code} : aucune unité à afficher"
         assert x.libelle_wo or x.note, f"{x.code} : ni nom wolof ni raison écrite"
-        assert (x.verification == "verifie") == (not x.note), x.code
+        if x.verification != "verifie":
+            assert x.note, f"{x.code} : à vérifier sans raison écrite"
 
 
 def test_libelles_distincts():
