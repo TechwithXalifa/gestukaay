@@ -63,7 +63,7 @@ def statut(val: str, cle: str) -> str | None:
 
 def lire():
     """(jeu, colonne) -> Counter(libellé), compteurs globaux, contrôle des codes portail."""
-    csv.field_size_limit(sys.maxsize)
+    csv.field_size_limit(2**31 - 1)  # sys.maxsize déborde sous Windows (long C sur 32 bits)
     libelles: dict[tuple[str, str], Counter] = defaultdict(Counter)
     portail: Counter = Counter()
     desaccords: Counter = Counter()
