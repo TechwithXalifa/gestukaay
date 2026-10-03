@@ -1,5 +1,6 @@
 """Extraction vers le schéma 10.3 (#4). Lignes synthétiques : tourne en CI, sans le socle brut."""
 
+import itertools
 import json
 from dataclasses import fields
 
@@ -100,9 +101,40 @@ def test_extraire():
     assert set(obs) == {("x.taux", "SN-TH", "2023"), ("y", "SN", "2023")}
     o = obs[("x.taux", "SN-TH", "2023")]
     assert json.loads(o[5]) == {"sexe": "Total"}  # ni la zone ni l'indicateur dans la désagrégation
-    assert o[6] == "10.5" and o[11] == 2  # valeur telle que publiée, ligne d'origine
+    assert o[6] == "10.5" and o[12] == 2  # valeur telle que publiée, ligne d'origine
+    assert o[10] == "observee"
     assert obs[("y", "SN", "2023")][3] == "oui"  # zone présumée
     assert res.stats["doublons identiques fusionnés"] == 1
     motifs = sorted(r[3] for r in res.rejets)
     assert motifs == ["doublon conflictuel", "doublon conflictuel", "indicateur absent du référentiel",
                       "indicateur écarté"]
+
+
+def test_nature_par_periode():
+    from gestukaay_socle.extraction import RegleNature, nature_de
+    rnumqzf = [RegleNature("2016", "2022", "estimation", "Rétropolation"),
+               RegleNature("2023", "2023", "observee", ""),
+               RegleNature("2024", "2025", "projection", "Projections démographiques 2023-2073")]
+    assert nature_de("2020", rnumqzf, "2026") == ("estimation", "Rétropolation")
+    assert nature_de("2023", rnumqzf, "2026") == ("observee", "")
+    assert nature_de("2025", rnumqzf, "2026") == ("projection", "Projections démographiques 2023-2073")
+    # une année postérieure à la dernière mise à jour ne peut pas être observée
+    assert nature_de("2035", [], "2022") == ("projection", "")
+    assert nature_de("2026-03", [], "2026") == ("observee", "")
+
+
+def test_referentiel_des_natures():
+    import csv as _csv
+
+    from gestukaay_socle.extraction import FICHIER_NATURES, NATURES, natures
+    with FICHIER_NATURES.open(encoding="utf-8") as f:
+        lignes = list(_csv.DictReader(f, delimiter=";"))
+    for r in lignes:
+        assert r["nature"] in NATURES and r["preuve"], r
+        assert (r["nature"] == "projection") <= bool(r["base_projection"]), r  # toute projection a sa base
+        assert not (r["periode_debut"] and r["periode_fin"]) or r["periode_debut"] <= r["periode_fin"], r
+    # périodes d'un même jeu sans chevauchement
+    for ds, regles in natures().items():
+        bornes = sorted((r.debut or "0000", r.fin or "9999") for r in regles)
+        assert all(a[1] < b[0] for a, b in itertools.pairwise(bornes)), ds
+    assert natures()["pexioke"][0].nature == "projection"  # espérance de vie : série RGPHAE 2013

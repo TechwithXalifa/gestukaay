@@ -88,7 +88,7 @@ uv run python socle/scripts/extraire.py   # ~45 s
 
 | Fichier | Contenu |
 |---|---|
-| `observations.csv` | une ligne par valeur : `observation_id;indicateur;zone;zone_presumee;periode;desagregation;valeur;unite;echelle;source_id;nature;ligne_origine` |
+| `observations.csv` | une ligne par valeur : `observation_id;indicateur;zone;zone_presumee;periode;desagregation;valeur;unite;echelle;source_id;nature;base_projection;ligne_origine` |
 | `sources.csv` | une ligne par jeu du portail (producteur, titre, dates, licence, URL de la fiche) |
 | `rejets.csv` | chaque valeur écartée, avec son motif et sa ligne d'origine |
 
@@ -97,7 +97,10 @@ uv run python socle/scripts/extraire.py   # ~45 s
   stable de (jeu, période, désagrégation brute, unité).
 - `zone_presumee = oui` : jeu sans colonne géographique, rattaché au Sénégal faute de mieux.
   Exceptions dans `referentiels/zones_par_jeu.csv` (`feujxob` → Dakar).
-- `nature` est remplie par #5 ; les corrections (Thiès permuté, doublons) viennent avec #6.
+- `nature` (`observee`, `estimation`, `projection`) et `base_projection` : `referentiels/natures.csv`, une
+  règle par jeu et par période avec sa preuve ; une année postérieure à la dernière mise à jour du jeu est
+  une projection ; sinon observée (décision 0007).
+- Les corrections (Thiès permuté, doublons) viennent avec #6.
 
 Contrôle : le script échoue si une valeur attendue du jeu de test n'est pas retrouvée à l'identique.
 Rapport : `rapports/extraction.md`.

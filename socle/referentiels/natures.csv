@@ -1,0 +1,22 @@
+dataset_id;periode_debut;periode_fin;nature;base_projection;preuve
+aykimoe;;;projection;Projections démographiques RGPHAE 2013;Description : « Ces données de projection sont issues du Recensement général de la population […] (RGPHAE) »
+bkcoat;;;projection;Projections démographiques RGPHAE 2013;Titre : « données de projection, RGPHAE2013 »
+blhwogb;;;projection;Projections démographiques RGPHAE 2013;Description : « Projections démographiques du RGPHAE de quelques indicateurs »
+phfdqm;;;projection;Projections démographiques RGPHAE 2013;Titre : « données de projection, RGPHAE2013 »
+wpwbyw;;;projection;Projections démographiques RGPHAE 2013;Titre : « données de projection, RGPHAE2013 »
+gcnjicf;;;projection;Projections démographiques RGPHAE 2013;Description : « les projections issues du recensement de la population de 2013 »
+niacfee;;;projection;Projections démographiques RGPHAE 2013;Titre : « données de projection »
+idajti;;;projection;Projections démographiques RGPHAE 2013;Description : « données de projections démographiques issues du Recensement général […] »
+uzptmtd;;;projection;Projections démographiques RGPHAE 2013;Description : « Ces données de projection sont issues du […] RGPHAE-2013 » (projection pour 2023 faite en 2013 : le RGPH-5 observe 2023)
+pexioke;;;projection;Projections démographiques RGPHAE 2013;Sans description ; même famille que bkcoat, phfdqm, wpwbyw (publiés en 2022, 2013-2035) : décision #5
+mddqcg;;;projection;Projections démographiques RGPHAE 2013;Sans description ; publié en 2022 sur 2013-2035 comme les séries de projection RGPHAE 2013 : décision #5
+rnumqzf;2016;2022;estimation;Estimations rétropolées RGPHAE 2013 – RGPH-5 2023;Description : « Estimations de population rétropolées à partir des résultats du RGPHAE 2013 et du RGPH-5 2023 »
+rnumqzf;2023;2023;observee;;RGPH-5 2023 (dénombrement)
+rnumqzf;2024;2025;projection;Projections démographiques 2023-2073;Décision 0002 : 2024-2025 issues des projections démographiques
+elwxsmc;2024;2025;projection;Projections démographiques 2023-2073;Description : « Pour les années 2024 et 2025, l'ISF est obtenu dans les projections démographiques […] (Spectrum, DemProj) »
+hydkglc;2024;2025;projection;Projections démographiques 2023-2073;Description : « Pour les années 2024 et 2025, on a utilisé les Projections Démographiques 2023-2073 »
+hltemyf;2024;2025;estimation;Estimation modélisée FPET;Description : « Pour les années 2024 et 2025, une estimation modélisée (modèle bayésien hiérarchique FPET) »
+mwxxnab;2016;2022;projection;Projections démographiques 2013-2063;Description : « Pour la période 2016-2021, on a utilisé des données de projections démographiques de 2013-2063 » (2022 : même base, supposé)
+mwxxnab;2023;2023;observee;;Description : RGPH-5 pour 2023
+mwxxnab;2024;2025;projection;Projections démographiques 2023-2073;Description : « […] et celle de 2023-2073 pour les années 2024 et 2025 »
+xmobtrb;;;estimation;Cadre Harmonisé (analyse de consensus);Description : situation « courante et projetée » sans préciser laquelle est publiée : décision #5
