@@ -24,6 +24,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from gestukaay_socle.extraction import periode
 from gestukaay_socle.indicateurs import (
     COLONNES,
     FICHIER,
@@ -58,17 +59,6 @@ class Cumul:
     dims: set = field(default_factory=set)  # clés hors « Indicateur »
     niveaux_col: dict = field(default_factory=lambda: defaultdict(set))  # colonne -> niveaux
     niveaux_portail: set = field(default_factory=set)  # d'après region_id
-
-
-def periode(p: str, freq: str) -> str:
-    """Période du portail -> format du jeu de test : 2023, 2026-03, 2023-T2, 2024-05-17."""
-    if freq == "M":
-        return p[:7]
-    if freq == "Q":
-        return f"{p[:4]}-T{(int(p[5:7]) - 1) // 3 + 1}"
-    if freq == "D":
-        return p[:10]
-    return p[:4]
 
 
 def lire_catalogue() -> dict[str, dict]:

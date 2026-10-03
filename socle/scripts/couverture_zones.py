@@ -18,28 +18,15 @@ from __future__ import annotations
 import csv
 import json
 import os
-import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from gestukaay_socle.zones import niveau_de_colonne, normaliser, resoudre, zones
+from gestukaay_socle.zones import motif_non_rattache, niveau_de_colonne, resoudre, zones
 
 RACINE = Path(__file__).resolve().parents[2]
 SOCLE = Path(os.environ.get("GESTUKAAY_SOCLE_BRUT", RACINE.parent / "socle_opendata_par_themes"))
 SORTIE = RACINE / "socle" / "rapports" / "couverture_zones.md"
-
-ECARTES = {"total", "totaux", "all", "ensemble", "ensemble national", "communes"}
-# Arrondissements et communes, toutes abréviations du portail (Arrond, ARD., ARDT, COOMUNE…)
-INFRA = re.compile(
-    r"^(arrondissement|arrond|ardt|ard|ca|commune|coomune|cmc|cr|communaute rurale|ville de|quartier) "
-)
-# Regroupements qui ne sont pas des zones administratives : points cardinaux, pôles,
-# couples de régions, zones agricoles, régions dans leurs limites d'une année passée.
-NON_ADMIN = re.compile(
-    r"^zone |^(nord|sud|est|ouest|centre)( |$)| et |^pole |"
-    r"^(notto diosmone palmarain|gorom lampsar|saint louis matam)$| (19|20)\d\d$"
-)
 
 STATUT_ECARTE = "écarté : total ambigu, traité jeu par jeu (#4)"
 STATUT_INFRA = "infra-départemental : hors référentiel (décision #2)"
@@ -51,14 +38,8 @@ def statut(val: str, cle: str) -> str | None:
     """None si rattaché, sinon la raison."""
     if resoudre(val, niveau_de_colonne(cle)):
         return None
-    n = normaliser(val)
-    if n in ECARTES:
-        return STATUT_ECARTE
-    if INFRA.match(n):
-        return STATUT_INFRA
-    if NON_ADMIN.search(n):
-        return STATUT_NON_ADMIN
-    return STATUT_NON
+    return {"total": STATUT_ECARTE, "infra": STATUT_INFRA, "non_admin": STATUT_NON_ADMIN,
+            "inconnu": STATUT_NON}[motif_non_rattache(val)]
 
 
 def lire():

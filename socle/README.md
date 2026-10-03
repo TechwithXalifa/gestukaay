@@ -77,3 +77,27 @@ jeu décrit plusieurs indicateurs, la colonne manuelle `definition` d'`indicateu
 propre à l'indicateur, **citée mot pour mot du portail** (un test le vérifie).
 
 Rapport de relecture : `rapports/fiches_p1.md`.
+
+## Extraction — `scripts/extraire.py` (issue #4, décision 0006)
+
+```bash
+uv run python socle/scripts/extraire.py   # ~45 s
+```
+
+Écrit dans `$GESTUKAAY_SOCLE_EXTRAIT` (défaut `../socle_gestukaay/`, hors Git, ~100 Mo) :
+
+| Fichier | Contenu |
+|---|---|
+| `observations.csv` | une ligne par valeur : `observation_id;indicateur;zone;zone_presumee;periode;desagregation;valeur;unite;echelle;source_id;nature;ligne_origine` |
+| `sources.csv` | une ligne par jeu du portail (producteur, titre, dates, licence, URL de la fiche) |
+| `rejets.csv` | chaque valeur écartée, avec son motif et sa ligne d'origine |
+
+- `valeur` est **telle que publiée**, en unités pleines ; `echelle` (1, 10⁶, 10⁹) ne sert qu'à l'affichage.
+- `ligne_origine` = numéro de ligne dans `observations.csv` du socle brut ; `observation_id` = empreinte
+  stable de (jeu, période, désagrégation brute, unité).
+- `zone_presumee = oui` : jeu sans colonne géographique, rattaché au Sénégal faute de mieux.
+  Exceptions dans `referentiels/zones_par_jeu.csv` (`feujxob` → Dakar).
+- `nature` est remplie par #5 ; les corrections (Thiès permuté, doublons) viennent avec #6.
+
+Contrôle : le script échoue si une valeur attendue du jeu de test n'est pas retrouvée à l'identique.
+Rapport : `rapports/extraction.md`.
