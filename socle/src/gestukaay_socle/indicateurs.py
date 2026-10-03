@@ -33,12 +33,12 @@ FICHIER = REFERENTIELS / "indicateurs.csv"
 FICHIER_DOMAINES = REFERENTIELS / "domaines.csv"
 
 COLONNES = (
-    "code", "dataset_id", "libelle_fr", "libelle_wo", "statut_wo", "unite", "unite_affichee", "domaine", "priorite",
+    "code", "dataset_id", "libelle_fr", "libelle_wo", "statut_wo", "unite", "unite_affichee", "definition", "domaine", "priorite",
     "verification", "questions_test", "producteur", "niveaux_zone", "desagregations", "frequence",
     "periode_debut", "periode_fin", "nb_valeurs", "dimension_indicateur", "valeur_portail", "jeu", "note",
 )
 # Colonnes remplies ou corrigées à la main : jamais écrasées par l'inventaire.
-MANUELLES = ("libelle_fr", "libelle_wo", "statut_wo", "unite_affichee", "verification", "note")
+MANUELLES = ("libelle_fr", "libelle_wo", "statut_wo", "unite_affichee", "definition", "verification", "note")
 VERIFICATIONS = ("a_verifier", "verifie", "ecarte")
 PRIORITES = ("P1", "P2", "P3")
 
@@ -69,6 +69,7 @@ class Indicateur:
     statut_wo: str
     unite: str  # celle du portail : fait partie de l'identité, jamais modifiée
     unite_affichee: str  # à la main ; vide = celle du portail
+    definition: str  # à la main, citée du portail ; vide = définition du jeu (jeux.csv)
     domaine: str
     priorite: str
     verification: str
