@@ -10,13 +10,13 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 |---|---|---|---|
 | 0 · Fondations | 4 | 4 | ✅ terminé |
 | 1 · Socle | 8 | 8 | Préparation |
-| 2 · Moteur | 7 | 10 | Préparation |
+| 2 · Moteur | 8 | 10 | Préparation |
 | 3 · Jeu de test et mesure | 1 | 4 | Préparation |
 | 4 · Wolof | 1 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **21** | **46** | |
+| **Total** | **22** | **46** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -66,7 +66,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [x] **2.3** Résolution exacte + valeurs par défaut — [#11](https://github.com/TechwithXalifa/gestukaay/issues/11) · échéance 04/10 · après 1.8
 - [x] **2.4** Correspondance approchée (zone parente/enfant, période voisine) — [#12](https://github.com/TechwithXalifa/gestukaay/issues/12) · échéance 04/10 · après 2.3
 - [x] **2.5** Refus + 3 indicateurs proches ; refus des projections — [#13](https://github.com/TechwithXalifa/gestukaay/issues/13) · échéance 04/10 · après 2.3
-- [ ] **2.6** Comparaison et classement — [#14](https://github.com/TechwithXalifa/gestukaay/issues/14) · échéance 04/10 · après 2.3
+- [x] **2.6** Comparaison et classement — [#14](https://github.com/TechwithXalifa/gestukaay/issues/14) · échéance 04/10 · après 2.3
 - [ ] **2.7** Contexte de suivi sur 3 échanges — [#15](https://github.com/TechwithXalifa/gestukaay/issues/15) · échéance 05/10 · après 2.2
 - [x] **2.8** Gabarits d'explication FR, formatage des nombres, citation — [#16](https://github.com/TechwithXalifa/gestukaay/issues/16) · échéance 04/10 · après 2.3
 - [ ] **2.9** Basculer du faux moteur au vrai — [#17](https://github.com/TechwithXalifa/gestukaay/issues/17) · échéance 05/10 · après 2.3, 2.4, 2.5
