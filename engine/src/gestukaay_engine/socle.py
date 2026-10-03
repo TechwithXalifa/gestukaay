@@ -101,9 +101,35 @@ def charger(dossier: Path) -> Socle:
     return Socle(observations, sources, version_.read_text().strip() if version_.exists() else "dev")
 
 
+class SocleIncoherent(RuntimeError):
+    """Le socle cite des indicateurs que le référentiel ne connaît pas : ne pas démarrer."""
+
+
+def verifier(s: Socle) -> None:
+    """Chaque indicateur du socle doit exister dans le référentiel du dépôt (décision 0013).
+    Sinon le moteur refuse de démarrer plutôt que de répondre avec des codes orphelins."""
+    from gestukaay_socle.indicateurs import indicateurs
+
+    inconnus = sorted(set(s._par_indicateur) - indicateurs().keys())
+    if inconnus:
+        raise SocleIncoherent(
+            f"socle {s.version} : {len(inconnus)} indicateurs absents du référentiel "
+            f"(ex. {', '.join(inconnus[:3])}) : régénérer le socle avec les référentiels actuels")
+
+
 @cache
 def socle() -> Socle:
-    dossier = Path(os.environ.get("GESTUKAAY_SOCLE_EXTRAIT", RACINE.parent / "socle_gestukaay"))
-    if not dossier.is_absolute():
-        dossier = (RACINE / dossier).resolve()
-    return charger(dossier)
+    """Le socle de $GESTUKAAY_SOCLE_EXTRAIT : un dossier de version, ou le dossier qui les contient
+    (la version publiée la plus récente est prise). Vérifié avant d'être servi."""
+    from gestukaay_socle.version import dossier_du_socle, ecarts_referentiels
+
+    chemin = Path(os.environ.get("GESTUKAAY_SOCLE_EXTRAIT", RACINE.parent / "socle_gestukaay"))
+    if not chemin.is_absolute():
+        chemin = (RACINE / chemin).resolve()
+    dossier = dossier_du_socle(chemin)
+    s = charger(dossier)
+    verifier(s)
+    if ecarts := ecarts_referentiels(dossier):
+        print(f"[socle {s.version}] référentiels modifiés depuis l'extraction : {', '.join(ecarts)}",
+              file=sys.stderr)
+    return s

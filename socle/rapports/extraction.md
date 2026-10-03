@@ -1,6 +1,6 @@
 # Extraction du socle
 
-Socle brut : `socle_opendata_par_themes/observations.csv` · sortie : `socle_gestukaay/` (hors Git) · schéma du cahier 10.3 (décision #4).
+Socle brut : `socle_opendata_par_themes/observations.csv` · sortie : `2099.1.0/` (hors Git) · schéma du cahier 10.3 (décision #4).
 
 ## Résumé
 

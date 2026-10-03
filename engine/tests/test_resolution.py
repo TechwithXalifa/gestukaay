@@ -140,3 +140,12 @@ def test_demandes_du_llm_tolerees():
                                cycle="primaire"))).valeur == 86.7
     x = une(resoudre(s, req("sbsryhc", ["SN-KL"], produit="riz")))
     assert (x.valeur, x.periode.valeur) == (273.5, "2016")
+
+
+def test_socle_incoherent_refuse():
+    """Décision 0013 : un indicateur du socle inconnu du référentiel -> le moteur ne démarre pas."""
+    import pytest
+    from gestukaay_engine.socle import SocleIncoherent, verifier
+    verifier(SOCLE)  # tous connus
+    with pytest.raises(SocleIncoherent, match="code-disparu"):
+        verifier(Socle([obs("code-disparu", "SN", "2023", 1)], SOURCES, "2026.10.0"))

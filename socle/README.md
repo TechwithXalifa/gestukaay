@@ -116,3 +116,16 @@ avec `motif` et `preuve` :
 | `unite_affichee` | unité montrée au public (reportée dans `indicateurs.csv`) ; le nombre n'est jamais modifié |
 
 Les contrôles automatiques ne font que signaler : `rapports/controles.md`.
+
+## Versions du socle — `../socle_gestukaay/<version>/` (issue #8, décision 0013)
+
+```bash
+uv run python socle/scripts/extraire.py                       # ../socle_gestukaay/brouillon/ (écrasable)
+uv run python socle/scripts/extraire.py --version 2026.10.0   # version publiée : jamais réécrite
+```
+
+Chaque dossier contient `VERSION` et `MANIFEST.json` (date, commit Git, comptes, empreintes sha256 des
+fichiers et des référentiels utilisés). L'extraction est déterministe : deux machines qui extraient le
+même socle brut avec le même commit obtiennent les mêmes empreintes. Le moteur prend le dossier de
+`GESTUKAAY_SOCLE_EXTRAIT` (ou la version publiée la plus récente qu'il contient) et refuse de démarrer
+si un indicateur du socle manque au référentiel.

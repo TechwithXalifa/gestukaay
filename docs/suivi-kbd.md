@@ -9,14 +9,14 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | Chantier | Fait | Total | Jalon principal |
 |---|---|---|---|
 | 0 · Fondations | 4 | 4 | ✅ terminé |
-| 1 · Socle | 7 | 8 | Préparation |
+| 1 · Socle | 8 | 8 | Préparation |
 | 2 · Moteur | 4 | 10 | Préparation |
 | 3 · Jeu de test et mesure | 1 | 4 | Préparation |
 | 4 · Wolof | 1 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **17** | **46** | |
+| **Total** | **18** | **46** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -57,7 +57,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [x] **1.5** Étiqueter chaque valeur : observée, estimation ou projection — [#5](https://github.com/TechwithXalifa/gestukaay/issues/5) · échéance 02/10 · après 1.4
 - [x] **1.6** Contrôles et rapport d'anomalies — [#6](https://github.com/TechwithXalifa/gestukaay/issues/6) · échéance 03/10 · après 1.4
 - [x] **1.7** Fiches indicateurs (libellés FR/WO, définition, unité, périmètre) — [#7](https://github.com/TechwithXalifa/gestukaay/issues/7) · échéance 03/10 · après 1.3
-- [ ] **1.8** Figer la version du socle et le format de chargement avec Aziz ⚖️ — [#8](https://github.com/TechwithXalifa/gestukaay/issues/8) · échéance 03/10 · après 1.5, 1.6
+- [x] **1.8** Figer la version du socle et le format de chargement avec Aziz ⚖️ — [#8](https://github.com/TechwithXalifa/gestukaay/issues/8) · échéance 03/10 · après 1.5, 1.6
 
 ## 2 · Moteur
 
