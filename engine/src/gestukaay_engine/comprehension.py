@@ -64,6 +64,8 @@ class SortieLLM(BaseModel):
         False,
         description="vrai si la question est inintelligible ou incompréhensible",
     )
+    periode_fin: str | None = Field(None, description="deuxième période pour une comparaison temporelle, ou null")
+    ordre: Literal["desc", "asc"] = Field("desc", description="sens du classement : desc (le plus) ou asc (le moins)")
 
 
 SYSTEME = """Tu traduis une question sur les statistiques officielles du Sénégal en requête structurée.
@@ -216,8 +218,12 @@ class Comprehension:
         # parle du temps (« l'an dernier ») : sinon il en déduit une du nom du jeu (« RGPH-5, 2023 »)
         if periodes:
             periode = periode_de(periodes[0])
+            if len(periodes) > 1:
+                periode.fin = periodes[1]
         elif _TEMPS.search(normaliser(question)):
             periode = periode_valide(s.periode_type, s.periode_valeur) or Periode(type="derniere")
+            if s.periode_fin:
+                periode.fin = s.periode_fin
         else:
             periode = Periode(type="derniere")
         if not zones and precedente and _suivi(question):
@@ -226,7 +232,7 @@ class Comprehension:
                                    ("cycle", s.cycle), ("produit", s.produit)) if v}
         return RequeteStructuree(intention=intention, indicateur=code if intention != "hors_perimetre" else None,
                                  zones=zones, periode=periode, desagregation=desag or None,
-                                 confiance=round(s.confiance, 2))
+                                 ordre=s.ordre, confiance=round(s.confiance, 2))
 
 
 # --------------------------------------------------------------------------
@@ -237,6 +243,7 @@ SEUIL_REGLES = 6.0  # score BM25 minimal pour oser un indicateur sans LLM
 _CLASSEMENT = re.compile(r"\b(le|la|les) (plus|moins)\b|\bquelle region\b|\bclasse(ment)?\b"
                          r"|\bdiiwaan\b.*\b(epp|gena|geuna)\b|\bban region\b")
 _COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)\b")
+_ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\bmoins d[e']\b")
 
 
 def regles(question: str, candidats: list[Candidat], zones: list[str], periodes: list[str],
@@ -259,6 +266,13 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
         intention = "comparaison"
     else:
         intention = "valeur"
-    periode = periode_de(periodes[0]) if periodes else Periode(type="derniere")
+    ordre = "asc" if _ORDRE_ASC.search(t) else "desc"
+    if len(periodes) > 1:
+        periode = periode_de(periodes[0])
+        periode.fin = periodes[1]
+    elif periodes:
+        periode = periode_de(periodes[0])
+    else:
+        periode = Periode(type="derniere")
     return RequeteStructuree(intention=intention, indicateur=code, zones=zones, periode=periode,
-                             desagregation=desagregation_citee(question) or None, confiance=0.4)
+                             desagregation=desagregation_citee(question) or None, ordre=ordre, confiance=0.4)

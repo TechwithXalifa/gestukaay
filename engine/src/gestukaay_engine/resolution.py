@@ -24,6 +24,7 @@ from functools import cache
 from typing import Literal
 
 from gestukaay_contracts.models import (
+    Graphique,
     PeriodeResolue,
     RefIndicateur,
     RefZone,
@@ -34,7 +35,14 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.indicateurs import REFERENTIELS, Indicateur, indicateurs
 from gestukaay_socle.zones import normaliser, zones
 
+from .candidats import periodes_citees
 from .gabarits import formater
+from .graphique import (
+    graphique_classement,
+    graphique_comparaison_zones,
+    graphique_contexte_valeur,
+    graphique_evolution,
+)
 from .socle import Observation, Socle
 
 Raison = Literal["indicateur_inconnu", "zone_non_couverte", "periode_absente", "desagregation_absente",
@@ -66,6 +74,7 @@ _MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "aoû
 class Resolution:
     resultats: list[Resultat]
     defauts: dict[str, bool] = field(default_factory=dict)  # {"zone": …, "periode": …} pris par défaut
+    graphique: Graphique | None = None
 
 
 @dataclass
@@ -315,22 +324,138 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
     return resultat(socle, retenues[0], ind, langue, uniques), defauts
 
 
+def _chercher_indicateur(code: str | None) -> Indicateur | None:
+    if not code:
+        return None
+    ind = indicateurs().get(code)
+    if ind is None and "." not in code:
+        ind = next((i for i in indicateurs().values() if i.code.startswith(code + ".")), None)
+    return ind
+
+
+_ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\bmoins d[e']\b")
+
+
 def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", question: str = "",
              lieux_inconnus: list[str] | None = None) -> Resolution | Introuvable:
-    """Intentions « valeur » et « comparaison » (plusieurs zones). Le classement relève de #14.
+    """Intentions « valeur », « comparaison » et « classement » (issue #14).
     lieux_inconnus : lieux cités mais absents du référentiel (« Touba », « la ville de Thiès ») :
     jamais remplacés par le national."""
     if lieux_inconnus:
         return Introuvable("zone_non_couverte", "lieu hors référentiel : " + ", ".join(lieux_inconnus))
-    if requete.intention == "classement":
-        return Introuvable("non_traite", "classement : #14")
     if requete.intention == "hors_perimetre" or not requete.indicateur:
         return Introuvable("indicateur_inconnu", "hors périmètre")
-    ind = indicateurs().get(requete.indicateur)
+
+    ind = _chercher_indicateur(requete.indicateur)
     if ind is None:
         return Introuvable("indicateur_inconnu", f"{requete.indicateur} : code inconnu du référentiel")
-    periode = None if requete.periode.type == "derniere" else requete.periode.valeur
+
     demande = dict(requete.desagregation or {})
+
+    # -----------------------------------------------------------------------
+    # Classement (#14) : 14 régions ou 16 académies
+    # -----------------------------------------------------------------------
+    if requete.intention == "classement":
+        periode = None if requete.periode.type == "derniere" else requete.periode.valeur
+        lignes = socle.observations(ind.code)
+        if not lignes:
+            return Introuvable("indicateur_inconnu", f"{ind.code} : aucune valeur dans le socle")
+        publiees = {o.zone for o in lignes}
+
+        if requete.zones and len(requete.zones) > 1:
+            zones_cibles = requete.zones
+        elif "academie" in ind.niveaux_zone or any(zones().get(z) and zones()[z].niveau == "academie" for z in publiees):
+            # Éducation : 16 académies (FR-040)
+            zones_cibles = [z.code for z in zones().values() if z.niveau == "academie"]
+        else:
+            # 14 régions administratives
+            zones_cibles = [z.code for z in zones().values() if z.niveau == "region" and z.code != "SN"]
+
+        resultats = []
+        defauts = {}
+        for z in zones_cibles:
+            r = resoudre_un(socle, ind, z, periode, demande, langue, question)
+            if not isinstance(r, Introuvable):
+                resultats.append(r[0])
+                defauts = {k: defauts.get(k, False) or v for k, v in r[1].items()}
+
+        if not resultats:
+            return Introuvable("zone_non_couverte", "aucune zone disponible pour le classement")
+
+        # Sens du tri : requete.ordre sinon repli lexical dans la question
+        ordre = getattr(requete, "ordre", "desc") or "desc"
+        if ordre == "desc" and _ORDRE_ASC.search(normaliser(question)):
+            ordre = "asc"
+
+        reverse = (ordre == "desc")
+        resultats.sort(key=lambda r: r.valeur, reverse=reverse)
+
+        # Mise en évidence de la zone citée si la question en cite une, sinon de la tête
+        zone_citee = None
+        if requete.zones and len(requete.zones) == 1:
+            zone_citee = requete.zones[0]
+        else:
+            for z_code in zones_cibles:
+                z_obj = zones().get(z_code)
+                if z_obj and re.search(r"\b" + re.escape(normaliser(z_obj.libelle_fr)) + r"\b", normaliser(question)):
+                    zone_citee = z_code
+                    break
+
+        if zone_citee and any(r.zone.code == zone_citee for r in resultats):
+            for r in resultats:
+                r.mise_en_evidence = (r.zone.code == zone_citee)
+        else:
+            for i, r in enumerate(resultats):
+                r.mise_en_evidence = (i == 0)
+
+        graph = graphique_classement(resultats, ind)
+        return Resolution(resultats, defauts, graph)
+
+    # -----------------------------------------------------------------------
+    # Comparaison (#14) : spatiale (2+ zones) ou temporelle (2 périodes)
+    # -----------------------------------------------------------------------
+    if requete.intention == "comparaison":
+        fin = getattr(requete.periode, "fin", None)
+        citees = periodes_citees(question) if not fin else []
+        if (len(requete.zones or []) <= 1) and (fin or len(citees) >= 2):
+            # Comparaison temporelle
+            z = requete.zones[0] if (requete.zones and len(requete.zones) == 1) else None
+            p_debut = requete.periode.valeur if requete.periode.valeur else (citees[0] if citees else None)
+            p_fin = fin or (citees[1] if len(citees) >= 2 else None)
+            if p_debut and p_fin and p_debut > p_fin:
+                p_debut, p_fin = p_fin, p_debut
+
+            r_deb = resoudre_un(socle, ind, z, p_debut, demande, langue, question)
+            if isinstance(r_deb, Introuvable):
+                return r_deb
+            r_fin = resoudre_un(socle, ind, z, p_fin, demande, langue, question)
+            if isinstance(r_fin, Introuvable):
+                return r_fin
+
+            r_deb[0].mise_en_evidence = True
+            r_fin[0].mise_en_evidence = True
+            resultats = [r_deb[0], r_fin[0]]
+            defauts = {k: r_deb[1].get(k, False) or r_fin[1].get(k, False) for k in ("zone", "periode")}
+            graph = graphique_evolution(socle, resultats, ind)
+            return Resolution(resultats, defauts, graph)
+
+        # Comparaison spatiale (2+ zones, même période)
+        periode = None if requete.periode.type == "derniere" else requete.periode.valeur
+        resultats, defauts = [], {}
+        for z in requete.zones or [None]:
+            r = resoudre_un(socle, ind, z, periode, demande, langue, question)
+            if isinstance(r, Introuvable):
+                return r
+            r[0].mise_en_evidence = True
+            resultats.append(r[0])
+            defauts = {k: defauts.get(k, False) or v for k, v in r[1].items()}
+        graph = graphique_comparaison_zones(resultats, ind) if len(resultats) > 1 else None
+        return Resolution(resultats, defauts, graph)
+
+    # -----------------------------------------------------------------------
+    # Valeur unique
+    # -----------------------------------------------------------------------
+    periode = None if requete.periode.type == "derniere" else requete.periode.valeur
     resultats, defauts = [], {}
     for z in requete.zones or [None]:
         r = resoudre_un(socle, ind, z, periode, demande, langue, question)
@@ -338,7 +463,10 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
             return r
         resultats.append(r[0])
         defauts = {k: defauts.get(k, False) or v for k, v in r[1].items()}
-    return Resolution(resultats, defauts)
+    graph = None
+    if len(resultats) == 1:
+        graph = graphique_contexte_valeur(socle, resultats[0], ind)
+    return Resolution(resultats, defauts, graph)
 
 
 def national(socle: Socle, r: Resultat, langue: str = "fr") -> Resultat | None:

@@ -182,11 +182,14 @@ def notes(r: Resultat, arrondi: bool) -> str | None:
 
 
 def explication(resultats: list[Resultat], derniere: bool = False,
-                nationaux: dict[str, Resultat] | None = None) -> str:
+                nationaux: dict[str, Resultat] | None = None,
+                intention: str = "valeur", ordre: str = "desc") -> str:
     """1 à 3 phrases. `nationaux` : valeur nationale publiée de chaque indicateur, même période."""
     nationaux = nationaux or {}
     r = resultats[0]
     ind = indicateurs()[r.indicateur.code]
+    if intention == "classement":
+        return classement(resultats, ind, ordre)
     if len(resultats) == 1:
         principale, arrondi = phrase_principale(r, ind, derniere)
         phrases = [principale]
@@ -197,11 +200,74 @@ def explication(resultats: list[Resultat], derniere: bool = False,
     return comparaison(resultats, ind)
 
 
+def classement(resultats: list[Resultat], ind: Indicateur, ordre: str = "desc") -> str:
+    """Forme sans accord à deviner (choix 4) :
+    « En {période}, la valeur la plus élevée est celle de {zone 1} ({v1}), devant celles de {zone 2} ({v2}) et de {zone 3} ({v3}). »
+    """
+    if not resultats:
+        return ""
+    p = resultats[0].periode.valeur
+    en_p = f"{periode_en_lettres(p)[0].upper()}{periode_en_lettres(p)[1:]}"
+    superlatif = "la plus élevée" if ordre == "desc" else "la plus faible"
+
+    def nom_zone(r: Resultat) -> str:
+        z = zones().get(r.zone.code)
+        nom = z.libelle_fr if z else r.zone.libelle
+        if r.zone.niveau == "academie":
+            return f"l'académie {_de(nom)}"
+        return nom
+
+    def val_zone(r: Resultat) -> str:
+        nb, _ = formater(r.valeur, r.unite)
+        return avec_unite(nb, r.unite)
+
+    z1, v1 = nom_zone(resultats[0]), val_zone(resultats[0])
+    if len(resultats) >= 3:
+        z2, v2 = nom_zone(resultats[1]), val_zone(resultats[1])
+        z3, v3 = nom_zone(resultats[2]), val_zone(resultats[2])
+        phrase = (f"{en_p}, la valeur {superlatif} est celle {_de(z1)} ({v1}), "
+                  f"devant celles {_de(z2)} ({v2}) et {_de(z3)} ({v3}).")
+    elif len(resultats) == 2:
+        z2, v2 = nom_zone(resultats[1]), val_zone(resultats[1])
+        phrase = (f"{en_p}, la valeur {superlatif} est celle {_de(z1)} ({v1}), "
+                  f"devant celle {_de(z2)} ({v2}).")
+    else:
+        phrase = f"{en_p}, la valeur est celle {_de(z1)} ({v1})."
+
+    arrondi = any(formater(r.valeur, r.unite)[1] for r in resultats[:3])
+    n = notes(resultats[0], arrondi)
+    return f"{phrase} {n}".strip() if n else phrase
+
+
 def comparaison(resultats: list[Resultat], ind: Indicateur) -> str:
     """« Taux de chômage en 2025 : 13,2 % dans la région de Dakar, 22,7 % dans la région de Thiès. »"""
+    memes_zones = len({r.zone.code for r in resultats}) == 1
+    memes_periodes = len({r.periode.valeur for r in resultats}) == 1
+
+    # Comparaison temporelle (même zone, périodes différentes)
+    if memes_zones and not memes_periodes:
+        r1, r2 = resultats[0], resultats[-1]
+        if r1.periode.valeur > r2.periode.valeur:
+            r1, r2 = r2, r1
+        nb1, a1 = formater(r1.valeur, r1.unite)
+        nb2, a2 = formater(r2.valeur, r2.unite)
+        v1 = avec_unite(nb1, r1.unite)
+        v2 = avec_unite(nb2, r2.unite)
+        p1 = periode_en_lettres(r1.periode.valeur)
+        p2 = periode_en_lettres(r2.periode.valeur)
+        z = zone_en_lettres(r1.zone.code)
+        tete = ind.libelle_fr + precisions(r1)
+        tendance = "en hausse" if r2.valeur > r1.valeur else "en baisse" if r2.valeur < r1.valeur else "stable"
+        phrase = f"{tete} {z['dans']} : {v1} {p1} et {v2} {p2}, soit une évolution {tendance}."
+        phrase = phrase[0].upper() + phrase[1:]
+        phrases = [phrase]
+        arrondi = a1 or a2
+        phrases.append(notes(r1, arrondi))
+        return " ".join(p for p in phrases if p)
+
+    # Comparaison spatiale (zones différentes)
     arrondi = False
     morceaux = []
-    memes_periodes = len({r.periode.valeur for r in resultats}) == 1
     for r in resultats:
         nombre, a = formater(r.valeur, r.unite)
         arrondi |= a
