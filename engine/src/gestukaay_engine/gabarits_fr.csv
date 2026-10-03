@@ -1,0 +1,28 @@
+code;gabarit;comparer_au_national
+pvswjnd;{zone_sujet} compte {valeur}{precisions} {periode}.;non
+dwibrlf;Le taux de chômage{precisions} est de {valeur} {zone_dans} {periode}.;oui
+jcvcajc.taux-de-pauvrete;Le taux de pauvreté{precisions} est de {valeur} {zone_dans} {periode}.;oui
+qjyrtof.gini;L'indice de Gini, qui va de 0 (égalité parfaite) à 1, est de {nombre} {zone_dans} {periode}.;oui
+muhgux.salaire-moyen-mensuel;Le salaire moyen est de {valeur} {zone_dans} {periode}.;oui
+feujxob.riz-brise-ordinaire-au-detail;Le riz brisé ordinaire se vend {valeur} au détail à Dakar {periode}.;non
+feujxob.mil-en-grain-vendu-au-detail;Le mil en grain se vend {valeur} au détail à Dakar {periode}.;non
+sbsryhc;Le prix de détail{precisions} est de {valeur} {zone_dans} {periode}.;non
+tsghpfc.indice-global;L'indice harmonisé des prix à la consommation est de {nombre} {zone_dans} {periode} (base 100 en 2023).;non
+rfegvpb.taux-durbanisation;Le taux d'urbanisation {zone_de} est de {valeur} {periode}.;oui
+pexioke.esperance-de-vie-a-la-naissance;L'espérance de vie à la naissance{precisions} est de {valeur} {zone_dans} {periode}.;oui
+elwxsmc.indice-synthetique-de-fecondite;Une femme a en moyenne {nombre} enfants{precisions} {zone_dans} {periode} (indice synthétique de fécondité).;oui
+smcofug.quotient-de-mortalite-infanto-juvenile;Sur 1 000 enfants nés vivants{precisions}, {nombre} meurent avant l'âge de 5 ans {zone_dans} {periode}.;oui
+wdvdnub.proportion-denfants-de-12-a-23-mois;{valeur} des enfants de 12 à 23 mois{precisions} sont complètement vaccinés {zone_dans} {periode}.;oui
+xsitdae.enfants-souffrant-dun-retard-de-croissance;{valeur} des enfants de moins de 5 ans{precisions} souffrent d'un retard de croissance {zone_dans} {periode}.;oui
+ervtjfc.taux-brut-de-scolarisation;Le taux brut de scolarisation{precisions} est de {valeur} {zone_dans} {periode}.;oui
+ervtjfc.pourcentage-de-filles-dans-les-effectifs;Les filles représentent {valeur} des élèves{precisions} {zone_dans} {periode}.;oui
+kdtstle.robinet-dans-logement-concession;{valeur} des ménages{precisions} ont un robinet dans le logement ou la concession {zone_dans} {periode}.;oui
+asongtc;{valeur} des ménages{precisions} s'éclairent à l'électricité {zone_dans} {periode}.;oui
+cfulhc.taux-de-penetration-mobile;Le taux de pénétration de la téléphonie mobile est de {valeur} {zone_dans} {periode}.;non
+iocwzud;Le taux de criminalité est de {valeur} {zone_dans} {periode}.;non
+ioxbglg.nombre-de-personnes-emprisonnees;On compte {valeur} emprisonnées{precisions} {zone_dans} {periode}.;non
+wrqfsxb.quantite;Les captures de poisson{precisions} atteignent {valeur} {zone_dans} {periode}.;non
+ovothxc.production;La production{precisions} atteint {valeur} {zone_dans} {periode}.;non
+rgohtcc;Le produit intérieur brut (PIB) {zone_de} est de {valeur} {periode} ({d[prix-pib]}, {d[base-pib]}).;non
+whkisxc;{zone_sujet} a enregistré {valeur} de visiteurs non-résidents{precisions} {periode}.;non
+qbvttzc;Le parc compte {valeur}{precisions} {zone_dans} {periode}.;non

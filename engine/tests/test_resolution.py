@@ -3,7 +3,7 @@
 from datetime import date
 
 from gestukaay_contracts.models import Periode, RequeteStructuree, Resultat
-from gestukaay_engine.resolution import Introuvable, Resolution, formater, libelle_periode, resoudre
+from gestukaay_engine.resolution import Introuvable, Resolution, libelle_periode, resoudre
 from gestukaay_engine.socle import Observation, Socle, SourceJeu, charger
 
 
@@ -105,7 +105,6 @@ def test_comparaison_et_projection():
 
 
 def test_formats():
-    assert formater(25.7) == "25,7" and formater(0.3) == "0,3" and formater(391.145833) == "391"
     assert libelle_periode("2026-03") == "mars 2026" and libelle_periode("2024-T2") == "2e trimestre 2024"
 
 

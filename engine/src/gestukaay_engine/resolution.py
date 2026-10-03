@@ -34,6 +34,7 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.indicateurs import REFERENTIELS, Indicateur, indicateurs
 from gestukaay_socle.zones import normaliser, zones
 
+from .gabarits import formater
 from .socle import Observation, Socle
 
 Raison = Literal["indicateur_inconnu", "zone_non_couverte", "periode_absente", "desagregation_absente",
@@ -194,17 +195,6 @@ def libelle_periode(p: str) -> str:
     return p
 
 
-def formater(v: float) -> str:
-    """2463677 -> « 2 463 677 » (espace fine insécable U+202F) ; 25.7 -> « 25,7 »."""
-    if v == int(v) or abs(v) >= 1000:
-        texte = f"{round(v):,}"
-    elif abs(v) >= 100:
-        texte = f"{v:,.0f}"
-    else:
-        texte = f"{v:,.2f}".rstrip("0").rstrip(".") if abs(v) < 1 else f"{v:,.1f}"
-    return texte.replace(",", " ").replace(".", ",")
-
-
 def _date_fr(d: date) -> str:
     return f"{'1er' if d.day == 1 else d.day} {_MOIS[d.month - 1]} {d.year}"
 
@@ -219,11 +209,34 @@ def _operations() -> dict[str, str]:
         return {r["dataset_id"]: r.get("operation", "") for r in csv.DictReader(fh, delimiter=";")}
 
 
+@cache
+def _sources_citees() -> dict[str, tuple[str, str]]:
+    """Producteur et opération à citer, déclarés avec leur preuve (sources_citees.csv, #16)."""
+    f = REFERENTIELS / "sources_citees.csv"
+    if not f.exists():
+        return {}
+    with f.open(encoding="utf-8") as fh:
+        return {r["dataset_id"]: (r["producteur"], r["operation"]) for r in csv.DictReader(fh, delimiter=";")}
+
+
+def producteur_et_operation(dataset_id: str, s, ind: Indicateur) -> tuple[str, str]:
+    """Déclarés si possible ; sinon le producteur du portail lisible et l'opération du portail
+    si elle est courte, ou le titre du jeu (EF-35 : « ANSD, RGPH-5 (2023) »)."""
+    if dataset_id in _sources_citees():
+        return _sources_citees()[dataset_id]
+    producteur = (s.producteur if s else "") or ind.producteur
+    producteur = producteur.replace("-", " ") if "-" in producteur and " " not in producteur else producteur
+    operation = _operations().get(dataset_id, "")
+    if not operation or len(operation) > 60:
+        from gestukaay_socle.indicateurs import nom_du_jeu
+        operation = nom_du_jeu(s.titre if s else ind.jeu)
+    return producteur, operation
+
+
 def source(socle: Socle, o: Observation, ind: Indicateur) -> Source:
     s = socle.sources.get(o.source_id)
     publie = (s.date_publication if s and s.date_publication else None) or date(1970, 1, 1)
-    producteur = (s.producteur if s else "") or ind.producteur
-    operation = _operations().get(o.source_id, "")
+    producteur, operation = producteur_et_operation(o.source_id, s, ind)
     licence = s.licence if s else ""
     libelle = " · ".join(x for x in (producteur, operation, f"publié le {_date_fr(publie)}", licence) if x)
     return Source(producteur=producteur, operation=operation, titre=(s.titre if s else ind.jeu),
@@ -237,14 +250,18 @@ def ref_zone(code: str) -> RefZone:
     return RefZone(code=code, libelle=libelle, niveau=z.niveau)
 
 
-def resultat(socle: Socle, o: Observation, ind: Indicateur, langue: str = "fr") -> Resultat:
-    desag = {k: v for k, v in o.desagregation if not est_total(v)}
+def resultat(socle: Socle, o: Observation, ind: Indicateur, langue: str = "fr",
+             sans_choix: frozenset[str] = frozenset()) -> Resultat:
+    """sans_choix : dimensions à une seule modalité (« catégorie : Indices de pauvreté ») : elles ne
+    précisent rien, on ne les affiche pas."""
+    desag = {k: v for k, v in o.desagregation if not est_total(v) and k not in sans_choix}
     libelle = (ind.libelle_wo if langue == "wo" and ind.libelle_wo else ind.libelle_fr)
+    unite = ind.unite_affichee or ind.unite or o.unite
     return Resultat(
         indicateur=RefIndicateur(code=ind.code, libelle=libelle), zone=ref_zone(o.zone),
         periode=PeriodeResolue(valeur=o.periode, libelle=libelle_periode(o.periode)),
-        desagregation=desag or None, valeur=o.valeur, valeur_affichee=formater(o.valeur),
-        unite=ind.unite_affichee or ind.unite or o.unite, source=source(socle, o, ind),
+        desagregation=desag or None, valeur=o.valeur, valeur_affichee=formater(o.valeur, unite)[0],
+        unite=unite, source=source(socle, o, ind),
         observation_id=o.id, nature=o.nature if o.nature in ("observee", "estimation", "projection") else None,
         base_projection=o.base_projection or None,
     )
@@ -292,7 +309,10 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
         return erreur
     if len({o.desagregation for o in retenues}) > 1:  # ne devrait pas arriver après choisir()
         return Introuvable("desagregation_ambigue", "plusieurs lignes pour la même clé")
-    return resultat(socle, retenues[0], ind, langue), defauts
+    toutes = socle.observations(ind.code)
+    uniques = frozenset(k for k in {k for o in toutes for k, _ in o.desagregation}
+                        if len({o.dims().get(k) for o in toutes} - {None}) == 1)
+    return resultat(socle, retenues[0], ind, langue, uniques), defauts
 
 
 def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", question: str = "",
@@ -319,3 +339,19 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
         resultats.append(r[0])
         defauts = {k: defauts.get(k, False) or v for k, v in r[1].items()}
     return Resolution(resultats, defauts)
+
+
+def national(socle: Socle, r: Resultat, langue: str = "fr") -> Resultat | None:
+    """La valeur nationale publiée qui correspond à un résultat régional : même indicateur, même
+    période, mêmes modalités. Lue dans le socle, jamais calculée (position relative, #16)."""
+    lignes = socle.observations(r.indicateur.code)
+    o = next((x for x in lignes if x.id == r.observation_id), None)
+    if o is None or o.zone == "SN":
+        return None
+    n = next((x for x in lignes if x.zone == "SN" and x.periode == o.periode
+              and x.desagregation == o.desagregation), None)
+    if n is None:
+        return None
+    uniques = frozenset(k for k in {k for o in lignes for k, _ in o.desagregation}
+                        if len({o.dims().get(k) for o in lignes} - {None}) == 1)
+    return resultat(socle, n, indicateurs()[r.indicateur.code], langue, uniques)

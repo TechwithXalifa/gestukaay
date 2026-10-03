@@ -1,12 +1,12 @@
 # Bout en bout — compréhension + résolution (regles)
 
-Socle : 644827 valeurs chargées en 2.1 s ; résolution : 0.0 ms en médiane.
+Socle : 644827 valeurs chargées en 2.2 s ; résolution : 0.1 ms en médiane.
 
 | | |
 |---|---|
 | **Chiffres faux affichés** | **9** |
-| Questions exactes : valeur juste au chiffre près | 48/57 |
-| Questions exactes : sans réponse | 6/57 |
+| Questions exactes : valeur juste au chiffre près | 49/57 |
+| Questions exactes : sans réponse | 5/57 |
 | Approchées et refus : aucune valeur servie | 25/31 |
 | Hors #11 (classement #14, deux périodes : contrat) | 15 |
 
@@ -15,7 +15,6 @@ Socle : 644827 valeurs chargées en 2.1 s ; résolution : 0.0 ms en médiane.
 | Id | Question | Résultat | Indicateur compris | Obtenu | Attendu |
 |---|---|---|---|---|---|
 | FR-018 | Quelle est la production de riz du Sénégal ? | **sans_reponse** | feujxob.riz-brise-ordinaire-au-detail | zone_non_couverte : SN non publié | SN 2017 = 1.01127e+06 |
-| FR-021 | Quel est le coefficient de Gini du Sénégal ? | **sans_reponse** | bdubwzf.coefficient-de-gini | zone_non_couverte : SN non publié | SN 2023 = 0.3 |
 | FR-025 | Combien y a-t-il de jeunes de moins de 15 ans au Sénégal ? | **sans_reponse** | yrzztrb.pourcentage-de-jeunes-femmes-de-20-a-24-ans-en | desagregation_absente : age = moins de 15 | SN 2023 = 7.09113e+06 |
 | FR-031 | Le prix du riz brisé au détail a-t-il augmenté entre mars 2025 et mars 2026 ? | **hors_11** | feujxob.riz-brise-ordinaire-au-detail | SN-DK 2025-03 = 399.879 | SN-DK 2025-03 = 399.879|SN-DK 2026-03 = 309.026 |
 | FR-032 | Le taux de pauvreté a-t-il baissé entre 2011 et 2022 au Sénégal ? | **hors_11** | jcvcajc.taux-de-pauvrete | SN 2011 = 46.7 | SN 2011 = 46.7|SN 2022 = 37.5 |
