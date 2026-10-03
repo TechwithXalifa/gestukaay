@@ -37,6 +37,10 @@ jobs:
       - run: npm ci
       - name: Types (contrat compris)
         run: npx tsc --noEmit
+      - name: Build de production
+        run: npm run build
+      - name: Budget JavaScript (cahier 7.6)
+        run: npm run budget
 
   docker:
     runs-on: ubuntu-latest
