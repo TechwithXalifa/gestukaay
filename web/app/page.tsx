@@ -38,7 +38,7 @@ export default function Accueil() {
     setEcoute(false);
     setMicroRefuse(false);
     try {
-      const r = await demander(voix ? { question: q, source: "voix", ...voix } : { question: q });
+      const r = await demander(voix ? { question: q, source: "voix", audio_retour: true, ...voix } : { question: q });
       router.push(`/r/${r.reponse.id}`);
     } catch (e) {
       setErreur(e);
