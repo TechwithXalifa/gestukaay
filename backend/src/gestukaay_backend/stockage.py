@@ -59,6 +59,15 @@ _TABLES = [
         recu_le TEXT NOT NULL,
         PRIMARY KEY (canal, message_id)
     )""",
+    # Exécutions du benchmark lancées depuis le back-office (jeu_de_test.py)
+    """CREATE TABLE IF NOT EXISTS executions_benchmark (
+        id TEXT PRIMARY KEY,
+        mode TEXT NOT NULL,
+        lancee_le TEXT NOT NULL,
+        statut TEXT NOT NULL,
+        erreur TEXT,
+        resultat TEXT
+    )""",
     """CREATE TABLE IF NOT EXISTS retours (
         reponse_id TEXT NOT NULL,
         recu_le TEXT NOT NULL,
@@ -327,3 +336,23 @@ class Stockage:
             "par_jour": [{"jour": j, "questions": par_jour.get(j, 0)} for j in jours_liste],
             "non_resolues": sorted(groupes.values(), key=lambda g: (-g["occurrences"], g["question"]))[:10],
         }
+
+    # ------------------------------------------------------------------ jeu de test
+
+    def creer_execution(self, mode: str) -> str:
+        eid = secrets.token_hex(6)
+        self._executer("INSERT INTO executions_benchmark (id, mode, lancee_le, statut) VALUES (?, ?, ?, 'en_cours')",
+                       (eid, mode, datetime.now(UTC).isoformat(timespec="seconds")))
+        return eid
+
+    def terminer_execution(self, eid: str, resultat: dict | None, erreur: str | None = None) -> None:
+        self._executer("UPDATE executions_benchmark SET statut = ?, resultat = ?, erreur = ? WHERE id = ?",
+                       ("terminee" if resultat is not None else "echec",
+                        json.dumps(resultat, ensure_ascii=False) if resultat is not None else None, erreur, eid))
+
+    def executions(self) -> list[dict]:
+        """Les exécutions, plus récentes d'abord, avec leur résultat complet (None si en cours ou en échec)."""
+        lignes = self._executer(
+            "SELECT id, mode, lancee_le, statut, erreur, resultat FROM executions_benchmark ORDER BY lancee_le DESC, id")
+        return [{"id": i, "mode": m, "lancee_le": d, "statut": st, "erreur": e,
+                 "resultat": json.loads(r) if r else None} for i, m, d, st, e, r in lignes]

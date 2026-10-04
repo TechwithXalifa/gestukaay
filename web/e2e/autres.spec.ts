@@ -153,3 +153,15 @@ test("méthode : résultats de la mesure publiés, réussites et erreurs (cahier
   await expect(page.getByRole("region", { name: "Là où Gëstukaay se trompe encore" })).toContainText("5 questions");
   await accessible(page, "méthode, résultats");
 });
+
+test("jeu de test : écran du back-office, benchmark réservé au moteur réel (5.10)", async ({ page }) => {
+  await page.goto("/admin/jeu-de-test");
+  await page.getByLabel("Jeton d'administration").fill(JETON_ADMIN);
+  await page.getByRole("button", { name: "Ouvrir le jeu de test" }).click();
+  await expect(page.getByRole("heading", { name: "Jeu de test" })).toBeVisible();
+  await expect(page.getByText(/\d+ questions de référence/)).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "faux moteur" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Relancer (règles locales)" })).toBeDisabled();
+  await expect(page.getByRole("link", { name: "Jeu de test" })).toHaveAttribute("aria-current", "page");
+  await accessible(page, "jeu de test");
+});
