@@ -14,8 +14,8 @@ nouvelle réponse approchée (pas de boucle).
 
 Langue : tant que la détection (#24) et les gabarits wolof (#25) manquent, la réponse est rédigée
 en français et déclarée « fr », même pour une question en wolof : pas de faux wolof (décision 0009).
-transcrire() et situer() ne sont pas construits (#28, #95) : NonDisponible, rendu en 503 par le
-backend, plutôt que les chiffres fixes du faux moteur.
+transcrire() n'est pas construit (#28) : NonDisponible, rendu en 503 par le backend, plutôt que le
+texte fixe du faux moteur. situer() : « Où je me situe » (#95, situer.py).
 """
 
 from __future__ import annotations
@@ -43,6 +43,7 @@ from .gabarits import citation, explication, note_perimetre
 from .interface import NonDisponible
 from .refus import Refus, construire_reponse_aucune, est_projection, refuser
 from .resolution import Introuvable, Resolution, national, ordre_effectif, resoudre
+from .situer import situer as situer_menage
 from .socle import Socle, socle
 
 LANGUE = "fr"  # seule langue de rédaction tant que #24 et #25 ne sont pas faites
@@ -95,7 +96,7 @@ class MoteurReel:
         raise NonDisponible("transcription de la voix : pas encore disponible (#28)")
 
     def situer(self, req: SituateRequest) -> SituateResponse:
-        raise NonDisponible("« Où je me situe » : pas encore disponible (#95)")
+        return situer_menage(self.socle, req)
 
     def version_socle(self) -> str:
         return self.socle.version

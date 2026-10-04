@@ -36,7 +36,8 @@ dans le quintile le plus bas), pas des bornes de dépenses.
     **consommation moyenne par tête** publiée pour la région et pour le pays (`jcvcajc`, FCFA) ;
   - **taux de pauvreté** publié des ménages de même taille (`jcvcajc`) — au niveau **national** : le portail ne le publie pas par région ;
   - **contexte** : part de la population de la région dans le quintile le plus bas (`qjyrtof`), accès
-    à l'eau et à l'électricité de la région ;
+    à l'eau et à l'électricité de la région ; *(révisé par 0022 : l'eau n'est publiée qu'au niveau
+    national, elle est omise)* ;
   - chaque valeur avec sa source ; encadré pédagogique « C'est quoi une moyenne ? » à la place de
     « C'est quoi un décile ? » (EF-39) ; aucune donnée saisie conservée (EF-40, US-21).
 - **Maquettes à refaire** (plus de barre de déciles). Écart au cahier à acter (EF-38, US-20).

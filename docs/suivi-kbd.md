@@ -10,13 +10,13 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 |---|---|---|---|
 | 0 · Fondations | 4 | 4 | ✅ terminé |
 | 1 · Socle | 8 | 8 | Préparation |
-| 2 · Moteur | 9 | 10 | Préparation |
+| 2 · Moteur | 10 | 11 | Préparation |
 | 3 · Jeu de test et mesure | 2 | 4 | Préparation |
 | 4 · Wolof | 1 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **24** | **46** | |
+| **Total** | **25** | **47** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -71,6 +71,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [x] **2.8** Gabarits d'explication FR, formatage des nombres, citation — [#16](https://github.com/TechwithXalifa/gestukaay/issues/16) · échéance 04/10 · après 2.3
 - [x] **2.9** Basculer du faux moteur au vrai — [#17](https://github.com/TechwithXalifa/gestukaay/issues/17) · échéance 05/10 · après 2.3, 2.4, 2.5
 - [x] **2.10** Contrat v1.1.0 : nature, académie, /v1/transcrire, /v1/situate, graphique de contexte — [#45](https://github.com/TechwithXalifa/gestukaay/issues/45) · échéance 03/10 · après décisions 0002 et 0003
+- [x] **2.11** « Où je me situe » : calcul réel dans le moteur — [#95](https://github.com/TechwithXalifa/gestukaay/issues/95) · échéance 06/10 · après contrat 1.3.0 et 2.9
 
 ## 3 · Jeu de test et mesure
 
