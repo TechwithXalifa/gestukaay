@@ -82,3 +82,13 @@ def test_un_echec_est_garde(reel, monkeypatch):
     assert execution["statut"] == "echec" and "socle indisponible" in execution["erreur"]
     assert jeu_de_test._verrou.acquire(blocking=False)  # le verrou est bien rendu
     jeu_de_test._verrou.release()
+
+
+def test_mode_llm_desactive_par_defaut(reel, monkeypatch):
+    """Aucune dépense sans accord : sans GESTUKAAY_BENCHMARK_LLM=oui, le mode LLM répond 403."""
+    monkeypatch.delenv("GESTUKAAY_BENCHMARK_LLM", raising=False)
+    assert client.get("/admin/jeu-de-test", headers=H).json()["llm_autorise"] is False
+    r = client.post("/admin/jeu-de-test/executions", json={"mode": "llm"}, headers=H)
+    assert r.status_code == 403 and r.json()["title"] == "Désactivé sur ce serveur"
+    monkeypatch.setenv("GESTUKAAY_BENCHMARK_LLM", "oui")
+    assert client.get("/admin/jeu-de-test", headers=H).json()["llm_autorise"] is True

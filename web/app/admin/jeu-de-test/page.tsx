@@ -27,7 +27,7 @@ type Resume = {
 type Execution = { id: string; mode: string; lancee_le: string; statut: "en_cours" | "terminee" | "echec"; erreur: string | null; resume: Resume | null };
 type Question = { id: string; question: string; type: string; langue: string; issue_attendue: string };
 type Evaluation = { question_id: string; issue_obtenue: string; reponse_correcte: boolean; chiffre_faux: boolean; statut: string; detail: string };
-type Liste = { disponible: boolean; questions: Question[]; executions: Execution[] };
+type Liste = { disponible: boolean; llm_autorise: boolean; questions: Question[]; executions: Execution[] };
 
 const MODES: Record<string, string> = { regles: "règles locales", llm: "LLM" };
 const ISSUES: Record<string, string> = { exacte: "exacte", approchee: "approchée", aucune: "refus" };
@@ -159,7 +159,8 @@ export default function JeuDeTest() {
               <button type="button" className="tertiaire" onClick={() => setConfirmerLlm(false)}>Annuler</button>
             </>
           ) : (
-            <button type="button" className="secondaire" disabled={!liste?.disponible || enCours} onClick={() => setConfirmerLlm(true)}>
+            <button type="button" className="secondaire" disabled={!liste?.disponible || !liste?.llm_autorise || enCours}
+                    onClick={() => setConfirmerLlm(true)}>
               Relancer avec le LLM
             </button>
           )}
@@ -169,6 +170,12 @@ export default function JeuDeTest() {
       {liste && !liste.disponible && (
         <p className="bandeau-discret" role="status">
           L'API tourne sur le faux moteur : le benchmark demande le moteur réel (GESTUKAAY_MOTEUR=reel).
+        </p>
+      )}
+      {liste?.disponible && !liste.llm_autorise && (
+        <p className="note">
+          Le benchmark avec le LLM est désactivé sur ce serveur (coût et moteur occupé 2 à 3 minutes) :
+          GESTUKAAY_BENCHMARK_LLM=oui pour l'ouvrir, en local ou hors démo.
         </p>
       )}
       {enCours && <p className="bandeau-discret" role="status">Exécution en cours… les résultats s'affichent dès la fin.</p>}

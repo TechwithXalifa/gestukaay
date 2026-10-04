@@ -14,6 +14,7 @@ import csv
 import dataclasses
 import importlib.util
 import json
+import os
 import sys
 import threading
 from functools import cache
@@ -24,6 +25,12 @@ RACINE = Path(__file__).resolve().parents[3]
 SCRIPT = RACINE / "mesure" / "scripts" / "benchmark.py"
 QUESTIONS = RACINE / "mesure" / "jeu_de_test" / "questions.csv"
 MODES = ("regles", "llm")
+
+
+def llm_autorise() -> bool:
+    """Le mode LLM coûte (environ 0,07 $) et occupe le moteur 2 à 3 minutes dans le même processus que
+    les questions des utilisateurs : désactivé par défaut, à ouvrir seulement en local ou hors démo."""
+    return os.environ.get("GESTUKAAY_BENCHMARK_LLM", "").lower() in ("oui", "1", "on")
 
 _verrou = threading.Lock()
 

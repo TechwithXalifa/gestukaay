@@ -372,6 +372,7 @@ def jeu_de_test_liste(authorization: str | None = Header(None)) -> dict:
     _admin(authorization)
     return {
         "disponible": jeu_de_test.moteur_pour(moteur, "regles") is not None,
+        "llm_autorise": jeu_de_test.llm_autorise(),
         "questions": jeu_de_test.resume_questions(),
         "executions": [{**{k: e[k] for k in ("id", "mode", "lancee_le", "statut", "erreur")},
                         "resume": jeu_de_test.resume(e["resultat"]) if e["resultat"] else None}
@@ -396,6 +397,9 @@ def jeu_de_test_lancer(corps: dict, authorization: str | None = Header(None)) ->
     mode = corps.get("mode")
     if mode not in jeu_de_test.MODES:
         raise ErreurApi(422, "Mode inconnu", "mode = regles ou llm.")
+    if mode == "llm" and not jeu_de_test.llm_autorise():
+        raise ErreurApi(403, "Désactivé sur ce serveur",
+                        "Le benchmark avec le LLM demande GESTUKAAY_BENCHMARK_LLM=oui (coût, moteur occupé).")
     m = jeu_de_test.moteur_pour(moteur, mode)
     if m is None:
         raise ErreurApi(503, "Pas disponible", "Le benchmark demande le moteur réel (GESTUKAAY_MOTEUR=reel).")
