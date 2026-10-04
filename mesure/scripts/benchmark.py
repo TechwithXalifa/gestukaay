@@ -149,9 +149,18 @@ def verifier_invariant_reponse(
                     trouve = False
                     if r_body.graphique.type in ("barres_horizontales", "barres_empilees"):
                         code_z = resoudre(pt.x, niveau=r0.zone.niveau) or resoudre(pt.x)
+                        if not code_z:
+                            violations.append(
+                                ViolationInvariant(
+                                    qid,
+                                    "b",
+                                    f"point barre x={pt.x!r} ne correspond à aucune zone du référentiel",
+                                )
+                            )
+                            continue
                         periode_cible = r0.periode.valeur
                         for o in lignes:
-                            if code_z and o.zone != code_z:
+                            if o.zone != code_z:
                                 continue
                             if o.periode != periode_cible:
                                 continue
@@ -165,7 +174,7 @@ def verifier_invariant_reponse(
                                 ViolationInvariant(
                                     qid,
                                     "b",
-                                    f"point barre {pt.x} ({code_z or 'zone inconnue'}) y={pt.y} "
+                                    f"point barre {pt.x} ({code_z}) y={pt.y} "
                                     f"absent du socle pour l'indicateur {ind_code}",
                                 )
                             )

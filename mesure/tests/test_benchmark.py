@@ -323,6 +323,21 @@ def test_invariant_detecte_barre_thies_avec_population_dakar(
     assert any(v.volet == "b" and "point barre" in v.message for v in viols)
 
 
+def test_invariant_detecte_barre_zone_inconnue(
+    socle_test: Socle,
+    obs_par_id: dict[str, Observation],
+    inds_test: dict[str, Indicateur],
+):
+    """Volet (b) : un libellé de barre non rattaché à une zone du référentiel doit être détecté."""
+    q = {"id": "FR-001", "question": "Combien d'habitants à Thiès ?", "periode": "2023"}
+    rep = reponse_exacte_valide()
+    rep.reponse.graphique.series[0].points = [  # type: ignore[union-attr]
+        PointGraphique(x="ZoneInexistante", y=2463677.0, mise_en_evidence=True)
+    ]
+    viols = verifier_invariant_reponse(q, rep, socle_test, obs_par_id, inds_test, {})
+    assert any(v.volet == "b" and "ne correspond à aucune zone" in v.message for v in viols)
+
+
 def test_invariant_detecte_chiffre_invente_dans_explication(
     socle_test: Socle,
     obs_par_id: dict[str, Observation],

@@ -76,5 +76,5 @@ exactitude ≥ 85 %, refus pertinent ≥ 95 %, latence médiane < 3 s, et l'inva
 ## Conséquences
 
 - `uv run python mesure/scripts/benchmark.py --regles` s'exécute en local en ~2,5 s.
-- 497 tests unitaires et d'intégration automatisés dans la suite pytest (`mesure/tests/test_benchmark.py`).
+- 498 tests unitaires et d'intégration automatisés dans la suite pytest (`mesure/tests/test_benchmark.py`).
 - Les violations de l'invariant sont détectées dès le premier faux chiffre injecté.

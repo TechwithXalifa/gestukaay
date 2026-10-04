@@ -1,6 +1,6 @@
 # Rapport de Benchmark — Gëstukaay (regles)
 
-- **Date** : 2026-10-04 04:06:55 UTC
+- **Date** : 2026-10-04 04:34:36 UTC
 - **Mode** : `regles`
 - **Jeu de test** : 103 questions officielles
 
@@ -12,7 +12,7 @@
 | **Exactitude** (sourcée, sur 83 questions) | ≥ 85 % | **81.9 %** (68/83) | indicatif |
 | **Refus pertinent** (sur 20 refus) | ≥ 95 % | **80.0 %** (16/20) | indicatif |
 | **Invariant « zéro chiffre inventé »** | Tolérance 0 | **0 violation(s)** | **CONFORME** |
-| **Latence médiane** (indicatif) | < 3,0 s | **3.7 ms** (P95: 19.1 ms) | indicatif |
+| **Latence médiane** (indicatif) | < 3,0 s | **2.3 ms** (P95: 7.4 ms) | indicatif |
 
 ## 2. Sous-scores par type de question
 
