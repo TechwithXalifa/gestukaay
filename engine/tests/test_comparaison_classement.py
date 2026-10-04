@@ -376,3 +376,21 @@ def test_graphique_contexte_meme_niveau_que_la_zone():
     g = graphique_contexte_valeur(s, resultat(s, o, ind), ind)
     assert [(p.x, p.y, p.mise_en_evidence) for p in g.series[0].points] == [
         ("Thiès", 70, False), ("Kaffrine", 30, True)]
+
+
+def test_moins_de_suivi_d_un_nombre_n_est_pas_un_sens_de_tri():
+    """FR-045 : « enfants de moins de 5 ans » est une tranche d'âge, pas « le plus faible »."""
+    from gestukaay_engine.candidats import ORDRE_ASC
+    from gestukaay_engine.resolution import ordre_effectif
+    from gestukaay_socle.zones import normaliser
+
+    def asc(q):
+        return bool(ORDRE_ASC.search(normaliser(q)))
+
+    assert not asc("Classe les régions selon la mortalité des enfants de moins de 5 ans")
+    assert not asc("Taux de scolarisation des moins de 15 ans")
+    assert asc("Quelle région a le moins de chômage ?") and asc("Quelle région a le taux le plus faible ?")
+    q = "Classe les régions selon la mortalité des enfants de moins de 5 ans"
+    assert ordre_effectif(RequeteStructuree(intention="classement", indicateur="smcofug", confiance=0.9), q) == "desc"
+    c = index().chercher(q)
+    assert regles(q, c, [], [], None).ordre == "desc"

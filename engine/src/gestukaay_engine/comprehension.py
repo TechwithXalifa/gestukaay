@@ -28,6 +28,7 @@ from gestukaay_socle.zones import zones as zones_ref
 from pydantic import BaseModel, ConfigDict, Field
 
 from .candidats import (
+    ORDRE_ASC,
     Candidat,
     aucun_mot_connu,
     desagregation_citee,
@@ -283,7 +284,6 @@ SEUIL_REGLES = 6.0  # score BM25 minimal pour oser un indicateur sans LLM
 _CLASSEMENT = re.compile(r"\b(le|la|les) (plus|moins)\b|\bquelle region\b|\bclasse(ment)?\b"
                          r"|\bdiiwaan\b.*\b(epp|gena|geuna)\b|\bban region\b")
 _COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)\b")
-_ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\bmoins d[e']\b")
 
 
 def regles(question: str, candidats: list[Candidat], zones: list[str], periodes: list[str],
@@ -306,7 +306,7 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
         intention = "comparaison"
     else:
         intention = "valeur"
-    ordre = "asc" if _ORDRE_ASC.search(t) else "desc"
+    ordre = "asc" if ORDRE_ASC.search(t) else "desc"
     if len(periodes) > 1:
         periode = periode_de(periodes[0])
         periode.fin = periodes[1]
