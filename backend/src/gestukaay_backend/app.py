@@ -32,7 +32,7 @@ from gestukaay_contracts.models import (
     SituateResponse,
     TranscriptionResponse,
 )
-from gestukaay_engine import NonDisponible, charger_moteur
+from gestukaay_engine import NonDisponible, SaisieInvalide, charger_moteur
 
 from . import securite
 from .exports import vers_csv, vers_pdf
@@ -95,6 +95,14 @@ async def _non_disponible(_: Request, exc: NonDisponible) -> JSONResponse:
     probleme = Problem(title="Pas encore disponible", status=503,
                        detail="Cette fonction n'est pas encore disponible. Réessayez plus tard.")
     return JSONResponse(probleme.model_dump(), status_code=503, media_type="application/problem+json")
+
+
+@app.exception_handler(SaisieInvalide)
+async def _saisie_invalide(_: Request, exc: SaisieInvalide) -> JSONResponse:
+    """Saisie hors du référentiel (« Où je me situe » : région inconnue, département, pays) : 422,
+    comme une saisie mal formée. Le détail du moteur ne cite que la région envoyée : rien d'interne."""
+    probleme = Problem(title="Saisie invalide", status=422, detail=str(exc))
+    return JSONResponse(probleme.model_dump(), status_code=422, media_type="application/problem+json")
 
 
 _URL_CITEE = re.compile(r"https?://\S+?/r/[\w-]+")
