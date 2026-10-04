@@ -8,6 +8,9 @@ charger_moteur(), qui lit la variable d'environnement GESTUKAAY_MOTEUR :
 
 Le moteur est sans état : il ne stocke rien. La persistance (réponses,
 journal, feedback) et les URL relèvent du backend.
+
+Une fonction pas encore construite dans le moteur réel lève NonDisponible :
+le backend la rend en 503 plutôt que de servir des chiffres du faux moteur.
 """
 
 from __future__ import annotations
@@ -23,6 +26,10 @@ from gestukaay_contracts.models import (
     SituateResponse,
     TranscriptionResponse,
 )
+
+
+class NonDisponible(RuntimeError):
+    """Fonction pas encore construite dans le moteur réel (voix #28, « Où je me situe » #95)."""
 
 
 class Moteur(Protocol):
@@ -62,5 +69,7 @@ def charger_moteur() -> Moteur:
 
         return MoteurFactice()
     if choix == "reel":
-        raise NotImplementedError("Moteur réel en cours de construction (KBD).")
+        from .moteur import MoteurReel
+
+        return MoteurReel()
     raise ValueError(f"GESTUKAAY_MOTEUR inconnu : {choix!r}")
