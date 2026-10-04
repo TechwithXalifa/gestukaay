@@ -1,6 +1,6 @@
 # 0023 · Catalogue, fiche indicateur et séries pour Explorer
 
-**Date** : 2026-10-04 · **Statut** : proposé (SAN), à valider par KBD · **Exigences** : 5.5 (Explorer,
+**Date** : 2026-10-04 · **Statut** : accepté (SAN, KBD le 04/10) · **Exigences** : 5.5 (Explorer,
 Catalogue, Fiche indicateur), US-18, US-19, EF-29, EF-34 · **Touche** : contrat (v1.4.0, additif)
 
 ## Contexte
@@ -31,12 +31,22 @@ modèles et des routes en plus.
 Le code d'indicateur sert aux adresses (`/indicateurs/{code}`, `/explorer?indicateur=…&zones=…`,
 EF-29) mais n'est jamais affiché comme texte au public (7.1 principe 5).
 
+## Priorité
+
+Le cahier v1.1 place les trois écrans en V1.0 (tableau des versions §2.3, écrans §5.5, US-18 et US-19
+« Doit · V1.0 ») ; la V1.1 prévoit leur consolidation à partir des retours des testeurs (§13.2, S3).
+Côté moteur, les trois méthodes passent **après** les priorités V1.0 de KBD (WhatsApp, wolof, voix).
+En attendant, `MoteurReel` lève `NonDisponible` et les trois routes répondent **503** avec
+`GESTUKAAY_MOTEUR=reel` (0019), comme la voix aujourd'hui ; les pages se construisent sur le faux moteur.
+Si le moteur n'est pas prêt avant le gel (H+54), les écrans restent hors de la démo et l'écart au cahier
+est noté.
+
 ## Qui fait quoi
 
 - **KBD (moteur)** : trois méthodes sur le Protocol `Moteur`, par exemple `catalogue(filtre)`,
   `fiche(code)`, `series(indicateur, zones, debut, fin)`, qui lisent le référentiel et le socle (formatage
-  des valeurs avec `gabarits.formater`, sources avec `resolution.source`). Le nom exact des méthodes est
-  à son choix.
+  des valeurs avec `gabarits.formater`, sources avec `resolution.source`). Le nom exact des méthodes et
+  la façon de les écrire sont à son choix.
 - **SAN (backend et site)** : les trois routes, le faux moteur sur les exemples
   (`catalogue.json`, `fiche_indicateur.json`, `series.json`), puis les pages `/indicateurs`,
   `/indicateurs/[code]` et `/explorer` d'après les maquettes, avec l'export CSV de la série (schéma EF-34).
