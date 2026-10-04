@@ -52,6 +52,13 @@ _TABLES = [
         confirme_depuis TEXT
     )""",
     "CREATE INDEX IF NOT EXISTS journal_recu_le ON journal (recu_le)",
+    # Webhooks WhatsApp / Telegram : un même message n'est jamais traité deux fois (10.7), purgé à 48 h
+    """CREATE TABLE IF NOT EXISTS messages_recus (
+        canal TEXT NOT NULL,
+        message_id TEXT NOT NULL,
+        recu_le TEXT NOT NULL,
+        PRIMARY KEY (canal, message_id)
+    )""",
     """CREATE TABLE IF NOT EXISTS retours (
         reponse_id TEXT NOT NULL,
         recu_le TEXT NOT NULL,
@@ -65,6 +72,8 @@ _TABLES = [
 # Suivi de conversation (décision 0021) : 3 derniers échanges, oubliés après 30 min sans échange
 ECHANGES_SUIVI = 3
 EXPIRATION_SUIVI = timedelta(minutes=30)
+# Unicité des messages des webhooks : Meta renvoie un message non acquitté pendant 24 h au plus
+CONSERVATION_MESSAGES = timedelta(hours=48)
 
 COLONNES_JOURNAL = ["recu_le", "canal", "source", "langue", "question", "transcription_brute", "issue",
                     "indicateur", "latence_ms", "version_socle", "conversation", "confirme_depuis", "reponse_id"]
@@ -194,6 +203,24 @@ class Stockage:
         if maintenant - datetime.fromisoformat(lignes[0][0]) > EXPIRATION_SUIVI:
             return []
         return [AskResponse.model_validate_json(contenu).reponse.requete for _, contenu in reversed(lignes)]
+
+    def derniere(self, conversation_id: str) -> AskResponse | None:
+        """Dernière réponse d'une conversation (un « 1 » sur WhatsApp confirme le choix qu'elle propose)."""
+        lignes = self._executer(
+            "SELECT reponse_id FROM journal WHERE conversation = ? ORDER BY recu_le DESC LIMIT 1",
+            (self.hacher(conversation_id),))
+        return self.lire(lignes[0][0]) if lignes else None
+
+    def premier_passage(self, canal: str, message_id: str, maintenant: datetime | None = None) -> bool:
+        """Vrai la première fois qu'un message arrive, faux s'il a déjà été reçu (Meta et Telegram
+        renvoient un message tant qu'il n'est pas acquitté). Purge au passage ce qui a plus de 48 h."""
+        maintenant = maintenant or datetime.now(UTC)
+        self._executer("DELETE FROM messages_recus WHERE recu_le < ?",
+                       ((maintenant - CONSERVATION_MESSAGES).isoformat(timespec="seconds"),))
+        return bool(self._executer(
+            "INSERT INTO messages_recus (canal, message_id, recu_le) VALUES (?, ?, ?) "
+            "ON CONFLICT DO NOTHING RETURNING message_id",
+            (canal, message_id, maintenant.isoformat(timespec="seconds"))))
 
     def hacher(self, conversation_id: str) -> str:
         return hashlib.sha256(f"{self._sel}:{conversation_id}".encode()).hexdigest()[:16]

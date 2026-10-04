@@ -1,0 +1,39 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "200000000000001",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15550000000",
+              "phone_number_id": "100000000000001"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "Awa"
+                },
+                "wa_id": "221700000001"
+              }
+            ],
+            "messages": [
+              {
+                "from": "221700000001",
+                "id": "wamid.TEXTE0001",
+                "timestamp": "1791100000",
+                "type": "text",
+                "text": {
+                  "body": "Combien d'habitants à Thiès ?"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

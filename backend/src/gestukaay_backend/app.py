@@ -10,7 +10,11 @@ Stockage : voir stockage.py (GESTUKAAY_BASE, SQLite en mémoire par défaut).
 from __future__ import annotations
 
 import csv
+import hashlib
+import hmac
 import io
+import json
+import logging
 import os
 import re
 import secrets
@@ -18,9 +22,9 @@ import time
 from typing import Literal
 from urllib.parse import urlencode
 
-from fastapi import FastAPI, Form, Header, Query, Request, UploadFile
+from fastapi import BackgroundTasks, FastAPI, Form, Header, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from gestukaay_contracts.models import (
     AskRequest,
     AskResponse,
@@ -39,6 +43,7 @@ from gestukaay_contracts.models import (
 from gestukaay_engine import IndicateurInconnu, NonDisponible, SaisieInvalide, charger_moteur
 
 from . import securite
+from .canaux import Canal, Entrant, Services, charger_canaux
 from .exports import vers_csv, vers_csv_series, vers_pdf
 from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
 
@@ -145,6 +150,11 @@ def sante() -> dict:
 
 @app.post("/v1/ask", response_model=AskResponse)
 def demander(req: AskRequest) -> AskResponse:
+    return _demander(req)
+
+
+def _demander(req: AskRequest) -> AskResponse:
+    """Chemin commun au web et aux messageries : suivi, réponse du moteur, journal."""
     debut = time.perf_counter()
     # Suivi sur 3 échanges (EF-09, décision 0021) : le moteur reçoit les requêtes précédentes
     contexte = stockage.contexte(req.conversation_id) if req.conversation_id else None
@@ -366,3 +376,98 @@ def journal_csv(
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": 'attachment; filename="gestukaay-journal.csv"'},
     )
+
+
+# ---------------------------------------------------------------------------
+# Webhooks WhatsApp et Telegram (EF-19, EF-24, 10.7). Transport ici (SAN) ; lecture, interprétation,
+# mise en forme et envoi dans le module de canal (KBD), par l'interface de canaux.py.
+# ---------------------------------------------------------------------------
+
+canaux: dict[str, Canal] = charger_canaux()
+_log_webhooks = logging.getLogger("gestukaay.webhooks")
+
+
+def _services(nom: str, expediteur: str) -> Services:
+    """Les services d'une conversation : même chemin que le web, numéro haché par le stockage."""
+    conversation = f"{nom}:{expediteur}"
+
+    def demander_(question: str, *, langue: str = "auto", source: str = "texte",
+                  transcription_brute: str | None = None, audio_retour: bool = False) -> AskResponse:
+        return _demander(AskRequest(question=question, langue=langue, canal=nom, conversation_id=conversation,
+                                    source=source, transcription_brute=transcription_brute,
+                                    audio_retour=audio_retour))
+
+    return Services(
+        conversation_id=conversation,
+        demander=demander_,
+        confirmer=lambda rid, choix_id: confirmer(rid, ConfirmRequest(choix_id=choix_id)),
+        derniere=lambda: stockage.derniere(conversation),
+        transcrire=lambda audio, format_audio: moteur.transcrire(audio, format_audio, "auto"),
+    )
+
+
+def _traiter(canal: Canal, entrant: Entrant) -> None:
+    """Tâche de fond : une erreur est journalisée (sans le numéro), jamais renvoyée à Meta."""
+    try:
+        canal.traiter(entrant, _services(canal.nom, entrant.expediteur))
+    except Exception:  # noqa: BLE001 — tâche de fond : tout est journalisé, rien ne remonte à Meta
+        _log_webhooks.exception("%s : échec du traitement du message %s", canal.nom, entrant.message_id)
+
+
+def _recevoir(nom: str, corps: bytes, taches: BackgroundTasks) -> dict:
+    """Lit le payload, écarte les messages déjà reçus, planifie le reste. Toujours 200 ensuite :
+    un payload inattendu est journalisé, pas renvoyé en erreur (Meta le renverrait en boucle)."""
+    canal = canaux[nom]
+    try:
+        entrants = canal.lire(json.loads(corps))
+    except Exception:  # noqa: BLE001 — payload inattendu : journalisé, 200 pour que Meta ne le renvoie pas
+        _log_webhooks.exception("%s : payload illisible", nom)
+        return {"statut": "ignore"}
+    nouveaux = [e for e in entrants if stockage.premier_passage(nom, e.message_id)]
+    for e in nouveaux:
+        taches.add_task(_traiter, canal, e)
+    return {"statut": "recu", "messages": len(nouveaux)}
+
+
+def _canal_ouvert(nom: str, secret: str | None) -> str:
+    """Sans module de canal ou sans secret configuré, le webhook n'existe pas (404)."""
+    if nom not in canaux or not secret:
+        raise ErreurApi(404, "Not Found")
+    return secret
+
+
+@app.get("/webhooks/whatsapp")
+def whatsapp_verification(
+    mode: str | None = Query(None, alias="hub.mode"),
+    jeton: str | None = Query(None, alias="hub.verify_token"),
+    defi: str | None = Query(None, alias="hub.challenge"),
+) -> PlainTextResponse:
+    """Vérification de l'abonnement par Meta : renvoyer hub.challenge si le jeton est le bon."""
+    attendu = _canal_ouvert("whatsapp", os.environ.get("WHATSAPP_VERIFY_TOKEN"))
+    if mode == "subscribe" and jeton and defi and secrets.compare_digest(jeton, attendu):
+        return PlainTextResponse(defi)
+    raise ErreurApi(403, "Vérification refusée")
+
+
+@app.post("/webhooks/whatsapp")
+async def whatsapp(requete: Request, taches: BackgroundTasks,
+                   signature: str | None = Header(None, alias="X-Hub-Signature-256")) -> dict:
+    """Messages WhatsApp : signature HMAC-SHA256 du corps brut avec WHATSAPP_APP_SECRET, comparée en
+    temps constant (403 sinon) ; 200 immédiat, traitement en tâche de fond."""
+    secret = _canal_ouvert("whatsapp", os.environ.get("WHATSAPP_APP_SECRET"))
+    corps = await requete.body()
+    attendue = "sha256=" + hmac.new(secret.encode(), corps, hashlib.sha256).hexdigest()
+    if not signature or not secrets.compare_digest(signature, attendue):
+        raise ErreurApi(403, "Signature invalide")
+    return _recevoir("whatsapp", corps, taches)
+
+
+@app.post("/webhooks/telegram")
+async def telegram(requete: Request, taches: BackgroundTasks,
+                   jeton: str | None = Header(None, alias="X-Telegram-Bot-Api-Secret-Token")) -> dict:
+    """Bot Telegram de secours (EF-24) : jeton secret fixé à setWebhook (secret_token), comparé en
+    temps constant ; même traitement que WhatsApp."""
+    attendu = _canal_ouvert("telegram", os.environ.get("TELEGRAM_SECRET_TOKEN"))
+    if not jeton or not secrets.compare_digest(jeton, attendu):
+        raise ErreurApi(403, "Jeton invalide")
+    return _recevoir("telegram", await requete.body(), taches)

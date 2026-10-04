@@ -1,0 +1,19 @@
+{
+  "update_id": 500000001,
+  "message": {
+    "message_id": 11,
+    "date": 1791100000,
+    "chat": {
+      "id": 600000001,
+      "type": "private",
+      "first_name": "Awa"
+    },
+    "from": {
+      "id": 600000001,
+      "is_bot": false,
+      "first_name": "Awa",
+      "language_code": "fr"
+    },
+    "text": "Combien d'habitants à Thiès ?"
+  }
+}
