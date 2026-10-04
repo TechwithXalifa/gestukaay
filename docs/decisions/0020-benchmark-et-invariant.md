@@ -38,29 +38,37 @@ exactitude ≥ 85 %, refus pertinent ≥ 95 %, latence médiane < 3 s, et l'inva
    - *(a) Chaque `Resultat` servi* : `observation_id` existe dans le socle chargé et `valeur` est
      rigoureusement égale à la valeur du socle (`r.valeur == o.valeur`).
    - *(b) Chaque point de graphique* : chaque point `PointGraphique(x, y)` correspond à une observation
-     réelle du socle pour l'indicateur.
+     réelle du socle pour l'indicateur. En barres horizontales, `x` est rattaché à sa zone
+     (via le référentiel des zones `zones.csv` et son niveau) pour la même période et désagrégation ;
+     en courbe, `x` est rattaché à sa période pour la même zone et désagrégation.
    - *(c) Chiffres de l'explication* : tous les nombres figurant dans le texte de l'explication sont
-     vérifiés contre une liste blanche des textes affichés (et non des valeurs brutes) :
-     `valeur_affichee` des résultats et de la valeur nationale publiée, libellés des périodes,
-     modalités de désagrégation (ex. « 15-24 ans »), `base_projection`, unité, ordinaux et nombres
+     vérifiés contre une liste blanche issue exclusivement de la réponse produite et du socle
+     (sans injection des périodes du jeu de test et sans exception numérique globale) :
+     `valeur_affichee` des résultats et de la valeur nationale publiée, libellés des périodes de la
+     réponse, modalités de désagrégation (ex. « 15-24 ans »), `base_projection`, unité, et nombres
      statiques du gabarit officiel (`gabarits_fr.csv`).
    - *(d) Approchée et refus* : aucune valeur numérique statistique n'est autorisée dans la reformulation,
      les libellés des choix ou les messages de refus (seules les années sont admises).
 
-4. **Modes d'évaluation** :
+4. **Mesure de confiance « Chiffres faux affichés »** :
+   En tête du rapport (comme dans `evaluer_bout_en_bout.py`), compte toute réponse exacte qui affiche
+   une valeur pour la mauvaise zone, période ou indicateur, ou une valeur servie là où un refus ou
+   une approchée était attendu. N'échoue pas le script mais sert de métrique de confiance pour le jury.
+
+5. **Modes d'évaluation** :
    - `--regles` (par défaut) : local, gratuit, sans réseau. Utilise la compréhension par règles.
    - `--llm` (payant) : chaîne configurée (Gemini 2.5 Flash via OpenRouter). Affiche le coût estimé
      (~0,07 $ pour 103 questions) et exige une confirmation explicite (`--oui` / `-y`).
      Aucun appel payant sans l'accord préalable de Khalifa.
 
-5. **Stratégie CI pour la tâche #20 (Option B)** :
+6. **Stratégie CI pour la tâche #20 (Option B)** :
    Le socle extrait n'est pas versionné dans Git (103 Mo). Pour la CI :
    - téléchargement automatique de `2026.10.0.zip` depuis une GitHub Release officielle ;
    - mise en cache dans GitHub Actions selon la version du socle ;
    - vérification de l'empreinte sha256 de chaque fichier par rapport au `MANIFEST.json` avant exécution ;
    - publication du rapport synthétique dans `$GITHUB_STEP_SUMMARY`.
 
-6. **Sorties et rapports** :
+7. **Sorties et rapports** :
    - Un seul rapport Markdown par mode : `mesure/rapports/benchmark_<mode>.md`, sans nom de fichier daté.
    - Code de sortie 1 uniquement en cas de violation de l'invariant, 0 sinon (un score sous la cible
      est consigné dans le rapport sans bloquer la commande).
@@ -68,5 +76,5 @@ exactitude ≥ 85 %, refus pertinent ≥ 95 %, latence médiane < 3 s, et l'inva
 ## Conséquences
 
 - `uv run python mesure/scripts/benchmark.py --regles` s'exécute en local en ~2,5 s.
-- 495 tests unitaires et d'intégration automatisés dans la suite pytest (`mesure/tests/test_benchmark.py`).
+- 497 tests unitaires et d'intégration automatisés dans la suite pytest (`mesure/tests/test_benchmark.py`).
 - Les violations de l'invariant sont détectées dès le premier faux chiffre injecté.
