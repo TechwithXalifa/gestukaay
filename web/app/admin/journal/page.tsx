@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Baobab, Telecharger } from "@/components/icones";
-import { API_URL } from "@/lib/api";
+import { CANAUX, Cadre, Choix, Connexion, useAdmin } from "@/components/Admin";
+import { Telecharger } from "@/components/icones";
 
 /**
  * Back-office minimal : journal des requêtes (maquette BO-Journal, backend #73).
- * Réservé à l'équipe, en français seulement : ces textes ne passent pas par i18n.
- * Le jeton (GESTUKAAY_ADMIN_JETON) reste dans l'onglet (sessionStorage), jamais ailleurs.
+ * Réservé à l'équipe ; connexion et cadre communs dans components/Admin.tsx.
  */
 
 type Ligne = {
@@ -31,8 +30,6 @@ type Ligne = {
 };
 
 const PAR_PAGE = 50;
-const CLE_JETON = "gestukaay.admin";
-const CANAUX: Record<string, string> = { web: "Web", whatsapp: "WhatsApp", telegram: "Telegram", api: "API" };
 const ISSUES = { exacte: "Exacte", approchee: "Approchée", aucune: "Refus" } as const;
 const MOTIFS: Record<string, string> = {
   chiffre_faux: "chiffre faux",
@@ -49,34 +46,14 @@ function secondes(ms: number | null): string {
   return `${(ms / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} s`;
 }
 
-function lireJeton(): string {
-  try {
-    return sessionStorage.getItem(CLE_JETON) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-function garderJeton(jeton: string) {
-  try {
-    if (jeton) sessionStorage.setItem(CLE_JETON, jeton);
-    else sessionStorage.removeItem(CLE_JETON);
-  } catch {
-    /* navigation privée : le jeton vit seulement en mémoire */
-  }
-}
-
 export default function Journal() {
-  const [jeton, setJeton] = useState("");
-  const [saisie, setSaisie] = useState("");
+  const { jeton, ouvrir, fermer, appeler } = useAdmin();
   const [filtres, setFiltres] = useState({ canal: "", langue: "", issue: "", q: "" });
   const [recherche, setRecherche] = useState("");
   const [page, setPage] = useState(0);
   const [donnees, setDonnees] = useState<{ total: number; lignes: Ligne[] } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [choisie, setChoisie] = useState<Ligne | null>(null);
-
-  useEffect(() => setJeton(lireJeton()), []);
 
   const parametres = useCallback(
     (extra: Record<string, string> = {}) => {
@@ -85,21 +62,6 @@ export default function Journal() {
       return p;
     },
     [filtres],
-  );
-
-  const appeler = useCallback(
-    async (chemin: string) => {
-      const r = await fetch(`${API_URL}${chemin}`, { headers: { Authorization: `Bearer ${jeton}` } });
-      if (r.status === 401) {
-        garderJeton("");
-        setJeton("");
-        throw new Error("Jeton refusé.");
-      }
-      if (r.status === 404) throw new Error("Back-office fermé : GESTUKAAY_ADMIN_JETON n'est pas configuré sur l'API.");
-      if (!r.ok) throw new Error("L'API ne répond pas.");
-      return r;
-    },
-    [jeton],
   );
 
   useEffect(() => {
@@ -140,23 +102,8 @@ export default function Journal() {
 
   if (!jeton) {
     return (
-      <Cadre>
-        <form
-          className="admin-connexion"
-          onSubmit={(e) => {
-            e.preventDefault();
-            garderJeton(saisie.trim());
-            setJeton(saisie.trim());
-            setSaisie("");
-          }}
-        >
-          <h1 className="titre-etat">Journal des requêtes</h1>
-          <label htmlFor="jeton">Jeton d'administration</label>
-          <input id="jeton" type="password" autoComplete="off" value={saisie} onChange={(e) => setSaisie(e.target.value)} required />
-          <p className="note">Valeur de GESTUKAAY_ADMIN_JETON. Elle reste dans cet onglet et disparaît à sa fermeture.</p>
-          {erreur && <p className="erreur-admin" role="alert">{erreur}</p>}
-          <button type="submit" className="primaire">Ouvrir le journal</button>
-        </form>
+      <Cadre actif="journal">
+        <Connexion titre="Journal des requêtes" bouton="Ouvrir le journal" erreur={erreur} onOuvrir={ouvrir} />
       </Cadre>
     );
   }
@@ -165,13 +112,7 @@ export default function Journal() {
   const fin = donnees ? Math.min((page + 1) * PAR_PAGE, donnees.total) : 0;
 
   return (
-    <Cadre
-      actions={
-        <button type="button" className="secondaire petit" onClick={() => { garderJeton(""); setJeton(""); setDonnees(null); }}>
-          Fermer la session
-        </button>
-      }
-    >
+    <Cadre actif="journal" onFermer={() => { fermer(); setDonnees(null); }}>
       <div className="admin-titre">
         <div>
           <h1 className="titre-etat">Journal des requêtes</h1>
@@ -269,36 +210,5 @@ export default function Journal() {
         </nav>
       )}
     </Cadre>
-  );
-}
-
-function Cadre({ children, actions }: { children: React.ReactNode; actions?: React.ReactNode }) {
-  return (
-    <div className="site admin">
-      <header className="admin-entete">
-        <Link href="/" className="logo"><Baobab /> <span>Gëstukaay</span></Link>
-        <span className="admin-pastille">Admin</span>
-        <div className="admin-actions">{actions}</div>
-      </header>
-      <main id="contenu" tabIndex={-1} className="admin-main">{children}</main>
-    </div>
-  );
-}
-
-function Choix({ libelle, valeur, onChange, options, tous }: {
-  libelle: string;
-  valeur: string;
-  onChange: (v: string) => void;
-  options: Record<string, string>;
-  tous: string;
-}) {
-  return (
-    <label className="admin-choix">
-      <span>{libelle} :</span>
-      <select value={valeur} onChange={(e) => onChange(e.target.value)}>
-        <option value="">{tous}</option>
-        {Object.entries(options).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-      </select>
-    </label>
   );
 }

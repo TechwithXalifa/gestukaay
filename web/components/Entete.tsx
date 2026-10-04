@@ -1,17 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useLangue } from "@/i18n/langue";
-import { Baobab } from "./icones";
+import { BarreLaterale } from "./BarreLaterale";
+import { Baobab, Menu } from "./icones";
 
 /** En-tête commun : logo, navigation, bascule FR/WO toujours visible (9.7). */
 export function Entete({ actif = "question" }: { actif?: "question" | "situer" | null }) {
   const { langue, setLangue, t, incomplet } = useLangue();
+  const [menu, setMenu] = useState(false);
   return (
     <>
       <a href="#contenu" className="evitement">{t("nav.evitement")}</a>
       <header className="entete">
         <div className="entete-int">
+          {/* Mobile (< 768 px) : la navigation passe dans la barre latérale (maquette M-Menu) */}
+          <button
+            type="button"
+            className="bouton-icone bouton-menu"
+            aria-label={t("nav.menu")}
+            aria-expanded={menu}
+            aria-haspopup="dialog"
+            onClick={() => setMenu(true)}
+          >
+            <Menu />
+          </button>
           <Link href="/" className="logo">
             <Baobab /> <span>Gëstukaay</span>
           </Link>
@@ -28,6 +42,7 @@ export function Entete({ actif = "question" }: { actif?: "question" | "situer" |
           </div>
         </div>
       </header>
+      {menu && <BarreLaterale actif={actif} onFermer={() => setMenu(false)} />}
       {incomplet && <p className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
     </>
   );
