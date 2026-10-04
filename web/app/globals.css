@@ -445,3 +445,14 @@ main:focus { outline: none; }
   .explorer-filtres, .explorer-resultat, .fiche-bref { flex-basis: 100%; }
   .catalogue-liste { grid-template-columns: 1fr; }
 }
+
+/* Page Méthode : résultats de la mesure (maquette Methode, cahier 12.1) */
+.mesures-resultats { margin: 12px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.mesures-resultats li { display: flex; flex-direction: column; gap: 6px; padding: 16px; border: 1px solid var(--gk-lin); border-radius: var(--radius-md); background: var(--gk-blanc); font-size: 14px; line-height: 20px; }
+.mesures-resultats strong { font-size: 30px; line-height: 36px; font-weight: 700; color: var(--gk-baobab); font-variant-numeric: tabular-nums; }
+.mesure-titre { font-size: 13px; font-weight: 600; color: var(--gk-ardoise); }
+.mesure-cible { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--gk-ardoise); }
+.mesure-cible.atteinte { color: var(--gk-feuille); font-weight: 600; }
+.mesures-erreurs { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.mesures-erreurs li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--gk-lin); font-size: 15px; }
+.mesures-erreurs strong { flex: none; color: var(--gk-baobab); }
