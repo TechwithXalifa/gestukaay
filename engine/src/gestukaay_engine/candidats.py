@@ -133,6 +133,11 @@ def lieux_inconnus(question: str) -> list[str]:
     return out
 
 
+# Classement « le plus faible » (sens croissant), sur une question normalisée. « moins de » suivi d'un
+# nombre est une tranche (« enfants de moins de 5 ans »), pas un sens de tri (FR-045).
+ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\bmoins d[e']\b(?!\s*\d)")
+
+
 def periodes_citees(question: str) -> list[str]:
     """« mars 2025 » -> 2025-03 ; « 2023 » -> 2023 ; « T2 2024 » -> 2024-T2. Dans l'ordre."""
     t = _texte(question)
