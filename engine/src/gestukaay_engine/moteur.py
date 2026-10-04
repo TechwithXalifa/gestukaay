@@ -38,6 +38,7 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.zones import normaliser
 
 from .approchee import Approchee, RepliAucune, proposer_approchee, rattachements
+from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
 from .gabarits import citation, explication, note_perimetre
 from .interface import NonDisponible
@@ -128,12 +129,16 @@ class MoteurReel:
         res = r.resultats
         nationaux = {x.indicateur.code: n for x in res if (n := national(self.socle, x, LANGUE))}
         intention = requete.intention if requete.intention in ("comparaison", "classement") else "valeur"
+        texte = explication(res, r.defauts.get("periode", False), nationaux, intention,
+                            ordre_effectif(requete, question))
+        if intention == "valeur" and len(res) == 1 and (c := compagnon(self.socle, res[0], LANGUE)):
+            res = [*res, c[0]]  # le taux après le nombre, au même point (0024)
+            texte = f"{texte} {c[1]}"
         return AskResponse(reponse=ReponseExacte(
             **self._base(ident, question, requete, transcription),
             intention=intention,
             resultats=res,
-            explication=explication(res, r.defauts.get("periode", False), nationaux, intention,
-                                    ordre_effectif(requete, question)),
+            explication=texte,
             periode_par_defaut=r.defauts.get("periode", False),
             note_perimetre=note_perimetre(res[0]),
             graphique=r.graphique,

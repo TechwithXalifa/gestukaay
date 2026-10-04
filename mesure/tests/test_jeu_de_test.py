@@ -13,9 +13,10 @@ with open(JEU, encoding="utf-8-sig", newline="") as _f:
     QUESTIONS = list(csv.DictReader(_f, delimiter=";"))
 PAR_ID = {q["id"]: q for q in QUESTIONS}
 
-# Répartition validée (cahier 12.1 : 70 FR / 30 WO), portée à 103 en #3 pour garder 20 refus
+# Répartition validée (cahier 12.1 : 70 FR / 30 WO), portée à 103 en #3 pour garder 20 refus,
+# puis à 104 avec FR-073 (nombre de chômeurs, décision 0024)
 REPARTITION = {
-    ("fr", "simple"): 29, ("fr", "comparative"): 11, ("fr", "classement"): 7,
+    ("fr", "simple"): 30, ("fr", "comparative"): 11, ("fr", "classement"): 7,
     ("fr", "approchee"): 8, ("fr", "refus"): 14, ("fr", "suivi"): 3,
     ("wo", "simple"): 13, ("wo", "comparative"): 4, ("wo", "classement"): 3,
     ("wo", "approchee"): 3, ("wo", "refus"): 6, ("wo", "suivi"): 2,
@@ -25,8 +26,8 @@ ISSUE_PAR_TYPE = {"simple": "exacte", "comparative": "exacte", "classement": "ex
 
 
 def test_questions_reparties_comme_convenu():
-    assert len(QUESTIONS) == 103
-    assert len(PAR_ID) == 103, "identifiants en double"
+    assert len(QUESTIONS) == 104
+    assert len(PAR_ID) == 104, "identifiants en double"
     assert Counter((q["langue"], q["type"]) for q in QUESTIONS) == REPARTITION
 
 

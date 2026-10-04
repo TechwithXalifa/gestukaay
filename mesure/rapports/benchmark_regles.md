@@ -1,18 +1,18 @@
 # Rapport de Benchmark — Gëstukaay (regles)
 
-- **Date** : 2026-10-04 15:56:17 UTC
+- **Date** : 2026-10-04 19:57:50 UTC
 - **Mode** : `regles`
-- **Jeu de test** : 103 questions officielles
+- **Jeu de test** : 104 questions officielles
 
 ## 1. Cibles du cahier des charges (§12)
 
 | Mesure | Cible | Obtenu | Statut |
 |---|---|---|---|
-| **Chiffres faux affichés** (confiance) | 0 | **8** | indicatif |
-| **Exactitude** (sourcée, sur 83 questions) | ≥ 85 % | **83.1 %** (69/83) | indicatif |
+| **Chiffres faux affichés** (confiance) | 0 | **10** | indicatif |
+| **Exactitude** (sourcée, sur 84 questions) | ≥ 85 % | **81.0 %** (68/84) | indicatif |
 | **Refus pertinent** (sur 20 refus) | ≥ 95 % | **80.0 %** (16/20) | indicatif |
 | **Invariant « zéro chiffre inventé »** | Tolérance 0 | **0 violation(s)** | **CONFORME** |
-| **Latence médiane** (indicatif) | < 3,0 s | **2.1 ms** (P95: 7.0 ms) | indicatif |
+| **Latence médiane** (indicatif) | < 3,0 s | **2.1 ms** (P95: 6.7 ms) | indicatif |
 
 ## 2. Sous-scores par type de question
 
@@ -23,25 +23,25 @@
 | Comparaison spatiale (multi-zones) | 10/10 | 100.0 % |
 | Comparaison temporelle (deux périodes) | 5/5 | 100.0 % |
 | Refus officiel (hors socle, projection, inintelligible) | 16/20 | 80.0 % |
-| Simple (valeur exacte directe) | 35/42 | 83.3 % |
+| Simple (valeur exacte directe) | 34/43 | 79.1 % |
 | Suivi contextuel (suite_de) | 4/5 | 80.0 % |
 
 ## 3. Sous-scores par langue
 
 | Langue | Réussite | Pourcentage |
 |---|---|---|
-| Français | 64/72 | 88.9 % |
-| Wolof | 21/31 | 67.7 % |
+| Français | 64/73 | 87.7 % |
+| Wolof | 20/31 | 64.5 % |
 
 ## 4. Invariant « zéro chiffre inventé »
 
-> **Invariant strictement vérifié** : aucune violation détectée sur les 103 questions.
+> **Invariant strictement vérifié** : aucune violation détectée sur les 104 questions.
 - Volet (a) : 100 % des `Resultat` servis proviennent d'une observation du socle avec la valeur exacte.
 - Volet (b) : 100 % des points de graphiques correspondent à des observations du socle.
 - Volet (c) : tous les chiffres figurant dans les explications appartiennent à la liste blanche des données officielles affichées.
 - Volet (d) : aucune valeur numérique statistique n'apparaît dans une réponse approchée ou un refus.
 
-## 6. Détail des écarts (18 questions non conformes)
+## 6. Détail des écarts (20 questions non conformes)
 
 | Id | Type | Langue | Attendu | Obtenu | Détail |
 |---|---|---|---|---|---|
@@ -53,7 +53,9 @@
 | FR-054 | approchee | fr | approchee | exacte | issue attendue approchee, obtenu exacte |
 | FR-062 | refus | fr | aucune | exacte | issue attendue aucune, obtenu exacte |
 | FR-066 | refus | fr | aucune | approchee | issue attendue aucune, obtenu approchee |
+| FR-073 | simple | fr | exacte | exacte | attendu [('SN', '2026-T1', 1590818.0)] != obtenu [('SN', '2025', 20.4)] |
 | WO-001 | simple | wo | exacte | exacte | attendu [('SN-TH', '2023', 2463677.0)] != obtenu [('SN-TH', '2023', 57.5)] |
+| WO-002 | simple | wo | exacte | exacte | attendu [('SN', '2026-T1', 1590818.0)] != obtenu [('SN', '2025', 20.4)] |
 | WO-005 | simple | wo | exacte | exacte | attendu [('SN-IA-LOUGA', '2025', 86.6806)] != obtenu [('SN-IA-LOUGA', '2025', 56.3)] |
 | WO-009 | simple | wo | exacte | approchee | issue attendue exacte, obtenu approchee |
 | WO-017 | classement | wo | exacte | exacte | classement: attendu SN-DK=4004426.0, obtenu SN-DK=5958.0 |
