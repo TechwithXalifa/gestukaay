@@ -1,5 +1,7 @@
-# Contrat d'API Gëstukaay — v1.3.0
+# Contrat d'API Gëstukaay — v1.4.0
 
+> **Nouveautés v1.4.0** (décision 0023), **additif**, rien ne casse : catalogue `GET /v1/indicators`,
+> fiche `GET /v1/indicators/{code}`, séries d'Explorer `GET /v1/series` (§4 bis).
 > **Nouveautés v1.3.0** (décisions 0012 et 0019), **additif**, rien ne casse : tranches de dépenses
 > `500k_750k`, `750k_1m`, `plus_1m` (`plus_500k` reste accepté, plus proposé) · motif de refus `non_disponible`.
 > **Nouveautés v1.2.0** (additif comparaison & classement, issue #14) — **additif**, rien ne casse :
@@ -49,6 +51,9 @@ il la complète (`latence_ms`), la stocke, et la renvoie telle quelle.
 | `GET /v1/answers/{id}/chart.svg` | — | `image/svg+xml` | SAN | EF-26, EF-27 |
 | `POST /v1/feedback` | `FeedbackRequest` | `204` | SAN | EF-49–51 |
 | `POST /v1/situate` | `SituateRequest` | `SituateResponse` — **rien n'est conservé** | SAN (route) · KBD (calcul) | EF-37–40 |
+| `GET /v1/indicators` | `domaine`, `q`, `niveau`, `limite`, `decalage` | `CatalogueResponse` | SAN (route) · KBD (lecture) | 5.5 |
+| `GET /v1/indicators/{code}` | — | `FicheIndicateur` (404 si inconnu) | SAN (route) · KBD (lecture) | 5.5, US-19 |
+| `GET /v1/series` | `indicateur`, `zones` (6 au plus), `debut`, `fin` | `SeriesResponse` | SAN (route) · KBD (lecture) | 5.5, US-18 |
 | `POST /webhooks/whatsapp` | charge utile Meta | `200` immédiat | SAN (route) · KBD (logique) | EF-19 |
 | `POST /webhooks/telegram` | charge utile Telegram | `200` | SAN (route) · KBD (logique) | EF-24 |
 
@@ -146,6 +151,21 @@ Le portail ne publie **aucun seuil** de décile ni de quintile : on compare le m
 - **Rien n'est conservé** : ni base, ni journal, ni compte (EF-40, US-21).
 - Exemple : `situer.json` (Kolda, 7 personnes, 100 000 à 200 000 FCFA par mois).
 
+## 4 bis. Catalogue, fiche et séries (v1.4.0, décision 0023)
+
+Lecture seule, sans LLM : tout vient du référentiel des indicateurs et du socle servi.
+
+- **Catalogue** : une `IndicateurResume` par indicateur qui a des valeurs (libellé, domaine, unité,
+  producteur, opération, niveaux publiés, première et dernière période, `verifie`). Exemple : `catalogue.json`.
+- **Fiche** : la définition est **citée mot pour mot du portail**, `null` s'il n'en publie pas ; la
+  couverture donne, par niveau, le nombre de zones et les périodes publiées ; `citation` suit EF-35.
+  Exemple : `fiche_indicateur.json`.
+- **Séries** : une `Serie` par zone avec les **seules périodes publiées**, jamais d'interpolation ; une zone
+  sans valeur sur la période va dans `absents` (signalée à l'écran) ; chaque point garde `valeur_affichee`
+  et `observation_id`. `graphique` est prêt à dessiner. Exemple : `series.json` (taux de pauvreté,
+  Sénégal, Dakar et Kolda, 2011 à 2022).
+- Le code d'indicateur sert aux adresses partageables (EF-29), jamais comme texte affiché.
+
 ## 5. Règles communes (non négociables)
 
 1. **Aucune valeur sans source** (engagement 01) : testé sur chaque exemple par `contracts/tests/`.
@@ -189,3 +209,4 @@ Procédure :
 | 1.1.2 | 2026-10-02 | Exemples seuls, sans changement de format : codes d'indicateurs du référentiel (`pvswjnd`…) ; `aucune_hors_socle.json` = FR-071 (« sérère »), « voitures à Kolda » étant devenue une question approchée (décision 0005) |
 | 1.2.0 | 2026-10-03 | Additif comparaison & classement (#14) : `Periode.fin` (deuxième borne temporelle) ; `RequeteStructuree.ordre` (`"desc"` / `"asc"`) |
 | 1.3.0 | 2026-10-04 | Additif (décisions 0012 et 0019) : `TrancheDepense` gagne `500k_750k`, `750k_1m`, `plus_1m`, `plus_500k` gardé mais plus proposé ; `ReponseAucune.motif` gagne `non_disponible` |
+| 1.4.0 | 2026-10-04 | Additif (décision 0023) : `GET /v1/indicators`, `GET /v1/indicators/{code}`, `GET /v1/series` ; modèles `CatalogueResponse`, `FicheIndicateur`, `SeriesResponse` |

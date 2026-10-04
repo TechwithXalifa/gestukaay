@@ -1,0 +1,39 @@
+{
+  "version_contrat": "1.4.0",
+  "version_socle": "2026.10.0",
+  "indicateur": {
+    "code": "jcvcajc.taux-de-pauvrete",
+    "libelle": "Taux de pauvreté",
+    "domaine": "Pauvreté",
+    "unite": "%",
+    "producteur": "ANSD",
+    "operation": "EHCVM",
+    "niveaux": ["pays", "region"],
+    "periode_debut": "2011",
+    "periode_fin": "2022",
+    "verifie": true
+  },
+  "definition": "Incidence de la pauvreté : Pourcentage de ménages pauvres selon le seuil national de pauvreté monétaire",
+  "methode": "Un ménage est considéré comme pauvre lorsque son niveau de ressources ou de consommation est inférieur au seuil de pauvreté, c'est-à-dire au niveau minimal nécessaire pour satisfaire ses besoins essentiels.",
+  "desagregations": ["milieu-de-résidence", "situation-matrimoniale-du-cm", "taille-du-ménage"],
+  "couverture": [
+    { "niveau": "pays", "zones": 1, "periodes": ["2011", "2019", "2022"] },
+    { "niveau": "region", "zones": 14, "periodes": ["2011", "2019", "2022"] }
+  ],
+  "note_perimetre": null,
+  "source": {
+    "producteur": "ANSD",
+    "operation": "EHCVM",
+    "titre": "10.1_Indices de pauvreté",
+    "date_publication": "2024-07-15",
+    "licence": "",
+    "url": "https://senegal.opendataforafrica.org/jcvcajc",
+    "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+  },
+  "citation": "Source : ANSD, EHCVM (2022), publié le 15 juillet 2024. Consulté via Gëstukaay le 4 octobre 2026, https://app.gestukaay.test/indicateurs/jcvcajc.taux-de-pauvrete.",
+  "indicateurs_lies": [
+    { "code": "jcvcajc.total", "libelle": "Consommation moyenne par tête" },
+    { "code": "jcvcajc.profondeur-de-la-pauvrete", "libelle": "Profondeur de la pauvreté — Indices de pauvreté" },
+    { "code": "qjyrtof.gini", "libelle": "Indice de Gini (inégalités)" }
+  ]
+}

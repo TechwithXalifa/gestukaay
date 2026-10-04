@@ -1,0 +1,58 @@
+{
+  "version_contrat": "1.4.0",
+  "version_socle": "2026.10.0",
+  "indicateur": { "code": "jcvcajc.taux-de-pauvrete", "libelle": "Taux de pauvreté" },
+  "unite": "%",
+  "desagregation": null,
+  "series": [
+    {
+      "zone": { "code": "SN", "libelle": "Sénégal", "niveau": "pays" },
+      "points": [
+        { "periode": "2011", "libelle": "2011", "valeur": 46.7, "valeur_affichee": "46,7", "observation_id": "9b9ae84fa34cd6e4", "nature": "observee", "base_projection": null },
+        { "periode": "2019", "libelle": "2019", "valeur": 37.8, "valeur_affichee": "37,8", "observation_id": "35eb8362806db4c7", "nature": "observee", "base_projection": null },
+        { "periode": "2022", "libelle": "2022", "valeur": 37.5, "valeur_affichee": "37,5", "observation_id": "a7f5c59482330e8d", "nature": "observee", "base_projection": null }
+      ],
+      "source": {
+        "producteur": "ANSD", "operation": "EHCVM", "titre": "10.1_Indices de pauvreté", "date_publication": "2024-07-15",
+        "licence": "", "url": "https://senegal.opendataforafrica.org/jcvcajc", "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      }
+    },
+    {
+      "zone": { "code": "SN-DK", "libelle": "Dakar", "niveau": "region" },
+      "points": [
+        { "periode": "2011", "libelle": "2011", "valeur": 26.1, "valeur_affichee": "26,1", "observation_id": "b74ce2fb233f508f", "nature": "observee", "base_projection": null },
+        { "periode": "2019", "libelle": "2019", "valeur": 9.0, "valeur_affichee": "9", "observation_id": "f5e84fe2ea1680a1", "nature": "observee", "base_projection": null },
+        { "periode": "2022", "libelle": "2022", "valeur": 9.3, "valeur_affichee": "9,3", "observation_id": "9a0de6ccb7fb1ea4", "nature": "observee", "base_projection": null }
+      ],
+      "source": {
+        "producteur": "ANSD", "operation": "EHCVM", "titre": "10.1_Indices de pauvreté", "date_publication": "2024-07-15",
+        "licence": "", "url": "https://senegal.opendataforafrica.org/jcvcajc", "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      }
+    },
+    {
+      "zone": { "code": "SN-KD", "libelle": "Kolda", "niveau": "region" },
+      "points": [
+        { "periode": "2011", "libelle": "2011", "valeur": 76.6, "valeur_affichee": "76,6", "observation_id": "1b97293e22846c53", "nature": "observee", "base_projection": null },
+        { "periode": "2019", "libelle": "2019", "valeur": 56.6, "valeur_affichee": "56,6", "observation_id": "28ad47472dd5d937", "nature": "observee", "base_projection": null },
+        { "periode": "2022", "libelle": "2022", "valeur": 62.5, "valeur_affichee": "62,5", "observation_id": "a7104237249f0433", "nature": "observee", "base_projection": null }
+      ],
+      "source": {
+        "producteur": "ANSD", "operation": "EHCVM", "titre": "10.1_Indices de pauvreté", "date_publication": "2024-07-15",
+        "licence": "", "url": "https://senegal.opendataforafrica.org/jcvcajc", "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      }
+    }
+  ],
+  "absents": [],
+  "graphique": {
+    "type": "courbe",
+    "titre": "Taux de pauvreté de 2011 à 2022 (%)",
+    "unite": "%",
+    "series": [
+      { "nom": "Sénégal", "points": [ { "x": "2011", "y": 46.7, "mise_en_evidence": false }, { "x": "2019", "y": 37.8, "mise_en_evidence": false }, { "x": "2022", "y": 37.5, "mise_en_evidence": false } ] },
+      { "nom": "Dakar", "points": [ { "x": "2011", "y": 26.1, "mise_en_evidence": false }, { "x": "2019", "y": 9.0, "mise_en_evidence": false }, { "x": "2022", "y": 9.3, "mise_en_evidence": false } ] },
+      { "nom": "Kolda", "points": [ { "x": "2011", "y": 76.6, "mise_en_evidence": false }, { "x": "2019", "y": 56.6, "mise_en_evidence": false }, { "x": "2022", "y": 62.5, "mise_en_evidence": false } ] }
+    ],
+    "pied": "Source : ANSD, EHCVM, publié le 15 juillet 2024 · gestukaay",
+    "svg_url": null
+  }
+}

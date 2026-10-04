@@ -1,0 +1,109 @@
+{
+  "$defs": {
+    "IndicateurResume": {
+      "additionalProperties": false,
+      "description": "Une ligne du catalogue [5.5 « Catalogue d'indicateurs »].",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        },
+        "domaine": {
+          "examples": [
+            "Pauvreté"
+          ],
+          "type": "string"
+        },
+        "unite": {
+          "examples": [
+            "%"
+          ],
+          "type": "string"
+        },
+        "producteur": {
+          "examples": [
+            "ANSD"
+          ],
+          "type": "string"
+        },
+        "operation": {
+          "examples": [
+            "EHCVM"
+          ],
+          "type": "string"
+        },
+        "niveaux": {
+          "items": {
+            "enum": [
+              "pays",
+              "region",
+              "departement",
+              "academie"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "periode_debut": {
+          "examples": [
+            "2011"
+          ],
+          "type": "string"
+        },
+        "periode_fin": {
+          "examples": [
+            "2022"
+          ],
+          "type": "string"
+        },
+        "verifie": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "libelle",
+        "domaine",
+        "unite",
+        "producteur",
+        "operation",
+        "niveaux",
+        "periode_debut",
+        "periode_fin",
+        "verifie"
+      ],
+      "title": "IndicateurResume",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "GET /v1/indicators?domaine=&q=&niveau=&limite=&decalage= — triés : vérifiés d'abord, puis libellé.",
+  "properties": {
+    "version_contrat": {
+      "default": "1.4.0",
+      "type": "string"
+    },
+    "version_socle": {
+      "type": "string"
+    },
+    "total": {
+      "type": "integer"
+    },
+    "indicateurs": {
+      "items": {
+        "$ref": "#/$defs/IndicateurResume"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "version_contrat",
+    "version_socle",
+    "total",
+    "indicateurs"
+  ],
+  "title": "CatalogueResponse",
+  "type": "object"
+}

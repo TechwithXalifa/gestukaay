@@ -7,7 +7,10 @@ from pathlib import Path
 import pytest
 from gestukaay_contracts.models import (
     AskResponse,
+    CatalogueResponse,
+    FicheIndicateur,
     ReponseApprochee,
+    SeriesResponse,
     SituateRequest,
     SituateResponse,
     TranscriptionResponse,
@@ -16,7 +19,10 @@ from pydantic import ValidationError
 
 DOSSIER = Path(__file__).parents[1] / "examples"
 # Exemples qui ne sont pas des AskResponse (routes v1.1.0)
-AUTRES = {"transcription.json": TranscriptionResponse, "situer.json": SituateResponse}
+AUTRES = {"transcription.json": TranscriptionResponse, "situer.json": SituateResponse,
+          # v1.4.0 (décision 0023) : catalogue, fiche indicateur, séries d'Explorer
+          "catalogue.json": CatalogueResponse, "fiche_indicateur.json": FicheIndicateur,
+          "series.json": SeriesResponse}
 EXEMPLES = sorted(p for p in DOSSIER.glob("*.json") if p.name not in AUTRES)
 GENERATED = Path(__file__).parents[1] / "generated"
 
@@ -96,3 +102,19 @@ def test_motif_non_disponible_v130():
     rep["reponse"]["motif"] = "non_disponible"
     rep["reponse"]["message"] = "Ce type de question n'est pas encore disponible."
     assert AskResponse.model_validate(rep).reponse.motif == "non_disponible"
+
+
+def test_series_toute_valeur_a_sa_source_et_rien_d_interpole():
+    """v1.4.0 : chaque point d'une série est une observation du socle, avec la source de sa série."""
+    rep = SeriesResponse.model_validate_json((DOSSIER / "series.json").read_text(encoding="utf-8"))
+    assert len(rep.series) <= 6
+    for serie in rep.series:
+        assert serie.source.libelle and serie.source.date_publication and serie.source.url
+        assert [p.periode for p in serie.points] == sorted(p.periode for p in serie.points)
+        assert all(p.observation_id and p.valeur_affichee for p in serie.points)
+
+
+def test_fiche_cite_sa_source():
+    rep = FicheIndicateur.model_validate_json((DOSSIER / "fiche_indicateur.json").read_text(encoding="utf-8"))
+    assert rep.source.libelle and rep.citation.startswith("Source : ")
+    assert rep.couverture and all(c.zones > 0 and c.periodes for c in rep.couverture)

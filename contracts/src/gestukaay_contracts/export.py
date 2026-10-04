@@ -15,9 +15,12 @@ from pydantic import TypeAdapter
 from .models import (
     AskRequest,
     AskResponse,
+    CatalogueResponse,
     ConfirmRequest,
     FeedbackRequest,
+    FicheIndicateur,
     Problem,
+    SeriesResponse,
     SituateRequest,
     SituateResponse,
     TranscriptionResponse,
@@ -36,6 +39,9 @@ MODELES = {
     "transcription_response": (TranscriptionResponse, "serialization"),
     "situate_request": (SituateRequest, "validation"),
     "situate_response": (SituateResponse, "serialization"),
+    "catalogue_response": (CatalogueResponse, "serialization"),
+    "fiche_indicateur": (FicheIndicateur, "serialization"),
+    "series_response": (SeriesResponse, "serialization"),
 }
 
 

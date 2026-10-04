@@ -1,0 +1,266 @@
+{
+  "$defs": {
+    "Couverture": {
+      "additionalProperties": false,
+      "properties": {
+        "niveau": {
+          "enum": [
+            "pays",
+            "region",
+            "departement",
+            "academie"
+          ],
+          "type": "string"
+        },
+        "zones": {
+          "type": "integer"
+        },
+        "periodes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "niveau",
+        "zones",
+        "periodes"
+      ],
+      "title": "Couverture",
+      "type": "object"
+    },
+    "IndicateurResume": {
+      "additionalProperties": false,
+      "description": "Une ligne du catalogue [5.5 « Catalogue d'indicateurs »].",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        },
+        "domaine": {
+          "examples": [
+            "Pauvreté"
+          ],
+          "type": "string"
+        },
+        "unite": {
+          "examples": [
+            "%"
+          ],
+          "type": "string"
+        },
+        "producteur": {
+          "examples": [
+            "ANSD"
+          ],
+          "type": "string"
+        },
+        "operation": {
+          "examples": [
+            "EHCVM"
+          ],
+          "type": "string"
+        },
+        "niveaux": {
+          "items": {
+            "enum": [
+              "pays",
+              "region",
+              "departement",
+              "academie"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "periode_debut": {
+          "examples": [
+            "2011"
+          ],
+          "type": "string"
+        },
+        "periode_fin": {
+          "examples": [
+            "2022"
+          ],
+          "type": "string"
+        },
+        "verifie": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "libelle",
+        "domaine",
+        "unite",
+        "producteur",
+        "operation",
+        "niveaux",
+        "periode_debut",
+        "periode_fin",
+        "verifie"
+      ],
+      "title": "IndicateurResume",
+      "type": "object"
+    },
+    "RefIndicateur": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "libelle"
+      ],
+      "title": "RefIndicateur",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "Bloc source — obligatoire sur toute valeur, tous canaux [Engagement 01].",
+      "properties": {
+        "producteur": {
+          "examples": [
+            "ANSD"
+          ],
+          "type": "string"
+        },
+        "operation": {
+          "examples": [
+            "RGPH-5"
+          ],
+          "type": "string"
+        },
+        "titre": {
+          "type": "string"
+        },
+        "date_publication": {
+          "format": "date",
+          "type": "string"
+        },
+        "licence": {
+          "examples": [
+            "CC BY 4.0"
+          ],
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "libelle": {
+          "examples": [
+            "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "producteur",
+        "operation",
+        "titre",
+        "date_publication",
+        "licence",
+        "url",
+        "libelle"
+      ],
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "GET /v1/indicators/{code} [5.5 « Fiche indicateur », US-19]. 404 si le code est inconnu.",
+  "properties": {
+    "version_contrat": {
+      "default": "1.4.0",
+      "type": "string"
+    },
+    "version_socle": {
+      "type": "string"
+    },
+    "indicateur": {
+      "$ref": "#/$defs/IndicateurResume"
+    },
+    "definition": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "methode": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "desagregations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "couverture": {
+      "items": {
+        "$ref": "#/$defs/Couverture"
+      },
+      "type": "array"
+    },
+    "note_perimetre": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source": {
+      "$ref": "#/$defs/Source"
+    },
+    "citation": {
+      "type": "string"
+    },
+    "indicateurs_lies": {
+      "items": {
+        "$ref": "#/$defs/RefIndicateur"
+      },
+      "maxItems": 6,
+      "type": "array"
+    }
+  },
+  "required": [
+    "version_contrat",
+    "version_socle",
+    "indicateur",
+    "definition",
+    "methode",
+    "desagregations",
+    "couverture",
+    "note_perimetre",
+    "source",
+    "citation",
+    "indicateurs_lies"
+  ],
+  "title": "FicheIndicateur",
+  "type": "object"
+}

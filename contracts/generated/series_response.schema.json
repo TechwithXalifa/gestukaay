@@ -1,0 +1,352 @@
+{
+  "$defs": {
+    "Graphique": {
+      "additionalProperties": false,
+      "description": "Graphique web uniquement [EF-20, EF-26].\n\nLes données servent d'alternative textuelle [EF-28] ; le SVG est rendu\ncôté serveur (Plotly) et servi par svg_url.",
+      "properties": {
+        "type": {
+          "enum": [
+            "courbe",
+            "barres_horizontales",
+            "barres_empilees",
+            "deciles"
+          ],
+          "type": "string"
+        },
+        "titre": {
+          "type": "string"
+        },
+        "unite": {
+          "type": "string"
+        },
+        "series": {
+          "items": {
+            "$ref": "#/$defs/SerieGraphique"
+          },
+          "maxItems": 6,
+          "type": "array"
+        },
+        "pied": {
+          "type": "string"
+        },
+        "svg_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "type",
+        "titre",
+        "unite",
+        "series",
+        "pied",
+        "svg_url"
+      ],
+      "title": "Graphique",
+      "type": "object"
+    },
+    "PointGraphique": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "string"
+        },
+        "y": {
+          "type": "number"
+        },
+        "mise_en_evidence": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "mise_en_evidence"
+      ],
+      "title": "PointGraphique",
+      "type": "object"
+    },
+    "PointSerie": {
+      "additionalProperties": false,
+      "properties": {
+        "periode": {
+          "examples": [
+            "2022"
+          ],
+          "type": "string"
+        },
+        "libelle": {
+          "examples": [
+            "2022"
+          ],
+          "type": "string"
+        },
+        "valeur": {
+          "type": "number"
+        },
+        "valeur_affichee": {
+          "type": "string"
+        },
+        "observation_id": {
+          "type": "string"
+        },
+        "nature": {
+          "anyOf": [
+            {
+              "enum": [
+                "observee",
+                "estimation",
+                "projection"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "base_projection": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "periode",
+        "libelle",
+        "valeur",
+        "valeur_affichee",
+        "observation_id",
+        "nature",
+        "base_projection"
+      ],
+      "title": "PointSerie",
+      "type": "object"
+    },
+    "RefIndicateur": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "libelle"
+      ],
+      "title": "RefIndicateur",
+      "type": "object"
+    },
+    "RefZone": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "examples": [
+            "SN-TH"
+          ],
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        },
+        "niveau": {
+          "enum": [
+            "pays",
+            "region",
+            "departement",
+            "commune",
+            "academie"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "libelle",
+        "niveau"
+      ],
+      "title": "RefZone",
+      "type": "object"
+    },
+    "Serie": {
+      "additionalProperties": false,
+      "properties": {
+        "zone": {
+          "$ref": "#/$defs/RefZone"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/PointSerie"
+          },
+          "type": "array"
+        },
+        "source": {
+          "$ref": "#/$defs/Source"
+        }
+      },
+      "required": [
+        "zone",
+        "points",
+        "source"
+      ],
+      "title": "Serie",
+      "type": "object"
+    },
+    "SerieGraphique": {
+      "additionalProperties": false,
+      "properties": {
+        "nom": {
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/PointGraphique"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "nom",
+        "points"
+      ],
+      "title": "SerieGraphique",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "Bloc source — obligatoire sur toute valeur, tous canaux [Engagement 01].",
+      "properties": {
+        "producteur": {
+          "examples": [
+            "ANSD"
+          ],
+          "type": "string"
+        },
+        "operation": {
+          "examples": [
+            "RGPH-5"
+          ],
+          "type": "string"
+        },
+        "titre": {
+          "type": "string"
+        },
+        "date_publication": {
+          "format": "date",
+          "type": "string"
+        },
+        "licence": {
+          "examples": [
+            "CC BY 4.0"
+          ],
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "libelle": {
+          "examples": [
+            "ANSD · RGPH-5 · publié le 31 octobre 2023 · CC BY 4.0"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "producteur",
+        "operation",
+        "titre",
+        "date_publication",
+        "licence",
+        "url",
+        "libelle"
+      ],
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "GET /v1/series?indicateur=&zones=SN-DK,SN-TH&debut=&fin= [5.5 « Explorer », US-18].\n\nAu plus 6 zones (422 au-delà), indicateur inconnu : 404. Une zone sans aucune valeur publiée sur\nla période figure dans `absents` : signalée, jamais interpolée (maquette Explorer).",
+  "properties": {
+    "version_contrat": {
+      "default": "1.4.0",
+      "type": "string"
+    },
+    "version_socle": {
+      "type": "string"
+    },
+    "indicateur": {
+      "$ref": "#/$defs/RefIndicateur"
+    },
+    "unite": {
+      "type": "string"
+    },
+    "desagregation": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "series": {
+      "items": {
+        "$ref": "#/$defs/Serie"
+      },
+      "maxItems": 6,
+      "type": "array"
+    },
+    "absents": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "graphique": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Graphique"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "version_contrat",
+    "version_socle",
+    "indicateur",
+    "unite",
+    "desagregation",
+    "series",
+    "absents",
+    "graphique"
+  ],
+  "title": "SeriesResponse",
+  "type": "object"
+}
