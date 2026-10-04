@@ -39,8 +39,33 @@ async function requete<T>(chemin: string, init?: RequestInit): Promise<T> {
   return (r.status === 204 ? undefined : await r.json()) as T;
 }
 
+const CLE_CONVERSATION = "gestukaay.conversation";
+
+/**
+ * Identifiant de conversation, un par onglet (décision 0021) : il permet « et pour Kaolack ? » sur
+ * 3 échanges. Tiré au hasard, ne dit rien de la personne, oublié à la fermeture de l'onglet ; le
+ * backend le hache avant de le journaliser. Sans stockage disponible, chaque question est isolée.
+ */
+export function conversationId(): string | undefined {
+  try {
+    let id = sessionStorage.getItem(CLE_CONVERSATION);
+    if (!id) {
+      id = typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+      sessionStorage.setItem(CLE_CONVERSATION, id);
+    }
+    return id;
+  } catch {
+    return undefined;
+  }
+}
+
 export const demander = (req: AskRequest) =>
-  requete<AskResponse>("/v1/ask", { method: "POST", body: JSON.stringify(req) });
+  requete<AskResponse>("/v1/ask", {
+    method: "POST",
+    body: JSON.stringify({ conversation_id: conversationId(), ...req }),
+  });
 
 export const confirmer = (id: string, choixId: string) =>
   requete<AskResponse>(`/v1/ask/${id}/confirm`, {
