@@ -11,12 +11,12 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | 0 · Fondations | 4 | 4 | ✅ terminé |
 | 1 · Socle | 8 | 8 | Préparation |
 | 2 · Moteur | 9 | 10 | Préparation |
-| 3 · Jeu de test et mesure | 1 | 4 | Préparation |
+| 3 · Jeu de test et mesure | 2 | 4 | Préparation |
 | 4 · Wolof | 1 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **23** | **46** | |
+| **Total** | **24** | **46** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -75,7 +75,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 ## 3 · Jeu de test et mesure
 
 - [x] **3.1** Rédiger les 100 questions de référence — [#18](https://github.com/TechwithXalifa/gestukaay/issues/18) · échéance 01/10
-- [ ] **3.2** Script de benchmark + invariant « zéro chiffre inventé » — [#19](https://github.com/TechwithXalifa/gestukaay/issues/19) · échéance 04/10 · après 3.1, 2.3
+- [x] **3.2** Script de benchmark + invariant « zéro chiffre inventé » — [#19](https://github.com/TechwithXalifa/gestukaay/issues/19) · échéance 04/10 · après 3.1, 2.3
 - [ ] **3.3** Benchmark exécuté par la CI — [#20](https://github.com/TechwithXalifa/gestukaay/issues/20) · échéance 05/10 · après 3.2
 - [ ] **3.4** Rapport de mesure ⏳ — [#21](https://github.com/TechwithXalifa/gestukaay/issues/21) · échéance 09/10 · après 3.2
 
