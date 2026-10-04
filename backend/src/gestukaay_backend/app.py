@@ -128,7 +128,9 @@ def sante() -> dict:
 @app.post("/v1/ask", response_model=AskResponse)
 def demander(req: AskRequest) -> AskResponse:
     debut = time.perf_counter()
-    return _conserver(moteur.repondre(req), debut, req)
+    # Suivi sur 3 échanges (EF-09, décision 0021) : le moteur reçoit les requêtes précédentes
+    contexte = stockage.contexte(req.conversation_id) if req.conversation_id else None
+    return _conserver(moteur.repondre(req, contexte), debut, req)
 
 
 # Opus à 60 s dépasse rarement 600 Ko : 2 Mo laisse de la marge sans ouvrir la porte aux abus

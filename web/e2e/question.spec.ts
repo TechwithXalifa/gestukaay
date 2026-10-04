@@ -117,3 +117,16 @@ test("adresse inconnue : message clair, pas d'erreur technique", async ({ page }
   await expect(page.getByText("Cette réponse n'existe plus.")).toBeVisible();
   await accessible(page, "réponse introuvable");
 });
+
+test("suivi : les questions d'un même onglet partagent une conversation (décision 0021)", async ({ page }) => {
+  const ids: (string | undefined)[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith("/v1/ask") && r.method() === "POST") ids.push(r.postDataJSON().conversation_id);
+  });
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.getByRole("textbox", { name: "Votre question" }).fill("Et pour Kaolack ?");
+  await page.getByRole("button", { name: "Envoyer la question" }).click();
+  await expect.poll(() => ids.length).toBe(2);
+  expect(ids[0]).toBeTruthy();
+  expect(ids[1]).toBe(ids[0]);
+});

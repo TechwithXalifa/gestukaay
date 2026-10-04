@@ -23,9 +23,9 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from gestukaay_contracts.models import AskRequest, AskResponse, FeedbackRequest
+from gestukaay_contracts.models import AskRequest, AskResponse, FeedbackRequest, RequeteStructuree
 
 _TABLES = [
     """CREATE TABLE IF NOT EXISTS reponses (
@@ -58,6 +58,10 @@ _TABLES = [
         commentaire TEXT
     )""",
 ]
+
+# Suivi de conversation (décision 0021) : 3 derniers échanges, oubliés après 30 min sans échange
+ECHANGES_SUIVI = 3
+EXPIRATION_SUIVI = timedelta(minutes=30)
 
 COLONNES_JOURNAL = ["recu_le", "canal", "source", "langue", "question", "transcription_brute", "issue",
                     "indicateur", "latence_ms", "version_socle", "conversation", "confirme_depuis", "reponse_id"]
@@ -148,7 +152,8 @@ class Stockage:
         self._executer(
             f"INSERT INTO journal ({', '.join(COLONNES_JOURNAL)}) VALUES ({', '.join('?' * len(COLONNES_JOURNAL))})",
             (
-                datetime.now(UTC).isoformat(timespec="seconds"),
+                # millisecondes : ordonne les échanges rapides d'une même conversation (suivi, 0021)
+                datetime.now(UTC).isoformat(timespec="milliseconds"),
                 canal,
                 source,
                 r.langue,
@@ -167,6 +172,25 @@ class Stockage:
     def lire(self, rid: str) -> AskResponse | None:
         lignes = self._executer("SELECT contenu FROM reponses WHERE id = ?", (rid,))
         return AskResponse.model_validate_json(lignes[0][0]) if lignes else None
+
+    def contexte(self, conversation_id: str, maintenant: datetime | None = None) -> list[RequeteStructuree | None]:
+        """Requêtes des 3 derniers échanges de la conversation, du plus ancien au plus récent, pour
+        « et Kaolack ? » (EF-09, décision 0021). Rien si le dernier échange date de plus de 30 min.
+        Une réponse approchée confirmée compte pour son choix confirmé (la réponse approchée elle-même
+        est écartée) ; une incompréhension donne None. Lu dans le journal : aucune table de plus."""
+        lignes = self._executer(
+            """SELECT j.recu_le, r.contenu FROM journal j JOIN reponses r ON r.id = j.reponse_id
+               WHERE j.conversation = ? AND j.reponse_id NOT IN
+                     (SELECT c.confirme_depuis FROM journal c WHERE c.confirme_depuis IS NOT NULL)
+               ORDER BY j.recu_le DESC LIMIT ?""",
+            (self.hacher(conversation_id), ECHANGES_SUIVI),
+        )
+        if not lignes:
+            return []
+        maintenant = maintenant or datetime.now(UTC)
+        if maintenant - datetime.fromisoformat(lignes[0][0]) > EXPIRATION_SUIVI:
+            return []
+        return [AskResponse.model_validate_json(contenu).reponse.requete for _, contenu in reversed(lignes)]
 
     def hacher(self, conversation_id: str) -> str:
         return hashlib.sha256(f"{self._sel}:{conversation_id}".encode()).hexdigest()[:16]
