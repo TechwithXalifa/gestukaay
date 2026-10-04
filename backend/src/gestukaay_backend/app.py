@@ -247,6 +247,21 @@ def journal(
     return {"total": total, "lignes": lignes}
 
 
+@app.get("/admin/tableau")
+def tableau(
+    authorization: str | None = Header(None),
+    jours: int = Query(30),
+    canal: str | None = None,
+    langue: str | None = None,
+) -> dict:
+    """Tableau de bord (US-28) : questions, issues, latence médiane et p95, part du wolof,
+    satisfaction, signalements, questions non résolues les plus fréquentes."""
+    _admin(authorization)
+    if jours not in (7, 30, 90):
+        raise ErreurApi(422, "Période inconnue", "jours = 7, 30 ou 90.")
+    return stockage.tableau(jours, canal or None, langue or None)
+
+
 @app.get("/admin/journal.csv")
 def journal_csv(
     authorization: str | None = Header(None),

@@ -103,3 +103,41 @@ test("pied de page : Méthode, À propos et Confidentialité", async ({ page }) 
     await accessible(page, lien);
   }
 });
+
+test("tableau de bord : indicateurs, issues et questions non résolues (US-28)", async ({ page }) => {
+  await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
+  await page.goto("/admin/tableau");
+  await accessible(page, "tableau de bord, connexion");
+  await page.getByLabel("Jeton d'administration").fill(JETON_ADMIN);
+  await page.getByRole("button", { name: "Ouvrir le tableau de bord" }).click();
+  await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
+  await expect(page.getByText("Questions traitées")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Issues du moteur" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Questions non résolues", exact: true })).toContainText("sérère");
+  await page.getByRole("button", { name: "7 j" }).click();
+  await expect(page.getByRole("button", { name: "7 j" })).toHaveAttribute("aria-pressed", "true");
+  await accessible(page, "tableau de bord");
+
+  await page.getByRole("link", { name: "Journal des requêtes" }).click();
+  await expect(page.getByRole("heading", { name: "Journal des requêtes" })).toBeVisible(); // même jeton
+});
+
+test("barre latérale mobile : ouverture, navigation, fermeture (M-Menu)", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "la barre latérale remplace la navigation sous 768 px");
+  await page.goto("/");
+  const bouton = page.getByRole("button", { name: "Ouvrir le menu" });
+  await bouton.click();
+  const menu = page.getByRole("dialog", { name: "Menu" });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Où je me situe" })).toBeVisible();
+  await accessible(page, "barre latérale");
+
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(bouton).toBeFocused();
+
+  await bouton.click();
+  await menu.getByRole("link", { name: "Où je me situe" }).click();
+  await page.waitForURL(/\/situer$/);
+  await expect(page.getByRole("dialog", { name: "Menu" })).toBeHidden();
+});

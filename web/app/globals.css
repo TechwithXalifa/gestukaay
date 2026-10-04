@@ -355,3 +355,48 @@ main:focus { outline: none; }
 /* Refus : suggérer l'indicateur manquant (EF-51) */
 .lien-suggerer { margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; font-weight: 600; }
 
+/* Barre latérale mobile (maquette M-Menu, cahier 7.2) : seulement sous 768 px */
+.bouton-menu { display: none; flex: none; width: 44px; height: 44px; margin-left: -8px; background: transparent; color: var(--gk-baobab); }
+.bouton-menu:hover { background: var(--gk-baobab-50); }
+@media (max-width: 767px) { .bouton-menu { display: flex; } }
+.barre-laterale-fond { position: fixed; inset: 0; z-index: 50; background: rgba(15, 31, 33, .45); }
+.barre-laterale { position: absolute; inset: 0 auto 0 0; width: min(320px, 86vw); display: flex; flex-direction: column; gap: 24px; padding: 8px 16px 24px; overflow-y: auto; background: var(--gk-blanc); box-shadow: 4px 0 24px rgba(15, 31, 33, .18); animation: glisser 200ms ease-out; }
+@keyframes glisser { from { transform: translateX(-100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .barre-laterale { animation: none; } }
+.barre-laterale-haut { display: flex; align-items: center; justify-content: space-between; min-height: 56px; }
+.barre-laterale-haut .bouton-icone { width: 44px; height: 44px; background: transparent; color: var(--gk-baobab); }
+.barre-laterale-nav, .barre-laterale-pied { display: flex; flex-direction: column; }
+.barre-laterale-nav a { display: flex; align-items: center; min-height: 52px; padding: 0 12px; border-radius: var(--radius-md); color: var(--gk-encre); font-size: 16px; font-weight: 500; text-decoration: none; }
+.barre-laterale-nav a[aria-current="page"] { background: var(--gk-feuille-50); color: var(--gk-feuille); font-weight: 600; }
+.barre-laterale-langue { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 12px; border-block: 1px solid var(--gk-lin); }
+.barre-laterale-langue p { margin: 0; color: var(--gk-ardoise); font-size: 14px; }
+.barre-laterale-pied a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--gk-ardoise); font-size: 14px; text-decoration: none; }
+
+/* Back-office : navigation et tableau de bord (US-28, maquette BO-Tableau) */
+.admin-entete { flex-wrap: wrap; }
+.admin-nav { display: flex; flex-wrap: wrap; gap: 0 20px; margin-left: 12px; }
+.admin-nav a { display: flex; align-items: center; min-height: 44px; color: var(--gk-ardoise); text-decoration: none; font-size: 14px; }
+.admin-nav a[aria-current="page"] { color: var(--gk-baobab); font-weight: 600; }
+.admin-periode button { min-width: 52px; }
+.admin-tuiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.admin-tuiles li { display: flex; flex-direction: column; gap: 4px; padding: 16px; background: var(--gk-blanc); border: 1px solid var(--gk-lin); border-radius: var(--radius-md); }
+.admin-tuiles strong { font-size: 30px; line-height: 36px; font-weight: 700; color: var(--gk-baobab); font-variant-numeric: tabular-nums; }
+.admin-tuiles strong.hors-cible { color: var(--gk-ocre); }
+.admin-tuiles strong.admin-tuile-texte { font-size: 16px; line-height: 24px; font-weight: 600; }
+.admin-tuiles .note { margin: 0; }
+.admin-tuile-titre { font-size: 13px; color: var(--gk-ardoise); font-weight: 500; }
+.admin-panneaux { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.admin-panneau { padding: 16px; background: var(--gk-blanc); border: 1px solid var(--gk-lin); border-radius: var(--radius-md); }
+.admin-panneau .sous-titre { margin: 0 0 12px; font-size: 18px; line-height: 26px; }
+.admin-histo { display: flex; align-items: flex-end; gap: 2px; height: 140px; border-bottom: 1px solid var(--gk-trait); }
+.admin-histo span { flex: 1; min-width: 2px; background: var(--gk-feuille); border-radius: 2px 2px 0 0; }
+.admin-histo-axe { display: flex; justify-content: space-between; margin: 4px 0 8px; }
+.admin-panneau details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--gk-feuille); font-size: 14px; }
+.admin-issues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.admin-issues li { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 14px; }
+.admin-issues .admin-jauge { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: var(--gk-squelette); overflow: hidden; }
+.admin-issues .admin-jauge span { display: block; height: 100%; background: var(--gk-baobab); }
+.admin-issues .issue-exacte .admin-jauge span { background: var(--gk-feuille); }
+.admin-issues .issue-approchee .admin-jauge span { background: var(--gk-ocre); }
+.admin-issues .note { grid-column: 1 / -1; margin: 0; }
+

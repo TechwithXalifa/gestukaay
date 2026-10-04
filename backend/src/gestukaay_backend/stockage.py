@@ -16,14 +16,17 @@ que pour une base PostgreSQL.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import secrets
 import sqlite3
+import statistics
 import threading
+from collections import Counter
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from gestukaay_contracts.models import AskRequest, AskResponse, FeedbackRequest
 
@@ -207,3 +210,69 @@ class Stockage:
             (*params, f.limite, f.decalage),
         )
         return total, [dict(zip([*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], ligne, strict=True)) for ligne in lignes]
+
+    # ------------------------------------------------------------------ tableau de bord
+
+    def tableau(self, jours: int = 30, canal: str | None = None, langue: str | None = None,
+                maintenant: datetime | None = None) -> dict:
+        """Indicateurs de qualité du back-office (US-28, maquette BO-Tableau), calculés sur le journal.
+        Une confirmation de choix n'est pas une question de plus : seules les questions posées comptent.
+        L'exactitude et les refus pertinents viennent du benchmark (mesure/), pas d'ici."""
+        maintenant = maintenant or datetime.now(UTC)
+        debut, avant = maintenant - timedelta(days=jours), maintenant - timedelta(days=2 * jours)
+        lignes = self._executer(
+            "SELECT recu_le, canal, langue, issue, latence_ms, question, reponse_id FROM journal "
+            "WHERE recu_le >= ? AND confirme_depuis IS NULL", (avant.isoformat(timespec="milliseconds"),))
+        garder = [lg for lg in lignes if (not canal or lg[1] == canal) and (not langue or lg[2] == langue)]
+        courantes = [lg for lg in garder if datetime.fromisoformat(lg[0]) >= debut]
+        precedentes = len(garder) - len(courantes)
+        total = len(courantes)
+
+        latences = sorted(lg[4] for lg in courantes if lg[4] is not None)
+        p95 = latences[min(len(latences) - 1, int(0.95 * len(latences)))] if latences else None
+        issues = Counter(lg[3] for lg in courantes)
+
+        ids = {lg[6] for lg in courantes}
+        votes: dict[str, tuple[str, str]] = {}  # dernier vote de chaque réponse
+        signalements = 0
+        for rid, recu, type_, vote in self._executer(
+                "SELECT reponse_id, recu_le, type, vote FROM retours WHERE recu_le >= ?",
+                (debut.isoformat(timespec="seconds"),)):
+            if rid not in ids:
+                continue
+            if type_ == "vote" and vote and (rid not in votes or recu >= votes[rid][0]):
+                votes[rid] = (recu, vote)
+            signalements += type_ == "signalement"
+        utiles = sum(v == "utile" for _, v in votes.values())
+
+        par_jour = Counter(datetime.fromisoformat(lg[0]).date().isoformat() for lg in courantes)
+        jours_liste = [(debut + timedelta(days=i + 1)).date().isoformat() for i in range(jours)]
+
+        # Questions non résolues (refus), regroupées par question normalisée, les plus fréquentes d'abord
+        refus = [lg for lg in courantes if lg[3] == "aucune"]
+        motifs: dict[str, str] = {}
+        for rid in {lg[6] for lg in refus}:
+            contenu = self._executer("SELECT contenu FROM reponses WHERE id = ?", (rid,))
+            if contenu:
+                motifs[rid] = json.loads(contenu[0][0])["reponse"].get("motif", "")
+        groupes: dict[str, dict] = {}
+        for lg in refus:
+            cle = " ".join(lg[5].lower().split())
+            g = groupes.setdefault(cle, {"question": lg[5], "langue": lg[2], "motif": motifs.get(lg[6], ""),
+                                         "occurrences": 0})
+            g["occurrences"] += 1
+
+        return {
+            "jours": jours,
+            "questions": total,
+            "questions_periode_precedente": precedentes,
+            "issues": {k: issues.get(k, 0) for k in ("exacte", "approchee", "aucune")},
+            "latence_mediane_ms": round(statistics.median(latences)) if latences else None,
+            "latence_p95_ms": p95,
+            "part_wolof": round(sum(lg[2] == "wo" for lg in courantes) / total, 3) if total else None,
+            "votes": len(votes),
+            "satisfaction": round(utiles / len(votes), 3) if votes else None,
+            "signalements": signalements,
+            "par_jour": [{"jour": j, "questions": par_jour.get(j, 0)} for j in jours_liste],
+            "non_resolues": sorted(groupes.values(), key=lambda g: (-g["occurrences"], g["question"]))[:10],
+        }
