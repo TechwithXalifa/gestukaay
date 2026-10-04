@@ -75,6 +75,11 @@ exactitude ≥ 85 %, refus pertinent ≥ 95 %, latence médiane < 3 s, et l'inva
 
 ## Conséquences
 
+- **CI (#20)** : job `benchmark` de `.github/workflows/ci.yml`. La release `socle-2026.10.0` est mise en
+  cache par version, ses empreintes sont vérifiées (`socle/scripts/verifier_socle.py`) avant chaque
+  exécution en règles locales ; la synthèse s'affiche dans le résumé de l'exécution. Nouvelle version
+  du socle : publier sa release puis changer `SOCLE_VERSION` dans le workflow.
+
 - `uv run python mesure/scripts/benchmark.py --regles` s'exécute en local en ~2,5 s.
 - 498 tests unitaires et d'intégration automatisés dans la suite pytest (`mesure/tests/test_benchmark.py`).
 - Les violations de l'invariant sont détectées dès le premier faux chiffre injecté.
