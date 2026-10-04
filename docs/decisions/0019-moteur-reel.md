@@ -29,9 +29,9 @@ encore construites.
 4. **Fonctions pas encore construites** : `transcrire` (#28) et `situer` (#95) lèvent `NonDisponible`,
    que le backend rend en **503**. Le faux moteur n'est pas repris : `situer` y renvoie les chiffres
    fixes de Kolda quelle que soit la saisie, ce serait un chiffre inventé.
-5. **Motif « pas encore disponible »** : le motif `non_disponible` est demandé pour le contrat 1.3.0
-   (SAN). En attendant, `incomprehension`, le seul motif du contrat 1.2.0 qui ne prétend pas que la
-   donnée est absente (constante `MOTIF_NON_DISPONIBLE`, à changer après la 1.3.0).
+5. **Motif « pas encore disponible »** : `non_disponible`, ajouté par le contrat 1.3.0 (#99). Avant la
+   1.3.0, `incomprehension` servait de motif provisoire (le seul du contrat 1.2.0 qui ne prétendait
+   pas que la donnée est absente). *Révisé le 04/10.*
 6. **Chargement** : socle et client LLM chargés une fois au démarrage du backend ; sans `LLM_CHAINE`,
    compréhension par règles locales (signalé sur la sortie d'erreur). L'identifiant de réponse est
    donné par le moteur ; l'URL stable et la latence restent au backend.

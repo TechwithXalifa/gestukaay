@@ -63,7 +63,7 @@ MESSAGE_INCOMPREHENSION = "Je n'ai pas bien compris. Essayez par exemple : « Co
 
 @dataclass(frozen=True)
 class Refus:
-    motif: Literal["hors_socle", "projection", "incomprehension"]
+    motif: Literal["hors_socle", "projection", "incomprehension", "non_disponible"]
     message: str
     suggestions: list[Suggestion]
     requete: RequeteStructuree | None = None

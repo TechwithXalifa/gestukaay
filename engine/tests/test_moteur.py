@@ -7,7 +7,7 @@ from gestukaay_contracts.models import AskRequest, Periode, RequeteStructuree, S
 from gestukaay_engine import NonDisponible, charger_moteur
 from gestukaay_engine import moteur as module_moteur
 from gestukaay_engine.comprehension import Comprehension
-from gestukaay_engine.moteur import MESSAGE_NON_DISPONIBLE, MOTIF_NON_DISPONIBLE, MoteurReel
+from gestukaay_engine.moteur import MESSAGE_NON_DISPONIBLE, MoteurReel
 from gestukaay_engine.resolution import Introuvable
 from gestukaay_engine.socle import Observation, Socle, SourceJeu
 
@@ -71,7 +71,7 @@ def test_non_traite_jamais_hors_socle(monkeypatch):
     monkeypatch.setattr(module_moteur, "resoudre", lambda *a, **k: Introuvable("non_traite", "essai"))
     for r in (demander("Combien d'habitants à Thiès ?"),
               MOTEUR.executer(req("pvswjnd", ["SN-TH"]), "Combien d'habitants à Thiès ?", "fr").reponse):
-        assert (r.issue, r.motif, r.message) == ("aucune", MOTIF_NON_DISPONIBLE, MESSAGE_NON_DISPONIBLE)
+        assert (r.issue, r.motif, r.message) == ("aucune", "non_disponible", MESSAGE_NON_DISPONIBLE)
         assert r.motif != "hors_socle" and "n'existe pas" not in r.message and not r.suggestions
 
 
