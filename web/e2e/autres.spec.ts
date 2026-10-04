@@ -141,3 +141,15 @@ test("barre latérale mobile : ouverture, navigation, fermeture (M-Menu)", async
   await page.waitForURL(/\/situer$/);
   await expect(page.getByRole("dialog", { name: "Menu" })).toBeHidden();
 });
+
+test("méthode : résultats de la mesure publiés, réussites et erreurs (cahier 12.1)", async ({ page }) => {
+  await page.goto("/methode");
+  const mesure = page.getByRole("region", { name: "Ce que nous mesurons" });
+  await expect(mesure).toContainText("89,2 %");
+  await expect(mesure).toContainText("100 %");
+  await expect(mesure).toContainText("1,4 s");
+  await expect(mesure.getByText("objectif atteint", { exact: false })).toHaveCount(4);
+  await expect(page.getByRole("region", { name: "Résultats par langue de la question" })).toContainText("pas encore mesuré");
+  await expect(page.getByRole("region", { name: "Là où Gëstukaay se trompe encore" })).toContainText("5 questions");
+  await accessible(page, "méthode, résultats");
+});
