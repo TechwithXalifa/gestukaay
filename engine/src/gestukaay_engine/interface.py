@@ -21,7 +21,10 @@ from typing import Protocol
 from gestukaay_contracts.models import (
     AskRequest,
     AskResponse,
+    CatalogueResponse,
+    FicheIndicateur,
     RequeteStructuree,
+    SeriesResponse,
     SituateRequest,
     SituateResponse,
     TranscriptionResponse,
@@ -34,6 +37,10 @@ class NonDisponible(RuntimeError):
 
 class SaisieInvalide(ValueError):
     """Saisie hors du référentiel (« Où je me situe » : région inconnue) : le backend rend 422."""
+
+
+class IndicateurInconnu(LookupError):
+    """Code d'indicateur absent du référentiel ou sans valeur dans le socle : le backend rend 404."""
 
 
 class Moteur(Protocol):
@@ -63,6 +70,22 @@ class Moteur(Protocol):
     def situer(self, req: SituateRequest) -> SituateResponse:
         """« Où je me situe » : comparaison aux moyennes publiées (v1.1.0, décision 0004 §2).
         Ne conserve RIEN de ce qui est saisi [EF-40]."""
+        ...
+
+    # v1.4.0 — Catalogue, fiche et séries d'Explorer (décision 0023). Lecture seule, sans LLM.
+    def catalogue(self, domaine: str | None = None, q: str | None = None, niveau: str | None = None,
+                  limite: int = 50, decalage: int = 0) -> CatalogueResponse:
+        """Indicateurs qui ont des valeurs, filtrés, vérifiés d'abord puis par libellé."""
+        ...
+
+    def fiche(self, code: str) -> FicheIndicateur:
+        """Fiche d'un indicateur ; IndicateurInconnu si le code n'existe pas."""
+        ...
+
+    def series(self, indicateur: str, zones: list[str], debut: str | None = None,
+               fin: str | None = None) -> SeriesResponse:
+        """Séries publiées d'un indicateur pour 1 à 6 zones, sans interpolation ; IndicateurInconnu
+        si le code n'existe pas. Une zone sans valeur sur la période va dans `absents`."""
         ...
 
     def version_socle(self) -> str: ...

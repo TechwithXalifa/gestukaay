@@ -25,6 +25,7 @@ LIMITES: dict[str, int] = {
     "retour": 20,
     "export": 30,
     "admin": 20,  # protège aussi le jeton contre les essais à la chaîne
+    "explorer": 60,  # catalogue, fiches et séries : de la navigation, plus fréquente qu'une question
 }
 FENETRE_S = 60.0
 
@@ -42,6 +43,8 @@ def groupe(chemin: str) -> str | None:
         return "export"
     if chemin.startswith("/admin"):
         return "admin"
+    if chemin.startswith(("/v1/indicators", "/v1/series")):
+        return "explorer"
     return None  # lecture d'une réponse, santé, documentation : pas de limite
 
 
