@@ -171,7 +171,7 @@ export interface ReponseAucune {
   cree_le: string;
   latence_ms: number | null;
   issue: "aucune";
-  motif: "hors_socle" | "projection" | "incomprehension";
+  motif: "hors_socle" | "projection" | "incomprehension" | "non_disponible";
   message: string;
   /**
    * @maxItems 3

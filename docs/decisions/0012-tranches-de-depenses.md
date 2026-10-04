@@ -44,10 +44,16 @@ C'est faux, et c'est la région où le module sera le plus utilisé.
 
 ## Conséquences
 
-- **Contrat v1.2.0** (choix retenu) : suppression de `plus_500k`, changement **majeur** au sens de
-  `contrat-v1.md` §5, sans alias. La même v1.2.0 porte la période « entre A et B » proposée par KBD
-  (FR-031, FR-032, FR-036, FR-039, WO-014) : un seul changement majeur avant le hackathon.
-- **Moteur** (`situer`) et **web** (`TRANCHES`, libellés FR/WO) à mettre à jour dans la même PR.
+- **Contrat v1.3.0, additif** (révisé le 03/10, #91) : supprimer `plus_500k` serait un changement
+  **majeur** au sens de `contrat-v1.md` §6, à éviter pendant le hackathon ; la première version de
+  cette décision l'avait mal étiqueté. On retient donc l'option B : la v1.3.0 **ajoute** `500k_750k`,
+  `750k_1m` et `plus_1m`, et garde `plus_500k` accepté mais plus proposé par le site. La période
+  « entre A et B » est partie seule dans la v1.2.0.
+- **`plus_500k` encore reçue** : même règle que `plus_1m`, avec une borne basse par personne de
+  `500 000 × 12 / taille` (au-dessus si elle dépasse la moyenne, sinon autour avec « au moins X FCFA
+  par personne »).
+- **Web** (`TRANCHES`, libellés FR) : mis à jour avec le contrat 1.3.0. **Moteur** (`situer`, #95) :
+  KBD, après la fusion de la 1.3.0.
 - **Tests** : « Dakar, 7 personnes, `plus_1m` » -> `au_dessus` ; « Dakar, 25 personnes, `plus_1m` » ->
   `autour`, avec « au moins » dans l'explication.
 - **Point resté ouvert, hors de cette décision** : les exemples affichent « CC BY 4.0 », alors que le

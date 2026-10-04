@@ -1,5 +1,7 @@
-# Contrat d'API Gëstukaay — v1.2.0
+# Contrat d'API Gëstukaay — v1.3.0
 
+> **Nouveautés v1.3.0** (décisions 0012 et 0019), **additif**, rien ne casse : tranches de dépenses
+> `500k_750k`, `750k_1m`, `plus_1m` (`plus_500k` reste accepté, plus proposé) · motif de refus `non_disponible`.
 > **Nouveautés v1.2.0** (additif comparaison & classement, issue #14) — **additif**, rien ne casse :
 > `Periode.fin` (seconde borne d'une comparaison temporelle) · `RequeteStructuree.ordre` (`desc` par défaut, `asc`).
 > **Nouveautés v1.1.0** (décisions 0002, 0003, 0004) : nature des valeurs (`observee` / `estimation` / `projection`) ·
@@ -103,6 +105,7 @@ switch (r.reponse.issue) {
 | `hors_socle` | la donnée n'existe pas | icône neutre, `message`, 3 `suggestions` cliquables, lien « Suggérer cet indicateur » |
 | `projection` | prévision demandée | `message` qui renvoie vers les projections officielles de l'ANSD |
 | `incomprehension` | question inintelligible, transcription vide | « Je n'ai pas bien compris » + exemples + réessayer au micro |
+| `non_disponible` (v1.3.0) | type de question que le moteur ne sait pas encore traiter | `message` (« Ce type de question n'est pas encore disponible. »), sans suggestion ; jamais « cette donnée n'existe pas » (décision 0019) |
 
 Jamais de rouge, jamais de vocabulaire d'erreur (7.1, principe 6).
 
@@ -124,7 +127,8 @@ Le portail ne publie **aucun seuil** de décile ni de quintile : on compare le m
 
 - Entrée `SituateRequest` : `region` (code `SN-XX`), `taille_menage` (nombre exact, 1 à 40),
   `depenses_mensuelles` (tranche : `moins_50k`, `50k_100k`, `100k_200k`, `200k_350k`, `350k_500k`,
-  `plus_500k`), `niveau_instruction_chef` (facultatif, pas encore exploité).
+  `500k_750k`, `750k_1m`, `plus_1m` ; `plus_500k` reste accepté depuis la v1.3.0 mais n'est plus
+  proposé, décision 0012), `niveau_instruction_chef` (facultatif, pas encore exploité).
 - Sortie `SituateResponse` :
   - `depense_par_personne_an` : **intervalle** calculé sur les seules données saisies
     (dépenses × 12 / taille) ;
@@ -184,3 +188,4 @@ Procédure :
 | 1.1.1 | 2026-10-02 | Retours de SAN, sans changement de format : exemple `exacte_valeur.json` avec graphique de contexte ; graphique de contexte par niveau de zone (doc) ; biais à signaler dans l'explication de « Où je me situe » ; citation d'une projection ; tests en UTF-8 (Windows) ; version du paquet |
 | 1.1.2 | 2026-10-02 | Exemples seuls, sans changement de format : codes d'indicateurs du référentiel (`pvswjnd`…) ; `aucune_hors_socle.json` = FR-071 (« sérère »), « voitures à Kolda » étant devenue une question approchée (décision 0005) |
 | 1.2.0 | 2026-10-03 | Additif comparaison & classement (#14) : `Periode.fin` (deuxième borne temporelle) ; `RequeteStructuree.ordre` (`"desc"` / `"asc"`) |
+| 1.3.0 | 2026-10-04 | Additif (décisions 0012 et 0019) : `TrancheDepense` gagne `500k_750k`, `750k_1m`, `plus_1m`, `plus_500k` gardé mais plus proposé ; `ReponseAucune.motif` gagne `non_disponible` |

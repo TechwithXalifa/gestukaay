@@ -13,7 +13,10 @@ import { situer } from "@/lib/api";
 import { REGIONS } from "@/lib/regions";
 
 type Tranche = SituateRequest["depenses_mensuelles"];
-const TRANCHES: Tranche[] = ["moins_50k", "50k_100k", "100k_200k", "200k_350k", "350k_500k", "plus_500k"];
+// Contrat 1.3.0 (décision 0012) : trois tranches au-delà de 500 000 ; « plus_500k » n'est plus proposée
+const TRANCHES: Tranche[] = [
+  "moins_50k", "50k_100k", "100k_200k", "200k_350k", "350k_500k", "500k_750k", "750k_1m", "plus_1m",
+];
 const TOTAL = 3;
 
 /**

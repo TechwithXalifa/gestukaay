@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_CONTRAT = "1.2.0"
+VERSION_CONTRAT = "1.3.0"
 
 
 class _Strict(BaseModel):
@@ -243,7 +243,9 @@ class ReponseAucune(_ReponseBase):
     # hors_socle     : donnée absente -> 3 suggestions [P3]
     # projection     : prévision demandée -> renvoi projections ANSD [2.4]
     # incomprehension: question inintelligible / transcription vide [7.3]
-    motif: Literal["hors_socle", "projection", "incomprehension"]
+    # non_disponible (v1.3.0) : type de question que le moteur ne sait pas encore traiter ;
+    #   jamais « cette donnée n'existe pas », la donnée existe peut-être (décision 0019)
+    motif: Literal["hors_socle", "projection", "incomprehension", "non_disponible"]
     message: str
     suggestions: list[Suggestion] = Field(default_factory=list, max_length=3)
 
@@ -287,7 +289,10 @@ class TranscriptionResponse(_Strict):
 # ---------------------------------------------------------------------------
 
 # Dépenses mensuelles du ménage, en FCFA, par tranches [EF-37]
-TrancheDepense = Literal["moins_50k", "50k_100k", "100k_200k", "200k_350k", "350k_500k", "plus_500k"]
+# v1.3.0 (décision 0012) : au-delà de 500 000, trois tranches au lieu d'une tranche ouverte.
+# « plus_500k » reste accepté pour ne rien casser, mais n'est plus proposé par le site.
+TrancheDepense = Literal["moins_50k", "50k_100k", "100k_200k", "200k_350k", "350k_500k",
+                         "500k_750k", "750k_1m", "plus_1m", "plus_500k"]
 
 
 class SituateRequest(_Strict):
@@ -303,7 +308,7 @@ class SituateRequest(_Strict):
 
 class Intervalle(_Strict):
     minimum: float
-    maximum: float | None  # None : tranche ouverte (« plus de 500 000 »)
+    maximum: float | None  # None : tranche ouverte (« plus de 1 000 000 »)
     libelle: str = Field(examples=["entre 133 333 et 480 000 FCFA"])
 
 
