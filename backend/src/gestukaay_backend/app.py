@@ -32,7 +32,7 @@ from gestukaay_contracts.models import (
     SituateResponse,
     TranscriptionResponse,
 )
-from gestukaay_engine import charger_moteur
+from gestukaay_engine import NonDisponible, charger_moteur
 
 from . import securite
 from .exports import vers_csv, vers_pdf
@@ -85,6 +85,16 @@ async def _probleme(_: Request, exc: ErreurApi) -> JSONResponse:
         status_code=exc.probleme.status,
         media_type="application/problem+json",
     )
+
+
+@app.exception_handler(NonDisponible)
+async def _non_disponible(_: Request, exc: NonDisponible) -> JSONResponse:
+    """Fonction pas encore construite dans le moteur réel (voix, « Où je me situe ») : 503,
+    jamais 500 ni les chiffres fixes du faux moteur (décision 0019). Le site affiche déjà
+    l'état « Le service ne répond pas » avec Réessayer."""
+    probleme = Problem(title="Pas encore disponible", status=503,
+                       detail="Cette fonction n'est pas encore disponible. Réessayez plus tard.")
+    return JSONResponse(probleme.model_dump(), status_code=503, media_type="application/problem+json")
 
 
 _URL_CITEE = re.compile(r"https?://\S+?/r/[\w-]+")
