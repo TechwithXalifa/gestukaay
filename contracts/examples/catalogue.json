@@ -1,0 +1,31 @@
+{
+  "version_contrat": "1.4.0",
+  "version_socle": "2026.10.0",
+  "total": 11,
+  "indicateurs": [
+    {
+      "code": "jcvcajc.taux-de-pauvrete",
+      "libelle": "Taux de pauvreté",
+      "domaine": "Pauvreté",
+      "unite": "%",
+      "producteur": "ANSD",
+      "operation": "EHCVM",
+      "niveaux": ["pays", "region"],
+      "periode_debut": "2011",
+      "periode_fin": "2022",
+      "verifie": true
+    },
+    {
+      "code": "jcvcajc.total",
+      "libelle": "Consommation moyenne par tête",
+      "domaine": "Pauvreté",
+      "unite": "FCFA par personne et par an",
+      "producteur": "ANSD",
+      "operation": "EHCVM",
+      "niveaux": ["pays", "region"],
+      "periode_debut": "2019",
+      "periode_fin": "2022",
+      "verifie": false
+    }
+  ]
+}

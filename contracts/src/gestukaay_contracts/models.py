@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_CONTRAT = "1.3.0"
+VERSION_CONTRAT = "1.4.0"
 
 
 class _Strict(BaseModel):
@@ -333,6 +333,97 @@ class SituateResponse(_Strict):
     # 1 à 3 phrases par gabarit + encadré « C'est quoi une moyenne ? » [EF-39]
     explication: str
 
+
+
+# ---------------------------------------------------------------------------
+# v1.4.0 — Catalogue, fiche indicateur, séries pour Explorer (décision 0023)
+#   GET /v1/indicators          -> CatalogueResponse
+#   GET /v1/indicators/{code}   -> FicheIndicateur
+#   GET /v1/series              -> SeriesResponse
+# Lecture seule, sans LLM : tout vient du référentiel des indicateurs et du socle.
+# ---------------------------------------------------------------------------
+
+NiveauZone = Literal["pays", "region", "departement", "academie"]
+
+
+class IndicateurResume(_Strict):
+    """Une ligne du catalogue [5.5 « Catalogue d'indicateurs »]."""
+
+    code: str  # sert aux adresses et aux appels ; jamais affiché au public [7.1 principe 5]
+    libelle: str
+    domaine: str = Field(examples=["Pauvreté"])
+    unite: str = Field(examples=["%"])
+    producteur: str = Field(examples=["ANSD"])
+    operation: str = Field(examples=["EHCVM"])
+    niveaux: list[NiveauZone]  # niveaux de zone publiés
+    periode_debut: str = Field(examples=["2011"])
+    periode_fin: str = Field(examples=["2022"])
+    verifie: bool  # relu à la main (référentiel, décision 0005)
+
+
+class CatalogueResponse(_Strict):
+    """GET /v1/indicators?domaine=&q=&niveau=&limite=&decalage= — triés : vérifiés d'abord, puis libellé."""
+
+    version_contrat: str = VERSION_CONTRAT
+    version_socle: str
+    total: int  # nombre d'indicateurs qui répondent aux filtres (pagination)
+    indicateurs: list[IndicateurResume]
+
+
+class Couverture(_Strict):
+    niveau: NiveauZone
+    zones: int  # nombre de zones publiées à ce niveau
+    periodes: list[str]  # périodes publiées, dans l'ordre
+
+
+class FicheIndicateur(_Strict):
+    """GET /v1/indicators/{code} [5.5 « Fiche indicateur », US-19]. 404 si le code est inconnu."""
+
+    version_contrat: str = VERSION_CONTRAT
+    version_socle: str
+    indicateur: IndicateurResume
+    # Citée mot pour mot du portail, jamais rédigée ; None si le portail n'en publie pas (décision 0005)
+    definition: str | None = None
+    methode: str | None = None
+    desagregations: list[str] = Field(default_factory=list)  # dimensions publiées (sexe, milieu…)
+    couverture: list[Couverture]
+    note_perimetre: str | None = None
+    source: Source  # jeu d'origine du portail
+    citation: str  # [EF-35], à la date de consultation
+    indicateurs_lies: list[RefIndicateur] = Field(default_factory=list, max_length=6)
+
+
+class PointSerie(_Strict):
+    periode: str = Field(examples=["2022"])
+    libelle: str = Field(examples=["2022"])
+    valeur: float
+    valeur_affichee: str  # formatée par le moteur, comme Resultat [7.4]
+    observation_id: str  # traçabilité [ENF-07]
+    nature: Literal["observee", "estimation", "projection"] | None = None
+    base_projection: str | None = None
+
+
+class Serie(_Strict):
+    zone: RefZone
+    points: list[PointSerie]  # périodes publiées seulement, dans l'ordre : rien n'est interpolé
+    source: Source
+
+
+class SeriesResponse(_Strict):
+    """GET /v1/series?indicateur=&zones=SN-DK,SN-TH&debut=&fin= [5.5 « Explorer », US-18].
+
+    Au plus 6 zones (422 au-delà), indicateur inconnu : 404. Une zone sans aucune valeur publiée sur
+    la période figure dans `absents` : signalée, jamais interpolée (maquette Explorer).
+    """
+
+    version_contrat: str = VERSION_CONTRAT
+    version_socle: str
+    indicateur: RefIndicateur
+    unite: str
+    desagregation: dict[str, str] | None = None  # modalités retenues (total par défaut)
+    series: list[Serie] = Field(max_length=6)
+    absents: list[str] = Field(default_factory=list)  # codes de zone sans valeur publiée
+    graphique: Graphique | None = None  # courbe (plusieurs périodes) ou barres (une seule)
 
 # ---------------------------------------------------------------------------
 # Retours utilisateurs [EF-49 à EF-51]
