@@ -49,9 +49,7 @@ LANGUE = "fr"  # seule langue de rédaction tant que #24 et #25 ne sont pas fait
 URL_PROVISOIRE = "https://app.gestukaay.test/r/{id}"  # remplacée par le backend (adresse stable)
 
 MESSAGE_NON_DISPONIBLE = "Ce type de question n'est pas encore disponible."
-# Motif « non_disponible » demandé pour le contrat 1.3.0 (Aziz) ; en attendant, le seul motif
-# du contrat 1.2.0 qui ne prétend pas que la donnée est absente.
-MOTIF_NON_DISPONIBLE = "incomprehension"
+MOTIF_NON_DISPONIBLE = "non_disponible"  # contrat 1.3.0 (#99) : jamais « hors_socle »
 
 
 def _comprehension() -> Comprehension:
