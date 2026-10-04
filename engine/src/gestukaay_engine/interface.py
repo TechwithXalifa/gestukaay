@@ -32,6 +32,10 @@ class NonDisponible(RuntimeError):
     """Fonction pas encore construite dans le moteur réel (voix #28, « Où je me situe » #95)."""
 
 
+class SaisieInvalide(ValueError):
+    """Saisie hors du référentiel (« Où je me situe » : région inconnue) : le backend rend 422."""
+
+
 class Moteur(Protocol):
     def repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         """Question -> réponse (exacte, approchée ou aucune) [EF-05].

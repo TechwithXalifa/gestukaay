@@ -97,9 +97,13 @@ def test_question_vocale_garde_la_transcription():
     assert r.transcription == "Combien d'habitants à Thiès ?"
 
 
-def test_voix_et_situer_pas_encore_disponibles():
+def test_voix_pas_encore_disponible():
     with pytest.raises(NonDisponible):
         MOTEUR.transcrire(b"\x00", "webm")
+
+
+def test_situer_sans_moyenne_publiee_pas_disponible():
+    """Le mini-socle n'a pas de consommation moyenne : jamais de chiffre de remplacement."""
     with pytest.raises(NonDisponible):
         MOTEUR.situer(SituateRequest(region="SN-KD", taille_menage=5, depenses_mensuelles="100k_200k"))
 
