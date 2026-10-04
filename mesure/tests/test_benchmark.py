@@ -371,6 +371,23 @@ def test_invariant_detecte_chiffre_court_soit_3_fois_plus(
     assert any(v.volet == "c" and "'3'" in v.message for v in viols)
 
 
+@pytest.mark.parametrize("morceau", ["2", "463", "677"])
+def test_invariant_detecte_un_morceau_de_nombre_affiche(
+    socle_test: Socle,
+    obs_par_id: dict[str, Observation],
+    inds_test: dict[str, Indicateur],
+    morceau: str,
+):
+    """Volet (c) : « 2 463 677 » est autorisé, pas ses morceaux (« Soit 2 fois plus. »)."""
+    q = {"id": "FR-001", "question": "Combien d'habitants à Thiès ?", "periode": "2023"}
+    rep = reponse_exacte_valide()
+    rep.reponse.explication = (  # type: ignore[union-attr]
+        f"La région de Thiès compte 2 463 677 habitants en 2023. Soit {morceau} fois plus."
+    )
+    viols = verifier_invariant_reponse(q, rep, socle_test, obs_par_id, inds_test, {})
+    assert any(v.volet == "c" and f"'{morceau}'" in v.message for v in viols)
+
+
 def test_invariant_detecte_valeur_numerique_dans_approchee(
     socle_test: Socle,
     obs_par_id: dict[str, Observation],

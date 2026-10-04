@@ -23,7 +23,6 @@ from __future__ import annotations
 import argparse
 import csv
 import math
-import os
 import re
 import sys
 import time
@@ -39,6 +38,7 @@ from gestukaay_contracts.models import (
     ReponseExacte,
     RequeteStructuree,
 )
+from gestukaay_engine.comprehension import Comprehension
 from gestukaay_engine.moteur import MoteurReel
 from gestukaay_engine.resolution import national
 from gestukaay_engine.socle import Observation, Socle, socle
@@ -268,7 +268,8 @@ def verifier_invariant_reponse(
             sans_espace = tok.replace(" ", "")
             if tok in whitelist_nombres or sans_espace in whitelist_nombres:
                 continue
-            if any(tok == w or tok in w.split() for w in whitelist_textes):
+            # le nombre ENTIER seulement : « 2 » n'est pas autorisé parce que « 2 463 677 » l'est
+            if tok in whitelist_textes:
                 continue
             violations.append(
                 ViolationInvariant(qid, "c", f"nombre non autorisé dans explication: '{tok}'")
@@ -888,8 +889,10 @@ def main() -> int:
         client = charger_client()
         nom_modele = next((m.modele for m in client.chaine if m.fournisseur != "regles"), "llm")
         mode_nom = "llm-" + nom_modele.replace("/", "-").replace(":", "-")
-        # LLM activé via variable d'environnement reconnue par MoteurReel
-        os.environ["LLM_CHAINE"] = "oui"
+        comprehension = Comprehension(client)
+    else:
+        # Règles locales imposées : jamais d'appel payant, même si LLM_CHAINE est définie
+        comprehension = Comprehension(None)
 
     # Chargement du socle et du moteur
     t_start = time.perf_counter()
@@ -897,7 +900,7 @@ def main() -> int:
     duree_socle = time.perf_counter() - t_start
     print(f"Socle {s.version} chargé ({len(s)} valeurs) en {duree_socle:.2f} s.")
 
-    moteur = MoteurReel(socle_=s)
+    moteur = MoteurReel(socle_=s, comprehension=comprehension)
 
     # Lecture des questions
     if not args.questions.exists():
@@ -915,7 +918,8 @@ def main() -> int:
     fichier_rapport = args.rapport or (RAPPORT_DIR / f"benchmark_{mode_nom}.md")
     contenu_md = generer_rapport_markdown(rapport)
     fichier_rapport.write_text(contenu_md, encoding="utf-8")
-    print(f"Rapport enregistré dans : {fichier_rapport.relative_to(RACINE)}")
+    affiche = fichier_rapport.resolve()
+    print(f"Rapport enregistré dans : {affiche.relative_to(RACINE) if affiche.is_relative_to(RACINE) else affiche}")
 
     # Affichage synthétique console
     print("\n" + "=" * 60)
