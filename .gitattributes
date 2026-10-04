@@ -1,0 +1,3 @@
+# Les CSV gardent des fins de ligne LF partout, Windows compris : les empreintes sha256
+# du manifeste du socle (décision 0013) se comparent octet par octet.
+*.csv text eol=lf
