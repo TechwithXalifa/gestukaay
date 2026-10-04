@@ -74,7 +74,7 @@ class MoteurReel:
     # Protocol Moteur
     # ------------------------------------------------------------------
 
-    def repondre(self, req: AskRequest, contexte: list[RequeteStructuree] | None = None) -> AskResponse:
+    def repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         question = req.question
         transcription = question if req.source == "voix" else None
         c = self.comprehension.comprendre(question, contexte)

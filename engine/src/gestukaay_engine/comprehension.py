@@ -189,7 +189,7 @@ class Comprehension:
     def __init__(self, client: ClientLLM | None):
         self.client = client  # None : règles locales seulement (essais, secours)
 
-    def comprendre(self, question: str, contexte: list[RequeteStructuree] | None = None) -> Comprise:
+    def comprendre(self, question: str, contexte: list[RequeteStructuree | None] | None = None) -> Comprise:
         zones = zones_citees(question)
         periodes = periodes_citees(question)
         precedente = precedente_comprise(contexte)

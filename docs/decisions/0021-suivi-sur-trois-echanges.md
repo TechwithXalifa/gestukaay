@@ -33,5 +33,9 @@ transmettait pas encore le contexte, et le site n'envoie pas de `conversation_id
   confirmé pour une approchée, `None` pour une incompréhension), les passer à `moteur.repondre(req,
   contexte)`, appliquer l'expiration de 30 minutes ; le site envoie un `conversation_id` par onglet.
   Cette PR fermera #15 et cochera la 2.7.
+- **Point ouvert (SAN, relecture de #101)** : après une comparaison Dakar et Thiès, « et pour Kolda ? »
+  répond pour Kolda seul (la zone citée remplace). La maquette de la réponse comparative propose
+  « Ajouter Kolda à la comparaison » : les deux lectures se défendent ; on garde ce comportement et
+  on tranchera avec les tests utilisateurs.
 - Le jeu de test ne contient aucun suivi après une période explicite : le cas est couvert par les
   tests unitaires (`engine/tests/test_suivi.py`), à ajouter au jeu de test lors de son extension.

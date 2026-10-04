@@ -41,7 +41,7 @@ def _charger(nom: str, question: str) -> AskResponse:
 
 
 class MoteurFactice:
-    def repondre(self, req: AskRequest, contexte: list[RequeteStructuree] | None = None) -> AskResponse:
+    def repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         q = req.question.lower()
         if "ñaata" in q or "naata" in q or req.langue == "wo":
             nom = "exacte_wolof_vocal"

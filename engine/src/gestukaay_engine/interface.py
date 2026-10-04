@@ -33,11 +33,13 @@ class NonDisponible(RuntimeError):
 
 
 class Moteur(Protocol):
-    def repondre(self, req: AskRequest, contexte: list[RequeteStructuree] | None = None) -> AskResponse:
+    def repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         """Question -> réponse (exacte, approchée ou aucune) [EF-05].
 
         contexte : les requêtes structurées des 3 derniers échanges de la
-        conversation, conservées par le backend, pour « et Kaolack ? » [EF-09].
+        conversation, du plus ancien au plus récent, conservées par le backend, pour
+        « et Kaolack ? » [EF-09] ; None pour un échange sans requête (incompréhension).
+        Le moteur repart du dernier échange compris (décision 0021).
         """
         ...
 
