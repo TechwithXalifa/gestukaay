@@ -8,6 +8,7 @@ import pytest
 from gestukaay_contracts.models import (
     AskResponse,
     ReponseApprochee,
+    SituateRequest,
     SituateResponse,
     TranscriptionResponse,
 )
@@ -82,3 +83,16 @@ def test_schemas_generes_a_jour():
         assert json.loads(fichier.read_text(encoding="utf-8")) == schema_de(modele, mode), (
             f"{fichier.name} n'est pas à jour : lancer scripts/generer_contrat.sh"
         )
+
+
+def test_tranches_v130_additives():
+    """v1.3.0 (décision 0012) : les trois nouvelles tranches passent, l'ancienne aussi."""
+    for tranche in ("500k_750k", "750k_1m", "plus_1m", "plus_500k"):
+        assert SituateRequest(region="SN-DK", taille_menage=7, depenses_mensuelles=tranche)
+
+
+def test_motif_non_disponible_v130():
+    rep = json.loads((DOSSIER / "aucune_incomprehension.json").read_text(encoding="utf-8"))
+    rep["reponse"]["motif"] = "non_disponible"
+    rep["reponse"]["message"] = "Ce type de question n'est pas encore disponible."
+    assert AskResponse.model_validate(rep).reponse.motif == "non_disponible"

@@ -151,6 +151,10 @@ export const fr = {
   "situer.d.100k_200k": "De 100 000 à 200 000 FCFA",
   "situer.d.200k_350k": "De 200 000 à 350 000 FCFA",
   "situer.d.350k_500k": "De 350 000 à 500 000 FCFA",
+  "situer.d.500k_750k": "De 500 000 à 750 000 FCFA",
+  "situer.d.750k_1m": "De 750 000 à 1 000 000 FCFA",
+  "situer.d.plus_1m": "Plus de 1 000 000 FCFA",
+  // Tranche de la v1.2 : encore acceptée par l'API, plus proposée (décision 0012)
   "situer.d.plus_500k": "Plus de 500 000 FCFA",
   "situer.resultat": "Votre résultat",
   "situer.estimation": "Votre estimation, d'après vos réponses",
