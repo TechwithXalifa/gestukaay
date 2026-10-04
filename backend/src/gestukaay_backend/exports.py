@@ -11,7 +11,7 @@ import io
 from datetime import UTC, datetime
 from pathlib import Path
 
-from gestukaay_contracts.models import ReponseExacte
+from gestukaay_contracts.models import ReponseExacte, SeriesResponse
 
 # Schéma imposé par EF-34, dans cet ordre
 COLONNES = [
@@ -40,6 +40,21 @@ def vers_csv(rep: ReponseExacte, virgule_decimale: bool = False) -> bytes:
             rep.note_perimetre or "",
             rep.url,
         ])
+    return ("﻿" + sortie.getvalue()).encode("utf-8")
+
+
+def vers_csv_series(rep: SeriesResponse, url: str, virgule_decimale: bool = False) -> bytes:
+    """Séries d'Explorer au même schéma EF-34 que les réponses : une ligne par zone et par période."""
+    sortie = io.StringIO()
+    w = csv.writer(sortie, delimiter=";", lineterminator="\r\n")
+    w.writerow(COLONNES)
+    desag = "|".join(f"{k}={v}" for k, v in (rep.desagregation or {}).items())
+    for serie in rep.series:
+        for p in serie.points:
+            valeur = repr(p.valeur) if p.valeur != int(p.valeur) else str(int(p.valeur))
+            w.writerow([rep.indicateur.libelle, serie.zone.libelle, serie.zone.code, p.periode,
+                        valeur.replace(".", ",") if virgule_decimale else valeur, rep.unite, desag,
+                        serie.source.libelle, serie.source.date_publication.isoformat(), "", url])
     return ("﻿" + sortie.getvalue()).encode("utf-8")
 
 

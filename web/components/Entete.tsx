@@ -7,7 +7,9 @@ import { BarreLaterale } from "./BarreLaterale";
 import { Baobab, Menu } from "./icones";
 
 /** En-tête commun : logo, navigation, bascule FR/WO toujours visible (9.7). */
-export function Entete({ actif = "question" }: { actif?: "question" | "situer" | null }) {
+export type Actif = "question" | "explorer" | "situer" | "indicateurs" | null;
+
+export function Entete({ actif = "question" }: { actif?: Actif }) {
   const { langue, setLangue, t, incomplet } = useLangue();
   const [menu, setMenu] = useState(false);
   return (
@@ -31,7 +33,9 @@ export function Entete({ actif = "question" }: { actif?: "question" | "situer" |
           </Link>
           <nav aria-label={t("nav.principale")} className="nav">
             <Link href="/" aria-current={actif === "question" ? "page" : undefined}>{t("nav.poser")}</Link>
+            <Link href="/explorer" aria-current={actif === "explorer" ? "page" : undefined}>{t("nav.explorer")}</Link>
             <Link href="/situer" aria-current={actif === "situer" ? "page" : undefined}>{t("nav.situer")}</Link>
+            <Link href="/indicateurs" aria-current={actif === "indicateurs" ? "page" : undefined}>{t("nav.indicateurs")}</Link>
           </nav>
           <div role="group" aria-label={t("langue.groupe")} className="bascule">
             {(["fr", "wo"] as const).map((l) => (

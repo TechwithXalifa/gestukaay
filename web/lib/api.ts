@@ -1,7 +1,10 @@
 import type { AskRequest } from "@contracts/ask_request";
 import type { AskResponse } from "@contracts/ask_response";
+import type { CatalogueResponse } from "@contracts/catalogue_response";
+import type { FicheIndicateur } from "@contracts/fiche_indicateur";
 import type { FeedbackRequest } from "@contracts/feedback_request";
 import type { Problem } from "@contracts/problem";
+import type { SeriesResponse } from "@contracts/series_response";
 import type { SituateRequest } from "@contracts/situate_request";
 import type { SituateResponse } from "@contracts/situate_response";
 import type { TranscriptionResponse } from "@contracts/transcription_response";
@@ -102,3 +105,28 @@ export async function transcrire(audio: Blob, langue: "fr" | "wo" | "auto" = "au
 
 /** Exports d'une réponse exacte (EF-33, EF-34) : liens de téléchargement directs. */
 export const exportUrl = (id: string, format: "pdf" | "csv") => `${BASE}/v1/answers/${id}/export.${format}`;
+
+// ---- v1.4.0 : catalogue, fiche indicateur et séries d'Explorer (décision 0023) ----
+
+function parametres(p: Record<string, string | number | undefined | null>): string {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(p)) if (v !== undefined && v !== null && v !== "") q.set(k, String(v));
+  return q.toString();
+}
+
+export type FiltreCatalogue = { domaine?: string; q?: string; niveau?: string; limite?: number; decalage?: number };
+
+export const catalogue = (f: FiltreCatalogue = {}) =>
+  requete<CatalogueResponse>(`/v1/indicators?${parametres(f)}`);
+
+export const fiche = (code: string) => requete<FicheIndicateur>(`/v1/indicators/${encodeURIComponent(code)}`);
+
+export type DemandeSeries = { indicateur: string; zones: string[]; debut?: string; fin?: string };
+
+const parametresSeries = (d: DemandeSeries) =>
+  parametres({ indicateur: d.indicateur, zones: d.zones.join(","), debut: d.debut, fin: d.fin });
+
+export const series = (d: DemandeSeries) => requete<SeriesResponse>(`/v1/series?${parametresSeries(d)}`);
+
+/** Export CSV de la vue Explorer (EF-34), virgule décimale pour Excel en français. */
+export const seriesCsvUrl = (d: DemandeSeries) => `${BASE}/v1/series.csv?${parametresSeries(d)}&decimale=virgule`;

@@ -28,9 +28,12 @@ from datetime import UTC, datetime
 from gestukaay_contracts.models import (
     AskRequest,
     AskResponse,
+    CatalogueResponse,
+    FicheIndicateur,
     ReponseApprochee,
     ReponseExacte,
     RequeteStructuree,
+    SeriesResponse,
     SituateRequest,
     SituateResponse,
     TranscriptionResponse,
@@ -97,6 +100,17 @@ class MoteurReel:
 
     def situer(self, req: SituateRequest) -> SituateResponse:
         return situer_menage(self.socle, req)
+
+    # Catalogue, fiche et séries (décision 0023) : à écrire par KBD après les priorités V1.0 ;
+    # en attendant, 503 côté backend plutôt que les exemples du faux moteur.
+    def catalogue(self, domaine=None, q=None, niveau=None, limite=50, decalage=0) -> CatalogueResponse:
+        raise NonDisponible("catalogue des indicateurs : pas encore disponible (0023)")
+
+    def fiche(self, code: str) -> FicheIndicateur:
+        raise NonDisponible("fiche indicateur : pas encore disponible (0023)")
+
+    def series(self, indicateur: str, zones: list[str], debut=None, fin=None) -> SeriesResponse:
+        raise NonDisponible("séries d'Explorer : pas encore disponibles (0023)")
 
     def version_socle(self) -> str:
         return self.socle.version

@@ -16,6 +16,7 @@ import re
 import secrets
 import time
 from typing import Literal
+from urllib.parse import urlencode
 
 from fastapi import FastAPI, Form, Header, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,19 +24,22 @@ from fastapi.responses import JSONResponse, Response
 from gestukaay_contracts.models import (
     AskRequest,
     AskResponse,
+    CatalogueResponse,
     ConfirmRequest,
     FeedbackRequest,
+    FicheIndicateur,
     Problem,
     ReponseApprochee,
     ReponseExacte,
+    SeriesResponse,
     SituateRequest,
     SituateResponse,
     TranscriptionResponse,
 )
-from gestukaay_engine import NonDisponible, SaisieInvalide, charger_moteur
+from gestukaay_engine import IndicateurInconnu, NonDisponible, SaisieInvalide, charger_moteur
 
 from . import securite
-from .exports import vers_csv, vers_pdf
+from .exports import vers_csv, vers_csv_series, vers_pdf
 from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
@@ -103,6 +107,12 @@ async def _saisie_invalide(_: Request, exc: SaisieInvalide) -> JSONResponse:
     comme une saisie mal formée. Le détail du moteur ne cite que la région envoyée : rien d'interne."""
     probleme = Problem(title="Saisie invalide", status=422, detail=str(exc))
     return JSONResponse(probleme.model_dump(), status_code=422, media_type="application/problem+json")
+
+
+@app.exception_handler(IndicateurInconnu)
+async def _indicateur_inconnu(_: Request, exc: IndicateurInconnu) -> JSONResponse:
+    probleme = Problem(title="Indicateur introuvable", status=404, detail=f"Aucun indicateur {exc}.")
+    return JSONResponse(probleme.model_dump(), status_code=404, media_type="application/problem+json")
 
 
 _URL_CITEE = re.compile(r"https?://\S+?/r/[\w-]+")
@@ -214,6 +224,71 @@ def export_pdf(rid: str) -> Response:
         vers_pdf(_exacte(rid)),
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="gestukaay-{rid}.pdf"'},
+    )
+
+
+# ---------------------------------------------------------------------------
+# v1.4.0 — Catalogue, fiche indicateur et séries d'Explorer (décision 0023)
+# ---------------------------------------------------------------------------
+
+ZONES_MAX = 6  # [US-18] « jusqu'à 6 zones »
+
+
+@app.get("/v1/indicators", response_model=CatalogueResponse)
+def catalogue(
+    domaine: str | None = Query(None, max_length=80),
+    q: str | None = Query(None, max_length=100),
+    niveau: Literal["pays", "region", "departement", "academie"] | None = None,
+    limite: int = Query(50, ge=1, le=100),
+    decalage: int = Query(0, ge=0),
+) -> CatalogueResponse:
+    return moteur.catalogue(domaine or None, (q or "").strip() or None, niveau, limite, decalage)
+
+
+@app.get("/v1/indicators/{code}", response_model=FicheIndicateur)
+def fiche(code: str) -> FicheIndicateur:
+    return moteur.fiche(code)
+
+
+def _zones(zones: str) -> list[str]:
+    liste = list(dict.fromkeys(z.strip() for z in zones.split(",") if z.strip()))
+    if not liste:
+        raise ErreurApi(422, "Aucune zone", "Choisissez au moins une zone.")
+    if len(liste) > ZONES_MAX:
+        raise ErreurApi(422, "Trop de zones", f"{ZONES_MAX} zones au plus.")
+    return liste
+
+
+@app.get("/v1/series", response_model=SeriesResponse)
+def series(
+    indicateur: str = Query(..., max_length=120),
+    zones: str = Query("SN", max_length=200),
+    debut: str | None = Query(None, max_length=10),
+    fin: str | None = Query(None, max_length=10),
+) -> SeriesResponse:
+    """Séries publiées pour Explorer : jamais d'interpolation, les zones sans valeur dans `absents`."""
+    return moteur.series(indicateur, _zones(zones), debut or None, fin or None)
+
+
+@app.get("/v1/series.csv")
+def series_csv(
+    indicateur: str = Query(..., max_length=120),
+    zones: str = Query("SN", max_length=200),
+    debut: str | None = Query(None, max_length=10),
+    fin: str | None = Query(None, max_length=10),
+    decimale: Literal["point", "virgule"] = "point",
+) -> Response:
+    """Export CSV de la vue Explorer (schéma EF-34), avec l'adresse stable de cette vue (EF-29)."""
+    liste = _zones(zones)
+    rep = moteur.series(indicateur, liste, debut or None, fin or None)
+    # Encodé : des codes du référentiel contiennent %, " ou = (bdubwzf.effectif~%)
+    params = {"indicateur": indicateur, "zones": ",".join(liste), "debut": debut, "fin": fin}
+    url = f"{URL_PUBLIQUE.rstrip('/')}/explorer?" + urlencode({k: v for k, v in params.items() if v})
+    fichier = re.sub(r"[^A-Za-z0-9._-]", "_", indicateur)  # nom de fichier toujours bien formé
+    return Response(
+        vers_csv_series(rep, url, virgule_decimale=decimale == "virgule"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="gestukaay-{fichier}.csv"'},
     )
 
 

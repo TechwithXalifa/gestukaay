@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useLangue } from "@/i18n/langue";
+import type { Actif } from "./Entete";
 import { Baobab, Croix } from "./icones";
 
 /**
@@ -11,7 +12,7 @@ import { Baobab, Croix } from "./icones";
  * la croix, un toucher hors du panneau ou Échap. Fenêtre modale (WCAG 2.4.3) : le focus y entre,
  * Tab tourne dedans, et il revient sur le bouton menu à la fermeture.
  */
-export function BarreLaterale({ actif, onFermer }: { actif: "question" | "situer" | null; onFermer: () => void }) {
+export function BarreLaterale({ actif, onFermer }: { actif: Actif; onFermer: () => void }) {
   const { langue, setLangue, t } = useLangue();
   const panneau = useRef<HTMLDivElement>(null);
 
@@ -64,8 +65,9 @@ export function BarreLaterale({ actif, onFermer }: { actif: "question" | "situer
 
         <nav aria-label={t("nav.principale")} className="barre-laterale-nav">
           <Link href="/" aria-current={actif === "question" ? "page" : undefined} onClick={onFermer}>{t("nav.poser")}</Link>
+          <Link href="/explorer" aria-current={actif === "explorer" ? "page" : undefined} onClick={onFermer}>{t("nav.explorer")}</Link>
           <Link href="/situer" aria-current={actif === "situer" ? "page" : undefined} onClick={onFermer}>{t("nav.situer")}</Link>
-          <Link href="/domaines" onClick={onFermer}>{t("domaines.tous")}</Link>
+          <Link href="/indicateurs" aria-current={actif === "indicateurs" ? "page" : undefined} onClick={onFermer}>{t("nav.indicateurs")}</Link>
         </nav>
 
         <div className="barre-laterale-langue">

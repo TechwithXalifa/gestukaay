@@ -400,3 +400,48 @@ main:focus { outline: none; }
 .admin-issues .issue-approchee .admin-jauge span { background: var(--gk-ocre); }
 .admin-issues .note { grid-column: 1 / -1; margin: 0; }
 
+
+/* Catalogue, fiche indicateur et Explorer (décision 0023, maquettes Catalogue, Fiche, Explorer) */
+.site main.catalogue, .site main.fiche, .site main.explorer { max-width: 1200px; }
+.catalogue-filtres { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.catalogue-filtres input[type="search"] { flex: 1 1 280px; min-height: 48px; padding: 0 16px; border: 1px solid var(--gk-champ); border-radius: var(--radius-md); background: var(--gk-blanc); font-size: 16px; }
+.catalogue-domaine { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--gk-ardoise); }
+.catalogue-domaine select, .explorer-champ select { min-height: 44px; padding: 0 10px; border: 1px solid var(--gk-champ); border-radius: var(--radius-md); background: var(--gk-blanc); color: var(--gk-encre); font-size: 15px; }
+.catalogue-liste { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+.catalogue-liste a, .catalogue-liste button { display: flex; flex-direction: column; gap: 6px; width: 100%; height: 100%; padding: 16px; border: 1px solid var(--gk-lin); border-radius: var(--radius-md); background: var(--gk-blanc); color: var(--gk-encre); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.catalogue-liste a:hover, .catalogue-liste button:hover { border-color: var(--gk-feuille); }
+.catalogue-liste .discret { margin: 0; }
+.catalogue-tete { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; color: var(--gk-baobab); }
+.catalogue-tete .badge { height: 24px; font-size: 12px; }
+.catalogue-question { align-self: stretch; }
+.catalogue-question .sous-titre { margin-top: 0; }
+.ariane { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+.ariane a { color: var(--gk-feuille); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+.fiche-corps { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px; }
+.fiche-principal { flex: 1 1 520px; display: flex; flex-direction: column; gap: 8px; }
+.fiche-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.fiche-citation { padding: 12px 16px; border-left: 3px solid var(--gk-feuille); background: var(--gk-coton); font-size: 14px; line-height: 20px; }
+.fiche-bref { flex: 0 1 340px; padding-bottom: 16px; }
+.fiche-bref dl { margin: 8px 0; display: grid; grid-template-columns: max-content 1fr; gap: 8px 12px; font-size: 14px; }
+.fiche-bref dt { color: var(--gk-ardoise); }
+.fiche-bref dd { margin: 0; overflow-wrap: anywhere; }
+.fiche-lies { margin: 4px 0 0; padding: 0; list-style: none; }
+.fiche-lies a { display: flex; align-items: center; min-height: 44px; color: var(--gk-feuille); text-decoration: none; }
+.explorer-corps { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; }
+.explorer-filtres { flex: 0 1 300px; gap: 20px; align-items: stretch; }
+.explorer-filtres fieldset { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px; }
+.explorer-filtres legend { margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--gk-ardoise); }
+.explorer-indicateur { margin: 0; font-weight: 600; color: var(--gk-baobab); }
+.explorer-zones { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.explorer-zones li { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 4px 0 12px; border-radius: 999px; background: var(--gk-feuille-50); color: var(--gk-feuille); font-size: 14px; font-weight: 600; }
+.bouton-retirer { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -4px 0; border: 0; border-radius: 999px; background: transparent; color: var(--gk-feuille); cursor: pointer; }
+.explorer-champ { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--gk-ardoise); }
+.explorer-periode { display: flex; gap: 12px; }
+.explorer-periode .explorer-champ { flex: 1; }
+.explorer-resultat { flex: 1 1 560px; gap: 16px; align-items: stretch; }
+.explorer-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.explorer-choisir { align-items: stretch; gap: 16px; }
+@media (max-width: 767px) {
+  .explorer-filtres, .explorer-resultat, .fiche-bref { flex-basis: 100%; }
+  .catalogue-liste { grid-template-columns: 1fr; }
+}
