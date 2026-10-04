@@ -144,10 +144,45 @@ _TEMPS = re.compile(r"\b(an|annee|annees|mois|trimestre|dernier|derniere|passe|p
                     r"actuel|actuelle|aujourd|recent|recente|at|atum|weer)\b")
 
 
+# Marqueurs d'une question de suivi (#15, décision 0021). Wolof : écrits par KBD (décision 0009).
+_SUIVI_EN_TETE = {"et", "pour", "ak"}  # « Et pour Kaolack ? », « Ak Kaolack ? » (en tête seulement :
+#                                        « Chômage Dakar ak Thiès » est une comparaison)
+_SUIVI_PARTOUT = {"aussi", "nak", "tamit"}  # « Kaolack aussi ? », « Kaolack nak ? », « Kaolack tamit ? »
+
+
 def _suivi(question: str) -> bool:
-    """« Et pour Kaolack ? », « Kaolack nak ? » : une question courte qui prolonge la précédente."""
+    """Une question courte qui prolonge la précédente."""
     m = normaliser(question).split()
-    return len(m) <= 5 and (m[:1] == ["et"] or "nak" in m)
+    return len(m) <= 5 and (m[:1] and m[0] in _SUIVI_EN_TETE or bool(_SUIVI_PARTOUT & set(m))
+                            or "meme chose" in " ".join(m))
+
+
+def precedente_comprise(contexte: list[RequeteStructuree | None] | None) -> RequeteStructuree | None:
+    """Le dernier des 3 derniers échanges qui a été compris (un indicateur) : un refus ou une
+    incompréhension intercalés ne coupent pas le fil (décision 0021)."""
+    return next((r for r in reversed((contexte or [])[-3:]) if r is not None and r.indicateur), None)
+
+
+def heriter(req: RequeteStructuree, precedente: RequeteStructuree, question: str,
+            periodes: list[str]) -> RequeteStructuree:
+    """Question de suivi : ce qu'elle ne précise pas est repris de l'échange précédent, ce qu'elle
+    cite remplace (EF-09 : « et Kaolack ? » après Thiès en 2019 -> Kaolack en 2019)."""
+    if not req.indicateur:
+        return req
+    maj: dict = {}
+    if not req.zones:
+        maj["zones"] = list(precedente.zones)
+    if not periodes and req.periode.type == "derniere" and not _TEMPS.search(normaliser(question)):
+        maj["periode"] = precedente.periode.model_copy()
+    if req.indicateur == precedente.indicateur and precedente.desagregation:
+        # même indicateur seulement : les dimensions d'un autre jeu peuvent ne pas exister
+        maj["desagregation"] = {**precedente.desagregation, **(req.desagregation or {})}
+    zones, periode = maj.get("zones", req.zones), maj.get("periode", req.periode)
+    if req.intention == "valeur" and (precedente.intention == "classement" or (
+            precedente.intention == "comparaison" and (len(zones) > 1 or periode.fin))):
+        maj["intention"] = precedente.intention
+        maj["ordre"] = precedente.ordre
+    return req.model_copy(update=maj)
 
 
 class Comprehension:
@@ -157,12 +192,13 @@ class Comprehension:
     def comprendre(self, question: str, contexte: list[RequeteStructuree] | None = None) -> Comprise:
         zones = zones_citees(question)
         periodes = periodes_citees(question)
-        precedente = (contexte or [None])[-1]
+        precedente = precedente_comprise(contexte)
+        suivi = precedente is not None and _suivi(question)
         niveaux = {zones_ref()[z].niveau for z in zones if z != "SN"}
         if not niveaux and _CLASSEMENT.search(normaliser(question)):
             niveaux = {"region"}  # « quelle région… » : il faut un indicateur publié par région
         candidats = couvrant(index().chercher(question, 4 * K, niveaux), niveaux)[:K]
-        if precedente and precedente.indicateur and _suivi(question):
+        if suivi:
             # l'indicateur de l'échange précédent est toujours proposé, en premier
             p = indicateurs().get(precedente.indicateur)
             if p and all(c.indicateur.code != p.code for c in candidats):
@@ -172,6 +208,8 @@ class Comprehension:
                 sortie, appel = self.client.structurer(SYSTEME, self._message(question, zones, periodes,
                                                                               candidats, precedente), SortieLLM)
                 req = self._requete(sortie, candidats, zones, periodes, precedente, question)
+                if suivi:
+                    req = heriter(req, precedente, question, periodes)
                 proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
                 return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
                                 lieux_inconnus(question), proches=proches,
@@ -182,6 +220,8 @@ class Comprehension:
             appel = None
         incomp = aucun_mot_connu(question)
         req = regles(question, candidats, zones, periodes, precedente)
+        if suivi:
+            req = heriter(req, precedente, question, periodes)
         proches = [] if incomp else [c for c in candidats if c.score >= SEUIL_REGLES][:3]
         return Comprise(req, candidats, "regles", appel,
                         lieux_inconnus=lieux_inconnus(question), proches=proches,
