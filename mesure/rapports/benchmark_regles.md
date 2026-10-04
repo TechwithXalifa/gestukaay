@@ -1,6 +1,6 @@
 # Rapport de Benchmark — Gëstukaay (regles)
 
-- **Date** : 2026-10-04 03:08:07 UTC
+- **Date** : 2026-10-04 04:34:36 UTC
 - **Mode** : `regles`
 - **Jeu de test** : 103 questions officielles
 
@@ -8,10 +8,11 @@
 
 | Mesure | Cible | Obtenu | Statut |
 |---|---|---|---|
-| **Exactitude** (sourcée, sur 83 questions) | ≥ 85 % | **81.9 %** (68/83) | NON CONFORME |
-| **Refus pertinent** (sur 20 refus) | ≥ 95 % | **80.0 %** (16/20) | NON CONFORME |
+| **Chiffres faux affichés** (confiance) | 0 | **9** | indicatif |
+| **Exactitude** (sourcée, sur 83 questions) | ≥ 85 % | **81.9 %** (68/83) | indicatif |
+| **Refus pertinent** (sur 20 refus) | ≥ 95 % | **80.0 %** (16/20) | indicatif |
 | **Invariant « zéro chiffre inventé »** | Tolérance 0 | **0 violation(s)** | **CONFORME** |
-| **Latence médiane** (indicatif) | < 3,0 s | **2.2 ms** (P95: 7.1 ms) | CONFORME |
+| **Latence médiane** (indicatif) | < 3,0 s | **2.3 ms** (P95: 7.4 ms) | indicatif |
 
 ## 2. Sous-scores par type de question
 
@@ -42,7 +43,7 @@
 
 ## 5. Défauts constatés du moteur (signalements sans modification de engine/src)
 
-- FR-045 (classement mortalité) : le jeu attend un tri desc alors que la question demande « le plus faible ». Le moteur classe correctement en ascendant (Louga en tête).
+- FR-045 (classement mortalité) : le motif `_ORDRE_ASC` du moteur capture à tort « moins de » dans « moins de 5 ans » (comprehension.py et resolution.py), produisant un tri croissant au lieu du tri décroissant attendu. Défaut moteur à corriger côté engine.
 
 ## 6. Détail des écarts (19 questions non conformes)
 

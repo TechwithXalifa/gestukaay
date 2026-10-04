@@ -43,6 +43,7 @@ from gestukaay_engine.moteur import MoteurReel
 from gestukaay_engine.resolution import national
 from gestukaay_engine.socle import Observation, Socle, socle
 from gestukaay_socle.indicateurs import Indicateur, indicateurs
+from gestukaay_socle.zones import resoudre
 
 RACINE = Path(__file__).resolve().parents[2]
 JEU_PAR_DEFAUT = RACINE / "mesure" / "jeu_de_test" / "questions.csv"
@@ -55,6 +56,7 @@ COUT_ESTIME_LLM = 0.07  # USD pour 103 questions avec Gemini 2.5 Flash via OpenR
 # ---------------------------------------------------------------------------
 # Normalisation et extraction
 # ---------------------------------------------------------------------------
+
 
 def normaliser_espace(texte: str) -> str:
     """Remplace les espaces fines insécables et insécables par des espaces simples."""
@@ -83,6 +85,7 @@ def attendus_exacte(q: dict[str, str]) -> list[tuple[str, str, float]]:
 # ---------------------------------------------------------------------------
 # Invariant « zéro chiffre inventé » (tolérance zéro)
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ViolationInvariant:
@@ -127,23 +130,76 @@ def verifier_invariant_reponse(
                 if not math.isclose(obs.valeur, r.valeur, abs_tol=1e-7):
                     violations.append(
                         ViolationInvariant(
-                            qid, "a", f"valeur {r.valeur} != socle {obs.valeur} ({r.observation_id})"
+                            qid,
+                            "a",
+                            f"valeur {r.valeur} != socle {obs.valeur} ({r.observation_id})",
                         )
                     )
 
         # Volet (b) : chaque point de graphique correspond à une observation du socle
         if r_body.graphique:
-            lignes = s.observations(r_body.resultats[0].indicateur.code)
-            valeurs_socle = {o.valeur for o in lignes}
+            r0 = r_body.resultats[0]
+            ind_code = r0.indicateur.code
+            lignes = s.observations(ind_code)
+            o_cible = obs_par_id.get(r0.observation_id)
+            desag_cible = o_cible.desagregation if o_cible else ()
+
             for serie in r_body.graphique.series:
                 for pt in serie.points:
-                    trouve = any(math.isclose(pt.y, vs, abs_tol=1e-7) for vs in valeurs_socle)
-                    if not trouve:
-                        violations.append(
-                            ViolationInvariant(
-                                qid, "b", f"point graphique y={pt.y} ({pt.x}) absent du socle"
+                    trouve = False
+                    if r_body.graphique.type in ("barres_horizontales", "barres_empilees"):
+                        code_z = resoudre(pt.x, niveau=r0.zone.niveau) or resoudre(pt.x)
+                        if not code_z:
+                            violations.append(
+                                ViolationInvariant(
+                                    qid,
+                                    "b",
+                                    f"point barre x={pt.x!r} ne correspond à aucune zone du référentiel",
+                                )
                             )
-                        )
+                            continue
+                        periode_cible = r0.periode.valeur
+                        for o in lignes:
+                            if o.zone != code_z:
+                                continue
+                            if o.periode != periode_cible:
+                                continue
+                            if desag_cible and o.desagregation != desag_cible:
+                                continue
+                            if math.isclose(o.valeur, pt.y, abs_tol=1e-5):
+                                trouve = True
+                                break
+                        if not trouve:
+                            violations.append(
+                                ViolationInvariant(
+                                    qid,
+                                    "b",
+                                    f"point barre {pt.x} ({code_z}) y={pt.y} "
+                                    f"absent du socle pour l'indicateur {ind_code}",
+                                )
+                            )
+                    elif r_body.graphique.type == "courbe":
+                        periode_pt = pt.x.strip()
+                        zone_cible = r0.zone.code
+                        for o in lignes:
+                            if o.periode != periode_pt:
+                                continue
+                            if o.zone != zone_cible:
+                                continue
+                            if desag_cible and o.desagregation != desag_cible:
+                                continue
+                            if math.isclose(o.valeur, pt.y, abs_tol=1e-5):
+                                trouve = True
+                                break
+                        if not trouve:
+                            violations.append(
+                                ViolationInvariant(
+                                    qid,
+                                    "b",
+                                    f"point courbe periode={periode_pt} zone={zone_cible} y={pt.y} "
+                                    f"absent du socle pour l'indicateur {ind_code}",
+                                )
+                            )
 
         # Volet (c) : nombres de l'explication vérifiés contre liste blanche des textes affichés
         whitelist_textes: set[str] = set()
@@ -165,7 +221,7 @@ def verifier_invariant_reponse(
                 for n in re.findall(r"\d+", nat.periode.valeur):
                     whitelist_nombres.add(n)
 
-            # Périodes
+            # Périodes issues de la réponse produite
             for p_champ in (r.periode.valeur, r.periode.libelle):
                 if p_champ:
                     for n in re.findall(r"\d+", normaliser_espace(p_champ)):
@@ -206,26 +262,16 @@ def verifier_invariant_reponse(
             for n in gabs_statiques.get(r.indicateur.code, []):
                 whitelist_nombres.add(n)
 
-        # Périodes demandées dans le jeu de test
-        for p in q.get("periode", "").split("|"):
-            for n in re.findall(r"\d+", p):
-                whitelist_nombres.add(n)
-
-        # Vérification des nombres dans explication
+        # Vérification stricte des nombres dans explication (aucun passe-droit global)
         nombres_expl = extraire_nombres(r_body.explication)
         for tok in nombres_expl:
             sans_espace = tok.replace(" ", "")
-            # Ordinaux ou numéros de position (1er, 2e, etc.)
-            if tok in ("1", "2", "3", "4"):
-                continue
             if tok in whitelist_nombres or sans_espace in whitelist_nombres:
                 continue
             if any(tok == w or tok in w.split() for w in whitelist_textes):
                 continue
             violations.append(
-                ViolationInvariant(
-                    qid, "c", f"nombre non autorisé dans explication: '{tok}'"
-                )
+                ViolationInvariant(qid, "c", f"nombre non autorisé dans explication: '{tok}'")
             )
 
     # Volet (d) : aucune valeur numérique statistique dans réponse approchée ou refus
@@ -245,9 +291,7 @@ def verifier_invariant_reponse(
         for n in re.findall(r"\b\d+(?:[,\.]\d+)?\b", r_body.message):
             if not (len(n) == 4 and n.startswith(("19", "20"))):
                 violations.append(
-                    ViolationInvariant(
-                        qid, "d", f"chiffre non-année dans message de refus: '{n}'"
-                    )
+                    ViolationInvariant(qid, "d", f"chiffre non-année dans message de refus: '{n}'")
                 )
 
     return violations
@@ -256,6 +300,7 @@ def verifier_invariant_reponse(
 # ---------------------------------------------------------------------------
 # Évaluation d'exactitude et de refus (Cahier §12.1)
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ResultatEvaluation:
@@ -271,6 +316,7 @@ class ResultatEvaluation:
     motif_attendu: str | None = None
     latence_ms: float = 0.0
     violations_invariant: list[ViolationInvariant] = field(default_factory=list)
+    chiffre_faux: bool = False
     detail: str = ""
 
 
@@ -288,9 +334,7 @@ def verifier_exactitude_reponse(
     if not r_body.resultats:
         return False, False, "aucun résultat servi"
     r0 = r_body.resultats[0]
-    source_valide = bool(
-        r0.source.producteur and r0.source.date_publication and r0.source.libelle
-    )
+    source_valide = bool(r0.source.producteur and r0.source.date_publication and r0.source.libelle)
     citation_valide = bool(r_body.citation)
     sourcee = source_valide and citation_valide
 
@@ -309,10 +353,18 @@ def verifier_exactitude_reponse(
         obtenus = [(r.zone.code, r.valeur) for r in r_body.resultats]
         attendus_zv = [(z, v) for z, p, v in attendus]
         if len(obtenus) != len(attendus_zv):
-            return False, sourcee, f"taille classement: {len(obtenus)} != attendu {len(attendus_zv)}"
+            return (
+                False,
+                sourcee,
+                f"taille classement: {len(obtenus)} != attendu {len(attendus_zv)}",
+            )
         for (z_obt, v_obt), (z_att, v_att) in zip(obtenus, attendus_zv, strict=False):
             if z_obt != z_att or not math.isclose(v_obt, v_att, abs_tol=1e-5):
-                return False, sourcee, f"classement: attendu {z_att}={v_att}, obtenu {z_obt}={v_obt}"
+                return (
+                    False,
+                    sourcee,
+                    f"classement: attendu {z_att}={v_att}, obtenu {z_obt}={v_obt}",
+                )
         # Graphique barres horizontales
         if not r_body.graphique or r_body.graphique.type != "barres_horizontales":
             return False, sourcee, "graphique barres horizontales manquant pour classement"
@@ -324,7 +376,11 @@ def verifier_exactitude_reponse(
         attendus_dict = {(z, p): v for z, p, v in attendus}
         for zp, v_att in attendus_dict.items():
             if zp not in obtenus_dict or not math.isclose(obtenus_dict[zp], v_att, abs_tol=1e-5):
-                return False, sourcee, f"bornes temporelles: attendu {zp}={v_att}, obtenu {obtenus_dict.get(zp)}"
+                return (
+                    False,
+                    sourcee,
+                    f"bornes temporelles: attendu {zp}={v_att}, obtenu {obtenus_dict.get(zp)}",
+                )
         if not r_body.graphique or r_body.graphique.type != "courbe":
             return False, sourcee, "graphique courbe manquant pour comparaison temporelle"
         return True, sourcee, "comparaison temporelle correcte"
@@ -361,7 +417,11 @@ def verifier_approchee_reponse(
     if zones_attendues:
         zones_proposees = {z for c in r_body.choix for z in c.requete.zones}
         if not (zones_attendues & zones_proposees):
-            return False, False, f"zones attendues {zones_attendues} absentes des choix {zones_proposees}"
+            return (
+                False,
+                False,
+                f"zones attendues {zones_attendues} absentes des choix {zones_proposees}",
+            )
 
     # Une réponse approchée ne porte pas de citation/source avant exécution (EF-06)
     return True, True, f"{len(r_body.choix)} choix vivants et pertinents"
@@ -382,7 +442,10 @@ def verifier_refus_reponse(
 
     # Vérifications spécifiques par motif
     if motif_attendu == "hors_socle":
-        if "Cette donnée n'existe pas" not in r_body.message and "n'est pas disponible" not in r_body.message:
+        if (
+            "Cette donnée n'existe pas" not in r_body.message
+            and "n'est pas disponible" not in r_body.message
+        ):
             return False, "message hors_socle non conforme au cahier"
         if len(r_body.suggestions) > 3:
             return False, f"trop de suggestions ({len(r_body.suggestions)} > 3)"
@@ -393,6 +456,7 @@ def verifier_refus_reponse(
 # ---------------------------------------------------------------------------
 # Exécution du benchmark complet
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class RapportBenchmark:
@@ -405,6 +469,7 @@ class RapportBenchmark:
     nb_refus_attendus: int  # 20
     nb_refus_succes: int
     score_refus: float
+    nb_chiffres_faux_affiches: int
     nb_violations_invariant: int
     latence_mediane_ms: float
     latence_p95_ms: float
@@ -462,12 +527,15 @@ def executer_benchmark(
         motif_obtenu = getattr(resp.reponse, "motif", None)
         statut = "inconnu"
         detail = ""
+        ok_val = False
 
         if issue_attendue == "exacte":
             ok_val, ok_src, detail = verifier_exactitude_reponse(q, resp, s)
             reponse_correcte = ok_val and ok_src
             sourcee = ok_src
-            statut = "succes" if reponse_correcte else ("echec_source" if ok_val else "echec_valeur")
+            statut = (
+                "succes" if reponse_correcte else ("echec_source" if ok_val else "echec_valeur")
+            )
 
         elif issue_attendue == "approchee":
             ok_val, ok_src, detail = verifier_approchee_reponse(q, resp, moteur)
@@ -480,6 +548,12 @@ def executer_benchmark(
             reponse_correcte = ok_refus
             sourcee = True  # non applicable aux refus
             statut = "succes" if reponse_correcte else "echec_motif"
+
+        # Chiffres faux affichés : toute réponse exacte qui affiche une valeur pour la
+        # mauvaise zone, période ou indicateur, ou une valeur servie là où un refus ou une approchée était attendu.
+        chiffre_faux = isinstance(resp.reponse, ReponseExacte) and (
+            issue_attendue != "exacte" or not ok_val
+        )
 
         evaluations.append(
             ResultatEvaluation(
@@ -495,6 +569,7 @@ def executer_benchmark(
                 motif_attendu=q.get("motif"),
                 latence_ms=latence_ms,
                 violations_invariant=viols,
+                chiffre_faux=chiffre_faux,
                 detail=detail,
             )
         )
@@ -504,7 +579,11 @@ def executer_benchmark(
     def type_detaille(e: ResultatEvaluation, q_map: dict[str, dict[str, str]]) -> str:
         q_row = q_map[e.question_id]
         if e.type_question == "comparative":
-            return "comparative_temporelle" if "|" in q_row.get("periode", "") else "comparative_spatiale"
+            return (
+                "comparative_temporelle"
+                if "|" in q_row.get("periode", "")
+                else "comparative_spatiale"
+            )
         return e.type_question
 
     q_map = {q["id"]: q for q in questions}
@@ -529,6 +608,9 @@ def executer_benchmark(
     nb_refus_succes = sum(1 for ev in evals_refus if ev.reponse_correcte)
     score_refus = nb_refus_succes / len(evals_refus) if evals_refus else 0.0
 
+    # Chiffres faux affichés
+    nb_chiffres_faux = sum(1 for ev in evaluations if ev.chiffre_faux)
+
     # Latences
     latences_triees = sorted(latences)
     mediane = latences_triees[len(latences_triees) // 2] if latences_triees else 0.0
@@ -538,10 +620,15 @@ def executer_benchmark(
     # Défauts constatés du moteur
     defauts_moteur: list[str] = []
     for ev in evaluations:
-        if ev.type_question == "classement" and not ev.reponse_correcte and "FR-045" in ev.question_id:
+        if (
+            ev.type_question == "classement"
+            and not ev.reponse_correcte
+            and "FR-045" in ev.question_id
+        ):
             defauts_moteur.append(
-                "FR-045 (classement mortalité) : le jeu attend un tri desc alors que la question "
-                "demande « le plus faible ». Le moteur classe correctement en ascendant (Louga en tête)."
+                "FR-045 (classement mortalité) : le motif `_ORDRE_ASC` du moteur capture à tort « moins de » "
+                "dans « moins de 5 ans » (comprehension.py et resolution.py), produisant un tri croissant "
+                "au lieu du tri décroissant attendu. Défaut moteur à corriger côté engine."
             )
 
     return RapportBenchmark(
@@ -554,6 +641,7 @@ def executer_benchmark(
         nb_refus_attendus=len(evals_refus),
         nb_refus_succes=nb_refus_succes,
         score_refus=score_refus,
+        nb_chiffres_faux_affiches=nb_chiffres_faux,
         nb_violations_invariant=len(toutes_violations),
         latence_mediane_ms=mediane,
         latence_p95_ms=p95,
@@ -569,20 +657,38 @@ def executer_benchmark(
 # Génération du rapport Markdown
 # ---------------------------------------------------------------------------
 
+
 def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
     """Produit le rapport Markdown unique de benchmark selon le cahier des charges."""
-    statut_exactitude = "CONFORME" if rapport.score_exactitude >= 0.85 else "NON CONFORME"
-    statut_refus = "CONFORME" if rapport.score_refus >= 0.95 else "NON CONFORME"
+    statut_exactitude = (
+        "CONFORME"
+        if rapport.score_exactitude >= 0.85
+        else ("NON CONFORME" if rapport.mode.startswith("llm") else "indicatif")
+    )
+    statut_refus = (
+        "CONFORME"
+        if rapport.score_refus >= 0.95
+        else ("NON CONFORME" if rapport.mode.startswith("llm") else "indicatif")
+    )
     statut_invariant = "CONFORME" if rapport.nb_violations_invariant == 0 else "VIOLATION"
+    statut_chiffres_faux = (
+        "CONFORME"
+        if rapport.nb_chiffres_faux_affiches == 0
+        else ("NON CONFORME" if rapport.mode.startswith("llm") else "indicatif")
+    )
 
     cible_latence = "évaluée (< 3 s)" if rapport.mode.startswith("llm") else "indicatif"
     latence_s = rapport.latence_mediane_ms / 1000
     statut_latence = (
         "CONFORME"
-        if (rapport.mode.startswith("llm") and latence_s < 3.0) or not rapport.mode.startswith("llm")
-        else "NON CONFORME"
+        if (rapport.mode.startswith("llm") and latence_s < 3.0)
+        else ("NON CONFORME" if rapport.mode.startswith("llm") else "indicatif")
     )
 
+    ligne_chiffres_faux = (
+        f"| **Chiffres faux affichés** (confiance) | 0 | "
+        f"**{rapport.nb_chiffres_faux_affiches}** | {statut_chiffres_faux} |"
+    )
     ligne_exact = (
         f"| **Exactitude** (sourcée, sur {rapport.nb_reponses_attendues} questions) | ≥ 85 % | "
         f"**{rapport.score_exactitude * 100:.1f} %** "
@@ -614,6 +720,7 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
         "",
         "| Mesure | Cible | Obtenu | Statut |",
         "|---|---|---|---|",
+        ligne_chiffres_faux,
         ligne_exact,
         ligne_refus,
         ligne_inv,
@@ -640,13 +747,15 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
         pct = (succes / tot * 100) if tot else 0.0
         lignes.append(f"| {nom} | {succes}/{tot} | {pct:.1f} % |")
 
-    lignes.extend([
-        "",
-        "## 3. Sous-scores par langue",
-        "",
-        "| Langue | Réussite | Pourcentage |",
-        "|---|---|---|",
-    ])
+    lignes.extend(
+        [
+            "",
+            "## 3. Sous-scores par langue",
+            "",
+            "| Langue | Réussite | Pourcentage |",
+            "|---|---|---|",
+        ]
+    )
 
     labels_langue = {"fr": "Français", "wo": "Wolof"}
     for lang, (succes, tot) in rapport.sous_scores_langue.items():
@@ -654,48 +763,58 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
         pct = (succes / tot * 100) if tot else 0.0
         lignes.append(f"| {nom} | {succes}/{tot} | {pct:.1f} % |")
 
-    lignes.extend([
-        "",
-        "## 4. Invariant « zéro chiffre inventé »",
-        "",
-    ])
+    lignes.extend(
+        [
+            "",
+            "## 4. Invariant « zéro chiffre inventé »",
+            "",
+        ]
+    )
 
     if not rapport.violations:
-        lignes.extend([
-            "> **Invariant strictement vérifié** : aucune violation détectée sur les 103 questions.",
-            "- Volet (a) : 100 % des `Resultat` servis proviennent d'une observation du socle avec la valeur exacte.",
-            "- Volet (b) : 100 % des points de graphiques correspondent à des observations du socle.",
-            "- Volet (c) : tous les chiffres figurant dans les explications appartiennent à la liste blanche des données officielles affichées.",
-            "- Volet (d) : aucune valeur numérique statistique n'apparaît dans une réponse approchée ou un refus.",
-        ])
+        lignes.extend(
+            [
+                "> **Invariant strictement vérifié** : aucune violation détectée sur les 103 questions.",
+                "- Volet (a) : 100 % des `Resultat` servis proviennent d'une observation du socle avec la valeur exacte.",
+                "- Volet (b) : 100 % des points de graphiques correspondent à des observations du socle.",
+                "- Volet (c) : tous les chiffres figurant dans les explications appartiennent à la liste blanche des données officielles affichées.",
+                "- Volet (d) : aucune valeur numérique statistique n'apparaît dans une réponse approchée ou un refus.",
+            ]
+        )
     else:
-        lignes.extend([
-            f"> **ALERTE : {len(rapport.violations)} violation(s) de l'invariant constatée(s) !**",
-            "",
-            "| Question | Volet | Détail |",
-            "|---|---|---|",
-        ])
+        lignes.extend(
+            [
+                f"> **ALERTE : {len(rapport.violations)} violation(s) de l'invariant constatée(s) !**",
+                "",
+                "| Question | Volet | Détail |",
+                "|---|---|---|",
+            ]
+        )
         for v in rapport.violations:
             lignes.append(f"| {v.question_id} | {v.volet} | {v.message} |")
 
     if rapport.defauts_moteur:
-        lignes.extend([
-            "",
-            "## 5. Défauts constatés du moteur (signalements sans modification de engine/src)",
-            "",
-        ])
+        lignes.extend(
+            [
+                "",
+                "## 5. Défauts constatés du moteur (signalements sans modification de engine/src)",
+                "",
+            ]
+        )
         for defaut in rapport.defauts_moteur:
             lignes.append(f"- {defaut}")
 
     # Section des échecs détaillés
     echecs = [ev for ev in rapport.evaluations if not ev.reponse_correcte]
-    lignes.extend([
-        "",
-        f"## 6. Détail des écarts ({len(echecs)} questions non conformes)",
-        "",
-        "| Id | Type | Langue | Attendu | Obtenu | Détail |",
-        "|---|---|---|---|---|---|",
-    ])
+    lignes.extend(
+        [
+            "",
+            f"## 6. Détail des écarts ({len(echecs)} questions non conformes)",
+            "",
+            "| Id | Type | Langue | Attendu | Obtenu | Détail |",
+            "|---|---|---|---|---|---|",
+        ]
+    )
     for ev in echecs:
         lignes.append(
             f"| {ev.question_id} | {ev.type_question} | {ev.langue} | "
@@ -708,6 +827,7 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
 # ---------------------------------------------------------------------------
 # Point d'entrée CLI
 # ---------------------------------------------------------------------------
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -754,7 +874,9 @@ def main() -> int:
         print("Aucun appel payant ne doit être lancé sans l'accord préalable de Khalifa.")
         print("=" * 60)
         if not args.oui:
-            reponse = input("Confirmez-vous le lancement de l'évaluation LLM ? [o/N] ").strip().lower()
+            reponse = (
+                input("Confirmez-vous le lancement de l'évaluation LLM ? [o/N] ").strip().lower()
+            )
             if reponse not in ("o", "oui", "y", "yes"):
                 print("Exécution annulée par l'utilisateur.")
                 return 0
@@ -764,9 +886,7 @@ def main() -> int:
 
         charger_env(RACINE / ".env")
         client = charger_client()
-        nom_modele = next(
-            (m.modele for m in client.chaine if m.fournisseur != "regles"), "llm"
-        )
+        nom_modele = next((m.modele for m in client.chaine if m.fournisseur != "regles"), "llm")
         mode_nom = "llm-" + nom_modele.replace("/", "-").replace(":", "-")
         # LLM activé via variable d'environnement reconnue par MoteurReel
         os.environ["LLM_CHAINE"] = "oui"
@@ -801,6 +921,7 @@ def main() -> int:
     print("\n" + "=" * 60)
     print(f"SYNTHÈSE DU BENCHMARK ({mode_nom})")
     print("=" * 60)
+    print(f"Chiffres faux affichés   : {rapport.nb_chiffres_faux_affiches} [cible: 0]")
     print(
         f"Exactitude (83 q)        : {rapport.nb_exactitude_succes}/{rapport.nb_reponses_attendues} "
         f"({rapport.score_exactitude * 100:.1f} %) [cible: ≥ 85 %]"
@@ -809,9 +930,7 @@ def main() -> int:
         f"Refus pertinent (20 q)   : {rapport.nb_refus_succes}/{rapport.nb_refus_attendus} "
         f"({rapport.score_refus * 100:.1f} %) [cible: ≥ 95 %]"
     )
-    print(
-        f"Invariant « 0 inventé »  : {rapport.nb_violations_invariant} violation(s) [cible: 0]"
-    )
+    print(f"Invariant « 0 inventé »  : {rapport.nb_violations_invariant} violation(s) [cible: 0]")
     print(
         f"Latence médiane / P95    : {rapport.latence_mediane_ms:.1f} ms / {rapport.latence_p95_ms:.1f} ms"
     )

@@ -51,6 +51,7 @@ from benchmark import (
 # Fixtures de test synthétiques
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def socle_test() -> Socle:
     obs = [
@@ -119,6 +120,7 @@ def obs_par_id(socle_test: Socle) -> dict[str, Observation]:
 @pytest.fixture
 def inds_test() -> dict[str, Indicateur]:
     from gestukaay_socle.indicateurs import indicateurs
+
     return indicateurs()
 
 
@@ -178,6 +180,7 @@ def reponse_exacte_valide() -> AskResponse:
 # ---------------------------------------------------------------------------
 # Tests de l'invariant : cas nominaux (pas de fausse alerte)
 # ---------------------------------------------------------------------------
+
 
 def test_invariant_reponse_exacte_valide_sans_fausse_alerte(
     socle_test: Socle,
@@ -256,6 +259,7 @@ def test_invariant_avec_modalites_desagregation_et_arrondi(
 # Tests de détection des violations (injections de chiffres faux)
 # ---------------------------------------------------------------------------
 
+
 def test_invariant_detecte_observation_id_inconnu(
     socle_test: Socle,
     obs_par_id: dict[str, Observation],
@@ -300,7 +304,38 @@ def test_invariant_detecte_point_graphique_falsifie(
     )
 
     viols = verifier_invariant_reponse(q, rep, socle_test, obs_par_id, inds_test, {})
-    assert any(v.volet == "b" and "point graphique" in v.message for v in viols)
+    assert any(v.volet == "b" and "absent du socle" in v.message for v in viols)
+
+
+def test_invariant_detecte_barre_thies_avec_population_dakar(
+    socle_test: Socle,
+    obs_par_id: dict[str, Observation],
+    inds_test: dict[str, Indicateur],
+):
+    """Volet (b) : la barre 'Thiès' avec la population de Dakar (4 004 426) doit être détectée."""
+    q = {"id": "FR-001", "question": "Combien d'habitants à Thiès ?", "periode": "2023"}
+    rep = reponse_exacte_valide()
+    # Barre 'Thiès' avec la population réelle de Dakar au lieu de Thiès
+    rep.reponse.graphique.series[0].points = [  # type: ignore[union-attr]
+        PointGraphique(x="Thiès", y=4004426.0, mise_en_evidence=True)
+    ]
+    viols = verifier_invariant_reponse(q, rep, socle_test, obs_par_id, inds_test, {})
+    assert any(v.volet == "b" and "point barre" in v.message for v in viols)
+
+
+def test_invariant_detecte_barre_zone_inconnue(
+    socle_test: Socle,
+    obs_par_id: dict[str, Observation],
+    inds_test: dict[str, Indicateur],
+):
+    """Volet (b) : un libellé de barre non rattaché à une zone du référentiel doit être détecté."""
+    q = {"id": "FR-001", "question": "Combien d'habitants à Thiès ?", "periode": "2023"}
+    rep = reponse_exacte_valide()
+    rep.reponse.graphique.series[0].points = [  # type: ignore[union-attr]
+        PointGraphique(x="ZoneInexistante", y=2463677.0, mise_en_evidence=True)
+    ]
+    viols = verifier_invariant_reponse(q, rep, socle_test, obs_par_id, inds_test, {})
+    assert any(v.volet == "b" and "ne correspond à aucune zone" in v.message for v in viols)
 
 
 def test_invariant_detecte_chiffre_invente_dans_explication(
@@ -318,6 +353,22 @@ def test_invariant_detecte_chiffre_invente_dans_explication(
 
     viols = verifier_invariant_reponse(q, rep, socle_test, obs_par_id, inds_test, {})
     assert any(v.volet == "c" and "48,9" in v.message for v in viols)
+
+
+def test_invariant_detecte_chiffre_court_soit_3_fois_plus(
+    socle_test: Socle,
+    obs_par_id: dict[str, Observation],
+    inds_test: dict[str, Indicateur],
+):
+    """Volet (c) : 'Soit 3 fois plus.' ajouté à l'explication doit produire une violation."""
+    q = {"id": "FR-001", "question": "Combien d'habitants à Thiès ?", "periode": "2023"}
+    rep = reponse_exacte_valide()
+    # 'Soit 3 fois plus.' ajouté à l'explication (teste la suppression de l'exception 1,2,3,4)
+    rep.reponse.explication = (  # type: ignore[union-attr]
+        "La région de Thiès compte 2 463 677 habitants en 2023. Soit 3 fois plus."
+    )
+    viols = verifier_invariant_reponse(q, rep, socle_test, obs_par_id, inds_test, {})
+    assert any(v.volet == "c" and "'3'" in v.message for v in viols)
 
 
 def test_invariant_detecte_valeur_numerique_dans_approchee(
@@ -358,7 +409,12 @@ def test_invariant_detecte_valeur_numerique_dans_refus(
     inds_test: dict[str, Indicateur],
 ):
     """Volet (d) : aucune valeur numérique statistique autorisée dans un message de refus."""
-    q = {"id": "FR-060", "question": "Population en 2099 ?", "issue_attendue": "aucune", "motif": "projection"}
+    q = {
+        "id": "FR-060",
+        "question": "Population en 2099 ?",
+        "issue_attendue": "aucune",
+        "motif": "projection",
+    }
     rep = AskResponse(
         reponse=ReponseAucune(
             id="ref123",
@@ -379,6 +435,7 @@ def test_invariant_detecte_valeur_numerique_dans_refus(
 # ---------------------------------------------------------------------------
 # Tests des métriques (Exactitude et Refus pertinent)
 # ---------------------------------------------------------------------------
+
 
 def test_evaluation_exactitude_succes(socle_test: Socle):
     q = {
@@ -436,6 +493,7 @@ def test_evaluation_refus_pertinent():
 # ---------------------------------------------------------------------------
 # Utilitaires de normalisation
 # ---------------------------------------------------------------------------
+
 
 def test_extraire_nombres_et_normalisation():
     texte = "En 2023, le taux est de 25,7 % (soit 4 004 426 habitants)."
