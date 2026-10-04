@@ -46,7 +46,25 @@ def test_export_csv_des_series():
     lignes = r.content.decode("utf-8-sig").splitlines()
     assert lignes[0].startswith("indicateur;zone;code_zone;periode;valeur;unite")
     assert len(lignes) == 1 + 6  # 2 zones x 3 années publiées
-    assert "SN-DK;2022;9,3;%" in r.text and "/explorer?indicateur=jcvcajc.taux-de-pauvrete&zones=SN,SN-DK" in r.text
+    assert "SN-DK;2022;9,3;%" in r.text and "/explorer?indicateur=jcvcajc.taux-de-pauvrete&zones=SN%2CSN-DK" in r.text
+    assert r.headers["content-disposition"] == 'attachment; filename="gestukaay-jcvcajc.taux-de-pauvrete.csv"'
+
+
+def test_export_csv_code_avec_caracteres_speciaux(monkeypatch):
+    """396 codes du référentiel contiennent %, " ou = : adresse encodée, nom de fichier assaini."""
+    code = 'feujxob.chaussures-semi-fermees-"sabots"~%'
+    vrai = module_app.moteur
+
+    class _Moteur:
+        def series(self, indicateur, zones, debut=None, fin=None):
+            rep = vrai.series(PAUVRETE, zones, debut, fin)
+            return rep.model_copy(update={"indicateur": rep.indicateur.model_copy(update={"code": indicateur})})
+
+    monkeypatch.setattr(module_app, "moteur", _Moteur())
+    r = client.get("/v1/series.csv", params={"indicateur": code, "zones": "SN"})
+    assert r.status_code == 200
+    assert "indicateur=feujxob.chaussures-semi-fermees-%22sabots%22~%25&zones=SN" in r.text
+    assert r.headers["content-disposition"] == 'attachment; filename="gestukaay-feujxob.chaussures-semi-fermees-_sabots___.csv"'
 
 
 def test_moteur_reel_pas_encore_disponible(monkeypatch):

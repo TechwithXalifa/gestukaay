@@ -16,6 +16,7 @@ import re
 import secrets
 import time
 from typing import Literal
+from urllib.parse import urlencode
 
 from fastapi import FastAPI, Form, Header, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -280,12 +281,14 @@ def series_csv(
     """Export CSV de la vue Explorer (schéma EF-34), avec l'adresse stable de cette vue (EF-29)."""
     liste = _zones(zones)
     rep = moteur.series(indicateur, liste, debut or None, fin or None)
-    params = {"indicateur": indicateur, "zones": ",".join(liste), "debut": debut or "", "fin": fin or ""}
-    url = f"{URL_PUBLIQUE.rstrip('/')}/explorer?" + "&".join(f"{k}={v}" for k, v in params.items() if v)
+    # Encodé : des codes du référentiel contiennent %, " ou = (bdubwzf.effectif~%)
+    params = {"indicateur": indicateur, "zones": ",".join(liste), "debut": debut, "fin": fin}
+    url = f"{URL_PUBLIQUE.rstrip('/')}/explorer?" + urlencode({k: v for k, v in params.items() if v})
+    fichier = re.sub(r"[^A-Za-z0-9._-]", "_", indicateur)  # nom de fichier toujours bien formé
     return Response(
         vers_csv_series(rep, url, virgule_decimale=decimale == "virgule"),
         media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="gestukaay-{indicateur}.csv"'},
+        headers={"Content-Disposition": f'attachment; filename="gestukaay-{fichier}.csv"'},
     )
 
 
