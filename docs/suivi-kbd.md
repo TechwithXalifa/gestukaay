@@ -14,9 +14,9 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | 3 · Jeu de test et mesure | 3 | 4 | Préparation |
 | 4 · Wolof | 1 | 5 | Préparation |
 | 5 · Voix | 0 | 4 | Hackathon |
-| 6 · WhatsApp et Telegram | 0 | 6 | Préparation |
+| 6 · WhatsApp et Telegram | 3 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **26** | **47** | |
+| **Total** | **29** | **47** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -98,9 +98,9 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 ## 6 · WhatsApp et Telegram
 
 - [ ] **6.1** Vérifier le compte de test Meta — [#31](https://github.com/TechwithXalifa/gestukaay/issues/31) · échéance 01/10
-- [ ] **6.2** Webhook : idempotence, accusé de lecture, fenêtre 24 h — [#32](https://github.com/TechwithXalifa/gestukaay/issues/32) · échéance 05/10 · après 6.1
-- [ ] **6.3** Message de réponse WhatsApp — [#33](https://github.com/TechwithXalifa/gestukaay/issues/33) · échéance 05/10 · après 2.9
-- [ ] **6.4** Accueil, choix numérotés, commandes — [#34](https://github.com/TechwithXalifa/gestukaay/issues/34) · échéance 06/10 · après 6.3
+- [x] **6.2** Webhook : idempotence, accusé de lecture, fenêtre 24 h — [#32](https://github.com/TechwithXalifa/gestukaay/issues/32) · échéance 05/10 · après 6.1
+- [x] **6.3** Message de réponse WhatsApp — [#33](https://github.com/TechwithXalifa/gestukaay/issues/33) · échéance 05/10 · après 2.9
+- [x] **6.4** Accueil, choix numérotés, commandes — [#34](https://github.com/TechwithXalifa/gestukaay/issues/34) · échéance 06/10 · après 6.3
 - [ ] **6.5** Envoi de l'audio WhatsApp ⏳ — [#35](https://github.com/TechwithXalifa/gestukaay/issues/35) · échéance 08/10 · après 5.3, 6.3
 - [ ] **6.6** Bot Telegram de secours — [#36](https://github.com/TechwithXalifa/gestukaay/issues/36) · échéance 06/10 · après 6.3
 
