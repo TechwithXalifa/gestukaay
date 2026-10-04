@@ -22,6 +22,52 @@ jobs:
           git diff --exit-code contracts/generated/ || \
             (echo "::error::contracts/generated/ n'est pas à jour : lancer ./scripts/generer_contrat.sh" && exit 1)
 
+  # Benchmark du moteur réel sur le jeu de test (#20, décision 0020) : socle figé de la release,
+  # empreintes vérifiées, règles locales (gratuit, aucun appel LLM). Échoue seulement si l'invariant
+  # « zéro chiffre inventé » est violé ; le score s'affiche dans le résumé de l'exécution.
+  benchmark:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SOCLE_VERSION: "2026.10.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Socle figé (cache par version)
+        id: cache-socle
+        uses: actions/cache@v4
+        with:
+          path: ~/socle_ci
+          key: socle-${{ env.SOCLE_VERSION }}
+      - name: Télécharger le socle depuis la release
+        if: steps.cache-socle.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "socle-$SOCLE_VERSION" --repo "$GITHUB_REPOSITORY" \
+            --pattern "socle-$SOCLE_VERSION.zip" --dir "$RUNNER_TEMP"
+          mkdir -p ~/socle_ci && unzip -q "$RUNNER_TEMP/socle-$SOCLE_VERSION.zip" -d ~/socle_ci
+      - name: Vérifier les empreintes (MANIFEST.json)
+        run: uv run python socle/scripts/verifier_socle.py ~/socle_ci/"$SOCLE_VERSION" --version "$SOCLE_VERSION"
+      - name: Benchmark (règles locales)
+        run: |
+          set -o pipefail
+          env -u LLM_CHAINE GESTUKAAY_SOCLE_EXTRAIT="$HOME/socle_ci/$SOCLE_VERSION" \
+            uv run python mesure/scripts/benchmark.py --regles | tee "$RUNNER_TEMP/synthese.txt"
+      - name: Score dans le résumé
+        if: always()
+        run: |
+          {
+            echo "## Benchmark — règles locales, socle $SOCLE_VERSION"
+            echo '```'
+            sed -n '/SYNTHÈSE/,$p' "$RUNNER_TEMP/synthese.txt" 2>/dev/null || echo "benchmark non exécuté"
+            echo '```'
+            echo
+            cat mesure/rapports/benchmark_regles.md 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
   web:
     runs-on: ubuntu-latest
     defaults:
