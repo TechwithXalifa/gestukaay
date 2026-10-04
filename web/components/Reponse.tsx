@@ -107,12 +107,16 @@ function Exacte({ r }: { r: ReponseExacte }) {
         <p className="note">{t("reponse.base", { base: nonObservee.base_projection })}</p>
       )}
 
-      {r.resultats.map((v, i) => (
+      {r.resultats.map((v, i) => {
+        // Un seul titre de niveau 1 par page : les résultats suivants (comparaison, taux compagnon
+        // d'un nombre, décision 0024) sont des titres de niveau 2, même apparence.
+        const Titre = i === 0 ? "h1" : "h2";
+        return (
         <div key={v.observation_id} className="resultat">
-          <h1 id={i === 0 ? "titre-reponse" : undefined} className="libelle">
+          <Titre id={i === 0 ? "titre-reponse" : undefined} className="libelle">
             {v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle}
             {r.periode_par_defaut && ` · ${t("reponse.derniere")}`}
-          </h1>
+          </Titre>
           <p className="valeur">
             <span>{v.valeur_affichee}</span> <span className="unite">{v.unite}</span>
           </p>
@@ -121,7 +125,8 @@ function Exacte({ r }: { r: ReponseExacte }) {
             <span>{v.source.libelle}</span>
           </p>
         </div>
-      ))}
+        );
+      })}
       <p className="explication">{r.explication}</p>
       {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
 

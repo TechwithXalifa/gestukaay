@@ -65,6 +65,9 @@ test("comparaison : deux valeurs, deux barres", async ({ page }) => {
   await poser(page, "Population de Dakar et de Thiès en 2023");
   await expect(page.locator(".valeur")).toHaveCount(2);
   await expect(page.locator(".barre")).toHaveCount(2);
+  // Un seul titre de niveau 1 : le second résultat est un titre de niveau 2 (WCAG 1.3.1)
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+  await expect(page.locator("h2.libelle")).toHaveCount(1);
 });
 
 test("exports PDF et CSV, adresse stable et vote", async ({ page, request }) => {
