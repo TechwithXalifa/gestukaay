@@ -2,7 +2,7 @@
 
 from fastapi.testclient import TestClient
 from gestukaay_backend import app as module_app
-from gestukaay_engine import NonDisponible
+from gestukaay_engine import NonDisponible, SaisieInvalide
 
 client = TestClient(module_app.app)
 
@@ -33,3 +33,16 @@ def test_transcrire_non_disponible_rend_503(monkeypatch):
     monkeypatch.setattr(module_app, "moteur", _MoteurIncomplet())
     r = client.post("/v1/transcrire", files={"fichier": ("q.webm", b"\x1a\x45\xdf\xa3", "audio/webm")})
     _verifier_503(r)
+
+
+class _MoteurSaisieRefusee:
+    def situer(self, req):
+        raise SaisieInvalide(f"région inconnue : {req.region!r}")
+
+
+def test_situer_region_inconnue_rend_422(monkeypatch):
+    monkeypatch.setattr(module_app, "moteur", _MoteurSaisieRefusee())
+    r = client.post("/v1/situate", json={"region": "SN-XX", "taille_menage": 5, "depenses_mensuelles": "100k_200k"})
+    assert r.status_code == 422
+    assert r.headers["content-type"].startswith("application/problem+json")
+    assert r.json()["title"] == "Saisie invalide" and "SN-XX" in r.json()["detail"]
