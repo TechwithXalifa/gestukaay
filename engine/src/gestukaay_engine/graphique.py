@@ -136,7 +136,9 @@ def graphique_evolution(socle: Socle, resultats: list[Resultat], ind: Indicateur
 
 
 def graphique_contexte_valeur(socle: Socle, r: Resultat, ind: Indicateur) -> Graphique | None:
-    """Graphique de contexte pour une valeur unique régionale (14 régions, zone demandée en évidence)."""
+    """Graphique de contexte pour une valeur unique régionale (14 régions, zone demandée en évidence).
+    Seules les zones du même niveau que la zone demandée : certains jeux publient régions et
+    départements pour la même période (aykimoe, zctvxac, ekihmme, pykrorg…)."""
     if r.zone.niveau not in ("region", "academie"):
         return None
     lignes = socle.observations(ind.code)
@@ -144,11 +146,12 @@ def graphique_contexte_valeur(socle: Socle, r: Resultat, ind: Indicateur) -> Gra
     if o_cible is None:
         return None
     desag_cible = o_cible.desagregation
+    ref = zones()
     meme_periode = [
         o for o in lignes
         if o.periode == r.periode.valeur
         and o.desagregation == desag_cible
-        and o.zone != "SN"
+        and (z := ref.get(o.zone)) is not None and z.niveau == r.zone.niveau
     ]
     if len(meme_periode) <= 1:
         return None
