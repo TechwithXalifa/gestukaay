@@ -324,11 +324,14 @@ def main() -> int:
     p.add_argument("--llm", action="store_true", help="compréhension par la chaîne du .env (PAYANT)")
     p.add_argument("--oui", action="store_true", help="confirme la dépense LLM")
     p.add_argument("--rapport", type=Path, default=RAPPORT)
+    p.add_argument("--jetons", type=int, default=GENERATION["max_new_tokens"],
+                   help="jetons générés au plus (64 pour une question ; ~440 pour des extraits longs)")
     p.add_argument("--seulement", default="", help="voix à garder, ex. kbd (envoi à un tiers : accord du locuteur)")
     args = p.parse_args()
 
     with JEU.open(encoding="utf-8-sig", newline="") as f:
         questions = {q["id"]: q for q in csv.DictReader(f, delimiter=";")}
+    GENERATION["max_new_tokens"] = args.jetons
     notes = corpus(args.voix, questions)
     if args.seulement:
         notes = [n for n in notes if n.voix in args.seulement.split(",")]
