@@ -166,6 +166,56 @@ def dofbi_wolof() -> Callable:
     return _pipeline("dofbi/wolof-asr")
 
 
+def _elevenlabs(mots_cles: bool) -> Callable:
+    """ElevenLabs Scribe v2 (API payante, 0,22 $ l'heure). Clé ELEVENLABS_API_KEY dans .env, jamais
+    affichée ; audio envoyé chez un tiers : seulement des voix d'accord (--seulement). Avec `mots_cles`,
+    les noms des zones du référentiel et le vocabulaire des indicateurs P1 sont passés en termes à
+    reconnaître en priorité (« keyterms », 1 000 au plus)."""
+    import io
+    import os
+
+    import httpx
+    import soundfile as sf
+
+    sys.path.insert(0, str(RACINE / "engine" / "scripts"))
+    from essai_llm import charger_env
+
+    charger_env(RACINE / ".env")
+    cle = os.environ.get("ELEVENLABS_API_KEY", "")
+    if not cle:
+        raise RuntimeError("ELEVENLABS_API_KEY absente de .env")
+    termes: list[str] = []
+    if mots_cles:
+        from gestukaay_socle.indicateurs import indicateurs
+        from gestukaay_socle.zones import zones
+
+        termes = sorted({z.libelle_fr for z in zones().values()}
+                        | {m for i in indicateurs().values() if i.priorite == "P1"
+                           for m in re.findall(r"[A-Za-zÀ-ÿ]{5,}", i.libelle_fr)})[:1000]
+    client = httpx.Client(base_url="https://api.elevenlabs.io/v1", timeout=120, headers={"xi-api-key": cle})
+
+    def transcrire(audio) -> str:
+        wav = io.BytesIO()
+        sf.write(wav, audio, TAUX, format="WAV", subtype="PCM_16")
+        donnees = [("model_id", "scribe_v2"), ("language_code", "wol")] + [("keyterms", t) for t in termes]
+        r = client.post("/speech-to-text", files={"file": ("note.wav", wav.getvalue(), "audio/wav")},
+                        data=donnees)
+        r.raise_for_status()
+        return r.json().get("text", "")
+
+    return transcrire
+
+
+def wolof_hubert_ctc() -> Callable:
+    """soynade-research/Wolof-HuBERT-CTC (licence AGPL-3.0 : à vérifier avant tout usage en service) :
+    HuBERT affiné en CTC, transcription lettre par lettre, sans génération (pas de boucle possible) ;
+    WER annoncé 35,6 %. Découpage en fenêtres de 30 s pour les audios longs."""
+    from transformers import pipeline
+
+    asr = pipeline("automatic-speech-recognition", model="soynade-research/Wolof-HuBERT-CTC", device=_appareil())
+    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, chunk_length_s=30)["text"]
+
+
 COUT_ADIA_FCFA = [0.0]  # cumul des en-têtes X-Adia-Cost-Fcfa, affiché en fin de mesure
 
 
@@ -209,6 +259,9 @@ CANDIDATS: dict[str, Callable[[], Callable]] = {
     "m-kiriku": m_kiriku,
     "adia": adia,
     "dofbi-wolof": dofbi_wolof,
+    "wolof-hubert-ctc": wolof_hubert_ctc,
+    "elevenlabs": lambda: _elevenlabs(False),
+    "elevenlabs-mots-cles": lambda: _elevenlabs(True),
 }
 
 # --------------------------------------------------------------------------------------------
