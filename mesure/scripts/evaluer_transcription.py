@@ -160,6 +160,12 @@ def m_kiriku() -> Callable:
     return _pipeline("AIHubSN/M-Kiriku-ASR")
 
 
+def dofbi_wolof() -> Callable:
+    """dofbi/wolof-asr (MIT) : Whisper-small affiné sur galsenai/wolof_tts (corpus de synthèse vocale,
+    voix de studio) ; WER annoncé 12 %, mesuré sur ce type d'audio."""
+    return _pipeline("dofbi/wolof-asr")
+
+
 COUT_ADIA_FCFA = [0.0]  # cumul des en-têtes X-Adia-Cost-Fcfa, affiché en fin de mesure
 
 
@@ -202,6 +208,7 @@ CANDIDATS: dict[str, Callable[[], Callable]] = {
     "kiriku-wolof": kiriku_wolof,
     "m-kiriku": m_kiriku,
     "adia": adia,
+    "dofbi-wolof": dofbi_wolof,
 }
 
 # --------------------------------------------------------------------------------------------
