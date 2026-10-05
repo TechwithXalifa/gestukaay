@@ -246,6 +246,7 @@ export const fr = {
   "confid.ia": "Le texte de votre question est envoyé à un modèle d'IA d'un prestataire externe, uniquement pour la comprendre. Ne mettez pas de données personnelles dans vos questions.",
   "confid.voix": "Votre voix",
   "confid.voix.texte": "Gëstukaay n'écoute que lorsque vous appuyez sur le micro. L'enregistrement sert seulement à la transcription, puis il est effacé : il n'est jamais enregistré sur nos serveurs.",
+  "confid.voix.repli": "La transcription est faite par notre propre service. S'il ne répond pas, l'enregistrement est envoyé à ADIA (Concree), un service de transcription externe, uniquement pour être transcrit. Cela vaut pour le micro du site comme pour les notes vocales WhatsApp et Telegram.",
   "confid.situer": "Où je me situe",
   "confid.situer.texte": "Votre région, la taille de votre ménage et vos dépenses servent au calcul, puis disparaissent. Elles ne sont ni enregistrées ni journalisées.",
   "confid.whatsapp": "Sur WhatsApp, votre numéro n'est pas conservé : la conversation n'est connue que par un code brouillé, impossible à relier à vous.",
