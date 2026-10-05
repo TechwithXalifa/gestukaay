@@ -17,8 +17,11 @@ elle ne répond pas, et comment se passe la conversation quand Awa envoie une no
 2. **5 s au plus**, puis **repli sur ADIA** (`ADIA_API_KEY`) ; si rien ne répond, `NonDisponible` :
    le canal invite à écrire la question.
 3. **Nombres dits en lettres -> chiffres** après la transcription (« deux mille vingt-quatre » ->
-   2024, « treize virgule deux » -> 13,2) ; un « un » isolé (« un kilo ») et « pour cent » restent
-   tels quels. Français d'abord ; les nombres wolof viendront avec les mots écrits par KBD.
+   2024, « treize virgule deux » -> 13,2), en français et en wolof (mots et règles de KBD : « ak »
+   additionne, « fukk » après des unités multiplie, suffixe « -i » devant téeméer, junni, milyoŋ,
+   fanweer = 30, wirgil ; « ñaari junni ak ñaar-fukk ak ñeent » -> 2024). Un mot seul qui a un autre
+   sens n'est jamais converti : « un », « benn » (article), « dara » (rien), « fanweer » (mois) ;
+   « pour cent » et « ci téeméer » restent tels quels.
 4. **Pas de « J'ai compris : … » écrit** pour une note vocale. **Écart au cahier (EF-15)**, décidé
    par KBD : une personne qui ne lit pas ne peut pas vérifier un texte. La réponse dit elle-même ce
    qu'elle a compris (« La région de Thiès compte… ») ; avec l'audio de réponse (#29), elle sera
@@ -32,5 +35,4 @@ elle ne répond pas, et comment se passe la conversation quand Awa envoie une no
 
 - Le site (`/v1/transcrire`) et WhatsApp passent par le même `MoteurReel.transcrire`.
 - Page Confidentialité : en repli, la voix part chez ADIA (Concree).
-- À fournir par KBD : les nombres wolof (unités, dizaines, cent, mille, million, liaison, et des
-  exemples complets comme 2024, 15, 24, 13,2 %, 2 463 677) ; ils serviront aussi à l'audio (#29).
+- Les nombres wolof de KBD serviront aussi, dans l'autre sens, à l'audio de réponse (#29).
