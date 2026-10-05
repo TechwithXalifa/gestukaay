@@ -13,6 +13,7 @@ un code d'indicateur ni de zone, donc il ne peut pas en inventer.
 
 from __future__ import annotations
 
+import csv
 import math
 import re
 from collections import Counter
@@ -43,7 +44,7 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "nit": ("population",), "nitt": ("population",), "deuk": ("population",), "dekk": ("population",),
     "askan": ("population",), "askanu": ("population",), "jigeen": ("population", "feminin"),
     "chomeurs": ("chomage",), "liggeey": ("chomage",), "ligeey": ("chomage",), "amul": ("chomage",),
-    "pauvre": ("pauvrete",), "pauvres": ("pauvrete",), "nakk": ("pauvrete",),
+    "pauvre": ("pauvrete",), "pauvres": ("pauvrete",),
     "coute": ("prix",), "cout": ("prix",), "njeg": ("prix",), "diar": ("prix",), "jar": ("prix",),
     "ceeb": ("riz",), "thieb": ("riz",), "dugub": ("mil",),
     "inflation": ("indice", "prix", "consommation"), "ihpc": ("indice", "prix", "consommation"),
@@ -66,6 +67,15 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "jeunes": ("population", "age"), "geej": ("captures", "halieutiques"), "nappkat": ("captures", "peche"),
     "debarquee": ("captures",), "debarquements": ("captures",),
     "vivent": ("population",), "vivre": ("population",), "vit": ("population",),
+    # Vocabulaire wolof validé par KBD (#23, 0009), formes sans accents. « ñakk » (vaccin) et « ñàkk »
+    # (manquer, pauvreté) s'écrivent tous deux « nakk » une fois les accents retirés : les deux notions
+    # sont proposées, le reste de la phrase tranche (« ñàkk liggéey » = chômage, « xale yi am ñakk »).
+    "nakk": ("pauvrete", "vaccines"), "ndool": ("pauvrete",), "tolluwaay": ("taux",),
+    "tolluwaayu": ("taux",), "toluwaay": ("taux",), "toluwaayu": ("taux",),
+    "mbej": ("eclairage", "electricite"), "kurang": ("eclairage", "electricite"),
+    "njang": ("scolarisation",), "dee": ("mortalite",), "ndaw": ("population", "age"),
+    "goor": ("population", "masculin"), "tej": ("emprisonnees",), "napp": ("captures", "peche"),
+    "ndab": ("vehicule",), "vootuur": ("vehicule",),
 }
 
 _MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, "juillet": 7,
@@ -132,12 +142,30 @@ def lieux_inconnus(question: str) -> list[str]:
         gentile = re.search(r"(ais|aise|ien|ienne|ain|aine)s?$", nom.lower())  # Sénégalais, Kaolackois…
         if nom.lower() not in _PAS_UN_LIEU and not gentile and not resoudre(nom) and not any(nom in o for o in out):
             out.append(nom)
+    # Lieux déclarés dans rattachements.csv, où qu'ils soient : « Ñaata nit ñoo dëkk Tuubaa ? » n'a pas de
+    # préposition française, mais Touba ne doit jamais devenir le Sénégal.
+    t = f" {texte_normalise(question)} "
+    deja = {texte_normalise(o) for o in out}
+    for terme in _lieux_rattaches():
+        if f" {terme} " in t and terme not in deja and not any(terme in d for d in deja):
+            out.append(" ".join(m if m in ("de", "du") else m.capitalize() for m in terme.split()))
     return out
+
+
+@cache
+def _lieux_rattaches() -> tuple[str, ...]:
+    """Termes de lieu de socle/referentiels/rattachements.csv (touba, tuubaa, richard toll…), normalisés."""
+    from gestukaay_socle.indicateurs import REFERENTIELS
+
+    with (REFERENTIELS / "rattachements.csv").open(encoding="utf-8") as f:
+        return tuple(sorted({texte_normalise(r["terme"]) for r in csv.DictReader(f, delimiter=";") if r["type"] == "lieu"},
+                            key=len, reverse=True))
 
 
 # Classement « le plus faible » (sens croissant), sur une question normalisée. « moins de » suivi d'un
 # nombre est une tranche (« enfants de moins de 5 ans »), pas un sens de tri (FR-045).
-ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\bmoins d[e']\b(?!\s*\d)")
+ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\bmoins d[e']\b(?!\s*\d)"
+                       r"|\bgena (neew|tuuti)\b")  # wolof (KBD) : « moo gëna néew / tuuti » = le moins
 
 
 def periodes_citees(question: str) -> list[str]:

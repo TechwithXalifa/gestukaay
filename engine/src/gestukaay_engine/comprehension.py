@@ -143,7 +143,7 @@ def couvrant(candidats: list[Candidat], niveaux: set[str]) -> list[Candidat]:
 
 
 _TEMPS = re.compile(r"\b(an|annee|annees|mois|trimestre|dernier|derniere|passe|passee|prochain|prochaine|"
-                    r"actuel|actuelle|aujourd|recent|recente|at|atum|weer)\b")
+                    r"actuel|actuelle|aujourd|recent|recente|at|atum|weer|ren|daaw|daawat)\b")  # ren, daaw : KBD
 
 
 # Marqueurs d'une question de suivi (#15, décision 0021). Wolof : écrits par KBD (décision 0009).
@@ -283,8 +283,9 @@ class Comprehension:
 
 SEUIL_REGLES = 6.0  # score BM25 minimal pour oser un indicateur sans LLM
 _CLASSEMENT = re.compile(r"\b(le|la|les) (plus|moins)\b|\bquelle region\b|\bclasse(ment)?\b"
-                         r"|\bdiiwaan\b.*\b(epp|gena|geuna)\b|\bban region\b")
-_COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)\b")
+                         r"|\b(diiwaan|diwaan|region)\b.*\b(epp|gena|geuna)\b|\bban (region|diiwaan|diwaan)\b")
+_COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)\b"
+                          r"|\b(yokk|yokku|wanniku|suufe|diggante)\b")  # wolof (KBD) : augmenter, baisser, entre
 
 
 def regles(question: str, candidats: list[Candidat], zones: list[str], periodes: list[str],
