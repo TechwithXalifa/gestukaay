@@ -26,3 +26,6 @@ ovothxc.production;La production{precisions} atteint {valeur} {zone_dans} {perio
 rgohtcc;Le produit intérieur brut (PIB) {zone_de} est de {valeur} {periode} ({d[prix-pib]}, {d[base-pib]}).;non
 whkisxc;{zone_sujet} a enregistré {valeur} de visiteurs non-résidents{precisions} {periode}.;non
 qbvttzc;Le parc compte {valeur}{precisions} {zone_dans} {periode}.;non
+muhgux.population-au-chomage;{zone_sujet} compte {valeur} au chômage{precisions} {periode}.;non
+puummg.population-au-chomage;{zone_sujet} compte {valeur} au chômage{precisions} {periode}.;non
+muhgux.taux-de-chomage;Le taux de chômage{precisions} est de {nombre} % {zone_dans} {periode}.;non

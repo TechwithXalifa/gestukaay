@@ -470,6 +470,26 @@ def test_evaluation_exactitude_succes(socle_test: Socle):
     assert "conformes" in detail
 
 
+def test_evaluation_exactitude_nombre_avec_son_taux_compagnon(socle_test: Socle):
+    """0024 : l'exactitude porte sur le nombre demandé ; le taux compagnon n'est pas un écart."""
+    q = {"id": "WO-002", "question": "Ñi amul ligéey ci Senegaal ?", "periode": "2026-T1",
+         "valeurs_attendues": "SN=1590818", "periode_par_defaut": "oui", "type": "simple"}
+    rep = reponse_exacte_valide()
+    r0 = rep.reponse.resultats[0]  # type: ignore[union-attr]
+    nombre = r0.model_copy(update={
+        "indicateur": RefIndicateur(code="muhgux.population-au-chomage", libelle="Population au chômage"),
+        "zone": RefZone(code="SN", libelle="Sénégal", niveau="pays"),
+        "periode": r0.periode.model_copy(update={"valeur": "2026-T1"}), "valeur": 1590818.0})
+    taux = nombre.model_copy(update={
+        "indicateur": RefIndicateur(code="muhgux.taux-de-chomage", libelle="Taux de chômage"), "valeur": 22.9})
+    rep.reponse.resultats = [nombre, taux]  # type: ignore[union-attr]
+    ok_val, _, detail = verifier_exactitude_reponse(q, rep, socle_test)
+    assert ok_val is True, detail
+    rep.reponse.resultats = [nombre, taux.model_copy(update={  # type: ignore[union-attr]
+        "indicateur": RefIndicateur(code="muhgux.taux-dactivite", libelle="Taux d'activité")})]
+    assert verifier_exactitude_reponse(q, rep, socle_test)[0] is False  # un autre indicateur reste un écart
+
+
 def test_evaluation_exactitude_echec_si_non_sourcee(socle_test: Socle):
     """Une réponse avec la bonne valeur mais sans citation échoue l'exactitude (§12.1)."""
     q = {

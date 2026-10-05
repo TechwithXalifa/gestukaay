@@ -38,6 +38,7 @@ from gestukaay_contracts.models import (
     ReponseExacte,
     RequeteStructuree,
 )
+from gestukaay_engine.compagnons import compagnons
 from gestukaay_engine.comprehension import Comprehension
 from gestukaay_engine.moteur import MoteurReel
 from gestukaay_engine.resolution import national
@@ -386,8 +387,11 @@ def verifier_exactitude_reponse(
             return False, sourcee, "graphique courbe manquant pour comparaison temporelle"
         return True, sourcee, "comparaison temporelle correcte"
 
-    # Simple ou comparative multi-zones ou suivi
-    obtenus_set = {(r.zone.code, r.periode.valeur, round(r.valeur, 5)) for r in r_body.resultats}
+    # Simple ou comparative multi-zones ou suivi. Le taux compagnon d'un nombre (0024) n'est pas la
+    # valeur demandée : l'exactitude porte sur le nombre ; le compagnon reste soumis à l'invariant.
+    compagnon = compagnons().get(r0.indicateur.code)
+    demandes = [r for r in r_body.resultats if not (compagnon and r.indicateur.code == compagnon.code)]
+    obtenus_set = {(r.zone.code, r.periode.valeur, round(r.valeur, 5)) for r in demandes}
     attendus_set = {(z, p, round(v, 5)) for z, p, v in attendus}
     if obtenus_set == attendus_set:
         return True, sourcee, "valeurs exactes conformes"
@@ -464,7 +468,7 @@ class RapportBenchmark:
     mode: str
     date_iso: str
     nb_total: int
-    nb_reponses_attendues: int  # 83
+    nb_reponses_attendues: int  # exactes + approchées
     nb_exactitude_succes: int
     score_exactitude: float
     nb_refus_attendus: int  # 20
@@ -775,7 +779,7 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
     if not rapport.violations:
         lignes.extend(
             [
-                "> **Invariant strictement vérifié** : aucune violation détectée sur les 103 questions.",
+                f"> **Invariant strictement vérifié** : aucune violation détectée sur les {rapport.nb_total} questions.",
                 "- Volet (a) : 100 % des `Resultat` servis proviennent d'une observation du socle avec la valeur exacte.",
                 "- Volet (b) : 100 % des points de graphiques correspondent à des observations du socle.",
                 "- Volet (c) : tous les chiffres figurant dans les explications appartiennent à la liste blanche des données officielles affichées.",
@@ -927,11 +931,11 @@ def main() -> int:
     print("=" * 60)
     print(f"Chiffres faux affichés   : {rapport.nb_chiffres_faux_affiches} [cible: 0]")
     print(
-        f"Exactitude (83 q)        : {rapport.nb_exactitude_succes}/{rapport.nb_reponses_attendues} "
+        f"Exactitude ({rapport.nb_reponses_attendues} q)        : {rapport.nb_exactitude_succes}/{rapport.nb_reponses_attendues} "
         f"({rapport.score_exactitude * 100:.1f} %) [cible: ≥ 85 %]"
     )
     print(
-        f"Refus pertinent (20 q)   : {rapport.nb_refus_succes}/{rapport.nb_refus_attendus} "
+        f"Refus pertinent ({rapport.nb_refus_attendus} q)   : {rapport.nb_refus_succes}/{rapport.nb_refus_attendus} "
         f"({rapport.score_refus * 100:.1f} %) [cible: ≥ 95 %]"
     )
     print(f"Invariant « 0 inventé »  : {rapport.nb_violations_invariant} violation(s) [cible: 0]")

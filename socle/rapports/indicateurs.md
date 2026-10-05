@@ -9,8 +9,8 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 | Indicateurs retenus | 4282 |
 | Jeux du portail | 373 |
 | Domaines | 32 |
-| Priorité P1 (jeu de test) | 27 |
-| Priorité P2 (domaines des questions types) | 1277 |
+| Priorité P1 (jeu de test) | 28 |
+| Priorité P2 (domaines des questions types) | 1276 |
 | Priorité P3 (autres) | 2978 |
 | Vérifiés à la main | 26 |
 | Avec un libellé wolof | 27 |
@@ -33,7 +33,7 @@ Socle : `socle_opendata_par_themes/` · référentiel : `socle/referentiels/indi
 | Commerce extérieur | 101 | 7 | 0 | 0 | 101 | 0 |
 | Transport | 75 | 26 | 1 | 0 | 74 | 3 |
 | Banque et finance | 66 | 6 | 0 | 0 | 66 | 0 |
-| Emploi et chômage | 57 | 7 | 2 | 55 | 0 | 11 |
+| Emploi et chômage | 57 | 7 | 3 | 54 | 0 | 11 |
 | Environnement | 56 | 18 | 0 | 0 | 56 | 9 |
 | Pêche | 44 | 19 | 1 | 0 | 43 | 30 |
 | Eau | 36 | 4 | 1 | 0 | 35 | 9 |
@@ -131,8 +131,9 @@ Chaque question à issue exacte ou approchée doit trouver son indicateur ; les 
 | FR-070 | exacte | `feujxob.mil-en-grain-vendu-au-detail` | Prix du mil en grain au détail |
 | FR-071 | aucune | hors périmètre (hors_socle) | |
 | FR-072 | aucune | hors périmètre (hors_socle) | |
+| FR-073 | exacte | `muhgux.population-au-chomage` | Population au chômage |
 | WO-001 | exacte | `pvswjnd` | Population (RGPH-5) |
-| WO-002 | exacte | `dwibrlf` | Taux de chômage |
+| WO-002 | exacte | `muhgux.population-au-chomage` | Population au chômage |
 | WO-003 | exacte | `feujxob.riz-brise-ordinaire-au-detail` | Prix du riz brisé ordinaire au détail |
 | WO-004 | exacte | `asongtc` | Ménages selon la source d'éclairage |
 | WO-005 | exacte | `ervtjfc.taux-brut-de-scolarisation` | Taux brut de scolarisation |
