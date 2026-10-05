@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLangue } from "@/i18n/langue";
-import { Fleche, Micro } from "./icones";
+import { Fleche, Micro, Tourne } from "./icones";
 
 /** Champ de question (9.7) : 16 px minimum, libellé accessible, micro toujours présent. */
 export function ChampQuestion({
@@ -46,8 +46,14 @@ export function ChampQuestion({
           <Micro />
         </button>
       )}
-      <button type="submit" className="bouton-icone" aria-label={t("champ.envoyer")} disabled={!valide || enCours || desactive}>
-        <Fleche />
+      {/* Pendant la recherche, le bouton tourne là où l'on vient de cliquer (les étapes peuvent être plus bas) */}
+      <button
+        type="submit"
+        className={enCours ? "bouton-icone occupe" : "bouton-icone"}
+        aria-label={t(enCours ? "etat.recherche" : "champ.envoyer")}
+        disabled={!valide || enCours || desactive}
+      >
+        {enCours ? <Tourne /> : <Fleche />}
       </button>
     </form>
   );

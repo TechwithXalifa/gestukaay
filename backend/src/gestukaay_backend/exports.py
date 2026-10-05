@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from gestukaay_contracts.models import ReponseExacte, SeriesResponse
+from gestukaay_socle.zones import zones
 
 # Schéma imposé par EF-34, dans cet ordre
 COLONNES = [
@@ -40,7 +41,37 @@ def vers_csv(rep: ReponseExacte, virgule_decimale: bool = False) -> bytes:
             rep.note_perimetre or "",
             rep.url,
         ])
+    # Les autres zones du graphique (les 14 régions autour de Thiès…) : ce que la page montre
+    # dans « Voir les valeurs en tableau », le CSV le donne aussi.
+    for zone, code, valeur in _comparaisons(rep):
+        r0 = rep.resultats[0]
+        texte = repr(valeur) if valeur != int(valeur) else str(int(valeur))
+        w.writerow([
+            r0.indicateur.libelle, zone, code, r0.periode.valeur,
+            texte.replace(".", ",") if virgule_decimale else texte,
+            r0.unite,
+            "|".join(f"{k}={v}" for k, v in (r0.desagregation or {}).items()),
+            r0.source.libelle, r0.source.date_publication.isoformat(),
+            NOTE_COMPARAISON, rep.url,
+        ])
     return ("﻿" + sortie.getvalue()).encode("utf-8")
+
+
+NOTE_COMPARAISON = "Valeur de comparaison, affichée dans le graphique de la réponse."
+
+
+def _comparaisons(rep: ReponseExacte) -> list[tuple[str, str, float]]:
+    """Zones du graphique en barres absentes des résultats : même indicateur, même période, même
+    publication que la réponse (graphique de contexte ou de classement du moteur). Pas les années
+    intermédiaires d'une courbe : elles peuvent venir d'une autre enquête, donc d'une autre source."""
+    g = rep.graphique
+    if (g is None or g.type != "barres_horizontales" or not rep.resultats
+            or len({(r.indicateur.code, r.periode.valeur) for r in rep.resultats}) != 1):
+        return []
+    deja = {r.zone.libelle for r in rep.resultats}
+    niveau = rep.resultats[0].zone.niveau
+    codes = {z.libelle_fr: z.code for z in zones().values() if z.niveau == niveau}
+    return [(p.x, codes.get(p.x, ""), p.y) for s in g.series for p in s.points if p.x not in deja]
 
 
 def vers_csv_series(rep: SeriesResponse, url: str, virgule_decimale: bool = False) -> bytes:

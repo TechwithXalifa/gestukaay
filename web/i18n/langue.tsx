@@ -24,6 +24,7 @@ export function LangueProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    document.documentElement.dataset.langue = langue; // repris par le CSS de la bascule (layout.tsx)
     // lang n'est mis à « wo » que si l'interface est réellement en wolof
     document.documentElement.lang = langue === "wo" && Object.keys(wo).length > 0 ? "wo" : "fr";
   }, [langue]);
