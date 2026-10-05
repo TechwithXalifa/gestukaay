@@ -13,6 +13,7 @@ from gestukaay_engine.socle import Observation, Socle, SourceJeu
 client = TestClient(module_app.app)
 JETON = "secret-de-test"
 H = {"Authorization": f"Bearer {JETON}"}
+N = len(jeu_de_test.questions())  # taille du jeu de test : elle évolue (104 depuis la 0024)
 
 
 def _socle() -> Socle:
@@ -43,7 +44,7 @@ def test_ferme_sans_jeton(monkeypatch):
 
 def test_faux_moteur_pas_de_benchmark(admin):
     r = client.get("/admin/jeu-de-test", headers=H).json()
-    assert r["disponible"] is False and len(r["questions"]) == 103
+    assert r["disponible"] is False and len(r["questions"]) == N
     assert set(r["questions"][0]) == {"id", "question", "type", "langue", "issue_attendue"}
     assert client.post("/admin/jeu-de-test/executions", json={"mode": "regles"}, headers=H).status_code == 503
 
@@ -57,10 +58,10 @@ def test_lancer_garder_et_relire(reel):
     assert liste["disponible"] is True
     execution = next(e for e in liste["executions"] if e["id"] == eid)
     assert execution["statut"] == "terminee" and execution["mode"] == "regles"
-    assert execution["resume"]["nb_total"] == 103 and execution["resume"]["nb_violations_invariant"] == 0
+    assert execution["resume"]["nb_total"] == N and execution["resume"]["nb_violations_invariant"] == 0
     detail = client.get(f"/admin/jeu-de-test/executions/{eid}", headers=H).json()
     evaluations = detail["resultat"]["evaluations"]
-    assert len(evaluations) == 103 and {"question_id", "issue_obtenue", "reponse_correcte"} <= set(evaluations[0])
+    assert len(evaluations) == N and {"question_id", "issue_obtenue", "reponse_correcte"} <= set(evaluations[0])
     assert client.get("/admin/jeu-de-test/executions/inconnue", headers=H).status_code == 404
 
 
