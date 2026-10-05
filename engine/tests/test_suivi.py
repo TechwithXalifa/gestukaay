@@ -89,3 +89,12 @@ def test_moteur_reel_suivi_bout_en_bout():
     r = MOTEUR.repondre(AskRequest(question="Et pour Dakar ?"), [avant.requete]).reponse
     assert r.issue == "exacte" and [(x.zone.code, x.periode.valeur, x.valeur) for x in r.resultats] == \
         [("SN-DK", "2023", 4004426)]
+
+
+@pytest.mark.parametrize("question", ["Kaolack nak?", "Kaolack aussi?", "Kaolack tamit?", "Et pour Kaolack?",
+                                      "Ak Kaolack?", "Kaolack nak!"])
+def test_marqueur_de_suivi_avec_ponctuation_collee(question):
+    """Relecture de SAN (#123) : « Kaolack nak? », tapé ou sorti de la transcription, est un suivi."""
+    assert _suivi(question)
+    r = REGLES.comprendre(question, [req("pvswjnd", ["SN-TH"], "2023")]).requete
+    assert (r.indicateur, r.zones, r.periode.valeur) == ("pvswjnd", ["SN-KL"], "2023")

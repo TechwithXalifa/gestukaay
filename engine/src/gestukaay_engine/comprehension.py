@@ -35,6 +35,7 @@ from .candidats import (
     index,
     lieux_inconnus,
     periodes_citees,
+    texte_normalise,
     zones_citees,
 )
 from .llm import Appel, ClientLLM, EchecLLM
@@ -153,7 +154,7 @@ _SUIVI_PARTOUT = {"aussi", "nak", "tamit"}  # « Kaolack aussi ? », « Kaolack 
 
 def _suivi(question: str) -> bool:
     """Une question courte qui prolonge la précédente."""
-    m = normaliser(question).split()
+    m = texte_normalise(question).split()  # « Kaolack nak? » : ponctuation collée détachée
     return len(m) <= 5 and (m[:1] and m[0] in _SUIVI_EN_TETE or bool(_SUIVI_PARTOUT & set(m))
                             or "meme chose" in " ".join(m))
 
