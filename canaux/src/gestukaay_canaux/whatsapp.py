@@ -14,6 +14,7 @@ from gestukaay_backend.canaux import Entrant, Services
 from gestukaay_contracts.models import Choix
 
 from .conversation import Contenu, traiter
+from .media import telecharger
 from .textes import bouton_liste, texte
 
 VERSION = "v25.0"
@@ -88,10 +89,10 @@ class ClientGraph:
                                                   "sections": [{"title": "Choix", "rows": lignes}]}}})
 
     def media(self, contenu: Contenu) -> bytes:
-        """Note vocale : l'adresse du média, puis son contenu (en mémoire seulement)."""
+        """Note vocale : l'adresse du média, puis son contenu (en mémoire seulement, 2 Mo au plus)."""
         with self._http() as h:
             url = h.get(f"/{contenu.media}").raise_for_status().json()["url"]
-            return h.get(url).raise_for_status().content
+            return telecharger(h, url)
 
 
 class CanalWhatsApp:

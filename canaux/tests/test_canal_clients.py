@@ -6,7 +6,7 @@ from pathlib import Path
 
 import httpx
 import pytest
-from gestukaay_canaux import telegram, whatsapp
+from gestukaay_canaux import media, telegram, whatsapp
 from gestukaay_canaux.conversation import Contenu
 from gestukaay_contracts.models import AskResponse
 
@@ -84,6 +84,22 @@ def test_graph_telecharge_la_note_vocale_en_deux_temps(graph):
     assert [str(r.url) for r in requetes] == ["https://graph.facebook.com/v25.0/300000000000001",
                                                "https://lookaside.fbsbx.com/media/abc"]
     assert all(r.headers["Authorization"] == "Bearer jeton-meta" for r in requetes)
+
+
+@pytest.mark.parametrize("annoncee", [True, False])  # taille annoncée, ou cachée (lecture par morceaux)
+def test_graph_note_de_plus_de_2_mo_refusee(monkeypatch, annoncee):
+    monkeypatch.setenv("WHATSAPP_TOKEN", "jeton-meta")
+    monkeypatch.setenv("WHATSAPP_PHONE_NUMBER_ID", "1331556276698765")
+    gros = b"x" * (media.OCTETS_MAX + 1)
+
+    def gerer(r: httpx.Request):
+        if r.url.path.endswith("/300000000000001"):
+            return httpx.Response(200, json={"url": "https://lookaside.fbsbx.com/media/abc"})
+        if annoncee:
+            return httpx.Response(200, content=gros)
+        return httpx.Response(200, content=iter([gros[:1024 * 1024]] * 3))  # sans content-length
+    with pytest.raises(media.NoteTropGrosse):
+        whatsapp.ClientGraph(httpx.MockTransport(gerer)).media(Contenu("audio", media="300000000000001"))
 
 
 def test_telegram_erreur_sans_le_jeton_du_bot(monkeypatch):

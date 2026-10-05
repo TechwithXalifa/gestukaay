@@ -38,6 +38,7 @@ noms de lieux en wolof (seeju, maatam, kawlak), graphies (ceeb, poore, taux scol
    sur la page Confidentialité ; pendant les essais, seulement des voix dont le locuteur a accepté.
 4. **Après la transcription** : les nombres dits en lettres sont convertis en chiffres (« deux mille
    vingt quatre » -> 2024) avant d'aller au moteur ; « J'ai compris : … » est renvoyé (EF-15).
+   **Remplacé par la 0027 (point 4)** : pas de « J'ai compris » écrit pour une note vocale.
 5. **Écartés** : Whisper standard (traduit le wolof en phrases françaises inventées), dofbi/wolof-asr
    et whisper-small-wolof (boucles sur de vraies voix), Wolof-HuBERT-CTC (écrit les sons, licence
    AGPL-3.0), ADIA en principal (inventions, mots français mal transcrits).

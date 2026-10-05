@@ -2,6 +2,7 @@
 
   - premier message de la conversation : l'accueil d'abord ;
   - commande seule (« ndimbal », « exemples », « stop »…) : le texte fixe ;
+  - « non », « déet », « waxuma loolu deh »… : on a mal compris, on invite à reformuler (US-09) ;
   - choix « 1 », « benn », ou un toucher dans la liste : confirmer le choix de la dernière réponse
     approchée (EF-06) ; sans approchée en attente, « choix invalide » ;
   - note vocale : transcription si elle existe (#28), sinon « je ne sais pas encore écouter » ;
@@ -19,6 +20,7 @@ from gestukaay_contracts.models import Choix, ReponseApprochee
 from gestukaay_engine import NonDisponible
 
 from .format import Sortant, formater
+from .media import NoteTropGrosse
 from .textes import commande, texte
 
 
@@ -62,8 +64,10 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
             tr = services.transcrire(envoyeur.media(c), "ogg")
         except NonDisponible:
             return envoyeur.texte(dest, texte("vocal_pas_encore"))
-        if not tr.transcription.strip():
-            return envoyeur.texte(dest, texte("aide"))
+        except NoteTropGrosse:  # plus de 2 Mo : bien au-delà des 60 s permises
+            return envoyeur.texte(dest, texte("reformuler"))
+        if not tr.transcription.strip():  # rien d'audible ou de compris
+            return envoyeur.texte(dest, texte("reformuler"))
         rep = services.demander(tr.transcription, source="voix", transcription_brute=tr.transcription)
         return _envoyer(dest, formater(rep, envoyeur.gras), envoyeur)
     if c.type != "texte" or not c.texte.strip():
@@ -71,6 +75,8 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
     cmd = commande(c.texte)
     if cmd in ("1", "2", "3"):
         return _choisir(dest, cmd, services, envoyeur)
+    if cmd == "non":
+        return envoyeur.texte(dest, texte("reformuler"))
     if cmd:
         return envoyeur.texte(dest, texte(cmd))
     if len(c.texte.strip()) < 3:  # « ok », « ?? » : trop court pour une question (contrat : 3 caractères)
