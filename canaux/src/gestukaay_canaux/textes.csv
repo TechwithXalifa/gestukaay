@@ -1,0 +1,11 @@
+cle;fr;wo
+accueil;;Dalal ak jàmm ci Gëstukaay ! Bienvenue ! Posez votre question sur les statistiques officielles du Sénégal (wolof / français).\nBindal sa laaj / Exemple : « Ñaata nit ñoo dëkk Tiés ? »
+aide;Écrivez votre question. Pour choisir une proposition, répondez par son numéro. Mots utiles : « exemples », « langue », « stop ».;Bindal sa laaj. Ngir tànn ci li ñu la jox, tontul ak lim (numéro) bi. Baat yi am njariñ : « exemples », « langue », « stop ».
+exemples;Exemples : « Combien d'habitants à Thiès ? » · « Taux de chômage à Dakar en 2024 » · « Quelle région est la plus pauvre ? »;Royuwaay : « Ñaata nit ñoo dëkk Tiés ? » · « Ban diiwaan moo gëna ñàkk ? »
+langue;Je réponds en français pour l'instant. Les réponses en wolof arrivent bientôt.;Ci nasaraan (français) lay tontu fi mu nekk. Tontu yi ci wolof ñu ngi ñëw ci kanam tuuti.
+stop;C'est noté. Écrivez-moi quand vous voulez reprendre.;Jàpp naa ko. Bind ma su la neexee weyal (reprendre).
+vocal_pas_encore;Je ne sais pas encore écouter les notes vocales : écrivez votre question.;Mënuma déglu audios yi ba leegi : bindal sa laaj ci mbind.
+choisir;Répondez par le numéro de votre choix.;Tontul ak lim (numéro) bi nga tànn.
+choix_invalide;Je n'ai pas compris votre choix : répondez 1, 2 ou 3.;Dégguma li nga tànn : tontul ak 1, 2 walla 3.
+erreur;Un problème technique m'empêche de répondre. Réessayez dans un instant.;Jafe-jafey xarala (technique) moo tax mënuma tontu leegi. Jëmaatal ci kanam tuuti.
+bouton_liste;Choisir;Tànnal

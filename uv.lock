@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 members = [
     "gestukaay",
     "gestukaay-backend",
+    "gestukaay-canaux",
     "gestukaay-contracts",
     "gestukaay-engine",
     "gestukaay-socle",
@@ -172,6 +173,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "gestukaay-backend" },
+    { name = "gestukaay-canaux" },
     { name = "gestukaay-contracts" },
     { name = "gestukaay-engine" },
     { name = "gestukaay-socle" },
@@ -187,6 +189,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "gestukaay-backend", editable = "backend" },
+    { name = "gestukaay-canaux", editable = "canaux" },
     { name = "gestukaay-contracts", editable = "contracts" },
     { name = "gestukaay-engine", editable = "engine" },
     { name = "gestukaay-socle", editable = "socle" },
@@ -231,6 +234,25 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [{ name = "httpx", specifier = ">=0.27" }]
+
+[[package]]
+name = "gestukaay-canaux"
+version = "0.1.0"
+source = { editable = "canaux" }
+dependencies = [
+    { name = "gestukaay-backend" },
+    { name = "gestukaay-contracts" },
+    { name = "gestukaay-engine" },
+    { name = "httpx" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "gestukaay-backend", editable = "backend" },
+    { name = "gestukaay-contracts", editable = "contracts" },
+    { name = "gestukaay-engine", editable = "engine" },
+    { name = "httpx", specifier = ">=0.28.1" },
+]
 
 [[package]]
 name = "gestukaay-contracts"

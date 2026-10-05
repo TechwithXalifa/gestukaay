@@ -1,0 +1,98 @@
+"""Lecture des payloads réels (exemples d'Aziz) et appels à Meta / Telegram, simulés (httpx.MockTransport)."""
+
+import json
+import traceback
+from pathlib import Path
+
+import httpx
+import pytest
+from gestukaay_canaux import telegram, whatsapp
+from gestukaay_canaux.conversation import Contenu
+from gestukaay_contracts.models import AskResponse
+
+EXEMPLES = Path(__file__).parents[2] / "contracts" / "examples"
+JETON_TG = "123456:SECRET-DU-BOT"
+
+
+def payload(nom: str) -> dict:
+    return json.loads((EXEMPLES / nom).read_text(encoding="utf-8"))
+
+
+def test_lire_whatsapp():
+    [t] = whatsapp.lire(payload("whatsapp/texte.json"))
+    assert (t.message_id, t.expediteur, t.contenu.type, t.contenu.texte) == \
+        ("wamid.TEXTE0001", "221700000001", "texte", "Combien d'habitants à Thiès ?")
+    [a] = whatsapp.lire(payload("whatsapp/audio.json"))
+    assert (a.contenu.type, a.contenu.media) == ("audio", "300000000000001")
+    [c] = whatsapp.lire(payload("whatsapp/reponse_choix.json"))
+    assert (c.contenu.type, c.contenu.choix_id) == ("choix", "1")
+    assert whatsapp.lire(payload("whatsapp/statut.json")) == []
+
+
+def test_lire_telegram():
+    [t] = telegram.lire(payload("telegram/texte.json"))
+    assert (t.message_id, t.expediteur, t.contenu.type) == ("500000001", "600000001", "texte")
+    [v] = telegram.lire(payload("telegram/voix.json"))
+    assert (v.contenu.type, v.contenu.media) == ("audio", "AwACAgQAAxkBAAExemple")
+    rappel = {"update_id": 9, "callback_query": {"id": "cb1", "data": "choix-2",
+                                                 "message": {"chat": {"id": 600000001}}}}
+    [c] = telegram.lire(rappel)
+    assert (c.contenu.type, c.contenu.choix_id, c.contenu.accuse) == ("choix", "2", "cb1")
+
+
+@pytest.fixture
+def graph(monkeypatch):
+    monkeypatch.setenv("WHATSAPP_TOKEN", "jeton-meta")
+    monkeypatch.setenv("WHATSAPP_PHONE_NUMBER_ID", "1331556276698765")
+    requetes = []
+
+    def gerer(r: httpx.Request):
+        requetes.append(r)
+        if r.method == "GET" and r.url.path.endswith("/300000000000001"):
+            return httpx.Response(200, json={"url": "https://lookaside.fbsbx.com/media/abc"})
+        if r.method == "GET":
+            return httpx.Response(200, content=b"OggS-audio")
+        return httpx.Response(200, json={"messages": [{"id": "wamid.REPONSE"}]})
+    return whatsapp.ClientGraph(httpx.MockTransport(gerer)), requetes
+
+
+def test_graph_lu_et_en_train_d_ecrire_puis_texte(graph):
+    client, requetes = graph
+    client.accuser("221700000001", Contenu("texte", accuse="wamid.TEXTE0001"))
+    client.texte("221700000001", "Bonjour")
+    lu, envoi = (json.loads(r.content) for r in requetes)
+    assert requetes[0].url == "https://graph.facebook.com/v25.0/1331556276698765/messages"
+    assert requetes[0].headers["Authorization"] == "Bearer jeton-meta"
+    assert lu == {"messaging_product": "whatsapp", "status": "read", "message_id": "wamid.TEXTE0001",
+                  "typing_indicator": {"type": "text"}}
+    assert envoi["to"] == "221700000001" and envoi["text"] == {"preview_url": False, "body": "Bonjour"}
+
+
+def test_graph_liste_de_choix_dans_les_limites_de_meta(graph):
+    client, requetes = graph
+    r = AskResponse.model_validate_json((EXEMPLES / "approchee.json").read_text(encoding="utf-8"))
+    client.choix("221700000001", r.reponse.choix)
+    i = json.loads(requetes[0].content)["interactive"]
+    assert len(i["action"]["button"]) <= 20 and len(i["body"]["text"]) <= 1024
+    for ligne, c in zip(i["action"]["sections"][0]["rows"], r.reponse.choix, strict=True):
+        assert ligne["id"] == f"choix-{c.id}" and len(ligne["title"]) <= 24 and len(ligne["description"]) <= 72
+
+
+def test_graph_telecharge_la_note_vocale_en_deux_temps(graph):
+    client, requetes = graph
+    assert client.media(Contenu("audio", media="300000000000001")) == b"OggS-audio"
+    assert [str(r.url) for r in requetes] == ["https://graph.facebook.com/v25.0/300000000000001",
+                                               "https://lookaside.fbsbx.com/media/abc"]
+    assert all(r.headers["Authorization"] == "Bearer jeton-meta" for r in requetes)
+
+
+def test_telegram_erreur_sans_le_jeton_du_bot(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", JETON_TG)
+
+    def panne(r: httpx.Request):
+        raise httpx.ConnectError("échec", request=r)
+    client = telegram.ClientTelegram(httpx.MockTransport(panne))
+    with pytest.raises(telegram.ErreurTelegram) as e:
+        client.texte("600000001", "Bonjour")
+    trace = "".join(traceback.format_exception(e.value))  # ce que le backend journaliserait
+    assert JETON_TG not in trace and "sendMessage" in trace
