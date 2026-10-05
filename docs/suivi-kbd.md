@@ -13,10 +13,10 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | 2 · Moteur | 10 | 11 | Préparation |
 | 3 · Jeu de test et mesure | 3 | 4 | Préparation |
 | 4 · Wolof | 1 | 5 | Préparation |
-| 5 · Voix | 1 | 4 | Hackathon |
+| 5 · Voix | 2 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 3 | 6 | Préparation |
 | 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **30** | **47** | |
+| **Total** | **31** | **47** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -91,7 +91,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 ## 5 · Voix
 
 - [x] **5.1** Évaluer la transcription wolof et choisir ⚖️ — [#27](https://github.com/TechwithXalifa/gestukaay/issues/27) · échéance 06/10
-- [ ] **5.2** Transcription des vocaux (OGG/WebM ≤ 60 s) ⏳ — [#28](https://github.com/TechwithXalifa/gestukaay/issues/28) · échéance 07/10 · après 5.1
+- [x] **5.2** Transcription des vocaux (OGG/WebM ≤ 60 s) ⏳ — [#28](https://github.com/TechwithXalifa/gestukaay/issues/28) · échéance 07/10 · après 5.1
 - [ ] **5.3** Audio de réponse : lecture des nombres en wolof ⏳ — [#29](https://github.com/TechwithXalifa/gestukaay/issues/29) · échéance 08/10 · après 4.4
 - [ ] **5.4** Audio ≤ 60 Ko ⏳ — [#30](https://github.com/TechwithXalifa/gestukaay/issues/30) · échéance 08/10 · après 5.3
 

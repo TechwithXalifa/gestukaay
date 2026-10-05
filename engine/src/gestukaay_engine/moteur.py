@@ -14,8 +14,8 @@ nouvelle réponse approchée (pas de boucle).
 
 Langue : tant que la détection (#24) et les gabarits wolof (#25) manquent, la réponse est rédigée
 en français et déclarée « fr », même pour une question en wolof : pas de faux wolof (décision 0009).
-transcrire() n'est pas construit (#28) : NonDisponible, rendu en 503 par le backend, plutôt que le
-texte fixe du faux moteur. situer() : « Où je me situe » (#95, situer.py).
+transcrire() : service M-Kiriku, repli ADIA, nombres en chiffres (#28, transcription.py) ; si rien ne
+répond, NonDisponible (503 côté backend). situer() : « Où je me situe » (#95, situer.py).
 """
 
 from __future__ import annotations
@@ -49,6 +49,7 @@ from .refus import Refus, construire_reponse_aucune, est_projection, refuser
 from .resolution import Introuvable, Resolution, national, ordre_effectif, resoudre
 from .situer import situer as situer_menage
 from .socle import Socle, socle
+from .transcription import Transcripteur
 
 LANGUE = "fr"  # seule langue de rédaction tant que #24 et #25 ne sont pas faites
 URL_PROVISOIRE = "https://app.gestukaay.test/r/{id}"  # remplacée par le backend (adresse stable)
@@ -68,10 +69,12 @@ def _comprehension() -> Comprehension:
 
 
 class MoteurReel:
-    def __init__(self, socle_: Socle | None = None, comprehension: Comprehension | None = None):
+    def __init__(self, socle_: Socle | None = None, comprehension: Comprehension | None = None,
+                 transcripteur: Transcripteur | None = None):
         # Chargés une fois, au démarrage du backend (socle : environ 2 s, 190 Mo)
         self.socle = socle_ if socle_ is not None else socle()
         self.comprehension = comprehension if comprehension is not None else _comprehension()
+        self.transcripteur = transcripteur or Transcripteur()  # aucun appel réseau avant une note
 
     # ------------------------------------------------------------------
     # Protocol Moteur
@@ -97,7 +100,7 @@ class MoteurReel:
         return self._aucune(refuser(self.socle, Comprise(requete, [], "regles"), question, LANGUE), question)
 
     def transcrire(self, audio: bytes, format_audio: str, langue: str = "auto") -> TranscriptionResponse:
-        raise NonDisponible("transcription de la voix : pas encore disponible (#28)")
+        return self.transcripteur.transcrire(audio, format_audio, langue)
 
     def situer(self, req: SituateRequest) -> SituateResponse:
         return situer_menage(self.socle, req)

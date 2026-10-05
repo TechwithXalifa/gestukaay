@@ -97,9 +97,11 @@ def test_question_vocale_garde_la_transcription():
     assert r.transcription == "Combien d'habitants à Thiès ?"
 
 
-def test_voix_pas_encore_disponible():
+def test_voix_sans_service_ni_repli_non_disponible():
+    from gestukaay_engine.transcription import Transcripteur
+    m = MoteurReel(SOCLE, Comprehension(None), Transcripteur(env={}))
     with pytest.raises(NonDisponible):
-        MOTEUR.transcrire(b"\x00", "webm")
+        m.transcrire(b"\x00", "webm")
 
 
 def test_situer_sans_moyenne_publiee_pas_disponible():

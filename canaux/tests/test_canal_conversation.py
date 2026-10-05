@@ -79,7 +79,8 @@ def test_conversation_en_cours_pas_d_accueil():
 
 
 @pytest.mark.parametrize("message, cle", [("ndimbal", "aide"), ("stop", "stop"), ("Làkk", "langue"),
-                                          ("ok", "aide")])
+                                          ("ok", "aide"), ("déet", "reformuler"), ("Non", "reformuler"),
+                                          ("waxuma loolu deh", "reformuler"), ("laaju loolu deh", "reformuler")])
 def test_commandes_et_message_trop_court(message, cle):
     e, (s, appels) = Envoyeur(), services(derniere=rep("exacte_valeur"))
     traiter(entrant(type="texte", texte=message), s, e)

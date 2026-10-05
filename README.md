@@ -36,7 +36,9 @@ docker compose up --build   # site : http://localhost:3000 · API : http://local
 Pour le vrai moteur : `GESTUKAAY_MOTEUR=reel`, la chaîne LLM dans `.env` (`LLM_CHAINE`,
 `LLM_PRINCIPAL_CLE`… ; sans elle, compréhension par règles locales), et le socle extrait dans
 `../socle_gestukaay` (ou le chemin donné par `GESTUKAAY_SOCLE_EXTRAIT`). Il est monté en lecture seule
-dans l'API. La voix et « Où je me situe » ne sont pas encore construits dans le vrai moteur (décision 0019).
+dans l'API. Notes vocales : le service de transcription M-Kiriku tourne à part, sur une machine à carte graphique
+(`uv run transcription/serveur.py`, décisions 0026 et 0027) ; l'API l'appelle à `TRANSCRIPTION_URL`,
+avec ADIA en repli.
 
 Les réponses, le journal des requêtes et les retours sont gardés dans PostgreSQL (service `db`), donc
 les liens `/r/…` survivent à un redémarrage. Hors Docker, l'API utilise SQLite en mémoire, ou un
