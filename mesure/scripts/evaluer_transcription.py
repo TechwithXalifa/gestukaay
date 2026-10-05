@@ -160,12 +160,48 @@ def m_kiriku() -> Callable:
     return _pipeline("AIHubSN/M-Kiriku-ASR")
 
 
+COUT_ADIA_FCFA = [0.0]  # cumul des en-têtes X-Adia-Cost-Fcfa, affiché en fin de mesure
+
+
+def adia() -> Callable:
+    """ADIA ASR (Concree, API payante : 22 FCFA la minute ; https://adia.concree.com). Clé ADIA_API_KEY
+    dans .env, jamais affichée. L'audio part chez un tiers : seulement des voix dont le locuteur a
+    accepté l'envoi (--seulement). Envoi en WAV 16 kHz, recommandé par leur documentation."""
+    import io
+    import os
+
+    import httpx
+    import soundfile as sf
+
+    sys.path.insert(0, str(RACINE / "engine" / "scripts"))
+    from essai_llm import charger_env
+
+    charger_env(RACINE / ".env")
+    cle = os.environ.get("ADIA_API_KEY", "")
+    if not cle:
+        raise RuntimeError("ADIA_API_KEY absente de .env")
+    client = httpx.Client(base_url="https://adia.concree.com/api/v1", timeout=300,
+                          headers={"Authorization": f"Bearer {cle}"})
+
+    def transcrire(audio) -> str:
+        wav = io.BytesIO()
+        sf.write(wav, audio, TAUX, format="WAV", subtype="PCM_16")
+        r = client.post("/asr", files={"audio": ("note.wav", wav.getvalue(), "audio/wav")},
+                        data={"language": "wolof"})
+        r.raise_for_status()
+        COUT_ADIA_FCFA[0] += float(r.headers.get("X-Adia-Cost-Fcfa", 0) or 0)
+        return r.json().get("text", "")
+
+    return transcrire
+
+
 CANDIDATS: dict[str, Callable[[], Callable]] = {
     "whisper-small-wolof": whisper_small_wolof,
     "whosper-large": whosper_large,
     "whisper-turbo": whisper_turbo,
     "kiriku-wolof": kiriku_wolof,
     "m-kiriku": m_kiriku,
+    "adia": adia,
 }
 
 # --------------------------------------------------------------------------------------------
@@ -288,11 +324,14 @@ def main() -> int:
     p.add_argument("--llm", action="store_true", help="compréhension par la chaîne du .env (PAYANT)")
     p.add_argument("--oui", action="store_true", help="confirme la dépense LLM")
     p.add_argument("--rapport", type=Path, default=RAPPORT)
+    p.add_argument("--seulement", default="", help="voix à garder, ex. kbd (envoi à un tiers : accord du locuteur)")
     args = p.parse_args()
 
     with JEU.open(encoding="utf-8-sig", newline="") as f:
         questions = {q["id"]: q for q in csv.DictReader(f, delimiter=";")}
     notes = corpus(args.voix, questions)
+    if args.seulement:
+        notes = [n for n in notes if n.voix in args.seulement.split(",")]
     if not notes:
         print(f"Aucune note vocale dans {args.voix} (voir LISEZMOI.md).", file=sys.stderr)
         return 1
@@ -326,6 +365,8 @@ def main() -> int:
         print(f"{nom} : {len(notes)} notes…", file=sys.stderr)
         resultats.append(evaluer(nom, notes, juste))
     args.rapport.write_text(rapport(resultats, notes, plafond, mode), encoding="utf-8")
+    if "adia" in noms:
+        print(f"Coût ADIA : {COUT_ADIA_FCFA[0]:.2f} FCFA")
     print(f"Rapport : {args.rapport}")
     return 0
 
