@@ -483,6 +483,8 @@ class RapportBenchmark:
     evaluations: list[ResultatEvaluation]
     violations: list[ViolationInvariant]
     defauts_moteur: list[str]
+    # Attendus changés ou questions ajoutées après une mesure (jeu_de_test/changements.csv)
+    changements_jeu: list[dict[str, str]] = field(default_factory=list)
 
 
 def executer_benchmark(
@@ -490,7 +492,7 @@ def executer_benchmark(
     moteur: MoteurReel,
     mode: str,
 ) -> RapportBenchmark:
-    """Exécute les 103 questions sur le moteur réel et calcule toutes les métriques."""
+    """Exécute les questions du jeu de test sur le moteur réel et calcule toutes les métriques."""
     s = moteur.socle
     obs_par_id = {o.id: o for obs in s._par_indicateur.values() for o in obs}
     inds = indicateurs()
@@ -663,6 +665,14 @@ def executer_benchmark(
 # ---------------------------------------------------------------------------
 
 
+def charger_changements(chemin: Path) -> list[dict[str, str]]:
+    """Changements du jeu de test (attendu modifié, question ajoutée), à montrer dans le rapport."""
+    if not chemin.exists():
+        return []
+    with chemin.open(encoding="utf-8-sig", newline="") as f:
+        return list(csv.DictReader(f, delimiter=";"))
+
+
 def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
     """Produit le rapport Markdown unique de benchmark selon le cahier des charges."""
     statut_exactitude = (
@@ -682,7 +692,6 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
         else ("NON CONFORME" if rapport.mode.startswith("llm") else "indicatif")
     )
 
-    cible_latence = "évaluée (< 3 s)" if rapport.mode.startswith("llm") else "indicatif"
     latence_s = rapport.latence_mediane_ms / 1000
     statut_latence = (
         "CONFORME"
@@ -709,7 +718,7 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
         f"**{rapport.nb_violations_invariant} violation(s)** | **{statut_invariant}** |"
     )
     ligne_lat = (
-        f"| **Latence médiane** ({cible_latence}) | < 3,0 s | "
+        "| **Latence médiane** | < 3,0 s | "
         f"**{rapport.latence_mediane_ms:.1f} ms** (P95: {rapport.latence_p95_ms:.1f} ms) | "
         f"{statut_latence} |"
     )
@@ -798,11 +807,13 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
         for v in rapport.violations:
             lignes.append(f"| {v.question_id} | {v.volet} | {v.message} |")
 
+    n = 4  # sections suivantes : numérotées sans trou, selon ce qui est présent
     if rapport.defauts_moteur:
+        n += 1
         lignes.extend(
             [
                 "",
-                "## 5. Défauts constatés du moteur (signalements sans modification de engine/src)",
+                f"## {n}. Défauts constatés du moteur (signalements sans modification de engine/src)",
                 "",
             ]
         )
@@ -810,11 +821,29 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
             lignes.append(f"- {defaut}")
 
     # Section des échecs détaillés
+    if rapport.changements_jeu:
+        n += 1
+        lignes.extend(
+            [
+                "",
+                f"## {n}. Changements du jeu de test",
+                "",
+                ("Attendus modifiés ou questions ajoutées depuis la première mesure, avec leur raison"
+                 " (`mesure/jeu_de_test/changements.csv`)."),
+                "",
+                "| Id | Date | Décision | Changement | Raison |",
+                "|---|---|---|---|---|",
+            ]
+        )
+        for c in rapport.changements_jeu:
+            lignes.append(f"| {c['id']} | {c['date']} | {c['decision']} | {c['changement']} | {c['raison']} |")
+
     echecs = [ev for ev in rapport.evaluations if not ev.reponse_correcte]
+    n += 1
     lignes.extend(
         [
             "",
-            f"## 6. Détail des écarts ({len(echecs)} questions non conformes)",
+            f"## {n}. Détail des écarts ({len(echecs)} questions non conformes)",
             "",
             "| Id | Type | Langue | Attendu | Obtenu | Détail |",
             "|---|---|---|---|---|---|",
@@ -875,7 +904,7 @@ def main() -> int:
     if mode_llm:
         print("=" * 60)
         print("ATTENTION : Mode LLM sélectionné (appels d'API payants).")
-        print(f"Coût estimé pour 103 questions : ~{COUT_ESTIME_LLM:.2f} $ USD (Gemini 2.5 Flash).")
+        print(f"Coût estimé pour 104 questions : ~{COUT_ESTIME_LLM:.2f} $ USD (Gemini 2.5 Flash).")
         print("Aucun appel payant ne doit être lancé sans l'accord préalable de Khalifa.")
         print("=" * 60)
         if not args.oui:
@@ -916,6 +945,7 @@ def main() -> int:
     print(f"Lancement du benchmark sur {len(questions)} questions (mode: {mode_nom})...")
 
     rapport = executer_benchmark(questions, moteur, mode_nom)
+    rapport.changements_jeu = charger_changements(args.questions.parent / "changements.csv")
 
     # Sauvegarde du rapport Markdown
     RAPPORT_DIR.mkdir(parents=True, exist_ok=True)
