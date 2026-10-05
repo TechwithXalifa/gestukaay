@@ -145,3 +145,20 @@ Latences mesurées sur la machine du test (Mac M3 Pro), pas sur le serveur de d�
 | WO-031_aziz.ogg | niaata nit ñooy lakk sereer fatik | ñaata nit ñooy làkk séeréer fatick? | 66.7 % | juste |
 | WO-031_kbd.opus | niaata nit ñooy lakk sereer fatik | ñaata nit ñooy làkk séeréer fatick | 66.7 % | juste |
 
+
+## Compléments (5 octobre 2026)
+
+Mesures complémentaires, compréhension par règles sauf mention ; détail dans l'historique de
+`mesure/scripts/evaluer_transcription.py`.
+
+| Banc d'essai | M-Kiriku | Autres |
+|---|---|---|
+| 62 notes WhatsApp (KBD, Aziz), règles | **32/62** | Kiriku-Wolof 31, Whosper 21, Wolof-HuBERT-CTC 15, whisper-small-wolof 11, Whisper standard 10, dofbi/wolof-asr 8 |
+| 31 notes de KBD (API payante ADIA, accord du locuteur) | **15/31**, WER 36 % | ADIA 13/31, WER 67 %, 0,9 s réseau compris, 49 FCFA |
+| WaxalNLP (Google, réaligné par GalsenAI), 27 extraits bien alignés, 6 locuteurs inconnus des modèles | **WER moyen 47 %**, meilleur sur 21/27 | Kiriku-Wolof 56 %, Wolof-HuBERT-CTC 53 %, Whosper 63 %, dofbi 187 % ; 13 extraits écartés (texte encore décalé de l'audio) |
+| 5 questions en français (voix de KBD) | **3/5** | Kiriku-Wolof 3/5 ; échecs : « Thiès » mal entendu, « deux mille vingt quatre » en lettres |
+| Latence, processeur seul (Mac M3, 4 ou 8 cœurs) | **30 s** par note | inutilisable sans carte graphique |
+
+Whisper standard traduit le wolof en phrases françaises inventées ; dofbi et whisper-small-wolof
+partent en boucle sur de vraies voix. Les WER annoncés par les fiches des modèles (12 % à 24 %) ont
+été mesurés sur leur propre type d'audio : sur des notes WhatsApp, l'écart est grand.
