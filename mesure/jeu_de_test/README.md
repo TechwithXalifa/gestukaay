@@ -1,6 +1,6 @@
 # Jeu de test de référence (issue #18)
 
-103 questions qui servent d'examen au moteur (cahier 12.1). Le benchmark (#19) les pose au
+104 questions qui servent d'examen au moteur (cahier 12.1). Le benchmark (#19) les pose au
 moteur et compare ses réponses aux réponses attendues. Elles servent aussi à choisir les
 indicateurs du socle (#3).
 
@@ -18,7 +18,12 @@ indicateurs du socle (#3).
 Le cahier (12.1) prévoit 100 questions, 70 FR / 30 WO. En #3, trois refus se sont révélés couverts
 par le socle (voitures à Kolda et à Ziguinchor : `qbvttzc` ; criminalité : `iocwzud`, national) et sont
 devenus des approchées ; trois refus ont été ajoutés pour garder **20 refus** (avec 17, une seule erreur
-ferait passer sous la cible de 95 %). D'où 103 questions, 72 FR / 31 WO.
+ferait passer sous la cible de 95 %). D'où 103 questions, 72 FR / 31 WO ; puis 104 avec FR-073
+(décision 0024).
+
+**Tout changement d'attendu ou ajout de question** après une mesure est consigné dans
+`changements.csv` (id, date, décision, changement, raison) : le rapport du benchmark le recopie,
+pour qu'on ne puisse pas lire un examen ajusté au moteur.
 
 Origine des questions : `cahier`, `persona` et `besoin` (besoins réels, posés même si la donnée
 peut manquer) ; `socle` (pour couvrir les domaines) ; `piège` (problèmes connus des données).

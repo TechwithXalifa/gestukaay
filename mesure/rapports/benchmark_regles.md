@@ -1,6 +1,6 @@
 # Rapport de Benchmark — Gëstukaay (regles)
 
-- **Date** : 2026-10-04 19:57:50 UTC
+- **Date** : 2026-10-05 15:39:36 UTC
 - **Mode** : `regles`
 - **Jeu de test** : 104 questions officielles
 
@@ -12,7 +12,7 @@
 | **Exactitude** (sourcée, sur 84 questions) | ≥ 85 % | **81.0 %** (68/84) | indicatif |
 | **Refus pertinent** (sur 20 refus) | ≥ 95 % | **80.0 %** (16/20) | indicatif |
 | **Invariant « zéro chiffre inventé »** | Tolérance 0 | **0 violation(s)** | **CONFORME** |
-| **Latence médiane** (indicatif) | < 3,0 s | **2.1 ms** (P95: 6.7 ms) | indicatif |
+| **Latence médiane** | < 3,0 s | **2.0 ms** (P95: 6.7 ms) | indicatif |
 
 ## 2. Sous-scores par type de question
 
@@ -40,6 +40,15 @@
 - Volet (b) : 100 % des points de graphiques correspondent à des observations du socle.
 - Volet (c) : tous les chiffres figurant dans les explications appartiennent à la liste blanche des données officielles affichées.
 - Volet (d) : aucune valeur numérique statistique n'apparaît dans une réponse approchée ou un refus.
+
+## 5. Changements du jeu de test
+
+Attendus modifiés ou questions ajoutées depuis la première mesure, avec leur raison (`mesure/jeu_de_test/changements.csv`).
+
+| Id | Date | Décision | Changement | Raison |
+|---|---|---|---|---|
+| WO-002 | 2026-10-04 | 0024 | Attendu changé : le taux de chômage annuel (20,4 %, 2025) devient le nombre de personnes au chômage (T1 2026), suivi du taux publié au même trimestre. | KBD, locuteur natif : « Ñi amul ligéey ci Senegaal ? » demande combien de personnes, pas un taux. Changé après la passe LLM du 4/10, où le moteur servait déjà le nombre et la question comptait comme chiffre faux : signalé ici pour qu'on ne lise pas un examen ajusté au moteur. |
+| FR-073 | 2026-10-04 | 0024 | Question ajoutée : « Combien de personnes sont au chômage au Sénégal ? » (nombre puis taux). | La même demande en français, pour mesurer les deux langues. Le jeu passe de 103 à 104 questions. |
 
 ## 6. Détail des écarts (20 questions non conformes)
 

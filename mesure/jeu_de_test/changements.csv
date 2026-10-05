@@ -1,0 +1,3 @@
+id;date;decision;changement;raison
+WO-002;2026-10-04;0024;Attendu changé : le taux de chômage annuel (20,4 %, 2025) devient le nombre de personnes au chômage (T1 2026), suivi du taux publié au même trimestre.;KBD, locuteur natif : « Ñi amul ligéey ci Senegaal ? » demande combien de personnes, pas un taux. Changé après la passe LLM du 4/10, où le moteur servait déjà le nombre et la question comptait comme chiffre faux : signalé ici pour qu'on ne lise pas un examen ajusté au moteur.
+FR-073;2026-10-04;0024;Question ajoutée : « Combien de personnes sont au chômage au Sénégal ? » (nombre puis taux).;La même demande en français, pour mesurer les deux langues. Le jeu passe de 103 à 104 questions.

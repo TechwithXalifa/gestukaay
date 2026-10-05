@@ -40,7 +40,11 @@ RACINE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RACINE / "mesure" / "scripts"))
 
 from benchmark import (
+    JEU_PAR_DEFAUT,
+    RapportBenchmark,
+    charger_changements,
     extraire_nombres,
+    generer_rapport_markdown,
     normaliser_espace,
     verifier_exactitude_reponse,
     verifier_invariant_reponse,
@@ -539,3 +543,30 @@ def test_extraire_nombres_et_normalisation():
     assert "25,7" in nums
     assert "4 004 426" in nums
     assert normaliser_espace("1 000 FCFA") == "1 000 FCFA"
+
+
+def _rapport(**kw) -> RapportBenchmark:
+    base = {"mode": "regles", "date_iso": "2026-10-05", "nb_total": 1, "nb_reponses_attendues": 1,
+            "nb_exactitude_succes": 1, "score_exactitude": 1.0, "nb_refus_attendus": 0, "nb_refus_succes": 0,
+            "score_refus": 1.0, "nb_chiffres_faux_affiches": 0, "nb_violations_invariant": 0,
+            "latence_mediane_ms": 2.0, "latence_p95_ms": 3.0, "sous_scores_type": {}, "sous_scores_langue": {},
+            "evaluations": [], "violations": [], "defauts_moteur": []}
+    return RapportBenchmark(**{**base, **kw})
+
+
+@pytest.mark.parametrize("defauts", [[], ["un défaut"]])
+def test_rapport_sections_numerotees_sans_trou(defauts):
+    """Remarque d'Aziz (#115) : le rapport sautait de la section 4 à la section 6."""
+    md = generer_rapport_markdown(_rapport(defauts_moteur=defauts,
+                                           changements_jeu=charger_changements(JEU_PAR_DEFAUT.parent / "changements.csv")))
+    numeros = [int(ligne[3:].split(".")[0]) for ligne in md.splitlines() if ligne.startswith("## ")]
+    assert numeros == list(range(1, len(numeros) + 1))
+    assert "| **Latence médiane** | < 3,0 s |" in md
+
+
+def test_rapport_signale_l_attendu_change_de_wo_002():
+    """Remarque d'Aziz (#118) : un attendu changé après une mesure est dit dans le rapport."""
+    changements = charger_changements(JEU_PAR_DEFAUT.parent / "changements.csv")
+    md = generer_rapport_markdown(_rapport(changements_jeu=changements))
+    assert {c["id"] for c in changements} >= {"WO-002", "FR-073"}
+    assert "Changements du jeu de test" in md and "| WO-002 | 2026-10-04 | 0024 |" in md
