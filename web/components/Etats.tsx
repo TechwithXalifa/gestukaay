@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useLangue } from "@/i18n/langue";
 import { ErreurApi } from "@/lib/api";
 import { Coche, Tourne } from "./icones";
@@ -7,8 +8,14 @@ import { Coche, Tourne } from "./icones";
 /** Chargement : étapes visibles et squelettes, jamais un spinner seul (7.3). */
 export function Chargement({ question }: { question?: string }) {
   const { t } = useLangue();
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    // Sur l'accueil, les étapes s'affichent sous les exemples : on les amène à l'écran si besoin
+    const doux = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    ref.current?.scrollIntoView?.({ block: "nearest", behavior: doux ? "smooth" : "auto" });
+  }, []);
   return (
-    <section className="carte" aria-busy="true" aria-live="polite">
+    <section ref={ref} className="carte" aria-busy="true" aria-live="polite">
       <ol className="etapes">
         <li className="fait"><Coche />{t("etat.recue")}{question ? ` : « ${question} »` : ""}</li>
         <li className="encours"><Tourne />{t("etat.recherche")}</li>

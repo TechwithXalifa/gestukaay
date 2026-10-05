@@ -4,7 +4,7 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 from gestukaay_backend.app import app
-from gestukaay_backend.exports import COLONNES
+from gestukaay_backend.exports import COLONNES, NOTE_COMPARAISON
 
 client = TestClient(app)
 
@@ -22,6 +22,41 @@ def test_csv_au_schema_ef34():
     assert lignes[1][:5] == ["Population totale", "Dakar", "SN-DK", "2023", "4004426"]
     assert lignes[1][7].startswith("ANSD · RGPH-5") and "/r/" in lignes[1][10]
     assert len(lignes) == 3
+
+
+def test_csv_reprend_les_regions_du_graphique():
+    """Retour de recette : la page montre les 14 régions autour de Thiès, le CSV n'en donnait qu'une."""
+    r = client.get(f"/v1/answers/{_id('Combien d’habitants à Thiès ?')}/export.csv")
+    lignes = list(csv.reader(io.StringIO(r.content.decode("utf-8-sig")), delimiter=";"))[1:]
+    assert len(lignes) == 14 and lignes[0][:3] == ["Population totale", "Thiès", "SN-TH"]
+    assert lignes[0][9] != NOTE_COMPARAISON  # la valeur demandée garde sa note de périmètre
+    autres = lignes[1:]
+    assert {ligne[2] for ligne in autres} >= {"SN-DK", "SN-KE", "SN-SE"} and all(ligne[2] for ligne in autres)
+    assert all(ligne[9] == NOTE_COMPARAISON and ligne[3] == "2023" and ligne[7] == lignes[0][7] for ligne in autres)
+
+
+def test_csv_academie_sans_doublon_et_meme_ecriture():
+    """Relecture KBD (#129), FR-003 : la réponse dit « académie de Kolda », le graphique « Kolda ».
+    La zone demandée ne revient pas en comparaison, les autres s'écrivent « académie de … »."""
+    from gestukaay_backend.exports import _comparaisons
+    from gestukaay_contracts.models import (
+        Graphique,
+        PointGraphique,
+        RefZone,
+        ReponseExacte,
+        SerieGraphique,
+    )
+
+    rep = ReponseExacte.model_validate(client.get(f"/v1/answers/{_id('Combien d’habitants à Thiès ?')}").json()["reponse"])
+    r0 = rep.resultats[0].model_copy(update={"zone": RefZone(code="SN-IA-KOLDA", libelle="académie de Kolda",
+                                                                  niveau="academie")})
+    points = [PointGraphique(x=x, y=y, mise_en_evidence=x == "Kolda") for x, y in
+              (("Kédougou", 118.4), ("Kolda", 93.8), ("Ziguinchor", 118.0))]
+    rep = rep.model_copy(update={"resultats": [r0], "graphique": Graphique(
+        type="barres_horizontales", titre="Taux brut de scolarisation par académie en 2025", unite="%",
+        series=[SerieGraphique(nom="Taux brut de scolarisation", points=points)], pied="MEN")})
+    assert _comparaisons(rep) == [("académie de Kédougou", "SN-IA-KEDOUGOU", 118.4),
+                                  ("académie de Ziguinchor", "SN-IA-ZIGUINCHOR", 118.0)]
 
 
 def test_csv_virgule_decimale_en_option():

@@ -15,6 +15,9 @@ const poppins = Poppins({
 });
 const lora = Lora({ subsets: ["latin", "latin-ext"], weight: ["400"], display: "swap", variable: "--font-serif" });
 
+const LANGUE_AVANT_REACT =
+  "try{if(localStorage.getItem('gestukaay.langue')==='wo')document.documentElement.dataset.langue='wo'}catch(e){}";
+
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#1D4448" };
 
 export const metadata: Metadata = {
@@ -24,7 +27,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    // data-langue est posé avant le premier affichage (script ci-dessous) : un rechargement en WO ne
+    // montre pas FR le temps que React démarre, ce qui peut durer quelques secondes en 3G.
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: LANGUE_AVANT_REACT }} />
+      </head>
       <body className={`${poppins.variable} ${lora.variable}`}>
         <LangueProvider>{children}</LangueProvider>
         <EnregistrerSW />

@@ -12,6 +12,22 @@ test("accueil : question, exemples et domaines", async ({ page }) => {
   await accessible(page, "accueil");
 });
 
+test("pendant la recherche : le bouton tourne et les étapes viennent à l'écran", async ({ page }) => {
+  // Retour de recette : rien ne bougeait là où l'on venait de cliquer, les étapes étaient plus bas
+  await page.route("**/v1/ask", async (route) => {
+    await new Promise((r) => setTimeout(r, 1500));
+    await route.continue();
+  });
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Votre question" }).fill("Combien d'habitants à Thiès ?");
+  await page.getByRole("button", { name: "Envoyer la question" }).click();
+  const bouton = page.getByRole("button", { name: "Recherche du chiffre officiel…" });
+  await expect(bouton).toBeDisabled();
+  await expect(bouton.locator(".spin")).toBeVisible();
+  await expect(page.locator("[aria-busy=true]")).toBeInViewport();
+  await expect(page).toHaveURL(/\/r\//);
+});
+
 test("réponse exacte : chiffre, source, graphique et tableau", async ({ page }) => {
   await poser(page, "Combien d'habitants à Thiès ?");
   await expect(page.getByText("Correspondance exacte")).toBeVisible();

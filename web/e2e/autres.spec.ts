@@ -26,6 +26,22 @@ test("bascule FR/WO : l'état est annoncé et le bandeau prévient", async ({ pa
   await accessible(page, "accueil en wolof");
 });
 
+test("bascule FR/WO : le choix WO tient au rechargement, dès le premier affichage", async ({ page }) => {
+  // Retour de recette : au rechargement, la page montrait FR le temps que React démarre
+  await page.goto("/");
+  await page.getByRole("button", { name: "WO", exact: true }).click();
+  await page.route("**/_next/static/chunks/**", async (route) => {
+    await new Promise((r) => setTimeout(r, 1500)); // React lent à démarrer, comme en 3G
+    await route.continue();
+  });
+  await page.reload({ waitUntil: "commit" });
+  await expect(page.locator("html")).toHaveAttribute("data-langue", "wo");
+  const wo = page.getByRole("button", { name: "WO", exact: true });
+  const fond = (b: typeof wo) => b.evaluate((e) => getComputedStyle(e).backgroundColor);
+  expect(await fond(wo)).not.toBe(await fond(page.getByRole("button", { name: "FR", exact: true })));
+  await expect(wo).toHaveAttribute("aria-pressed", "true"); // puis React confirme
+});
+
 test("journal des requêtes : jeton, filtres et détail", async ({ page }) => {
   await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
   await page.goto("/admin/journal");
