@@ -68,10 +68,16 @@ def _comparaisons(rep: ReponseExacte) -> list[tuple[str, str, float]]:
     if (g is None or g.type != "barres_horizontales" or not rep.resultats
             or len({(r.indicateur.code, r.periode.valeur) for r in rep.resultats}) != 1):
         return []
-    deja = {r.zone.libelle for r in rep.resultats}
-    niveau = rep.resultats[0].zone.niveau
-    codes = {z.libelle_fr: z.code for z in zones().values() if z.niveau == niveau}
-    return [(p.x, codes.get(p.x, ""), p.y) for s in g.series for p in s.points if p.x not in deja]
+    # Par code : la réponse dit « académie de Kolda », le graphique « Kolda » (relecture KBD, #129)
+    deja = {r.zone.code for r in rep.resultats}
+    z0 = rep.resultats[0].zone
+    ref = zones()
+    codes = {z.libelle_fr: z.code for z in ref.values() if z.niveau == z0.niveau}
+    # Même façon d'écrire que la réponse : « académie de Kolda » -> « académie de Kédougou »
+    court = ref[z0.code].libelle_fr if z0.code in ref else z0.libelle
+    prefixe = z0.libelle[: -len(court)] if court and z0.libelle.endswith(court) else ""
+    return [(prefixe + p.x, codes.get(p.x, ""), p.y) for s in g.series for p in s.points
+            if codes.get(p.x, p.x) not in deja]
 
 
 def vers_csv_series(rep: SeriesResponse, url: str, virgule_decimale: bool = False) -> bytes:
