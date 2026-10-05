@@ -1,21 +1,21 @@
 code;niveau;parent;libelle_fr;libelle_wo;statut_wo;variantes;couvre
 SN;pays;;Sénégal;Senegaal;a_valider;senegal|senegaal|national|ensemble du pays;
 SN-DK;region;SN;Dakar;Ndakaaru;valide;ndakarou|dakaar;
-SN-DB;region;SN;Diourbel;Jurbel;valide;diurbel|dioubel|Njaaréem;
+SN-DB;region;SN;Diourbel;Jurbel;valide;diurbel|dioubel|njaaréem;
 SN-FK;region;SN;Fatick;Fatik;valide;;
 SN-KA;region;SN;Kaffrine;Kafrin;valide;kafrine;
 SN-KL;region;SN;Kaolack;Kawlax;valide;kaolak|kawlak|kaolag;
 SN-KE;region;SN;Kédougou;Kédugu;valide;;
 SN-KD;region;SN;Kolda;Kolda;valide;;
-SN-LG;region;SN;Louga;Luga;valide;Njaambuur;
+SN-LG;region;SN;Louga;Luga;valide;njaambuur;
 SN-MT;region;SN;Matam;Matam;valide;maatam;
 SN-SL;region;SN;Saint-Louis;Ndar;valide;st louis;
 SN-SE;region;SN;Sédhiou;Seeju;valide;sedhiu|seajo|seju;
-SN-TC;region;SN;Tambacounda;Tambakunda;valide;tamba|Tambakundaa;
+SN-TC;region;SN;Tambacounda;Tambakunda;valide;tamba|tambakundaa;
 SN-TH;region;SN;Thiès;Cees;valide;ties|tiés|kees;
 SN-ZG;region;SN;Ziguinchor;Sigicoor;valide;zighinchor;
 SN-DK-DAKAR;departement;SN-DK;Dakar;Ndakaaru;a_valider;;
-SN-DK-GUEDIAWAYE;departement;SN-DK;Guédiawaye;Géejawaay;valide;Gejawaay;
+SN-DK-GUEDIAWAYE;departement;SN-DK;Guédiawaye;Géejawaay;valide;gejawaay;
 SN-DK-KEUR-MASSAR;departement;SN-DK;Keur Massar;Kër Massar;a_valider;;
 SN-DK-PIKINE;departement;SN-DK;Pikine;Pikin;valide;;
 SN-DK-RUFISQUE;departement;SN-DK;Rufisque;Tëngéej;valide;tenguedj|teunguedj;
@@ -56,7 +56,7 @@ SN-TC-KOUMPENTOUM;departement;SN-TC;Koumpentoum;Koumpentoum;a_valider;koupentoum
 SN-TC-TAMBACOUNDA;departement;SN-TC;Tambacounda;Tambakundaa;a_valider;;
 SN-TH-MBOUR;departement;SN-TH;Mbour;Mbuur;valide;;
 SN-TH-THIES;departement;SN-TH;Thiès;Cees;a_valider;kees;
-SN-TH-TIVAOUANE;departement;SN-TH;Tivaouane;Tiwaawan;valide;tivaoune|Tiwaawon|tiwawan|Ciwaawan;
+SN-TH-TIVAOUANE;departement;SN-TH;Tivaouane;Tiwaawan;valide;tivaoune|tiwaawon|tiwawan|ciwaawan;
 SN-ZG-BIGNONA;departement;SN-ZG;Bignona;Bignona;a_valider;;
 SN-ZG-OUSSOUYE;departement;SN-ZG;Oussouye;Oussouye;a_valider;;
 SN-ZG-ZIGUINCHOR;departement;SN-ZG;Ziguinchor;Sigicoor;a_valider;;

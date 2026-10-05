@@ -144,8 +144,8 @@ def lieux_inconnus(question: str) -> list[str]:
             out.append(nom)
     # Lieux déclarés dans rattachements.csv, où qu'ils soient : « Ñaata nit ñoo dëkk Tuubaa ? » n'a pas de
     # préposition française, mais Touba ne doit jamais devenir le Sénégal.
-    t = f" {_texte(question)} "
-    deja = {_texte(o) for o in out}
+    t = f" {texte_normalise(question)} "
+    deja = {texte_normalise(o) for o in out}
     for terme in _lieux_rattaches():
         if f" {terme} " in t and terme not in deja and not any(terme in d for d in deja):
             out.append(" ".join(m if m in ("de", "du") else m.capitalize() for m in terme.split()))
@@ -158,7 +158,7 @@ def _lieux_rattaches() -> tuple[str, ...]:
     from gestukaay_socle.indicateurs import REFERENTIELS
 
     with (REFERENTIELS / "rattachements.csv").open(encoding="utf-8") as f:
-        return tuple(sorted({_texte(r["terme"]) for r in csv.DictReader(f, delimiter=";") if r["type"] == "lieu"},
+        return tuple(sorted({texte_normalise(r["terme"]) for r in csv.DictReader(f, delimiter=";") if r["type"] == "lieu"},
                             key=len, reverse=True))
 
 
