@@ -113,3 +113,12 @@ def test_regles_sans_reseau():
     assert comp.comprendre("Quelle est la région la plus peuplée ?").requete.intention == "classement"
     r = comp.comprendre("Population de Dakar et de Thiès en 2023").requete
     assert r.intention == "comparaison" and r.zones == ["SN-DK", "SN-TH"]
+
+
+def test_ponctuation_collee_au_nom_de_lieu():
+    """« Thiès? » (messagerie, transcription) : la zone est reconnue. Avant, le moteur répondait pour
+    le Sénégal entier, comme si aucune zone n'avait été citée."""
+    assert zones_citees("Combien d'habitants à Thiès?") == ["SN-TH"]
+    assert zones_citees("Population de Kaolack!") == ["SN-KL"]
+    assert zones_citees("Chômage à Dakar et Thiès?") == ["SN-DK", "SN-TH"]
+    assert zones_citees('Ziguinchor; "Matam": Louga?') == ["SN-ZG", "SN-MT", "SN-LG"]

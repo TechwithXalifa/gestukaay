@@ -114,3 +114,8 @@ def test_charger_moteur_reel(monkeypatch):
     monkeypatch.setenv("GESTUKAAY_MOTEUR", "reel")
     m = charger_moteur()
     assert isinstance(m, MoteurReel) and m.version_socle() == "test" and m.comprehension.client is None
+
+
+def test_question_avec_point_d_interrogation_colle():
+    r = demander("Combien d'habitants à Thiès?")
+    assert [(x.zone.code, x.valeur) for x in r.resultats] == [("SN-TH", 2463677)]

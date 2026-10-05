@@ -72,9 +72,11 @@ _MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6,
          "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11, "decembre": 12}
 
 
-def _texte(texte: str) -> str:
-    """Normalisé, apostrophes ouvertes : « d'habitants » -> « d habitants »."""
-    return normaliser(re.sub(r"['’`]", " ", texte))
+def texte_normalise(texte: str) -> str:
+    """Normalisé, apostrophes ouvertes : « d'habitants » -> « d habitants ». La ponctuation collée
+    (« Thiès? », « Kaolack! ») est détachée : c'est ainsi qu'on tape sur une messagerie et que les
+    modèles de transcription écrivent. Pas dans `normaliser` : il fabrique aussi les codes."""
+    return normaliser(re.sub(r"['’`?!;:\"]", " ", texte))
 
 
 def forme(m: str) -> str:
@@ -84,7 +86,7 @@ def forme(m: str) -> str:
 
 def mots(texte: str) -> list[str]:
     """Mots utiles, normalisés, au singulier."""
-    return [forme(m) for m in _texte(texte).split() if m not in _VIDES and len(m) > 1]
+    return [forme(m) for m in texte_normalise(texte).split() if m not in _VIDES and len(m) > 1]
 
 
 _SYN = {forme(k): tuple(forme(v) for v in vs) for k, vs in SYNONYMES.items()}
@@ -97,7 +99,7 @@ _SYN = {forme(k): tuple(forme(v) for v in vs) for k, vs in SYNONYMES.items()}
 def zones_citees(question: str) -> list[str]:
     """Codes des zones citées, dans l'ordre. Les groupes de 4 mots à 1 mot sont
     essayés, du plus long au plus court (« departement de mbacke » avant « mbacke »)."""
-    t = _texte(question).replace("academies", "academie").replace("nationale", "national")
+    t = texte_normalise(question).replace("academies", "academie").replace("nationale", "national")
     m = t.split()
     # « académies de Kolda et de Ziguinchor » : le niveau cité vaut pour tous les noms qui suivent
     niveau = "academie" if re.search(r"\b(academie|ia)\b", t) else None
@@ -140,7 +142,7 @@ ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\
 
 def periodes_citees(question: str) -> list[str]:
     """« mars 2025 » -> 2025-03 ; « 2023 » -> 2023 ; « T2 2024 » -> 2024-T2. Dans l'ordre."""
-    t = _texte(question)
+    t = texte_normalise(question)
     out = []
     for m in re.finditer(r"\b(?:(?P<mois>" + "|".join(_MOIS) + r")\s+)?(?:(?P<t>t[1-4])\s+)?"
                          r"(?P<an>(?:19|20)\d\d)\b", t):
@@ -156,7 +158,7 @@ def periodes_citees(question: str) -> list[str]:
 def desagregation_citee(question: str) -> dict[str, str]:
     """Désagrégation sans ambiguïté, en vocabulaire fixe (décision 0010), pour les règles locales.
     Prudente : « une femme » (ISF) n'est pas une désagrégation, « les femmes » en est une."""
-    t = _texte(question)
+    t = texte_normalise(question)
     d: dict[str, str] = {}
     if re.search(r"\b(femmes|filles|jigeen|djiguene)\b", t):
         d["sexe"] = "femmes"
