@@ -101,13 +101,22 @@ def _appareil() -> str:
     return "mps" if torch.backends.mps.is_available() else "cpu"
 
 
-def whisper_small_wolof() -> Callable:
-    """M9and2M/whisper-small-wolof (MIT) : Whisper-small affiné sur 57 h de wolof (audios < 6 s)."""
+def _pipeline(modele: str) -> Callable:
+    """Pipeline de transcription ; demi-précision sur la puce graphique du Mac (M-Kiriku : 2,3 s ->
+    1,9 s, même transcription, mesuré sur M3 Pro)."""
+    import torch
     from transformers import pipeline
 
-    asr = pipeline("automatic-speech-recognition", model="M9and2M/whisper-small-wolof", device=_appareil())
+    appareil = _appareil()
+    asr = pipeline("automatic-speech-recognition", model=modele, device=appareil,
+                   torch_dtype=torch.float16 if appareil == "mps" else torch.float32)
     return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
-                              return_timestamps=len(audio) > 30 * TAUX)["text"]
+                             return_timestamps=len(audio) > 30 * TAUX)["text"]
+
+
+def whisper_small_wolof() -> Callable:
+    """M9and2M/whisper-small-wolof (MIT) : Whisper-small affiné sur 57 h de wolof (audios < 6 s)."""
+    return _pipeline("M9and2M/whisper-small-wolof")
 
 
 def whosper_large() -> Callable:
@@ -135,32 +144,20 @@ def whosper_large() -> Callable:
 def whisper_turbo() -> Callable:
     """openai/whisper-large-v3-turbo (MIT) : le Whisper standard, référence pour le français ; il ne
     connaît pas le wolof. Sert à juger un aiguillage par langue (wolof -> modèle wolof, français -> lui)."""
-    from transformers import pipeline
-
-    asr = pipeline("automatic-speech-recognition", model="openai/whisper-large-v3-turbo", device=_appareil())
-    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
-                              return_timestamps=len(audio) > 30 * TAUX)["text"]
+    return _pipeline("openai/whisper-large-v3-turbo")
 
 
 def kiriku_wolof() -> Callable:
     """AIHubSN/Kiriku-Wolof-ASR (IA Hub Sénégal, Apache-2.0) : Whisper-large-v2 affiné sur 88 h de wolof
     vérifié, vocabulaire wolof ajouté (ñ, ë, ŋ…), transcription libre sans jeton de langue forcé.
     Accès restreint sur Hugging Face : conditions acceptées et jeton (HF_TOKEN) nécessaires."""
-    from transformers import pipeline
-
-    asr = pipeline("automatic-speech-recognition", model="AIHubSN/Kiriku-Wolof-ASR", device=_appareil())
-    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
-                              return_timestamps=len(audio) > 30 * TAUX)["text"]
+    return _pipeline("AIHubSN/Kiriku-Wolof-ASR")
 
 
 def m_kiriku() -> Callable:
     """AIHubSN/M-Kiriku-ASR (IA Hub Sénégal) : multilingue wolof, pulaar, sérère (34,9 h de wolof,
     radio et conversations) ; ne couvre pas le français."""
-    from transformers import pipeline
-
-    asr = pipeline("automatic-speech-recognition", model="AIHubSN/M-Kiriku-ASR", device=_appareil())
-    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
-                              return_timestamps=len(audio) > 30 * TAUX)["text"]
+    return _pipeline("AIHubSN/M-Kiriku-ASR")
 
 
 CANDIDATS: dict[str, Callable[[], Callable]] = {
