@@ -18,6 +18,7 @@ import logging
 import os
 import re
 import secrets
+import threading
 import time
 from typing import Literal
 from urllib.parse import urlencode
@@ -42,7 +43,7 @@ from gestukaay_contracts.models import (
 )
 from gestukaay_engine import IndicateurInconnu, NonDisponible, SaisieInvalide, charger_moteur
 
-from . import securite
+from . import jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
 from .exports import vers_csv, vers_csv_series, vers_pdf
 from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
@@ -355,6 +356,58 @@ def tableau(
     if jours not in (7, 30, 90):
         raise ErreurApi(422, "Période inconnue", "jours = 7, 30 ou 90.")
     return stockage.tableau(jours, canal or None, langue or None)
+
+
+# Jeu de test (cahier 5.10, maquette BO-JeuTest) : le benchmark de KBD lancé depuis le back-office
+def _en_fond(tache) -> None:
+    threading.Thread(target=tache, name="benchmark", daemon=True).start()
+
+
+executer_benchmark = _en_fond  # remplacé dans les tests par un appel direct
+
+
+@app.get("/admin/jeu-de-test")
+def jeu_de_test_liste(authorization: str | None = Header(None)) -> dict:
+    """Les questions de référence et les exécutions du benchmark (résumés, plus récentes d'abord)."""
+    _admin(authorization)
+    return {
+        "disponible": jeu_de_test.moteur_pour(moteur, "regles") is not None,
+        "llm_autorise": jeu_de_test.llm_autorise(),
+        "questions": jeu_de_test.resume_questions(),
+        "executions": [{**{k: e[k] for k in ("id", "mode", "lancee_le", "statut", "erreur")},
+                        "resume": jeu_de_test.resume(e["resultat"]) if e["resultat"] else None}
+                       for e in stockage.executions()],
+    }
+
+
+@app.get("/admin/jeu-de-test/executions/{eid}")
+def jeu_de_test_execution(eid: str, authorization: str | None = Header(None)) -> dict:
+    """Une exécution complète : chaque question avec son issue, son statut et le détail de l'écart."""
+    _admin(authorization)
+    execution = next((e for e in stockage.executions() if e["id"] == eid), None)
+    if execution is None:
+        raise ErreurApi(404, "Exécution introuvable")
+    return execution
+
+
+@app.post("/admin/jeu-de-test/executions", status_code=202)
+def jeu_de_test_lancer(corps: dict, authorization: str | None = Header(None)) -> dict:
+    """Lance le benchmark en tâche de fond. « llm » appelle la chaîne LLM (environ 0,07 $)."""
+    _admin(authorization)
+    mode = corps.get("mode")
+    if mode not in jeu_de_test.MODES:
+        raise ErreurApi(422, "Mode inconnu", "mode = regles ou llm.")
+    if mode == "llm" and not jeu_de_test.llm_autorise():
+        raise ErreurApi(403, "Désactivé sur ce serveur",
+                        "Le benchmark avec le LLM demande GESTUKAAY_BENCHMARK_LLM=oui (coût, moteur occupé).")
+    m = jeu_de_test.moteur_pour(moteur, mode)
+    if m is None:
+        raise ErreurApi(503, "Pas disponible", "Le benchmark demande le moteur réel (GESTUKAAY_MOTEUR=reel).")
+    try:
+        eid = jeu_de_test.lancer(executer_benchmark, stockage, mode, m)
+    except RuntimeError as e:
+        raise ErreurApi(409, "Exécution en cours", "Attendez la fin de l'exécution en cours.") from e
+    return {"id": eid, "statut": "en_cours"}
 
 
 @app.get("/admin/journal.csv")

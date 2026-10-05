@@ -88,7 +88,7 @@ export function Connexion({ titre, bouton, erreur, onOuvrir }: {
 
 export function Cadre({ children, actif, onFermer }: {
   children: React.ReactNode;
-  actif: "tableau" | "journal";
+  actif: "tableau" | "journal" | "jeu";
   onFermer?: () => void;
 }) {
   return (
@@ -99,6 +99,7 @@ export function Cadre({ children, actif, onFermer }: {
         <nav aria-label="Back-office" className="admin-nav">
           <Link href="/admin/tableau" aria-current={actif === "tableau" ? "page" : undefined}>Tableau de bord</Link>
           <Link href="/admin/journal" aria-current={actif === "journal" ? "page" : undefined}>Journal des requêtes</Link>
+          <Link href="/admin/jeu-de-test" aria-current={actif === "jeu" ? "page" : undefined}>Jeu de test</Link>
         </nav>
         {onFermer && (
           <div className="admin-actions">

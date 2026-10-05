@@ -18,6 +18,8 @@ COPY contracts contracts
 COPY engine engine
 COPY socle socle
 COPY backend backend
+# Jeu de test et script du benchmark, lancés depuis le back-office (jeu_de_test.py)
+COPY mesure mesure
 # Canaux WhatsApp et Telegram (0025) : sans eux, les webhooks répondent 404
 COPY canaux canaux
 RUN uv sync --locked --no-dev --package gestukaay-backend --package gestukaay-canaux \
