@@ -36,10 +36,11 @@ from pathlib import Path
 RACINE = Path(__file__).resolve().parents[2]
 JEU = RACINE / "mesure" / "jeu_de_test" / "questions.csv"
 RAPPORT = RACINE / "mesure" / "rapports" / "transcription.md"
-AUDIO = (".opus", ".ogg", ".oga", ".wav", ".m4a")
+AUDIO = (".opus", ".ogg", ".oga", ".wav", ".mp3", ".m4a")
 TAUX = 16_000  # Whisper attend du 16 kHz mono
 # Décodage glouton et court : une question dure quelques secondes. Sans ces réglages, la génération
-# va jusqu'à 448 jetons : 16 s au lieu de 1 s pour le même texte (mesuré sur M3 Pro).
+# va jusqu'à 448 jetons : 16 s au lieu de 1 s pour le même texte (mesuré sur M3 Pro). Au-delà de 30 s
+# (une note vocale peut durer 60 s, EF-11), Whisper découpe : horodatage obligatoire (return_timestamps).
 GENERATION = {"max_new_tokens": 64, "num_beams": 1}
 
 # --------------------------------------------------------------------------------------------
@@ -105,7 +106,8 @@ def whisper_small_wolof() -> Callable:
     from transformers import pipeline
 
     asr = pipeline("automatic-speech-recognition", model="M9and2M/whisper-small-wolof", device=_appareil())
-    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION)["text"]
+    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
+                              return_timestamps=len(audio) > 30 * TAUX)["text"]
 
 
 def whosper_large() -> Callable:
@@ -136,13 +138,37 @@ def whisper_turbo() -> Callable:
     from transformers import pipeline
 
     asr = pipeline("automatic-speech-recognition", model="openai/whisper-large-v3-turbo", device=_appareil())
-    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION)["text"]
+    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
+                              return_timestamps=len(audio) > 30 * TAUX)["text"]
+
+
+def kiriku_wolof() -> Callable:
+    """AIHubSN/Kiriku-Wolof-ASR (IA Hub Sénégal, Apache-2.0) : Whisper-large-v2 affiné sur 88 h de wolof
+    vérifié, vocabulaire wolof ajouté (ñ, ë, ŋ…), transcription libre sans jeton de langue forcé.
+    Accès restreint sur Hugging Face : conditions acceptées et jeton (HF_TOKEN) nécessaires."""
+    from transformers import pipeline
+
+    asr = pipeline("automatic-speech-recognition", model="AIHubSN/Kiriku-Wolof-ASR", device=_appareil())
+    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
+                              return_timestamps=len(audio) > 30 * TAUX)["text"]
+
+
+def m_kiriku() -> Callable:
+    """AIHubSN/M-Kiriku-ASR (IA Hub Sénégal) : multilingue wolof, pulaar, sérère (34,9 h de wolof,
+    radio et conversations) ; ne couvre pas le français."""
+    from transformers import pipeline
+
+    asr = pipeline("automatic-speech-recognition", model="AIHubSN/M-Kiriku-ASR", device=_appareil())
+    return lambda audio: asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
+                              return_timestamps=len(audio) > 30 * TAUX)["text"]
 
 
 CANDIDATS: dict[str, Callable[[], Callable]] = {
     "whisper-small-wolof": whisper_small_wolof,
     "whosper-large": whosper_large,
     "whisper-turbo": whisper_turbo,
+    "kiriku-wolof": kiriku_wolof,
+    "m-kiriku": m_kiriku,
 }
 
 # --------------------------------------------------------------------------------------------
@@ -201,12 +227,15 @@ def evaluer(nom: str, notes: list[Note], juste: Callable) -> Resultat:
         transcrire = CANDIDATS[nom]()
         transcrire(decoder(notes[0].fichier))  # chauffe : le premier appel ne compte pas
     except Exception as e:  # noqa: BLE001 — un candidat qui ne se charge pas est noté, pas fatal
-        res.erreur = f"{type(e).__name__} : {e}"[:300]
+        res.erreur = " ".join(f"{type(e).__name__} : {e}".split())[:200]
         return res
     for n in notes:
         audio = decoder(n.fichier)
         t0 = time.perf_counter()
-        texte = transcrire(audio).strip()
+        try:
+            texte = transcrire(audio).strip()
+        except Exception as e:  # noqa: BLE001 — une note en erreur est notée, la mesure continue
+            texte = f"[erreur : {type(e).__name__}]"
         latence = time.perf_counter() - t0
         ref, hyp = normaliser(n.reference), normaliser(texte) or "∅"
         res.lignes.append(Ligne(n, texte, latence, jiwer.wer(ref, hyp), jiwer.cer(ref, hyp), juste(n.ident, texte)))
