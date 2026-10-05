@@ -20,6 +20,7 @@ from gestukaay_contracts.models import Choix, ReponseApprochee
 from gestukaay_engine import NonDisponible
 
 from .format import Sortant, formater
+from .media import NoteTropGrosse
 from .textes import commande, texte
 
 
@@ -63,6 +64,8 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
             tr = services.transcrire(envoyeur.media(c), "ogg")
         except NonDisponible:
             return envoyeur.texte(dest, texte("vocal_pas_encore"))
+        except NoteTropGrosse:  # plus de 2 Mo : bien au-delà des 60 s permises
+            return envoyeur.texte(dest, texte("reformuler"))
         if not tr.transcription.strip():  # rien d'audible ou de compris
             return envoyeur.texte(dest, texte("reformuler"))
         rep = services.demander(tr.transcription, source="voix", transcription_brute=tr.transcription)

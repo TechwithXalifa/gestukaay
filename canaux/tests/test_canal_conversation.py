@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from gestukaay_backend.canaux import Entrant, Services
 from gestukaay_canaux.conversation import Contenu, traiter
+from gestukaay_canaux.media import NoteTropGrosse
 from gestukaay_canaux.textes import texte
 from gestukaay_contracts.models import AskResponse, TranscriptionResponse
 from gestukaay_engine import NonDisponible
@@ -120,6 +121,15 @@ def test_vocal_transcrit_puis_repondu():
     e, (s, appels) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=tr)
     traiter(entrant(type="audio", media="300000000000001"), s, e)
     assert appels == [("demander", tr.transcription, {"source": "voix", "transcription_brute": tr.transcription})]
+
+
+def test_vocal_trop_gros_invite_a_reformuler():
+    class Gros(Envoyeur):
+        def media(self, contenu):
+            raise NoteTropGrosse
+    e, (s, appels) = Gros(), services(derniere=rep("exacte_valeur"))
+    traiter(entrant(type="audio", media="300000000000001"), s, e)
+    assert e.textes() == [texte("reformuler")] and appels == []
 
 
 def test_erreur_le_dit_a_l_utilisateur_puis_remonte():

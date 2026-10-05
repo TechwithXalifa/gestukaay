@@ -14,6 +14,7 @@ from gestukaay_backend.canaux import Entrant, Services
 from gestukaay_contracts.models import Choix
 
 from .conversation import Contenu, traiter
+from .media import telecharger
 from .textes import texte
 
 DELAI_S = 10
@@ -81,9 +82,7 @@ class ClientTelegram:
         chemin = self._appel("getFile", {"file_id": contenu.media}).get("file_path", "")
         try:
             with httpx.Client(timeout=DELAI_S, transport=self._transport) as h:
-                r = h.get(f"https://api.telegram.org/file/bot{self._jeton()}/{chemin}")
-                r.raise_for_status()
-                return r.content
+                return telecharger(h, f"https://api.telegram.org/file/bot{self._jeton()}/{chemin}")
         except httpx.HTTPError as e:
             raise ErreurTelegram(f"Telegram fichier : {type(e).__name__}") from None
 

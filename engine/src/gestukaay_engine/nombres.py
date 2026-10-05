@@ -11,7 +11,8 @@ marque le multiplicateur devant téeméer, junni, milyoŋ (ñaari junni = 2000) 
 
 Prudence : un mot seul qui a un autre sens n'est jamais converti : « un », « une » (article), « benn »
 (article), « dara » (rien), « tus », « fanweer » (mois) ; « pour cent » et « ci téeméer » restent tels
-quels. Rien d'autre que les suites de mots-nombres n'est touché.
+quels. Rien d'autre que les suites de mots-nombres n'est touché. Deux nombres reliés par « et » ou « ak »
+restent deux nombres (« entre deux mille onze et deux mille vingt-deux » -> « entre 2011 et 2022 »).
 """
 
 from __future__ import annotations
@@ -152,10 +153,36 @@ def _suite_wo(jetons: list[str], i: int) -> tuple[list[str], int]:
         if m is not None:
             mots.append(m)
             fin = k + 1
-        elif not (t.isspace() or t == "-" or (_sans_accent(t) in _WO_LIAISONS and mots)):
+        elif not (t.isspace() or t == "-" or (_sans_accent(t) in _WO_LIAISONS and mots
+                                                and not _nouveau_nombre_wo(mots, jetons, k + 1))):
             break
         k += 1
     return mots, fin
+
+
+def _nouveau_nombre_wo(mots: list[str], jetons: list[str], k: int) -> bool:
+    """Après « ak » : le groupe qui suit commence-t-il un autre nombre ? Oui s'il porte un junni ou
+    un milyoŋ au moins aussi grand que le dernier déjà lu (« ñaari junni ak fukk ak benn ak ñaari junni
+    ak … » = deux années) ; « ñaari milyoŋ ak … ak ñetti junni » reste un seul nombre."""
+    lus = [_WO_MULTIPLES[m] for m in mots if m in ("junni", "milyong")]
+    if not lus:
+        return False
+    suivant = []
+    while k < len(jetons):
+        m = _wo_mot(_sans_accent(jetons[k]))
+        if m is not None:
+            suivant.append(m)
+        elif not (jetons[k].isspace() or jetons[k] == "-"):
+            break
+        k += 1
+    return any(_WO_MULTIPLES[m] >= lus[-1] for m in suivant if m in ("junni", "milyong"))
+
+
+def _et_interne(jetons: list[str], k: int) -> bool:
+    """« et » n'est à l'intérieur d'un nombre que devant un, une, onze (vingt et un, soixante et onze) :
+    « deux mille onze et deux mille vingt-deux » reste deux nombres."""
+    k = _apres_espaces(jetons, k)
+    return k < len(jetons) and _sans_accent(jetons[k]) in ("un", "une", "onze")
 
 
 def _avant(sortie: list[str]) -> str:
@@ -177,7 +204,7 @@ def _suite(jetons: list[str], i: int) -> tuple[list[str], int]:
         if m in _MOTS:
             mots.append(m)
             fin = k + 1
-        elif t.isspace() or t == "-" or (m == "et" and mots):
+        elif t.isspace() or t == "-" or (m == "et" and mots and _et_interne(jetons, k + 1)):
             pass  # liaison possible ; validée seulement si un mot-nombre suit
         else:
             break

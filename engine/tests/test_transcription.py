@@ -3,6 +3,7 @@
 import httpx
 import pytest
 from gestukaay_engine import NonDisponible
+from gestukaay_engine.langue import detecter
 from gestukaay_engine.nombres import en_chiffres
 from gestukaay_engine.transcription import ADIA_URL, Transcripteur
 
@@ -34,9 +35,10 @@ def transport(service=None, adia=None, appels=None):
 def test_service_m_kiriku_puis_nombres_en_chiffres():
     appels = []
     t = Transcripteur(ENV, transport(service=lambda r: httpx.Response(200, json={
-        "text": " taux chomage dakar en deux mille vingt quatre ", "duration": 3.42}), appels=appels))
+        "text": " Ñaata nit ñoo dëkk Tiés ci atum ñaari junni ak ñaar-fukk ak ñett ", "duration": 3.42}),
+        appels=appels))
     r = t.transcrire(b"OggS...", "ogg", "auto")
-    assert (r.transcription, r.langue, r.duree_s) == ("taux chomage dakar en 2024", "wo", 3.4)
+    assert (r.transcription, r.langue, r.duree_s) == ("Ñaata nit ñoo dëkk Tiés ci atum 2023", "wo", 3.4)
     assert appels == [("mac.local", "Bearer jeton")]  # ADIA jamais appelé
 
 
@@ -82,3 +84,36 @@ def test_rien_de_configure_aucun_appel_reseau():
 ])
 def test_nombres_wolof_en_chiffres(dit, attendu):
     assert en_chiffres(dit) == attendu
+
+
+@pytest.mark.parametrize("dit, attendu", [  # questions d'évolution : deux années, jamais un seul nombre (Aziz, #125)
+    ("Le taux de pauvreté a-t-il baissé entre deux mille onze et deux mille vingt-deux ?",
+     "Le taux de pauvreté a-t-il baissé entre 2011 et 2022 ?"),
+    ("Chômage en deux mille vingt-quatre et deux mille vingt-cinq", "Chômage en 2024 et 2025"),
+    ("diggante ñaari junni ak fukk ak benn ak ñaari junni ak ñaar-fukk ak ñaar", "diggante 2011 ak 2022"),
+    ("ñaari junni ak juróom ak junni ak juróom-ñeenti téeméer ak juróom-ñeent-fukk ak juróom-ñeent",
+     "2005 ak 1999"),
+    ("cent un et deux cents", "101 et 200"), ("trente et une", "31"),
+])
+def test_deux_nombres_relies_restent_deux(dit, attendu):
+    assert en_chiffres(dit) == attendu
+
+
+@pytest.mark.parametrize("texte, langue", [  # questions du jeu de test et notes vocales transcrites
+    ("Combien d'habitants à Thiès ?", "fr"),
+    ("Quel est le taux de chômage des jeunes de 15 à 24 ans au Sénégal en 2025 ?", "fr"),
+    ("Et pour Kaolack ?", "fr"), ("taux de pauvreté au sénégal", "fr"),
+    ("ñaata nit ñoo dëkk thiès", "wo"), ("Ñi amul ligéey ci Senegaal ?", "wo"),
+    ("Ñata xale moins de 5 ans nioy de senegal (sur 1000) ?", "wo"),  # interrogatif wolof : tranche
+    ("Ndax prix thieb detail bi yok na entre mars 2025 ak mars 2026 ?", "wo"),
+    ("Limu askanu Ndakaaru ak Kaolack", "wo"), ("Kaolack nak?", "wo"),
+])
+def test_langue_detectee(texte, langue):
+    assert detecter(texte) == langue
+
+
+def test_langue_deduite_du_texte_si_non_imposee():
+    """Le site envoie « auto » : une question dite en français repart en français (Aziz, #125)."""
+    rep = lambda r: httpx.Response(200, json={"text": "quel est le taux de chômage à dakar", "duration": 2})
+    assert Transcripteur(ENV, transport(service=rep)).transcrire(b"x", "webm").langue == "fr"
+    assert Transcripteur(ENV, transport(service=rep)).transcrire(b"x", "webm", "wo").langue == "wo"  # imposée

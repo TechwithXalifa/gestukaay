@@ -26,6 +26,8 @@ Lancer (le modèle est lu dans le cache Hugging Face, ~6 Go la première fois) :
     # puis, côté API Gëstukaay (.env) : TRANSCRIPTION_URL=http://<machine>:8100/v1
     #                                   TRANSCRIPTION_CLE=<le même jeton>
 
+Sans TRANSCRIPTION_CLE, le service n'écoute que sur la machine elle-même (127.0.0.1) et refuse de
+s'ouvrir au réseau : sur le wifi d'un hôtel ou d'une salle, n'importe qui pourrait s'en servir.
 TRANSCRIPTION_MODELE change de modèle (défaut AIHubSN/M-Kiriku-ASR ; secours AIHubSN/Kiriku-Wolof-ASR).
 Rien n'est gardé : l'audio est décodé en mémoire puis oublié ; seuls la durée et le temps de calcul
 sont journalisés.
@@ -108,14 +110,15 @@ def modeles() -> dict:
     return {"object": "list", "data": [{"id": "m-kiriku-asr", "object": "model", "owned_by": "AIHubSN"}]}
 
 
+# Route synchrone : FastAPI la passe dans un fil à part, /ping répond pendant une transcription
 @app.post("/v1/audio/transcriptions")
-async def transcrire(file: UploadFile, model: str = Form("m-kiriku-asr"),
-                     language: str | None = Form(None), response_format: str = Form("json"),
-                     authorization: str | None = Header(None)) -> dict:
+def transcrire(file: UploadFile, model: str = Form("m-kiriku-asr"),
+               language: str | None = Form(None), response_format: str = Form("json"),
+               authorization: str | None = Header(None)) -> dict:
     autoriser(authorization)
     if _asr is None:
         raise HTTPException(503, "Modèle en cours de chargement")
-    octets = await file.read(OCTETS_MAX + 1)
+    octets = file.file.read(OCTETS_MAX + 1)
     if len(octets) > OCTETS_MAX:
         raise HTTPException(413, "Fichier trop gros")
     try:
@@ -138,9 +141,13 @@ async def transcrire(file: UploadFile, model: str = Form("m-kiriku-asr"),
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Service de transcription M-Kiriku (0026).")
-    p.add_argument("--hote", default="0.0.0.0")
+    p.add_argument("--hote", help="0.0.0.0 avec une clé, 127.0.0.1 sans clé (défaut)")
     p.add_argument("--port", type=int, default=8100)
     args = p.parse_args()
     logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(message)s")
+    cle = os.environ.get("TRANSCRIPTION_CLE", "")
+    args.hote = args.hote or ("0.0.0.0" if cle else "127.0.0.1")
+    if not cle and args.hote not in ("127.0.0.1", "localhost", "::1"):
+        p.error("sans TRANSCRIPTION_CLE, le service n'écoute que sur 127.0.0.1 (définir une clé pour l'ouvrir au réseau)")
     charger()
     uvicorn.run(app, host=args.hote, port=args.port)
