@@ -19,7 +19,7 @@ def test_referentiel_complet_et_coherent():
             assert x.couvre and all(c in z for c in x.couvre), x.code
             assert all(z[c].niveau in ("region", "departement") for c in x.couvre), x.code
         else:
-            assert not x.couvre and x.statut_wo == "a_valider", x.code
+            assert not x.couvre and x.statut_wo in ("a_valider", "valide"), x.code  # 0009
 
 
 def test_academies_de_dakar_ne_sont_pas_la_region():
