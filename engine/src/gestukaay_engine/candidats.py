@@ -73,8 +73,10 @@ _MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6,
 
 
 def _texte(texte: str) -> str:
-    """Normalisé, apostrophes ouvertes : « d'habitants » -> « d habitants »."""
-    return normaliser(re.sub(r"['’`]", " ", texte))
+    """Normalisé, apostrophes ouvertes : « d'habitants » -> « d habitants ». La ponctuation collée
+    (« Thiès? », « Kaolack! ») est détachée : c'est ainsi qu'on tape sur une messagerie et que les
+    modèles de transcription écrivent. Pas dans `normaliser` : il fabrique aussi les codes."""
+    return normaliser(re.sub(r"['’`?!;:\"]", " ", texte))
 
 
 def forme(m: str) -> str:
