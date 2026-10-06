@@ -4,6 +4,7 @@ KBD (voix_wolof/2_nombres_argent_unites.csv, 3_noms.csv, 5 et 6 octobre 2026), m
 import random
 import re
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
 from gestukaay_contracts.models import AskRequest, Periode, RequeteStructuree
@@ -13,6 +14,7 @@ from gestukaay_engine.nombres import en_chiffres
 from gestukaay_engine.parole import (
     DUREE_MAX_S,
     argent_wo,
+    chiffre_wo,
     duree_estimee,
     entier_wo,
     epeler,
@@ -67,6 +69,21 @@ def test_milliards_du_pib():
     assert f"{suffixe(entier_wo(18500))} milyaar" == \
         "fukk ak juróom-ñetti junni ak juróomi téeméeri milyaar"  # 18 500 milliards (fiche 2)
     assert entier_wo(10**9) == "benn milyaar"
+
+
+@pytest.mark.parametrize("affichee, unite, dit", [  # option B de KBD (#130, revue d'Aziz) : le vrai montant
+    ("21 295 163", "millions de FCFA",  # PIB 2023 : 21 295 milliards 163 millions, « milyoŋ » une fois
+     ("ñaar-fukk ak benni junni ak ñaari téeméer ak juróom-ñeent-fukk ak juróomi milyaar ak téeméer ak "
+      "juróom-benn-fukk ak ñetti milyoŋi CFA")),
+    ("18 500", "milliards de FCFA", "fukk ak juróom-ñetti junni ak juróomi téeméeri milyaari CFA"),
+    ("12,5", "milliards de FCFA", "fukk ak ñaari milyaar ak juróomi téeméeri milyoŋi CFA"),
+    ("1 000 000", "FCFA", "benn milyoŋi CFA"),
+    ("0,5", "millions de FCFA", "téeméeri junni"),  # 500 000 F : sous le million, en dërëm
+    ("309", "FCFA/kg", "ñetti téeméer ak juróom-ñeenti sefaa ci kilo bi"),  # inchangé (relu par Aziz)
+])
+def test_millions_et_milliards_de_fcfa(affichee, unite, dit):
+    r = SimpleNamespace(valeur_affichee=affichee, unite=unite)
+    assert chiffre_wo(r).startswith(dit)
 
 
 @pytest.mark.parametrize("entier, dec, dit", [

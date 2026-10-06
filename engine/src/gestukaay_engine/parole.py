@@ -25,6 +25,7 @@ import re
 import unicodedata
 import zlib
 from dataclasses import dataclass
+from decimal import Decimal
 from functools import cache
 from pathlib import Path
 
@@ -115,7 +116,8 @@ def _moins_de_mille(n: int) -> str:
 def _groupe(n: int, nom: str) -> str:
     if n == 1:
         return "junni" if nom == "junni" else f"benn {nom}"  # « junni », mais « benn milyoŋ »
-    return f"{suffixe(_moins_de_mille(n))} {nom}"
+    # 21 295 milliards : le nombre de milliards dépasse 999, il se dit lui-même en entier
+    return f"{suffixe(_moins_de_mille(n) if n < 1000 else entier_wo(n))} {nom}"
 
 
 def entier_wo(n: int) -> str:
@@ -222,14 +224,16 @@ def chiffre_wo(r: Resultat, devant_nom: bool = False) -> str:
     if "$" in u or "dollar" in u or re.search(r"\bus\b", u):
         return f"{nombre} {r.unite}"  # devises étrangères : unité dite en français
     if re.search(r"fcfa|\bcfa\b|franc", u):
-        if "milliard" in u:
-            montant = f"{suffixe(nombre)} milyaar"
-        elif "million" in u:
-            montant = f"{suffixe(nombre)} milyoŋ"
-        elif "millier" in u or re.search(r"\b1 ?000 ?fcfa", u):
-            montant = argent_wo(entier * 1000)
+        # « millions de FCFA » : le vrai montant est dit, pas « … milyoŋ milyoŋ » (#130, option B de KBD)
+        mult = 10**9 if "milliard" in u else 10**6 if "million" in u else \
+            1000 if "millier" in u or re.search(r"\b1 ?000 ?fcfa", u) else 1
+        total = Decimal(f"{entier}.{dec}" if dec else entier) * mult
+        if total != total.to_integral_value():
+            montant = f"{suffixe(nombre)} sefaa"  # centimes : en CFA, comme publié
         else:
-            montant = argent_wo(entier) if not dec else f"{suffixe(nombre)} sefaa"
+            montant = argent_wo(int(total))
+            if total >= 10**6:
+                montant = f"{suffixe(montant)} CFA"  # au-delà du million, en CFA (0029) : dit à l'oral
         par = next((wo for motif, wo in _parole()["argent_par"].items() if re.search(rf"\b{motif}", u)), None)
         if par is None and "/" in (r.unite or ""):  # FCFA/Pièce… : pas de mot de KBD, dit en français
             par = "par " + r.unite.split("/", 1)[1].strip().lower()
