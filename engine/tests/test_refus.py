@@ -8,6 +8,7 @@ from datetime import date
 from gestukaay_contracts.models import Periode, ReponseAucune, RequeteStructuree
 from gestukaay_engine.comprehension import Comprehension
 from gestukaay_engine.refus import (
+    MESSAGE_HORS_SOCLE_PHARES,
     MESSAGE_HORS_SOCLE_SUGGESTIONS,
     MESSAGE_INCOMPREHENSION,
     construire_reponse_aucune,
@@ -169,7 +170,7 @@ def test_refus_projection_demain_ne_doit_pas_devenir_projection():
     ref = refuser(SOCLE, comprise, "Quel temps fera-t-il demain à Dakar ?", "fr")
     assert ref.motif == "hors_socle"
     assert ref.motif != "projection"
-    assert ref.message == MESSAGE_HORS_SOCLE_SUGGESTIONS
+    assert ref.message == MESSAGE_HORS_SOCLE_PHARES  # la météo n'a pas d'indicateur proche
 
 
 def test_refus_hors_socle_lieu_inconnu_paris():
@@ -202,7 +203,7 @@ def test_refus_hors_socle_sujets_absents():
         comprise = comp.comprendre(q)
         ref = refuser(SOCLE, comprise, q, "fr")
         assert ref.motif == "hors_socle", f"Échec sur {q}"
-        assert ref.message == MESSAGE_HORS_SOCLE_SUGGESTIONS
+        assert ref.message in (MESSAGE_HORS_SOCLE_SUGGESTIONS, MESSAGE_HORS_SOCLE_PHARES)
         assert 1 <= len(ref.suggestions) <= 3
 
 
@@ -224,8 +225,9 @@ def test_contre_exemple_serere_ne_suggere_jamais_prison():
     assert not any("prison" in c.lower() for c in codes_suggeres)
     assert not any("prison" in lib.lower() or "emprisonn" in lib.lower() for lib in libelles_suggeres)
 
-    # Repli sur les 3 phares P1
+    # Repli sur les 3 phares P1, sans les présenter comme « proches » (#116)
     assert "pvswjnd" in codes_suggeres
+    assert ref.message == MESSAGE_HORS_SOCLE_PHARES
 
 
 def test_incomprehension_charabia_et_bavardage():
@@ -264,7 +266,7 @@ def test_modele_reponse_aucune_contrat():
     assert reponse.issue == "aucune"
     assert reponse.motif == "hors_socle"
     assert reponse.langue == "fr"  # Règle 6 : FR seulement
-    assert reponse.message == MESSAGE_HORS_SOCLE_SUGGESTIONS
+    assert reponse.message == MESSAGE_HORS_SOCLE_PHARES
     assert len(reponse.suggestions) == 3
     # Sérialisation Pydantic stricte (extra="forbid")
     json_str = reponse.model_dump_json()

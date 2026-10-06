@@ -2,8 +2,10 @@
 
 Branche les briques du moteur dans l'ordre validé par KBD :
   1. compréhension (#10) ; question inintelligible -> refus (#13) ;
-  2. résolution (#11, #14) ; valeur trouvée -> réponse exacte (gabarits #16, graphique #14) ;
-  3. sinon :
+  2. modalité ambiguë citée (« voitures », rattachements.csv) -> réponse approchée d'emblée, même si
+     le total existe : « voitures » n'est pas le parc total (#116, choix KBD) ;
+  3. résolution (#11, #14) ; valeur trouvée -> réponse exacte (gabarits #16, graphique #14) ;
+  4. sinon :
      - question d'un type que la résolution ne traite pas (`non_traite`) -> « pas encore
        disponible », JAMAIS « cette donnée n'existe pas » : la donnée existe peut-être ;
      - projection, ou lieu inconnu non rattaché (« Paris ») -> refus (#13) ;
@@ -40,7 +42,7 @@ from gestukaay_contracts.models import (
 )
 from gestukaay_socle.zones import normaliser
 
-from .approchee import Approchee, RepliAucune, proposer_approchee, rattachements
+from .approchee import Approchee, RepliAucune, modalite_citee, proposer_approchee, rattachements
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
 from .gabarits import citation, explication, note_perimetre
@@ -86,6 +88,10 @@ class MoteurReel:
         c = self.comprehension.comprendre(question, contexte)
         if c.incomprehensible:
             return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
+        if not c.lieux_inconnus and modalite_citee(c.requete, question):
+            a = proposer_approchee(self.socle, c.requete, None, question, LANGUE)
+            if isinstance(a, Approchee):
+                return self._approchee(a, c.requete, question, transcription)
         r = resoudre(self.socle, c.requete, LANGUE, question, c.lieux_inconnus)
         if isinstance(r, Resolution):
             return self._exacte(r, c.requete, question, transcription)
@@ -132,13 +138,17 @@ class MoteurReel:
             return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
         a = proposer_approchee(self.socle, c.requete, r, question, LANGUE, c.lieux_inconnus)
         if isinstance(a, Approchee):
-            ident = _ident()
-            return AskResponse(reponse=ReponseApprochee(
-                **self._base(ident, question, c.requete, transcription),
-                reformulation=a.reformulation, choix=a.choix))
+            return self._approchee(a, c.requete, question, transcription)
         if isinstance(a, RepliAucune) and a.suggestions:  # un seul choix vérifié : proposé en suggestion
             return self._aucune(Refus(a.motif, a.message, a.suggestions, c.requete), question, transcription)
         return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
+
+    def _approchee(self, a: Approchee, requete: RequeteStructuree, question: str,
+                   transcription: str | None) -> AskResponse:
+        ident = _ident()
+        return AskResponse(reponse=ReponseApprochee(
+            **self._base(ident, question, requete, transcription),
+            reformulation=a.reformulation, choix=a.choix))
 
     def _exacte(self, r: Resolution, requete: RequeteStructuree, question: str,
                 transcription: str | None = None) -> AskResponse:

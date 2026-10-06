@@ -11,7 +11,8 @@ Principes non négociables :
      Contre-exemple : « personnes parlent sérère » ne doit jamais suggérer « personnes emprisonnées ».
   4. Message hors_socle : texte du cahier §7.4 mot pour mot :
      « Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons. »,
-     suivi de « Voici des indicateurs proches : » quand des suggestions sont formulées.
+     suivi de « Voici des indicateurs proches : » quand des suggestions sont formulées ;
+     de « Les chiffres les plus demandés : » quand ce ne sont que les phares (#116, choix KBD).
   5. Incompréhension : drapeau interne incomprehensible dans SortieLLM (pas de changement de contrat) ;
      en règles : aucun mot connu -> incompréhension, requete=None, suggestions=[].
   6. Lieux : lieu déclaré dans rattachements.csv -> #12 ; lieu inconnu (ex. Paris) -> hors_socle.
@@ -49,6 +50,10 @@ MESSAGE_HORS_SOCLE_BASE = "Cette donnée n'existe pas dans les publications de l
 MESSAGE_HORS_SOCLE_SUGGESTIONS = (
     "Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons. "
     "Voici des indicateurs proches :"
+)
+MESSAGE_HORS_SOCLE_PHARES = (
+    "Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons. "
+    "Les chiffres les plus demandés :"
 )
 MESSAGE_PROJECTION = (
     "Gëstukaay ne fait pas de prévisions. "
@@ -207,6 +212,16 @@ def obtenir_suggestions(
     return suggestions
 
 
+def message_hors_socle(comprise: Comprise, suggestions: list[Suggestion]) -> str:
+    """Les phares seuls ne sont pas présentés comme « proches » : ils n'ont pas de lien avec la question."""
+    if not suggestions:
+        return MESSAGE_HORS_SOCLE_BASE
+    proches = {c.indicateur.code for c in comprise.proches}
+    if any(s.indicateur.code in proches for s in suggestions):
+        return MESSAGE_HORS_SOCLE_SUGGESTIONS
+    return MESSAGE_HORS_SOCLE_PHARES
+
+
 def annee_demandee(requete: RequeteStructuree, question: str = "") -> int | None:
     """Extrait l'année numérique demandée soit depuis la période, soit depuis le texte."""
     if requete.periode and requete.periode.valeur:
@@ -290,11 +305,7 @@ def refuser(
         if normaliser(lieu) not in rats:
             # Lieu inconnu non déclaré dans rattachements.csv (ex. Paris)
             suggs = obtenir_suggestions(socle, comprise, "SN")
-            msg = (
-                f"{MESSAGE_HORS_SOCLE_SUGGESTIONS}"
-                if suggs
-                else MESSAGE_HORS_SOCLE_BASE
-            )
+            msg = message_hors_socle(comprise, suggs)
             return Refus(
                 motif="hors_socle",
                 message=msg,
@@ -324,7 +335,7 @@ def refuser(
     # -------------------------------------------------------------------
     zone_dem = comprise.requete.zones[0] if comprise.requete.zones else "SN"
     suggs = obtenir_suggestions(socle, comprise, zone_dem)
-    msg = MESSAGE_HORS_SOCLE_SUGGESTIONS if suggs else MESSAGE_HORS_SOCLE_BASE
+    msg = message_hors_socle(comprise, suggs)
     return Refus(
         motif="hors_socle",
         message=msg,
