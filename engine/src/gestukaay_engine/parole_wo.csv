@@ -1,0 +1,138 @@
+type;cle;wolof;note
+zone;region;ci diiwaanu {nom};
+zone;departement;ci tunduw {nom};
+zone;academie;ci akaademiyu {nom};
+zone;pays;ci {nom};« Senegaal / ci Senegaal » (fiche 3)
+periode;annee;ci atum {annee};Années dites en français (KBD 5/10)
+periode;mois;ci weeru {mois} atum {annee};
+periode;T1;ci trimestre bu njëkk bu {annee};Option 1 (KBD 6/10)
+periode;T2;ci ñaareelu trimestre bu {annee};Option 1 (KBD 6/10)
+periode;T3;ci ñatteelu trimestre bu {annee};Option 1 (KBD 6/10)
+periode;T4;ci ñenteelu trimestre bu {annee};Option 1 (KBD 6/10)
+mois;01;Samwiye;janvier
+mois;02;Fewriye;février
+mois;03;Mars;mars
+mois;04;Awril;avril
+mois;05;Mee;mai
+mois;06;Suweŋ;juin
+mois;07;Sulet;juillet
+mois;08;Ut;août
+mois;09;Sattàmbar;septembre
+mois;10;Oktobar;octobre
+mois;11;Nowàmbar;novembre
+mois;12;Desàmbar;décembre
+source;ANSD;A-EN-ES-DE;
+source;RGPH-5;Recensement bi (RGPH-5);
+source;EHCVM;Enquête E-ACH-CÉ-VÉ-EM;
+source;ENES;Enquête E-EN-E-ES;
+source;EDS;Enquête E-DE-ES;
+source;EDS-Continue;Enquête E-DE-ES Continue;
+source;IHPC;I-ACH-PÉ-CÉ;
+source;BADIS;BADIS;
+source;Comptes nationaux;Comptes nationaux yi;
+source;MEN;Recensement lekool yi (MEN);
+source;CSA;CÉ-ES-A;
+source;ARTP;A-ER-TÉ-PÉ;
+source;MITTA;MITTA;
+source;Ministère de la Justice;Ministeeru Yoon wi;
+source;Ministère du Tourisme et des Loisirs;Ministeeru Mbiri Turism;
+source;Direction des pêches maritimes;Njiitug nàpp gi ci géej gi;
+source;Administration pénitentiaire;Ñiy saytu kaso yi;
+site;www.ansd.sn;we we we poñ A-EN-ES-DE poñ sn;
+precision;Masculin;Góor;
+precision;Homme;Góor;comme Masculin
+precision;Féminin;Jigéen;
+precision;Femme;Jigéen;comme Féminin
+precision;Urbain;Ci dëkk yi;
+precision;Rural;Ci all bi;
+unite_nom;habitant;nit;
+unite_nom;personne;nit;
+unite_nom;individu;nit;
+unite_nom;menage;kër;
+unite_nom;tonne;ton;
+unite_nom;t$;ton;abréviation de tonne
+unite_nom;tete;jur;
+unite_nom;hectare;ektaar;
+unite_nom;vehicule;woto;
+unite_nom;visiteur;gan;
+unite_nom;arrivee;gan;
+unite_nom;enfants par femme;dom ci jigéen ju nekk;
+unite_nom;annee;at;
+unite_nom;ans;at;
+unite_nom;mois;weer;
+argent_par;kg;ci kilo bi;
+argent_par;litre;ci litër bi;
+argent_par;mois;ci weer wi;
+argent_par;mensuel;ci weer wi;
+argent_par;par personne et par an;ci nit ku nekk ci at mi;
+unite;pourcent;ci téeméer;
+unite;pour_mille;ci junni;
+nombre;virgule;wirgil;
+nombre;dërëm;dërëm;
+nombre;sefaa;sefaa;
+lettre;A;A;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;B;BÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;C;CÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;D;DE;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;E;E;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;F;EF;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;G;JÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;H;ACH;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;I;I;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;J;JI;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;K;KA;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;L;EL;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;M;EM;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;N;EN;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;O;O;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;P;PÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;Q;KU;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;R;ER;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;S;ES;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;T;TÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;U;U;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;V;VÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;W;DOUBLE-VÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;X;IKS;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;Y;I-GREC;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;Z;ZÈD;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+sigle_mot;BADIS;BADIS;Lu tel quel (fiche 3)
+sigle_mot;MITTA;MITTA;Lu tel quel (fiche 3)
+sigle_mot;Gini;Gini;Lu tel quel (fiche 3)
+sigle;ADS;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;ANSD;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;ARTP;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;BCEAO;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;BNSP;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;CETUD;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;CNSA;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;CSA;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DAMCP;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DAPSA;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DEEC;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DEFCCS;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DGCPT;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DGIRD;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DGTSS;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DIREL;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DPC;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DPEE;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DPRE;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;DTT;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;EDS;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;EHCVM;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;ENES;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;IHPC;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;IPC;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;ITIE;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;MEDDTE;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;MEN;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;MESR;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;MESRI;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;MITTD;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;MSAS;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;OFOR;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;PIB;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;RGPH;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;SEN;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots
+sigle;SIE;;Épelé à la française (KBD 6/10) ; les autres mots en majuscules sont lus comme des mots

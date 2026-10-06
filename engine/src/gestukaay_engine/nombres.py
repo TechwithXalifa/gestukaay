@@ -6,7 +6,7 @@ reconnaître une année ou une tranche d'âge.
 
 Wolof (mots et règles écrits par KBD, 0009) : « ak » additionne (fukk ak ñett = 13) ; « fukk » après
 des unités les multiplie (ñaar-fukk = 20, juróom-benn-fukk = 60) ; le suffixe « -i » (ñaari, ñeenti)
-marque le multiplicateur devant téeméer, junni, milyoŋ (ñaari junni = 2000) et reste une unité ailleurs
+marque le multiplicateur devant téeméer, junni, milyoŋ, milyaar (ñaari junni = 2000) et reste une unité ailleurs
 (ñeenti at = 4 ans) ; tirets ou espaces ; fanweer = 30 ; wirgil = virgule.
 
 Prudence : un mot seul qui a un autre sens n'est jamais converti : « un », « une » (article), « benn »
@@ -34,17 +34,22 @@ _MOTS = set(_UNITES) | set(_MULTIPLES)
 _WO_UNITES = {"tus": 0, "dara": 0, "benn": 1, "ben": 1, "naar": 2, "nett": 3, "natt": 3, "neent": 4,
               "nent": 4, "juroom": 5}
 _WO_FUKK, _WO_FANWEER = "fukk", "fanweer"
-_WO_MULTIPLES = {"teemeer": 100, "junni": 1000, "milyong": 10**6}
+_WO_MULTIPLES = {"teemeer": 100, "junni": 1000, "milyong": 10**6, "milyaar": 10**9}
 _WO_LIAISONS = {"ak", "ag"}
 _WO_SEULS_INTERDITS = {"benn", "ben", "dara", "tus", "fanweer"}
 
 
 def _wo_mot(m: str) -> str | None:
-    """Forme canonique d'un mot-nombre wolof (« ñaari » -> « naar »), ou None."""
-    if m in _WO_UNITES or m in _WO_MULTIPLES or m in (_WO_FUKK, _WO_FANWEER):
+    """Forme canonique d'un mot-nombre wolof (« ñaari » -> « naar »), ou None.
+    Le suffixe -i (-y après un i) se met aussi sur fukk, fanweer, téeméer, junni, milyoŋ, milyaar
+    devant un multiplicateur ou un nom : « fukki junni », « fanweeri junni », « junniy ton » (KBD)."""
+    connus = (*_WO_UNITES, *_WO_MULTIPLES, _WO_FUKK, _WO_FANWEER)
+    if m in connus:
         return m
-    if m.endswith("i") and (m[:-1] in _WO_UNITES or m[:-1] + "n" in _WO_UNITES):  # ñaari, benni
-        return m[:-1] if m[:-1] in _WO_UNITES else m[:-1] + "n"
+    if m.endswith("i") and (m[:-1] in connus or m[:-1] + "n" in _WO_UNITES):  # ñaari, benni, fukki
+        return m[:-1] if m[:-1] in connus else m[:-1] + "n"
+    if m.endswith("iy") and m[:-1] in connus:  # junniy
+        return m[:-1]
     return None
 
 
@@ -61,7 +66,7 @@ def _valeur_wo(mots: list[str]) -> int:
         elif m == "teemeer":
             courant += (attente or 1) * 100
             attente = 0
-        else:  # junni, milyoŋ
+        else:  # junni, milyoŋ, milyaar
             total += ((courant + attente) or 1) * _WO_MULTIPLES[m]
             courant = attente = 0
     return total + courant + attente
@@ -101,7 +106,9 @@ def en_chiffres(texte: str) -> str:
     i = 0
     while i < len(jetons):
         wo, j = _suite_wo(jetons, i)
-        if wo and not (len(wo) == 1 and wo[0] in _WO_SEULS_INTERDITS) and not (
+        k = _apres_espaces(jetons, j)
+        decimal = k < len(jetons) and _sans_accent(jetons[k]) == "wirgil"  # « tus wirgil juróom » = 0,5
+        if wo and not (len(wo) == 1 and wo[0] in _WO_SEULS_INTERDITS and not decimal) and not (
                 wo == ["teemeer"] and _avant(sortie) == "ci"):  # « ci téeméer » = pour cent
             nombre = str(_valeur_wo(wo))
             k = _apres_espaces(jetons, j)
@@ -164,7 +171,7 @@ def _nouveau_nombre_wo(mots: list[str], jetons: list[str], k: int) -> bool:
     """Après « ak » : le groupe qui suit commence-t-il un autre nombre ? Oui s'il porte un junni ou
     un milyoŋ au moins aussi grand que le dernier déjà lu (« ñaari junni ak fukk ak benn ak ñaari junni
     ak … » = deux années) ; « ñaari milyoŋ ak … ak ñetti junni » reste un seul nombre."""
-    lus = [_WO_MULTIPLES[m] for m in mots if m in ("junni", "milyong")]
+    lus = [_WO_MULTIPLES[m] for m in mots if m in ("junni", "milyong", "milyaar")]
     if not lus:
         return False
     suivant = []
@@ -175,7 +182,7 @@ def _nouveau_nombre_wo(mots: list[str], jetons: list[str], k: int) -> bool:
         elif not (jetons[k].isspace() or jetons[k] == "-"):
             break
         k += 1
-    return any(_WO_MULTIPLES[m] >= lus[-1] for m in suivant if m in ("junni", "milyong"))
+    return any(_WO_MULTIPLES[m] >= lus[-1] for m in suivant if m in ("junni", "milyong", "milyaar"))
 
 
 def _et_interne(jetons: list[str], k: int) -> bool:
