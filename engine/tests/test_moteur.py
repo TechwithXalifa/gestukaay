@@ -19,14 +19,17 @@ def obs(ind, zone, periode, valeur, **dims):
 
 
 SOURCES = {d: SourceJeu(d, "ANSD", "Agence nationale", f"Jeu {d}", date(2023, 10, 31), "", f"https://x/{d}")
-           for d in ("pvswjnd", "dwibrlf")}
+           for d in ("pvswjnd", "dwibrlf", "qbvttzc")}
 SOCLE = Socle([
     obs("pvswjnd", "SN", "2023", 18126390, sexe="Total", age="Total"),
     obs("pvswjnd", "SN-TH", "2023", 2463677, sexe="Total", age="Total"),
     obs("pvswjnd", "SN-DK", "2023", 4004426, sexe="Total", age="Total"),
+    obs("pvswjnd", "SN-DB", "2023", 2080333, sexe="Total", age="Total"),
     obs("dwibrlf", "SN-DK", "2025", 13.2, sexe="TOTAL", âge="TOTAL"),
     obs("dwibrlf", "SN-TH", "2025", 22.7, sexe="TOTAL", âge="TOTAL"),
     obs("dwibrlf", "SN-TC", "2025", 5.0, sexe="TOTAL", âge="TOTAL"),
+    obs("qbvttzc", "SN-KD", "2021", 9317, catégories="TOTAL"),
+    obs("qbvttzc", "SN-KD", "2021", 5000, catégories="VPP"),
 ], SOURCES, "test")
 MOTEUR = MoteurReel(SOCLE, Comprehension(None))
 
@@ -121,3 +124,16 @@ def test_charger_moteur_reel(monkeypatch):
 def test_question_avec_point_d_interrogation_colle():
     r = demander("Combien d'habitants à Thiès?")
     assert [(x.zone.code, x.valeur) for x in r.resultats] == [("SN-TH", 2463677)]
+
+
+def test_voitures_toujours_approchee_meme_si_le_total_existe():
+    # « voitures » n'est pas le parc total : on fait choisir TOTAL ou VPP, aucune valeur (#116, choix KBD)
+    r = demander("Nombre de voitures à Kolda")
+    assert r.issue == "approchee"
+    assert [c.requete.desagregation for c in r.choix] == [{"catégories": "TOTAL"}, {"catégories": "VPP"}]
+
+
+def test_touba_approchee_region_puis_senegal():
+    r = demander("Combien d'habitants à Touba ?")
+    assert r.issue == "approchee"
+    assert [c.requete.zones for c in r.choix] == [["SN-DB"], ["SN"]]

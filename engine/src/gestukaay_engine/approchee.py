@@ -78,13 +78,21 @@ class RepliAucune:
     suggestions: list[Suggestion]
 
 
+# Une approchée n'affiche aucun chiffre hors années (EF-06, volet (d) de l'invariant) : le « 5 » du sigle
+# serait lu comme une valeur. Forme écrite pour ce seul sigle (#116, choix KBD), pas de règle générale.
+SIGLES_SANS_CHIFFRE = {"RGPH-5": "recensement de 2023"}
+
+
 def _nom_indicateur(code: str | None, langue: str = "fr") -> str:
     if not code:
         return "Cet indicateur"
     ind = indicateurs().get(code)
     if not ind:
         return code
-    return ind.libelle_fr
+    nom = ind.libelle_fr
+    for sigle, forme in SIGLES_SANS_CHIFFRE.items():
+        nom = nom.replace(sigle, forme)
+    return nom
 
 
 def _nom_zone(code: str, langue: str = "fr") -> str:
@@ -101,10 +109,57 @@ def _nom_zone(code: str, langue: str = "fr") -> str:
     return z.libelle_fr
 
 
+def _portee(requete: RequeteStructuree, langue: str = "fr") -> str:
+    """Ce que le choix donnera, selon l'intention (US-03 : savoir ce qu'on va lire avant de confirmer)."""
+    if requete.intention == "classement":  # même règle que la résolution : académies si publié ainsi
+        ind = indicateurs().get(requete.indicateur or "")
+        return ", par académie" if ind and "academie" in ind.niveaux_zone else ", par région"
+    noms = [_nom_zone(z, langue) for z in requete.zones] or [_nom_zone("SN", langue)]
+    return f" ({' et '.join(noms)})"
+
+
 def _periode_texte(p: Periode) -> str:
     if p.type == "derniere" or not p.valeur:
         return "dernière période publiée"
     return libelle_periode(p.valeur)
+
+
+def _lieu_cite(lieu: str) -> str:
+    """« ville de Thiès » -> « la ville de Thiès » (#116) ; « Touba » inchangé."""
+    if normaliser(lieu).startswith("ville "):
+        tete, _, nom = lieu.partition(" de ")
+        return f"la {tete} de {nom[:1].upper()}{nom[1:]}" if nom else f"la {lieu}"
+    return lieu
+
+
+def modalite_citee(requete: RequeteStructuree, question: str) -> Rattachement | None:
+    """Modalité ambiguë de rattachements.csv citée dans la question (« voitures »), pour l'indicateur compris.
+
+    None si l'utilisateur a déjà précisé la catégorie (dimension des propositions déjà fixée).
+    """
+    if not requete.indicateur:
+        return None
+    q_norm = normaliser(question)
+    desag = requete.desagregation or {}
+    for terme_cle, rat in rattachements().items():
+        if rat.type != "modalite":
+            continue
+        if not (terme_cle in q_norm or (terme_cle == "voitures" and ("voiture" in q_norm or "woto" in q_norm))):
+            continue
+        props = [p.split(":", 1) for p in rat.propositions if ":" in p]
+        if not any(requete.indicateur.startswith(jeu) for jeu, _ in props):
+            continue
+        dims = {a.split("=", 1)[0] for _, a in props}
+        if dims & set(desag) and not any(_est_le_terme(v, terme_cle) for v in desag.values()):
+            return None  # catégorie déjà précisée (« véhicules particuliers »)
+        return rat
+    return None
+
+
+def _est_le_terme(valeur: str, terme_cle: str) -> bool:
+    """Le terme ambigu lui-même (« voitures ») n'est pas une catégorie publiée : il ne filtre rien."""
+    v = normaliser(str(valeur))
+    return v == terme_cle or v.rstrip("s") == terme_cle.rstrip("s")
 
 
 def _verifier_choix(socle: Socle, req: RequeteStructuree, libelle: str,
@@ -157,13 +212,14 @@ def proposer_approchee(
                     assign = prop
                 if "=" in assign:
                     dim, val = assign.split("=", 1)
-                    desag = dict(requete.desagregation or {})
+                    # « produit = voitures » (LLM) ferait échouer chaque choix : on le retire (#116)
+                    desag = {k: v for k, v in (requete.desagregation or {}).items()
+                             if not _est_le_terme(v, terme_cle)}
                     desag[dim] = val
                     req_c = requete.model_copy(update={"desagregation": desag})
-                    z_code = requete.zones[0] if requete.zones else "SN"
-                    lib = (f"Ensemble du parc de véhicules ({_nom_zone(z_code, langue)})"
-                           if val.upper() == "TOTAL" else
-                           f"Véhicules particuliers ({val}) ({_nom_zone(z_code, langue)})")
+                    nom = "Ensemble du parc de véhicules" if val.upper() == "TOTAL" else \
+                        f"Véhicules particuliers ({val})"
+                    lib = f"{nom}{_portee(requete, langue)}"
                     candidats_choix.append((req_c, lib))
             if candidats_choix:
                 reformulation = (
@@ -206,17 +262,24 @@ def proposer_approchee(
     # -----------------------------------------------------------------------
     if not candidats_choix and lieux_inconnus:
         lieu_brut = lieux_inconnus[0]
-        nom_lieu_concerne = lieu_brut
+        nom_lieu_concerne = _lieu_cite(lieu_brut)
         lieu_norm = normaliser(lieu_brut)
         rat = rattachements().get(lieu_norm)
         if rat and rat.type == "lieu":
-            for z_cand in rat.propositions:
+            # Ordre de repli (a) de la 0015 : après les zones déclarées, les niveaux au-dessus.
+            # La population (RGPH-5) n'est publiée que par région : Touba -> Diourbel, puis Sénégal.
+            zones_cand = list(rat.propositions)
+            cur = zones().get(zones_cand[-1]) if zones_cand else None
+            while cur and cur.parent:
+                zones_cand.append(cur.parent)
+                cur = zones().get(cur.parent)
+            for z_cand in dict.fromkeys(zones_cand):  # sans doublon, quel que soit l'ordre déclaré
                 req_c = requete.model_copy(update={"zones": [z_cand]})
                 p_txt = _periode_texte(requete.periode)
                 lib = f"{_nom_indicateur(code_ind, langue)} - {_nom_zone(z_cand, langue)} ({p_txt})"
                 candidats_choix.append((req_c, lib))
             reformulation = (
-                f"Ce chiffre n'est pas publié pour {lieu_brut} ; "
+                f"Ce chiffre n'est pas publié pour {_lieu_cite(lieu_brut)} ; "
                 "voici les zones pour lesquelles l'ANSD publie ce chiffre. Est-ce ce que vous cherchez ?"
             )
 

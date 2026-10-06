@@ -10,13 +10,13 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 |---|---|---|---|
 | 0 · Fondations | 4 | 4 | ✅ terminé |
 | 1 · Socle | 8 | 8 | Préparation |
-| 2 · Moteur | 10 | 11 | Préparation |
+| 2 · Moteur | 11 | 11 | Préparation |
 | 3 · Jeu de test et mesure | 3 | 4 | Préparation |
 | 4 · Wolof | 1 | 5 | Préparation |
 | 5 · Voix | 2 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 3 | 6 | Préparation |
-| 7 · Intégration et démo | 0 | 5 | Hackathon |
-| **Total** | **31** | **47** | |
+| 7 · Intégration et démo | 1 | 5 | Hackathon |
+| **Total** | **33** | **47** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -67,7 +67,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [x] **2.4** Correspondance approchée (zone parente/enfant, période voisine) — [#12](https://github.com/TechwithXalifa/gestukaay/issues/12) · échéance 04/10 · après 2.3
 - [x] **2.5** Refus + 3 indicateurs proches ; refus des projections — [#13](https://github.com/TechwithXalifa/gestukaay/issues/13) · échéance 04/10 · après 2.3
 - [x] **2.6** Comparaison et classement — [#14](https://github.com/TechwithXalifa/gestukaay/issues/14) · échéance 04/10 · après 2.3
-- [ ] **2.7** Contexte de suivi sur 3 échanges — [#15](https://github.com/TechwithXalifa/gestukaay/issues/15) · échéance 05/10 · après 2.2
+- [x] **2.7** Contexte de suivi sur 3 échanges — [#15](https://github.com/TechwithXalifa/gestukaay/issues/15) · échéance 05/10 · après 2.2
 - [x] **2.8** Gabarits d'explication FR, formatage des nombres, citation — [#16](https://github.com/TechwithXalifa/gestukaay/issues/16) · échéance 04/10 · après 2.3
 - [x] **2.9** Basculer du faux moteur au vrai — [#17](https://github.com/TechwithXalifa/gestukaay/issues/17) · échéance 05/10 · après 2.3, 2.4, 2.5
 - [x] **2.10** Contrat v1.1.0 : nature, académie, /v1/transcrire, /v1/situate, graphique de contexte — [#45](https://github.com/TechwithXalifa/gestukaay/issues/45) · échéance 03/10 · après décisions 0002 et 0003
@@ -106,7 +106,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 
 ## 7 · Intégration et démo
 
-- [ ] **7.1** Squelette de bout en bout avec Aziz — [#37](https://github.com/TechwithXalifa/gestukaay/issues/37) · échéance 01/10
+- [x] **7.1** Squelette de bout en bout avec Aziz — [#37](https://github.com/TechwithXalifa/gestukaay/issues/37) · échéance 01/10
 - [ ] **7.2** Préproduction branchée sur le vrai moteur — [#38](https://github.com/TechwithXalifa/gestukaay/issues/38) · échéance 06/10 · après 2.9
 - [ ] **7.3** Recette des parcours P1 à P4 ⏳ — [#39](https://github.com/TechwithXalifa/gestukaay/issues/39) · échéance 08/10 · après 7.2
 - [ ] **7.4** Gel H+54, vidéo de secours H+66, captures ⏳ — [#40](https://github.com/TechwithXalifa/gestukaay/issues/40) · échéance 09/10 · après 7.3

@@ -8,7 +8,7 @@ from datetime import date
 from gestukaay_contracts.models import Periode, RequeteStructuree
 from gestukaay_engine.approchee import (
     Approchee,
-    RepliAucune,
+    modalite_citee,
     proposer_approchee,
     rattachements,
 )
@@ -82,8 +82,9 @@ def test_rattachements_declares_avec_preuve():
         assert r.type in ("lieu", "modalite")
 
 
-def test_approchee_lieu_inconnu_repli_c_si_une_seule_option():
-    # « ville de Thiès » sur pvswjnd (région seulement, 2023 seulement)
+def test_approchee_lieu_rattache_complete_par_le_niveau_au_dessus():
+    # « ville de Thiès » sur pvswjnd (région seulement, 2023 seulement) : le département n'est pas
+    # publié ; la région puis le Sénégal complètent les choix (#116, choix KBD, repli (a) de la 0015)
     req = RequeteStructuree(
         intention="valeur",
         indicateur="pvswjnd",
@@ -95,10 +96,21 @@ def test_approchee_lieu_inconnu_repli_c_si_une_seule_option():
     res = proposer_approchee(
         SOCLE, req, intr, "Population de la ville de Thiès en 2023", "fr", ["ville de Thiès"]
     )
-    assert isinstance(res, RepliAucune)
-    assert res.motif == "hors_socle"
-    assert len(res.suggestions) == 1
-    assert "Région de Thiès" in res.suggestions[0].question_suggeree
+    assert isinstance(res, Approchee)
+    assert [ch.requete.zones for ch in res.choix] == [["SN-TH"], ["SN"]]
+    assert "pour la ville de Thiès ;" in res.reformulation  # avec l'article
+    # aucun chiffre hors années dans les choix (EF-06) : « RGPH-5 » écrit en toutes lettres
+    assert res.choix[0].libelle.startswith("Population (recensement de 2023) - Région de Thiès")
+
+
+def test_approchee_touba_region_puis_senegal():
+    req = RequeteStructuree(intention="valeur", indicateur="pvswjnd", zones=[],
+                            periode=Periode(type="derniere"), confiance=0.9)
+    intr = Introuvable("zone_non_couverte", "lieu hors référentiel : Touba")
+    res = proposer_approchee(SOCLE, req, intr, "Combien d'habitants à Touba ?", "fr", ["Touba"])
+    assert isinstance(res, Approchee)
+    assert [ch.requete.zones for ch in res.choix] == [["SN-DB"], ["SN"]]
+    assert "pour Touba ;" in res.reformulation
 
 
 def test_approchee_multi_academies_dakar():
@@ -223,6 +235,45 @@ def test_approchee_modalite_ambigue_voitures():
     for ch in res.choix:
         r_verif = resoudre(SOCLE, ch.requete)
         assert hasattr(r_verif, "resultats") and len(r_verif.resultats) >= 1
+
+
+def test_approchee_voitures_sans_le_filtre_ajoute_par_le_llm():
+    # Le LLM range « voitures » dans la désagrégation (produit = voitures) : ce terme n'est pas une
+    # catégorie publiée, il est retiré avant de proposer TOTAL et VPP (#116)
+    req = RequeteStructuree(intention="valeur", indicateur="qbvttzc", zones=["SN-KD"],
+                            periode=Periode(type="derniere"), desagregation={"produit": "voitures"},
+                            confiance=0.9)
+    res = proposer_approchee(SOCLE, req, None, "Nombre de voitures à Kolda", "fr")
+    assert isinstance(res, Approchee)
+    assert [ch.requete.desagregation for ch in res.choix] == [{"catégories": "TOTAL"}, {"catégories": "VPP"}]
+
+
+def test_voitures_libelle_suit_l_intention_classement():
+    # Revue d'Aziz (#131) : US-03, on sait ce qu'on va lire avant de confirmer
+    req = RequeteStructuree(intention="classement", indicateur="qbvttzc", zones=[],
+                            periode=Periode(type="derniere"), confiance=0.9)
+    res = proposer_approchee(SOCLE, req, None, "Quelle région a le plus de voitures ?", "fr")
+    assert isinstance(res, Approchee)
+    assert [ch.libelle for ch in res.choix] == ["Ensemble du parc de véhicules, par région",
+                                                 "Véhicules particuliers (VPP), par région"]
+
+
+def test_voitures_libelle_suit_l_intention_comparaison():
+    req = RequeteStructuree(intention="comparaison", indicateur="qbvttzc", zones=["SN-KD", "SN-ZG"],
+                            periode=Periode(type="derniere"), confiance=0.9)
+    res = proposer_approchee(SOCLE, req, None, "Voitures à Kolda et à Ziguinchor", "fr")
+    assert isinstance(res, Approchee)
+    assert res.choix[0].libelle == "Ensemble du parc de véhicules (Région de Kolda et Région de Ziguinchor)"
+
+
+def test_modalite_citee_sauf_si_categorie_deja_precisee():
+    req = RequeteStructuree(intention="valeur", indicateur="qbvttzc", zones=["SN-KD"],
+                            periode=Periode(type="derniere"), confiance=0.9)
+    assert modalite_citee(req, "Nombre de voitures à Kolda") is not None
+    assert modalite_citee(req, "Ñata woto ñoo nekk Kolda ?") is not None
+    precise = req.model_copy(update={"desagregation": {"catégories": "VPP"}})
+    assert modalite_citee(precise, "Nombre de voitures particulières à Kolda") is None
+    assert modalite_citee(req.model_copy(update={"indicateur": "pvswjnd"}), "voitures") is None
 
 
 def test_approchee_reformulation_fr_seulement():
