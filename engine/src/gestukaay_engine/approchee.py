@@ -109,6 +109,15 @@ def _nom_zone(code: str, langue: str = "fr") -> str:
     return z.libelle_fr
 
 
+def _portee(requete: RequeteStructuree, langue: str = "fr") -> str:
+    """Ce que le choix donnera, selon l'intention (US-03 : savoir ce qu'on va lire avant de confirmer)."""
+    if requete.intention == "classement":  # même règle que la résolution : académies si publié ainsi
+        ind = indicateurs().get(requete.indicateur or "")
+        return ", par académie" if ind and "academie" in ind.niveaux_zone else ", par région"
+    noms = [_nom_zone(z, langue) for z in requete.zones] or [_nom_zone("SN", langue)]
+    return f" ({' et '.join(noms)})"
+
+
 def _periode_texte(p: Periode) -> str:
     if p.type == "derniere" or not p.valeur:
         return "dernière période publiée"
@@ -208,10 +217,9 @@ def proposer_approchee(
                              if not _est_le_terme(v, terme_cle)}
                     desag[dim] = val
                     req_c = requete.model_copy(update={"desagregation": desag})
-                    z_code = requete.zones[0] if requete.zones else "SN"
-                    lib = (f"Ensemble du parc de véhicules ({_nom_zone(z_code, langue)})"
-                           if val.upper() == "TOTAL" else
-                           f"Véhicules particuliers ({val}) ({_nom_zone(z_code, langue)})")
+                    nom = "Ensemble du parc de véhicules" if val.upper() == "TOTAL" else \
+                        f"Véhicules particuliers ({val})"
+                    lib = f"{nom}{_portee(requete, langue)}"
                     candidats_choix.append((req_c, lib))
             if candidats_choix:
                 reformulation = (
@@ -265,7 +273,7 @@ def proposer_approchee(
             while cur and cur.parent:
                 zones_cand.append(cur.parent)
                 cur = zones().get(cur.parent)
-            for z_cand in zones_cand:
+            for z_cand in dict.fromkeys(zones_cand):  # sans doublon, quel que soit l'ordre déclaré
                 req_c = requete.model_copy(update={"zones": [z_cand]})
                 p_txt = _periode_texte(requete.periode)
                 lib = f"{_nom_indicateur(code_ind, langue)} - {_nom_zone(z_cand, langue)} ({p_txt})"

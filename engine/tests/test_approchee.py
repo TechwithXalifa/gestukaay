@@ -248,6 +248,24 @@ def test_approchee_voitures_sans_le_filtre_ajoute_par_le_llm():
     assert [ch.requete.desagregation for ch in res.choix] == [{"catégories": "TOTAL"}, {"catégories": "VPP"}]
 
 
+def test_voitures_libelle_suit_l_intention_classement():
+    # Revue d'Aziz (#131) : US-03, on sait ce qu'on va lire avant de confirmer
+    req = RequeteStructuree(intention="classement", indicateur="qbvttzc", zones=[],
+                            periode=Periode(type="derniere"), confiance=0.9)
+    res = proposer_approchee(SOCLE, req, None, "Quelle région a le plus de voitures ?", "fr")
+    assert isinstance(res, Approchee)
+    assert [ch.libelle for ch in res.choix] == ["Ensemble du parc de véhicules, par région",
+                                                 "Véhicules particuliers (VPP), par région"]
+
+
+def test_voitures_libelle_suit_l_intention_comparaison():
+    req = RequeteStructuree(intention="comparaison", indicateur="qbvttzc", zones=["SN-KD", "SN-ZG"],
+                            periode=Periode(type="derniere"), confiance=0.9)
+    res = proposer_approchee(SOCLE, req, None, "Voitures à Kolda et à Ziguinchor", "fr")
+    assert isinstance(res, Approchee)
+    assert res.choix[0].libelle == "Ensemble du parc de véhicules (Région de Kolda et Région de Ziguinchor)"
+
+
 def test_modalite_citee_sauf_si_categorie_deja_precisee():
     req = RequeteStructuree(intention="valeur", indicateur="qbvttzc", zones=["SN-KD"],
                             periode=Periode(type="derniere"), confiance=0.9)
