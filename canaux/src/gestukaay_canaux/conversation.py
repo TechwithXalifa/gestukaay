@@ -6,18 +6,23 @@
   - choix « 1 », « benn », ou un toucher dans la liste : confirmer le choix de la dernière réponse
     approchée (EF-06) ; sans approchée en attente, « choix invalide » ;
   - note vocale : transcription si elle existe (#28), sinon « je ne sais pas encore écouter » ;
-  - question : le moteur, par le même chemin que le web (suivi, journal, lien /r/{id}).
-Une erreur envoie le texte « erreur » puis remonte au backend, qui la journalise sans le numéro.
+  - question : le moteur, par le même chemin que le web (suivi, journal, lien /r/{id}) ;
+  - réponse : le texte d'abord ; puis, si la question était vocale ou en wolof, la note vocale en
+    wolof (EF-20, décision 0029), qui se calcule pendant que la personne lit. Sans voix, rien ne change.
+Une erreur envoie le texte « erreur » puis remonte au backend, qui la journalise sans le numéro ; une
+panne de la voix est seulement journalisée : le texte est déjà parti.
 """
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
 from gestukaay_backend.canaux import Entrant, Services
-from gestukaay_contracts.models import Choix, ReponseApprochee
+from gestukaay_contracts.models import AskResponse, Choix, ReponseApprochee
 from gestukaay_engine import NonDisponible
+from gestukaay_engine.langue import detecter
 
 from .format import Sortant, formater
 from .media import NoteTropGrosse
@@ -42,6 +47,11 @@ class Envoyeur(Protocol):
     def texte(self, destinataire: str, texte: str) -> None: ...
     def choix(self, destinataire: str, choix: list[Choix]) -> None: ...
     def media(self, contenu: Contenu) -> bytes: ...
+    def preparer_vocal(self, destinataire: str) -> None: ...  # « enregistre un audio… » si le canal le sait
+    def vocal(self, destinataire: str, opus: bytes) -> None: ...  # note vocale OGG/Opus
+
+
+_log = logging.getLogger("gestukaay.canaux")
 
 
 def traiter(entrant: Entrant, services: Services, envoyeur: Envoyeur) -> None:
@@ -70,8 +80,9 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
             return envoyeur.texte(dest, texte("reformuler"))
         if not tr.transcription.strip():  # rien d'audible ou de compris
             return envoyeur.texte(dest, texte("reformuler"))
-        rep = services.demander(tr.transcription, source="voix", transcription_brute=tr.transcription)
-        return _envoyer(dest, formater(rep, envoyeur.gras), envoyeur)
+        rep = services.demander(tr.transcription, source="voix", transcription_brute=tr.transcription,
+                                audio_retour=True)
+        return _envoyer(dest, rep, services, envoyeur)
     if c.type != "texte" or not c.texte.strip():
         return envoyeur.texte(dest, texte("aide"))
     cmd = commande(c.texte)
@@ -83,7 +94,9 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
         return envoyeur.texte(dest, texte(cmd))
     if len(c.texte.strip()) < 3:  # « ok », « ?? » : trop court pour une question (contrat : 3 caractères)
         return envoyeur.texte(dest, texte("aide"))
-    _envoyer(dest, formater(services.demander(c.texte.strip()[:300]), envoyeur.gras), envoyeur)
+    question = c.texte.strip()[:300]
+    rep = services.demander(question, audio_retour=detecter(question) == "wo")
+    _envoyer(dest, rep, services, envoyeur)
 
 
 def _choisir(dest: str, choix_id: str, services: Services, envoyeur: Envoyeur) -> None:
@@ -91,10 +104,29 @@ def _choisir(dest: str, choix_id: str, services: Services, envoyeur: Envoyeur) -
     r = derniere.reponse if derniere else None
     if not isinstance(r, ReponseApprochee) or choix_id not in {x.id for x in r.choix}:
         return envoyeur.texte(dest, texte("choix_invalide"))
-    _envoyer(dest, formater(services.confirmer(r.id, choix_id), envoyeur.gras), envoyeur)
+    _envoyer(dest, services.confirmer(r.id, choix_id), services, envoyeur)
 
 
-def _envoyer(dest: str, s: Sortant, envoyeur: Envoyeur) -> None:
+def _envoyer(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> None:
+    s: Sortant = formater(rep, envoyeur.gras)
     envoyeur.texte(dest, s.texte)
     if s.choix:
         envoyeur.choix(dest, s.choix)
+    if _voix_voulue(rep):
+        _dire(dest, rep, services, envoyeur)
+
+
+def _voix_voulue(rep: AskResponse) -> bool:
+    """EF-20 : audio si la question était vocale (transcription gardée) ou écrite en wolof."""
+    r = rep.reponse
+    return r.transcription is not None or detecter(r.question) == "wo"
+
+
+def _dire(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> None:
+    try:
+        envoyeur.preparer_vocal(dest)
+        note = services.parler(rep)
+        if note is not None:
+            envoyeur.vocal(dest, note.opus)
+    except Exception:  # noqa: BLE001 — le texte est déjà parti : la voix ne doit jamais le faire échouer
+        _log.exception("voix : la note n'a pas pu être envoyée (réponse %s)", rep.reponse.id)

@@ -16,10 +16,11 @@ from __future__ import annotations
 
 import importlib
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol
 
 from gestukaay_contracts.models import AskResponse, TranscriptionResponse
+from gestukaay_engine import NoteVocale
 
 NomCanal = Literal["whatsapp", "telegram"]
 
@@ -43,6 +44,8 @@ class Services:
     confirmer: Callable[[str, str], AskResponse]  # (reponse_id, choix_id) : « 1 », « benn »
     derniere: Callable[[], AskResponse | None]  # dernière réponse de la conversation (choix numérotés)
     transcrire: Callable[[bytes, str], TranscriptionResponse]  # (audio, "ogg") pour les notes vocales
+    # Réponse dite en wolof (#29, décision 0029) : lente, appelée après l'envoi du texte ; None = texte seul
+    parler: Callable[[AskResponse], NoteVocale | None] = field(default=lambda rep: None)
 
 
 class Canal(Protocol):

@@ -456,6 +456,7 @@ def _services(nom: str, expediteur: str) -> Services:
         confirmer=lambda rid, choix_id: confirmer(rid, ConfirmRequest(choix_id=choix_id)),
         derniere=lambda: stockage.derniere(conversation),
         transcrire=lambda audio, format_audio: moteur.transcrire(audio, format_audio, "auto"),
+        parler=lambda rep: moteur.parler(rep),
     )
 
 
