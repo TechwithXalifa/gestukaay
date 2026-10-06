@@ -81,6 +81,11 @@ def test_rien_de_configure_aucun_appel_reseau():
     ("Ñaata nit ñoo dëkk Tiés ci atum ñaari junni ak ñaar-fukk ak ñett ?", "Ñaata nit ñoo dëkk Tiés ci atum 2023 ?"),
     # un mot seul qui a un autre sens n'est pas un nombre
     ("benn xale", "benn xale"), ("amul dara", "amul dara"), ("ci fanweer bii", "ci fanweer bii"),
+    # sauf devant « wirgil » : « tus wirgil juróom ci téeméer » = 0,5 % (KBD, fiche 2)
+    ("tus wirgil juróom ci téeméer", "0,5 ci téeméer"), ("fanweer wirgil ñaar", "30,2"),
+    # le suffixe -i sur fukk, fanweer, téeméer, junni (KBD, fiche 2)
+    ("fukki junni", "10000"), ("fanweeri junni", "30000"), ("téeméeri junni", "100000"),
+    ("juróom-ñeent-fukki junni", "90000"), ("fukk ak ñaari junniy ton", "12000 ton"),
 ])
 def test_nombres_wolof_en_chiffres(dit, attendu):
     assert en_chiffres(dit) == attendu

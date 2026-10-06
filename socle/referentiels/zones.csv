@@ -1,5 +1,5 @@
 code;niveau;parent;libelle_fr;libelle_wo;statut_wo;variantes;couvre
-SN;pays;;Sénégal;Senegaal;a_valider;senegal|senegaal|national|ensemble du pays;
+SN;pays;;Sénégal;Senegaal;valide;senegal|senegaal|national|ensemble du pays;
 SN-DK;region;SN;Dakar;Ndakaaru;valide;ndakarou|dakaar;
 SN-DB;region;SN;Diourbel;Jurbel;valide;diurbel|dioubel|njaaréem;
 SN-FK;region;SN;Fatick;Fatik;valide;;
@@ -14,65 +14,65 @@ SN-SE;region;SN;Sédhiou;Seeju;valide;sedhiu|seajo|seju;
 SN-TC;region;SN;Tambacounda;Tambakunda;valide;tamba|tambakundaa;
 SN-TH;region;SN;Thiès;Cees;valide;ties|tiés|kees;
 SN-ZG;region;SN;Ziguinchor;Sigicoor;valide;zighinchor;
-SN-DK-DAKAR;departement;SN-DK;Dakar;Ndakaaru;a_valider;;
+SN-DK-DAKAR;departement;SN-DK;Dakar;Ndakaaru;valide;;
 SN-DK-GUEDIAWAYE;departement;SN-DK;Guédiawaye;Géejawaay;valide;gejawaay;
-SN-DK-KEUR-MASSAR;departement;SN-DK;Keur Massar;Kër Massar;a_valider;;
+SN-DK-KEUR-MASSAR;departement;SN-DK;Keur Massar;Kër Massar;valide;;
 SN-DK-PIKINE;departement;SN-DK;Pikine;Pikin;valide;;
 SN-DK-RUFISQUE;departement;SN-DK;Rufisque;Tëngéej;valide;tenguedj|teunguedj;
-SN-DB-BAMBEY;departement;SN-DB;Bambey;Bambey;a_valider;;
-SN-DB-DIOURBEL;departement;SN-DB;Diourbel;Jurbel;a_valider;;
+SN-DB-BAMBEY;departement;SN-DB;Bambey;Bambey;valide;;
+SN-DB-DIOURBEL;departement;SN-DB;Diourbel;Jurbel;valide;;
 SN-DB-MBACKE;departement;SN-DB;Mbacké;Mbàkke;valide;mbake;
-SN-FK-FATICK;departement;SN-FK;Fatick;Fatik;a_valider;;
-SN-FK-FOUNDIOUGNE;departement;SN-FK;Foundiougne;Foundiougne;a_valider;foundioungne;
-SN-FK-GOSSAS;departement;SN-FK;Gossas;Gossas;a_valider;;
-SN-KA-BIRKELANE;departement;SN-KA;Birkelane;Birkelane;a_valider;birkilane;
-SN-KA-KAFFRINE;departement;SN-KA;Kaffrine;Kafrin;a_valider;;
-SN-KA-KOUNGHEUL;departement;SN-KA;Koungheul;Koungheul;a_valider;kounghel;
-SN-KA-MALEM-HODAR;departement;SN-KA;Malem Hodar;Malem Hodar;a_valider;malem hoddar|maleme hodar;
-SN-KL-GUINGUINEO;departement;SN-KL;Guinguinéo;Guinguinéo;a_valider;;
-SN-KL-KAOLACK;departement;SN-KL;Kaolack;Kawlax;a_valider;;
-SN-KL-NIORO-DU-RIP;departement;SN-KL;Nioro du Rip;Nioro du Rip;a_valider;nioro;
-SN-KE-KEDOUGOU;departement;SN-KE;Kédougou;Kedugu;a_valider;;
-SN-KE-SALEMATA;departement;SN-KE;Salémata;Salémata;a_valider;;
-SN-KE-SARAYA;departement;SN-KE;Saraya;Saraya;a_valider;;
-SN-KD-KOLDA;departement;SN-KD;Kolda;Kolda;a_valider;;
-SN-KD-MEDINA-YORO-FOULAH;departement;SN-KD;Médina Yoro Foulah;Médina Yoro Foulah;a_valider;medina yoro foula;
-SN-KD-VELINGARA;departement;SN-KD;Vélingara;Vélingara;a_valider;;
-SN-LG-KEBEMER;departement;SN-LG;Kébémer;Kébémer;a_valider;;
-SN-LG-LINGUERE;departement;SN-LG;Linguère;Linguère;a_valider;;
-SN-LG-LOUGA;departement;SN-LG;Louga;Luga;a_valider;;
-SN-MT-KANEL;departement;SN-MT;Kanel;Kanel;a_valider;;
-SN-MT-MATAM;departement;SN-MT;Matam;Matam;a_valider;;
-SN-MT-RANEROU-FERLO;departement;SN-MT;Ranérou Ferlo;Ranérou Ferlo;a_valider;ranerou;
-SN-SL-DAGANA;departement;SN-SL;Dagana;Dagana;a_valider;;
+SN-FK-FATICK;departement;SN-FK;Fatick;Fatik;valide;;
+SN-FK-FOUNDIOUGNE;departement;SN-FK;Foundiougne;Fundiyuñ;valide;foundioungne;
+SN-FK-GOSSAS;departement;SN-FK;Gossas;Gosaas;valide;;
+SN-KA-BIRKELANE;departement;SN-KA;Birkelane;Birkelaan;valide;birkilane;
+SN-KA-KAFFRINE;departement;SN-KA;Kaffrine;Kafrin;valide;;
+SN-KA-KOUNGHEUL;departement;SN-KA;Koungheul;Kungël;valide;kounghel;
+SN-KA-MALEM-HODAR;departement;SN-KA;Malem Hodar;Malem Hodar;valide;malem hoddar|maleme hodar;
+SN-KL-GUINGUINEO;departement;SN-KL;Guinguinéo;Genginéew;valide;;
+SN-KL-KAOLACK;departement;SN-KL;Kaolack;Kawlax;valide;;
+SN-KL-NIORO-DU-RIP;departement;SN-KL;Nioro du Rip;Ñooro;valide;nioro;
+SN-KE-KEDOUGOU;departement;SN-KE;Kédougou;Kédugu;valide;;
+SN-KE-SALEMATA;departement;SN-KE;Salémata;Salemata;valide;;
+SN-KE-SARAYA;departement;SN-KE;Saraya;Saraya;valide;;
+SN-KD-KOLDA;departement;SN-KD;Kolda;Kolda;valide;;
+SN-KD-MEDINA-YORO-FOULAH;departement;SN-KD;Médina Yoro Foulah;Madiina Yooroo Fula;valide;medina yoro foula;
+SN-KD-VELINGARA;departement;SN-KD;Vélingara;Welingara;valide;;
+SN-LG-KEBEMER;departement;SN-LG;Kébémer;Kebemeer;valide;;
+SN-LG-LINGUERE;departement;SN-LG;Linguère;Lingeer;valide;;
+SN-LG-LOUGA;departement;SN-LG;Louga;Luga;valide;;
+SN-MT-KANEL;departement;SN-MT;Kanel;Kanel;valide;;
+SN-MT-MATAM;departement;SN-MT;Matam;Matam;valide;;
+SN-MT-RANEROU-FERLO;departement;SN-MT;Ranérou Ferlo;Raneeru Ferlo;valide;ranerou;
+SN-SL-DAGANA;departement;SN-SL;Dagana;Dagana;valide;;
 SN-SL-PODOR;departement;SN-SL;Podor;Podor;valide;;
-SN-SL-SAINT-LOUIS;departement;SN-SL;Saint-Louis;Ndar;a_valider;;
-SN-SE-BOUNKILING;departement;SN-SE;Bounkiling;Bounkiling;a_valider;;
-SN-SE-GOUDOMP;departement;SN-SE;Goudomp;Goudomp;a_valider;goudoump;
-SN-SE-SEDHIOU;departement;SN-SE;Sédhiou;Seeju;a_valider;;
-SN-TC-BAKEL;departement;SN-TC;Bakel;Bakel;a_valider;;
-SN-TC-GOUDIRY;departement;SN-TC;Goudiry;Goudiry;a_valider;;
-SN-TC-KOUMPENTOUM;departement;SN-TC;Koumpentoum;Koumpentoum;a_valider;koupentoum;
-SN-TC-TAMBACOUNDA;departement;SN-TC;Tambacounda;Tambakundaa;a_valider;;
+SN-SL-SAINT-LOUIS;departement;SN-SL;Saint-Louis;Ndar;valide;;
+SN-SE-BOUNKILING;departement;SN-SE;Bounkiling;Bunkiliŋ;valide;;
+SN-SE-GOUDOMP;departement;SN-SE;Goudomp;Gudomp;valide;goudoump;
+SN-SE-SEDHIOU;departement;SN-SE;Sédhiou;Seeju;valide;;
+SN-TC-BAKEL;departement;SN-TC;Bakel;Bakel;valide;;
+SN-TC-GOUDIRY;departement;SN-TC;Goudiry;Gudiri;valide;;
+SN-TC-KOUMPENTOUM;departement;SN-TC;Koumpentoum;Kumpentum;valide;koupentoum;
+SN-TC-TAMBACOUNDA;departement;SN-TC;Tambacounda;Tambakunda;valide;tambakundaa;
 SN-TH-MBOUR;departement;SN-TH;Mbour;Mbuur;valide;;
-SN-TH-THIES;departement;SN-TH;Thiès;Cees;a_valider;kees;
+SN-TH-THIES;departement;SN-TH;Thiès;Cees;valide;kees;
 SN-TH-TIVAOUANE;departement;SN-TH;Tivaouane;Tiwaawan;valide;tivaoune|tiwaawon|tiwawan|ciwaawan;
-SN-ZG-BIGNONA;departement;SN-ZG;Bignona;Bignona;a_valider;;
-SN-ZG-OUSSOUYE;departement;SN-ZG;Oussouye;Oussouye;a_valider;;
-SN-ZG-ZIGUINCHOR;departement;SN-ZG;Ziguinchor;Sigicoor;a_valider;;
-SN-IA-DAKAR;academie;SN-DK;Dakar;;a_ecrire;;SN-DK-DAKAR
-SN-IA-PIKINE-GUEDIAWAYE;academie;SN-DK;Pikine-Guédiawaye;;a_ecrire;pikine|guediawaye|pikine guediawaye;SN-DK-PIKINE|SN-DK-GUEDIAWAYE|SN-DK-KEUR-MASSAR
-SN-IA-RUFISQUE;academie;SN-DK;Rufisque;;a_ecrire;;SN-DK-RUFISQUE
-SN-IA-DIOURBEL;academie;SN-DB;Diourbel;;a_ecrire;;SN-DB
-SN-IA-FATICK;academie;SN-FK;Fatick;;a_ecrire;;SN-FK
-SN-IA-KAFFRINE;academie;SN-KA;Kaffrine;;a_ecrire;;SN-KA
-SN-IA-KAOLACK;academie;SN-KL;Kaolack;;a_ecrire;;SN-KL
-SN-IA-KEDOUGOU;academie;SN-KE;Kédougou;;a_ecrire;;SN-KE
-SN-IA-KOLDA;academie;SN-KD;Kolda;;a_ecrire;;SN-KD
-SN-IA-LOUGA;academie;SN-LG;Louga;;a_ecrire;;SN-LG
-SN-IA-MATAM;academie;SN-MT;Matam;;a_ecrire;;SN-MT
-SN-IA-SAINT-LOUIS;academie;SN-SL;Saint-Louis;;a_ecrire;;SN-SL
-SN-IA-SEDHIOU;academie;SN-SE;Sédhiou;;a_ecrire;;SN-SE
-SN-IA-TAMBACOUNDA;academie;SN-TC;Tambacounda;;a_ecrire;;SN-TC
-SN-IA-THIES;academie;SN-TH;Thiès;;a_ecrire;;SN-TH
-SN-IA-ZIGUINCHOR;academie;SN-ZG;Ziguinchor;;a_ecrire;;SN-ZG
+SN-ZG-BIGNONA;departement;SN-ZG;Bignona;Biñoona;valide;;
+SN-ZG-OUSSOUYE;departement;SN-ZG;Oussouye;Ussuy;valide;;
+SN-ZG-ZIGUINCHOR;departement;SN-ZG;Ziguinchor;Sigicoor;valide;;
+SN-IA-DAKAR;academie;SN-DK;Dakar;Ndakaaru;valide;;SN-DK-DAKAR
+SN-IA-PIKINE-GUEDIAWAYE;academie;SN-DK;Pikine-Guédiawaye;Pikin-Géejawaay;valide;pikine|guediawaye|pikine guediawaye;SN-DK-PIKINE|SN-DK-GUEDIAWAYE|SN-DK-KEUR-MASSAR
+SN-IA-RUFISQUE;academie;SN-DK;Rufisque;Tëngéej;valide;;SN-DK-RUFISQUE
+SN-IA-DIOURBEL;academie;SN-DB;Diourbel;Jurbel;valide;;SN-DB
+SN-IA-FATICK;academie;SN-FK;Fatick;Fatik;valide;;SN-FK
+SN-IA-KAFFRINE;academie;SN-KA;Kaffrine;Kafrin;valide;;SN-KA
+SN-IA-KAOLACK;academie;SN-KL;Kaolack;Kawlax;valide;;SN-KL
+SN-IA-KEDOUGOU;academie;SN-KE;Kédougou;Kédugu;valide;;SN-KE
+SN-IA-KOLDA;academie;SN-KD;Kolda;Kolda;valide;;SN-KD
+SN-IA-LOUGA;academie;SN-LG;Louga;Luga;valide;;SN-LG
+SN-IA-MATAM;academie;SN-MT;Matam;Matam;valide;;SN-MT
+SN-IA-SAINT-LOUIS;academie;SN-SL;Saint-Louis;Ndar;valide;;SN-SL
+SN-IA-SEDHIOU;academie;SN-SE;Sédhiou;Seeju;valide;;SN-SE
+SN-IA-TAMBACOUNDA;academie;SN-TC;Tambacounda;Tambakunda;valide;;SN-TC
+SN-IA-THIES;academie;SN-TH;Thiès;Cees;valide;;SN-TH
+SN-IA-ZIGUINCHOR;academie;SN-ZG;Ziguinchor;Sigicoor;valide;;SN-ZG

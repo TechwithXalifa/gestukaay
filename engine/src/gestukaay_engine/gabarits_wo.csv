@@ -1,0 +1,25 @@
+cle;indicateurs;chiffre;variantes;wolof;francais
+valeur.population;pvswjnd;nombre;au_choix;Limu askan wi {zone} mi ngi tollu ci {chiffre} nit {periode}.|Am na {chiffre} nit {zone} {periode}.;La région de Thiès compte 2 463 677 habitants en 2023.
+valeur.taux-chomage;dwibrlf|muhgux.taux-de-chomage|puummg.taux-de-chomage;avec_unite;au_choix;Tolluwaayu ñàkk liggéey bi {zone} mi ngi tollu ci {chiffre} {periode}.;Le taux de chômage est de 20,4 % au Sénégal en 2025.
+valeur.nombre-chomeurs;muhgux.population-au-chomage|puummg.population-au-chomage;nombre;au_choix;Limu ñiy ñàkk liggéey {zone} mi ngi tollu ci {chiffre} nit {periode}.|Am na {chiffre} nit ñu amul liggéey {zone} {periode}.;Le Sénégal compte 1 590 818 personnes au chômage au 1er trimestre 2026.
+compagnon.taux-chomage;;avec_unite;au_choix;Loolu dafay tekki ne ci ñiy liggéey walla ñuy wut liggéey, {chiffre} amuñu liggéey.;Le taux de chômage est de 20,4 % des personnes actives (celles qui travaillent ou cherchent un emploi).
+valeur.taux-pauvrete;jcvcajc.taux-de-pauvrete;avec_unite;au_choix;Tolluwaayu ñàkk bi {zone} mi ngi tollu ci {chiffre} {periode}.;Le taux de pauvreté est de 37,5 % au Sénégal en 2022.
+valeur.neutre;*;avec_unite;au_choix;{indicateur} {zone} {periode}, mi ngi tollu ci {chiffre}.;Taux d'alphabétisation dans la région de Kolda en 2023 : 45,2 %.
+derniere-donnee;;;au_choix;Lii mooy lim bi mujj bi ñu génne.;… en 2023, dernière donnée publiée.
+source;;;au_choix;Li ko wóoral : {source}.|Xibaar bii mi ngi bawoo ci : {source}.;Source : ANSD, RGPH-5.
+comparaison.deux-zones;;avec_unite;au_choix;{indicateur} {periode}, mi ngi tollu ci {chiffre1} {zone1}, ak {chiffre2} {zone2}.;Taux de chômage en 2025 : 13,2 % dans la région de Dakar et 22,7 % dans la région de Thiès.
+comparaison.plus-eleve;;;selon_unite;Lim bi moo gën a kawe {zone}.|Lim bi moo gën a réy {zone}.;La valeur la plus élevée est celle de la région de Thiès.
+evolution.hausse;;;au_choix;, muy yokkute.;… soit une évolution à la hausse.
+evolution.baisse;;avec_unite;au_choix;{indicateur} {zone}, mi ngi tollu ci {chiffre1} {periode1}, ak {chiffre2} {periode2}, muy wàññiku.;Taux de pauvreté au Sénégal : 46,7 % en 2011 et 37,5 % en 2022, soit une évolution à la baisse.
+evolution.stable;;;au_choix;, lim bi soppikuwul.;… soit une évolution stable.
+classement.plus-eleve;;avec_unite;selon_unite;{periode}, lim bi moo gën a kawe {zone1} ak {chiffre1}, teg ci {nom_zone2} ak {chiffre2}, ak {nom_zone3} ak {chiffre3}.|{periode}, lim bi moo gën a réy {zone1} ak {chiffre1}, teg ci {nom_zone2} ak {chiffre2}, ak {nom_zone3} ak {chiffre3}.;En 2023, la valeur la plus élevée est celle de Dakar (4 004 426), devant celles de Thiès (2 463 677) et de Diourbel (2 080 333).
+classement.plus-bas;;avec_unite;selon_unite;{periode}, lim bi moo gën a suufe {zone1} ak {chiffre1}, teg ci {nom_zone2} ak {chiffre2}, ak {nom_zone3} ak {chiffre3}.|{periode}, lim bi moo gën a néew {zone1} ak {chiffre1}, teg ci {nom_zone2} ak {chiffre2}, ak {nom_zone3} ak {chiffre3}.;En 2023, la valeur la plus basse est celle de Kédougou (…), devant celles de … et de ….
+national.plus;;avec_unite;au_choix;Loolu dafa ëpp limu réew mi gépp, di {chiffre} {periode}.;C'est plus que la valeur nationale (20,4 % en 2025).
+national.moins;;avec_unite;selon_unite;Loolu dafa gën a suufe limu réew mi gépp, di {chiffre} {periode}.|Loolu dafa gën a néew limu réew mi gépp, di {chiffre} {periode}.;C'est moins que la valeur nationale (20,4 % en 2025).
+national.autant;;avec_unite;au_choix;Loolu dafa yam ak limu réew mi gépp, di {chiffre} {periode}.;C'est autant que la valeur nationale (20,4 % en 2025).
+refus.hors-socle;;;au_choix;Lim bii amul ci xibaari A-EN-ES-DE yi ñu yor.;Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons.
+refus.prevision;;;au_choix;Gëstukaay du xeyma lu jëm ci ëlëg. Lim yi ñu natt ngir ëlëg, A-EN-ES-DE mi ngi koy génne ci dalum webam bi di we we we poñ A-EN-ES-DE poñ sn.;Gëstukaay ne fait pas de prévisions. Les projections officielles sont publiées par l'ANSD sur www.ansd.sn.
+refus.incomprehension;;;au_choix;Xéyna dégguma la bu baax. Mën nga jéem laaj bii, niki : « Ñaata nit ñoo dëkk Cees ? »;Je n'ai pas bien compris. Essayez par exemple : « Combien d'habitants à Thiès ? »
+approchee.lieu;;;au_choix;Lim bii, génneewuñu ko ngir {lieu}. Lii mooy li am :;Ce chiffre n'est pas publié pour la ville de Thiès. Voici ce qui existe :
+approchee.annee;;;au_choix;Lim bii, génneewuñu ko {periode}. Lii mooy at yi ci gën a jege :;Ce chiffre n'a pas été publié pour l'année 2019. Voici les années les plus proches :
+approchee.categorie;;;au_choix;Leralal ban xeet nga bëgg :;Précisez la catégorie que vous cherchez :
