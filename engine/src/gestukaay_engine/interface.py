@@ -16,6 +16,7 @@ le backend la rend en 503 plutôt que de servir des chiffres du faux moteur.
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from typing import Protocol
 
 from gestukaay_contracts.models import (
@@ -41,6 +42,15 @@ class SaisieInvalide(ValueError):
 
 class IndicateurInconnu(LookupError):
     """Code d'indicateur absent du référentiel ou sans valeur dans le socle : le backend rend 404."""
+
+
+@dataclass(frozen=True)
+class NoteVocale:
+    """Réponse dite en wolof (#29, #30, décision 0029) : OGG/Opus, 60 Ko au plus."""
+
+    opus: bytes
+    duree_s: float
+    voix: str  # « oolel » ou « adia » (repli)
 
 
 class Moteur(Protocol):
@@ -86,6 +96,11 @@ class Moteur(Protocol):
                fin: str | None = None) -> SeriesResponse:
         """Séries publiées d'un indicateur pour 1 à 6 zones, sans interpolation ; IndicateurInconnu
         si le code n'existe pas. Une zone sans valeur sur la période va dans `absents`."""
+        ...
+
+    def parler(self, rep: AskResponse) -> NoteVocale | None:
+        """La réponse dite en wolof, ou None : le texte part seul (#29, décision 0029). Lent (la voix
+        se calcule, environ la durée de la note sur un Mac) : à appeler après l'envoi du texte."""
         ...
 
     def version_socle(self) -> str: ...

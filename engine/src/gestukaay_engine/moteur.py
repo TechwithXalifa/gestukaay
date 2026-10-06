@@ -46,11 +46,13 @@ from .approchee import Approchee, RepliAucune, modalite_citee, proposer_approche
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
 from .gabarits import citation, explication, note_perimetre
-from .interface import NonDisponible
+from .interface import NonDisponible, NoteVocale
+from .parole import texte_parle
 from .refus import Refus, construire_reponse_aucune, est_projection, refuser
 from .resolution import Introuvable, Resolution, national, ordre_effectif, resoudre
 from .situer import situer as situer_menage
 from .socle import Socle, socle
+from .synthese import Synthetiseur
 from .transcription import Transcripteur
 
 LANGUE = "fr"  # seule langue de rédaction tant que #24 et #25 ne sont pas faites
@@ -72,11 +74,12 @@ def _comprehension() -> Comprehension:
 
 class MoteurReel:
     def __init__(self, socle_: Socle | None = None, comprehension: Comprehension | None = None,
-                 transcripteur: Transcripteur | None = None):
+                 transcripteur: Transcripteur | None = None, synthetiseur: Synthetiseur | None = None):
         # Chargés une fois, au démarrage du backend (socle : environ 2 s, 190 Mo)
         self.socle = socle_ if socle_ is not None else socle()
         self.comprehension = comprehension if comprehension is not None else _comprehension()
         self.transcripteur = transcripteur or Transcripteur()  # aucun appel réseau avant une note
+        self.synthetiseur = synthetiseur or Synthetiseur(transcripteur=self.transcripteur)
 
     # ------------------------------------------------------------------
     # Protocol Moteur
@@ -110,6 +113,11 @@ class MoteurReel:
 
     def situer(self, req: SituateRequest) -> SituateResponse:
         return situer_menage(self.socle, req)
+
+    def parler(self, rep: AskResponse) -> NoteVocale | None:
+        """Texte wolof composé (parole.py), puis voix (synthese.py) ; None : le texte part seul."""
+        texte = texte_parle(rep, self.socle)
+        return self.synthetiseur.parler(texte) if texte else None
 
     # Catalogue, fiche et séries (décision 0023) : à écrire par KBD après les priorités V1.0 ;
     # en attendant, 503 côté backend plutôt que les exemples du faux moteur.

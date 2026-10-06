@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Moteur Gëstukaay : compréhension (LLM) + résolution déterministe sur le socle"
 requires-python = ">=3.12"
 dependencies = [
+    "av>=12",
     "gestukaay-contracts",
     "gestukaay-socle",
     "httpx>=0.28.1",
