@@ -463,10 +463,28 @@ def _approchee(rep: ReponseApprochee, choix: _Choix) -> list[tuple[int, str]] | 
         intro = choix(G["approchee.annee"], periode=periode_wo(m[1]))
     elif "catégorie" in t:
         intro = choix(G["approchee.categorie"])
+    elif g := _ecrit("approchee.generique"):  # académies de Dakar… : les choix sont lus quand même (EF-21)
+        intro = choix(g)
     else:
         return None  # pas de phrase wolof pour ce cas : le texte seul part
     choixs = " ".join(f"{entier_wo(int(c.id)) if c.id.isdigit() else c.id} : {c.libelle}." for c in rep.choix)
     return [(0, f"{intro} {choixs}")]
+
+
+def _ecrit(cle: str) -> GabaritWo | None:
+    """Le gabarit, seulement si KBD en a écrit le wolof (une ligne vide ne dit rien)."""
+    g = gabarits_wo().get(cle)
+    return g if g and any(v.strip() for v in g.variantes) else None
+
+
+def _nature(rep: ReponseExacte, choix: _Choix) -> list[tuple[int, str]]:
+    """Projection ou estimation : toujours dite, jamais coupée (0002 ; à l'oral, c'est la seule étiquette)."""
+    for nature in ("projection", "estimation"):
+        r = next((x for x in rep.resultats if x.nature == nature), None)
+        if r and (g := _ecrit(f"nature.{nature}")):
+            prod = r.source.producteur
+            return [(0, choix(g, source=_parole()["source"].get(prod, prod), base=r.base_projection or ""))]
+    return []
 
 
 def _aucune(rep: ReponseAucune, choix: _Choix) -> list[tuple[int, str]] | None:
@@ -507,7 +525,7 @@ def _blocs(r, socle: Socle, choix: _Choix, n: int = 3) -> list[tuple[int, str]] 
             blocs = _comparaison(r, choix)
         else:
             blocs = _valeur(r, socle, choix)
-        return [*blocs, (3, choix(gabarits_wo()["source"], source=source_wo(r.resultats[0])))]
+        return [*blocs, *_nature(r, choix), (3, choix(gabarits_wo()["source"], source=source_wo(r.resultats[0])))]
     if isinstance(r, ReponseApprochee):
         return _approchee(r, choix)
     return _aucune(r, choix)

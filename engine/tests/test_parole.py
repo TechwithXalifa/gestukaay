@@ -7,7 +7,14 @@ from datetime import date
 from types import SimpleNamespace
 
 import pytest
-from gestukaay_contracts.models import AskRequest, Periode, RequeteStructuree
+from gestukaay_contracts.models import (
+    AskRequest,
+    AskResponse,
+    Choix,
+    Periode,
+    ReponseApprochee,
+    RequeteStructuree,
+)
 from gestukaay_engine.comprehension import Comprehension
 from gestukaay_engine.moteur import MoteurReel
 from gestukaay_engine.nombres import en_chiffres
@@ -248,3 +255,40 @@ def test_ci_reew_mi_seulement_pour_le_senegal():
     assert indicateur_wo(r) == "Limu woto yi"
     r.zone.code = "SN"
     assert indicateur_wo(r) == "Limu woto yi ci réew mi"
+
+
+# --- Revue d'Aziz sur #130 : projection dite à l'oral, approchée générique (wolof de KBD, 06/10) ----------
+
+
+def _avec_nature(nature: str, base: str) -> str | None:
+    rep = MOTEUR.repondre(AskRequest(question="Combien d'habitants à Thiès ?"))
+    r0 = rep.reponse.resultats[0].model_copy(update={"nature": nature, "base_projection": base})
+    return texte_parle(rep.model_copy(update={"reponse": rep.reponse.model_copy(update={"resultats": [r0]})}), SOCLE)
+
+
+def test_projection_annoncee_a_l_oral():
+    # 0002 : une projection est toujours étiquetée ; pour qui écoute sans lire, l'audio est la seule étiquette
+    t = _avec_nature("projection", "Projections démographiques 2023-2073")
+    assert "Lii ab xeyma la ngir ëlëg, bu bawoo ci A-EN-ES-DE, Projections démographiques" in t
+
+
+def test_estimation_annoncee_a_l_oral():
+    assert "Lii ab xeyma la, bu bawoo ci E-ACH-CÉ-VÉ-EM" in _avec_nature("estimation", "EHCVM 2021")
+
+
+def test_valeur_observee_sans_etiquette():
+    assert "xeyma" not in parle("Combien d'habitants à Thiès ?")
+
+
+def test_approchee_sans_motif_connu_lit_quand_meme_les_choix():
+    # Académies de Dakar : ni lieu, ni année, ni catégorie ; les choix sont lus (EF-21 : répondre « benn »)
+    req_ = req("pvswjnd", ["SN-TH"])
+    a = ReponseApprochee(
+        id="x", url="u", question="Quel est le taux de scolarisation à Dakar ?", langue="fr", version_socle="t",
+        cree_le="2026-10-06T00:00:00Z",
+        reformulation="Les statistiques scolaires de la région de Dakar sont publiées par inspection d'académie. "
+                      "Est-ce ce que vous cherchez ?",
+        choix=[Choix(id="1", libelle="Inspection d'académie de Dakar", requete=req_),
+               Choix(id="2", libelle="Inspection d'académie de Pikine-Guédiawaye", requete=req_)])
+    t = texte_parle(AskResponse(reponse=a), SOCLE)
+    assert t.startswith("Leralal li nga bëgg") and "benn: Inspection d'académie de Dakar" in t

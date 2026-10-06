@@ -23,3 +23,6 @@ refus.incomprehension;;;au_choix;Xéyna dégguma la bu baax. Mën nga jéem laaj
 approchee.lieu;;;au_choix;Lim bii, génneewuñu ko ngir {lieu}. Lii mooy li am :;Ce chiffre n'est pas publié pour la ville de Thiès. Voici ce qui existe :
 approchee.annee;;;au_choix;Lim bii, génneewuñu ko {periode}. Lii mooy at yi ci gën a jege :;Ce chiffre n'a pas été publié pour l'année 2019. Voici les années les plus proches :
 approchee.categorie;;;au_choix;Leralal ban xeet nga bëgg :;Précisez la catégorie que vous cherchez :
+approchee.generique;;;au_choix;Leralal li nga bëgg :;Précisez ce que vous cherchez :
+nature.projection;;;au_choix;Lii ab xeyma la ngir ëlëg, bu bawoo ci {source}, {base}.;Il s'agit d'une projection officielle (ANSD, Projections démographiques 2023-2073).
+nature.estimation;;;au_choix;Lii ab xeyma la, bu bawoo ci {base}.;Il s'agit d'une estimation (base).

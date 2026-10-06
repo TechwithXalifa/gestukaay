@@ -60,3 +60,13 @@ voix la plus claire et la plus naturelle.
 - Tout nouveau mot wolof passe par KBD ; les fiches de travail sont dans `voix_wolof/` (hors Git).
 - « … ci réew mi » à la fin d'un nom d'indicateur n'est dit que pour le Sénégal (KBD).
 - Reste : la voix professionnelle.
+
+## Revue d'Aziz (06/10), choix de KBD
+
+- **Projection et estimation dites à l'oral** : « Lii ab xeyma la ngir ëlëg, bu bawoo ci {source}, {base}. » et
+  « Lii ab xeyma la, bu bawoo ci {base}. » (wolof de KBD), juste après la valeur, jamais coupées à 20 s : pour
+  qui écoute sans lire, l'audio est la seule étiquette (0002).
+- **Approchée sans motif connu** (académies de Dakar…) : « Leralal li nga bëgg : » puis les choix lus, au lieu du
+  texte seul (EF-21).
+- **Millions et milliards de FCFA (option B)** : le vrai montant est dit (« … milyaar ak … milyoŋi CFA »),
+  « milyoŋ » une seule fois, et « CFA » au-delà du million.
