@@ -41,10 +41,16 @@ from gestukaay_contracts.models import (
 from gestukaay_engine.compagnons import compagnons
 from gestukaay_engine.comprehension import Comprehension
 from gestukaay_engine.moteur import MoteurReel
+from gestukaay_engine.parole import gabarits_wo
 from gestukaay_engine.resolution import national
 from gestukaay_engine.socle import Observation, Socle, socle
 from gestukaay_socle.indicateurs import Indicateur, indicateurs
 from gestukaay_socle.zones import resoudre
+
+# Réponse écrite en wolof (0032) : le refus hors socle du cahier, dans le wolof de KBD (gabarits_wo.csv),
+# sigle écrit (« ANSD ») comme dans la réponse écrite
+MESSAGES_HORS_SOCLE_WO = tuple(v.replace("A-EN-ES-DE", "ANSD").rstrip(". ")
+                               for v in gabarits_wo()["refus.hors-socle"].variantes)
 
 RACINE = Path(__file__).resolve().parents[2]
 JEU_PAR_DEFAUT = RACINE / "mesure" / "jeu_de_test" / "questions.csv"
@@ -450,6 +456,7 @@ def verifier_refus_reponse(
         if (
             "Cette donnée n'existe pas" not in r_body.message
             and "n'est pas disponible" not in r_body.message
+            and not any(m in r_body.message for m in MESSAGES_HORS_SOCLE_WO)
         ):
             return False, "message hors_socle non conforme au cahier"
         if len(r_body.suggestions) > 3:
