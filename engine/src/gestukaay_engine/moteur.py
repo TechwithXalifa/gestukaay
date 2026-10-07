@@ -34,6 +34,7 @@ from gestukaay_contracts.models import (
     CatalogueResponse,
     FicheIndicateur,
     ReponseApprochee,
+    ReponseAucune,
     ReponseExacte,
     RequeteStructuree,
     SeriesResponse,
@@ -41,16 +42,19 @@ from gestukaay_contracts.models import (
     SituateResponse,
     TranscriptionResponse,
 )
+from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import normaliser
 
 from .approchee import Approchee, RepliAucune, modalite_citee, proposer_approchee, rattachements
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
+from .conversation import sans_politesse
+from .conversation import texte as conversation_texte
 from .gabarits import citation, explication, note_perimetre
 from .interface import NonDisponible, NoteVocale
 from .langue import detecter
 from .parole import en_wolof, texte_parle
-from .refus import Refus, construire_reponse_aucune, est_projection, refuser
+from .refus import Refus, construire_reponse_aucune, est_projection, refuser, verifier_suggestion
 from .resolution import Introuvable, Resolution, national, ordre_effectif, resoudre
 from .situer import situer as situer_menage
 from .socle import Socle, socle
@@ -90,12 +94,21 @@ class MoteurReel:
     def repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         # langue de la réponse (#24, 0032) : celle choisie par l'utilisateur, sinon celle de la question
         langue = req.langue if req.langue in ("fr", "wo") else detecter(req.question)
-        return self._dans_la_langue(self._repondre(req, contexte), langue)
+        # « Bonjour, combien d'habitants à Thiès ? » : la politesse de tête est retirée avant la compréhension
+        # (0033, revue de SAN) ; la réponse garde la question telle que posée
+        reste = sans_politesse(req.question)
+        rep = self._repondre(req.model_copy(update={"question": reste}) if reste != req.question else req, contexte)
+        if reste != req.question:
+            rep = rep.model_copy(update={"reponse": rep.reponse.model_copy(update={"question": req.question})})
+        return self._dans_la_langue(rep, langue)
 
     def _repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         question = req.question
         transcription = question if req.source == "voix" else None
         c = self.comprehension.comprendre(question, contexte)
+        if c.conversation:  # salutation, « qui es-tu », définition, « pourquoi »… : pas un refus (0033)
+            langue = req.langue if req.langue in ("fr", "wo") else detecter(question)
+            return self._conversation(c, question, transcription, langue)
         if c.incomprehensible:
             return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
         if not c.lieux_inconnus and modalite_citee(c.requete, question):
@@ -194,6 +207,26 @@ class MoteurReel:
             graphique=r.graphique,
             citation=citation(res[0], datetime.now(UTC).date(), URL_PROVISOIRE.format(id=ident)),
         ))
+
+    def _conversation(self, c: Comprise, question: str, transcription: str | None, langue: str) -> AskResponse:
+        """Réponse fixe de KBD (conversation.csv) ; la définition vient du socle ; « définition » et
+        « pourquoi » proposent le chiffre lié, vérifié par la résolution (zéro chiffre inventé)."""
+        cle, code = c.conversation, c.requete.indicateur if c.requete else None
+        zone = c.requete.zones[0] if c.requete and c.requete.zones else "SN"
+        sugg = verifier_suggestion(self.socle, code, zone) if code and cle in ("definition", "pourquoi") else None
+        ind = indicateurs().get(code) if code else None
+        if cle == "definition" and ind and ind.definition.strip():
+            message = conversation_texte("definition", langue, definition=ind.definition.strip().rstrip(".") + ".")
+        elif cle == "definition":
+            message = conversation_texte("definition_absente" if sugg else "aide", langue)
+        elif cle == "pourquoi" and not sugg:  # pas de « Voici le chiffre : » sans chiffre (revue de SAN)
+            message = conversation_texte("pourquoi_sans_chiffre", langue)
+        else:
+            message = conversation_texte(cle, langue)
+        ident = _ident()
+        base = self._base(ident, question, c.requete if sugg else None, transcription) | {"langue": langue}
+        return AskResponse(reponse=ReponseAucune(**base, motif="conversation", message=message,
+                                                 suggestions=[sugg] if sugg else []))
 
     def _non_disponible(self, requete: RequeteStructuree | None, question: str,
                         transcription: str | None = None) -> AskResponse:

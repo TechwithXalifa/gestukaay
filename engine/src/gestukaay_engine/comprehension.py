@@ -38,6 +38,8 @@ from .candidats import (
     texte_normalise,
     zones_citees,
 )
+from .conversation import Categorie
+from .conversation import regles as conversation_regles
 from .llm import Appel, ClientLLM, EchecLLM
 
 K = 15  # candidats proposés au LLM
@@ -68,6 +70,8 @@ class SortieLLM(BaseModel):
     )
     periode_fin: str | None = Field(None, description="deuxième période pour une comparaison temporelle, ou null")
     ordre: Literal["desc", "asc"] = Field("desc", description="sens du classement : desc (le plus) ou asc (le moins)")
+    conversation: Categorie | None = Field(
+        None, description="catégorie si le message n'est pas une demande de chiffre, sinon null (0033)")
 
 
 SYSTEME = """Tu traduis une question sur les statistiques officielles du Sénégal en requête structurée.
@@ -99,6 +103,13 @@ Réponds :
 - incomprehensible : true seulement si la question est inintelligible, du charabia ou impossible
   à comprendre (ex. « asdkjh », « euh bon voilà »). Dans ce cas, intention = « hors_perimetre »,
   candidat = null et proches = [].
+- conversation : null dès que le message demande un chiffre. Sinon sa catégorie : « salutation »
+  (bonjour, ça va, naka nga def), « remerciement », « au_revoir », « a_propos » (qui es-tu, d'où
+  viennent tes chiffres), « langue » (tu parles wolof ?), « aide » (que puis-je demander ?),
+  « definition » (c'est quoi tel indicateur : donne aussi son candidat), « pourquoi » (causes,
+  analyse, opinion : donne aussi le candidat lié s'il existe), « hors_sujet » (météo, sport,
+  politique, poème, conseils…), « impoli ». Une salutation suivie d'une question de chiffre
+  (« Salam, ñaata nit ñoo dëkk Tiés ? ») est une question : conversation = null.
 Si un échange précédent est donné et que la question le prolonge (« Et pour Kaolack ? »,
 « Kaolack nak ? »), reprends son indicateur, sauf si la question en demande un autre."""
 
@@ -113,6 +124,7 @@ class Comprise:
     lieux_inconnus: list[str] = field(default_factory=list)  # « Touba » : jamais remplacé par le national
     proches: list[Candidat] = field(default_factory=list)
     incomprehensible: bool = False
+    conversation: str | None = None  # catégorie de conversation (0033), sinon None
 
 
 _PERIODE = {"annee": r"(19|20)\d\d", "trimestre": r"(19|20)\d\d-T[1-4]", "mois": r"(19|20)\d\d-(0[1-9]|1[0-2])"}
@@ -216,7 +228,7 @@ class Comprehension:
                 proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
                 return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
                                 lieux_inconnus(question), proches=proches,
-                                incomprehensible=sortie.incomprehensible)
+                                incomprehensible=sortie.incomprehensible, conversation=sortie.conversation)
             except EchecLLM as e:
                 appel = e.appel
         else:
@@ -226,9 +238,10 @@ class Comprehension:
         if suivi:
             req = heriter(req, precedente, question, periodes)
         proches = [] if incomp else [c for c in candidats if c.score >= SEUIL_REGLES][:3]
+        conv = conversation_regles(question)
         return Comprise(req, candidats, "regles", appel,
                         lieux_inconnus=lieux_inconnus(question), proches=proches,
-                        incomprehensible=incomp)
+                        incomprehensible=incomp and conv is None, conversation=conv)
 
     # ------------------------------------------------------------------
 

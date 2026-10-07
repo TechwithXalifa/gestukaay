@@ -16,6 +16,8 @@ import unicodedata
 from functools import cache
 from pathlib import Path
 
+from gestukaay_engine.conversation import naka_sujet
+
 ICI = Path(__file__).resolve().parent
 
 
@@ -85,8 +87,8 @@ def est_salutation(message: str) -> bool:
     reste = plier(message)
     if not reste or len(reste.split()) > 8:
         return False
-    if reste.split()[0] == "naka" and len(reste.split()) <= 3:  # KBD : « naka » + un mot = salutation
-        return True
+    if reste.split()[0] == "naka" and len(reste.split()) <= 3:  # KBD : « naka » + un mot = salutation,
+        return not naka_sujet(message)  # sauf « Naka njëg ceeb », « Naka Kaolack ? » : des questions (SAN)
     while reste:
         forme = next((f for f in _salutations() if reste == f or reste.startswith(f + " ")), None)
         if forme is None:
