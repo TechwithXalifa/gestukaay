@@ -12,6 +12,7 @@ from test_moteur import MOTEUR
     ("Salam naka leu", "salutation"), ("Naka nga def", "salutation"), ("Assalamou aleykoum", "salutation"),
     ("Lou bess", "salutation"), ("Ya ngi ci djam", "salutation"), ("Bonjour", "salutation"),
     ("merci", "remerciement"), ("Merci beaucoup !", "remerciement"), ("Au revoir", "au_revoir"),
+    ("Ba beneen yoon", "au_revoir"), ("Jërëjëf", "remerciement"),
     ("qui es-tu ?", "a_propos"), ("d'où viennent tes chiffres ?", "a_propos"), ("Tu parles wolof ?", "langue"),
     ("Que sais-tu faire ?", "aide"), ("c'est quoi le taux de pauvreté ?", "definition"),
     ("Pourquoi le chômage augmente ?", "pourquoi"), ("Que pensez-vous du chômage ?", "pourquoi"),
@@ -34,9 +35,16 @@ def test_chaque_categorie_a_son_texte():
     assert all(fr.strip() for fr, _ in _textes().values())
 
 
-def test_wolof_vide_part_en_francais():  # choix de KBD (0032) tant que le wolof n'est pas écrit
-    fr, wo = _textes()["salutation"]
-    assert texte("salutation", "wo") == (wo or fr)
+def test_textes_wolof_de_kbd():  # écrits par KBD le 07/10 (0009), sigle écrit à l'écrit (0032)
+    assert all(wo.strip() for _, wo in _textes().values())
+    assert texte("salutation", "wo").startswith("Maa ngi fi rekk, jërëjëf !")
+    assert "ANSD" in texte("a_propos", "wo") and "A-EN-ES-DE" not in texte("a_propos", "wo")
+    assert texte("definition", "wo", definition="X.") == "X. Ndax bëgg nga xam lim bi ?"
+
+
+def test_salutation_en_wolof_repond_en_wolof():
+    r = MOTEUR.repondre(AskRequest(question="Salam naka leu")).reponse
+    assert r.langue == "wo" and r.message == texte("salutation", "wo")
 
 
 @pytest.mark.parametrize("message", ["comment tu vas", "ça va ?", "merci", "qui es-tu ?"])

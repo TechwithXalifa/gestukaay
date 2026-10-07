@@ -35,7 +35,9 @@ def _textes() -> dict[str, tuple[str, str]]:
 
 def texte(cle: str, langue: str = "fr", **trous: str) -> str:
     fr, wo = _textes()[cle]
-    return ((wo if langue == "wo" and wo.strip() else fr).format(**trous)).strip()
+    t = (wo if langue == "wo" and wo.strip() else fr).format(**trous).strip()
+    # à l'écrit, le sigle tel qu'écrit (0032) ; le texte de KBD garde la forme parlée pour la voix
+    return t.replace("A-EN-ES-DE", "ANSD")
 
 
 def _t(question: str) -> str:
@@ -51,7 +53,7 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
         r"na ?nga def|na ?ngee?n def|lo?u be+s+|d?ja+m+ nga am|ya ?ngi ci d?ja+m+|comment (tu vas|allez vous|ca va)|"
         r"ca va)( \w+){0,2} $")),
     ("remerciement", re.compile(r"^ (merci( beaucoup| bien)?|jerejef|jerrejef|jerejeuf) ")),
-    ("au_revoir", re.compile(r"^ (au revoir|a plus|a bientot|bye|ciao) ")),
+    ("au_revoir", re.compile(r"^ (au revoir|a plus|a bientot|bye|ciao|ba beneen yoon) ")),
     ("a_propos", re.compile(r" (qui es tu|tu es qui|t es qui|qui t a (cree|fait|developpe)|tu es un robot|"
                             r"c est quoi gestukaay|qu est ce que gestukaay|d ou viennent tes (chiffres|donnees)) ")),
     ("langue", re.compile(r" (tu parles? (le )?wolof|repondre en wolof|reponds en wolof|parles tu wolof|"
