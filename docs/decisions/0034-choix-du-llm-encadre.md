@@ -38,3 +38,22 @@ choisit bien un candidat pertinent, mais :
   texte du message.
 - A2 : sans année demandée, un choix observé qui va plus loin dans le temps n'est pas remplacé par un vérifié
   plus ancien ; une projection l'est toujours (RGPH-5 2023 plutôt que la projection de 2013).
+
+## Passe Gemini de confirmation (07/10, soir)
+
+78/84 (92,9 %), refus 19/20, 1 chiffre faux (FR-020, connu), invariant 0 ; latence médiane 3,1 s (voir plus bas).
+Deux écarts corrigés :
+- **B en amont** : « ville de Thiès » -> le LLM ajoutait `milieu = urbain`, que le recensement ne publie pas ;
+  l'approchée finissait en refus. Le retrait d'une précision non citée et non publiée se fait désormais avant
+  toute résolution, donc aussi pour l'approchée.
+- **Demande de chiffre absente** : « Combien de personnes parlent sérère ? » était classée hors sujet par le
+  LLM ; une question qui commence par « combien », « quel est le taux », « ñaata »… n'est jamais hors sujet
+  (refus « donnée absente », avec « Suggérer cet indicateur »).
+
+## Latence (choix de KBD, 07/10)
+
+Mesuré sans couperet : Gemini 2.5 Flash répond en 1,7 s en médiane, mais 4 appels sur 10 dépassent 2 s ; avec
+un délai de 2 s par maillon, ils retombaient sur Flash-Lite (médiane du benchmark : 3,1 s). Délai du maillon
+principal porté à **3 s** et hébergeurs OpenRouter triés par **latence** (`LLM_PRINCIPAL_DELAI_S=3`,
+`LLM_PRINCIPAL_TRI=latency`). Vérifié sur 20 questions : médiane 1,88 s ; 15 par Flash, 3 par Flash-Lite,
+2 par les règles (pire cas 6 s, quand les deux maillons dépassent).
