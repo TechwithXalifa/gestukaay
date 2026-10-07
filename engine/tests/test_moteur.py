@@ -90,9 +90,17 @@ def test_executer_echec_donne_un_refus_pas_une_approchee():
     assert r.issue == "aucune"
 
 
-def test_langue_wolof_forcee_reponse_declaree_en_francais():
+def test_langue_wolof_forcee_reponse_ecrite_en_wolof():
+    # option B de KBD (0032) : la langue choisie prime ; phrases de KBD, chiffres et année tels qu'affichés
     r = demander("Combien d'habitants à Thiès ?", langue="wo")
-    assert r.langue == "fr"
+    assert r.langue == "wo" and "2 463 677" in r.explication and "2023" in r.explication
+    assert "Cees" in r.explication and "A-EN-ES-DE" not in r.explication
+
+
+def test_langue_detectee_sans_choix():
+    assert demander("Ñaata nit ñoo dëkk Tiés ?").langue == "wo"
+    assert demander("Combien d'habitants à Thiès ?").langue == "fr"
+    assert demander("Ñaata nit ñoo dëkk Tiés ?", langue="fr").langue == "fr"  # le choix forcé prime
 
 
 def test_question_vocale_garde_la_transcription():

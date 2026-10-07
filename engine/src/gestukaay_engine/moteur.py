@@ -48,7 +48,8 @@ from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
 from .gabarits import citation, explication, note_perimetre
 from .interface import NonDisponible, NoteVocale
-from .parole import texte_parle
+from .langue import detecter
+from .parole import en_wolof, texte_parle
 from .refus import Refus, construire_reponse_aucune, est_projection, refuser
 from .resolution import Introuvable, Resolution, national, ordre_effectif, resoudre
 from .situer import situer as situer_menage
@@ -56,7 +57,7 @@ from .socle import Socle, socle
 from .synthese import Synthetiseur
 from .transcription import Transcripteur
 
-LANGUE = "fr"  # seule langue de rédaction tant que #24 et #25 ne sont pas faites
+LANGUE = "fr"  # langue de rédaction des gabarits ; la réponse wolof est réécrite ensuite (0032)
 URL_PROVISOIRE = "https://app.gestukaay.test/r/{id}"  # remplacée par le backend (adresse stable)
 
 MESSAGE_NON_DISPONIBLE = "Ce type de question n'est pas encore disponible."
@@ -87,6 +88,11 @@ class MoteurReel:
     # ------------------------------------------------------------------
 
     def repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
+        # langue de la réponse (#24, 0032) : celle choisie par l'utilisateur, sinon celle de la question
+        langue = req.langue if req.langue in ("fr", "wo") else detecter(req.question)
+        return self._dans_la_langue(self._repondre(req, contexte), langue)
+
+    def _repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         question = req.question
         transcription = question if req.source == "voix" else None
         c = self.comprehension.comprendre(question, contexte)
@@ -102,6 +108,13 @@ class MoteurReel:
         return self._sans_valeur(r, c, question, transcription)
 
     def executer(self, requete: RequeteStructuree, question: str, langue: str) -> AskResponse:
+        return self._dans_la_langue(self._executer(requete, question), langue)
+
+    def _dans_la_langue(self, rep: AskResponse, langue: str) -> AskResponse:
+        """Option B de KBD : une question en wolof reçoit sa réponse écrite en wolof (phrases de KBD)."""
+        return en_wolof(rep, self.socle) if langue == "wo" else rep
+
+    def _executer(self, requete: RequeteStructuree, question: str) -> AskResponse:
         r = resoudre(self.socle, requete, LANGUE, question)
         if isinstance(r, Resolution):
             return self._exacte(r, requete, question)

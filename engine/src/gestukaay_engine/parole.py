@@ -24,6 +24,7 @@ import csv
 import re
 import unicodedata
 import zlib
+from contextvars import ContextVar
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import cache
@@ -40,6 +41,7 @@ from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import zones
 
 from .compagnons import compagnons
+from .gabarits import avec_unite, formater
 from .gabarits import gabarit as gabarit_fr
 from .resolution import national
 from .socle import Socle
@@ -212,8 +214,31 @@ def _nom_unite(u: str) -> str | None:
     return next((wo for motif, wo in _parole()["unite_nom"].items() if re.search(rf"\b{motif}", u)), None)
 
 
+# Réponse écrite en wolof (option B de KBD, 07/10) : les mêmes phrases que la voix, mais le chiffre et
+# l'année tels qu'affichés, les sigles tels qu'écrits, sans limite de 20 s. Posé par `texte_ecrit`.
+_ECRIT: ContextVar[bool] = ContextVar("ecrit", default=False)
+
+
+def _chiffre_ecrit(r: Resultat, devant_nom: bool) -> str:
+    """À l'écrit : le chiffre exact du site, du PDF et du CSV (7.4), avec les mots d'unité de KBD
+    (« 2 463 677 nit », « 309 FCFA ci kilo bi ») ; sinon l'unité telle que publiée (« % », « tonnes »)."""
+    v, u = r.valeur_affichee, _sans_accent(r.unite or "").strip()
+    if devant_nom:
+        return v
+    if "%" in u or u in ("pour cent", "pourcent"):
+        return avec_unite(v, "%")
+    if re.search(r"fcfa|\bcfa\b|franc", u):
+        monnaie = "milliards de FCFA" if "milliard" in u else "millions de FCFA" if "million" in u else "FCFA"
+        par = next((wo for motif, wo in _parole()["argent_par"].items() if re.search(rf"\b{motif}", u)), None)
+        return f"{v} {monnaie} {par}" if par else avec_unite(v, r.unite)
+    nom = _nom_unite(u)
+    return f"{v} {nom}" if nom else avec_unite(v, r.unite)
+
+
 def chiffre_wo(r: Resultat, devant_nom: bool = False) -> str:
     """{chiffre} : la valeur affichée et son unité. `devant_nom` : le gabarit écrit lui-même le nom."""
+    if _ECRIT.get():
+        return _chiffre_ecrit(r, devant_nom)
     entier, dec = _affichee(r)
     u = _sans_accent(r.unite or "").strip()
     nombre = nombre_wo(entier, dec)
@@ -263,7 +288,7 @@ def zone_wo(code: str, avec_ci: bool = True) -> str:
 def periode_wo(p: str) -> str:
     """« 2023 » -> « ci atum deux mille vingt-trois » ; « 2026-03 » ; « 2026-T1 »."""
     P = _parole()["periode"]
-    annee = fr_entier(int(p[:4]))
+    annee = p[:4] if _ECRIT.get() else fr_entier(int(p[:4]))  # à l'écrit : « ci atum 2023 »
     if re.fullmatch(r"\d{4}-T[1-4]", p):
         return P[f"T{p[-1]}"].format(annee=annee)
     if re.fullmatch(r"\d{4}-\d{2}", p):
@@ -457,7 +482,9 @@ def _classement(rep: ReponseExacte, choix: _Choix, n: int = 3) -> list[tuple[int
 
 def _approchee(rep: ReponseApprochee, choix: _Choix) -> list[tuple[int, str]] | None:
     G, t = gabarits_wo(), rep.reformulation
-    if m := re.search(r"n'est pas publié pour (.+?)\s*[;.]", t):
+    if rep.langue == "wo" and not _ECRIT.get():  # déjà écrite en wolof (0032) : la voix la lit telle quelle
+        intro = t
+    elif m := re.search(r"n'est pas publié pour (.+?)\s*[;.]", t):
         intro = choix(G["approchee.lieu"], lieu=m[1])
     elif m := re.search(r"pour l'année (\d{4})", t):
         intro = choix(G["approchee.annee"], periode=periode_wo(m[1]))
@@ -467,6 +494,8 @@ def _approchee(rep: ReponseApprochee, choix: _Choix) -> list[tuple[int, str]] | 
         intro = choix(g)
     else:
         return None  # pas de phrase wolof pour ce cas : le texte seul part
+    if _ECRIT.get():  # à l'écrit, les choix s'affichent à part (boutons, liste numérotée)
+        return [(0, intro)]
     choixs = " ".join(f"{entier_wo(int(c.id)) if c.id.isdigit() else c.id} : {c.libelle}." for c in rep.choix)
     return [(0, f"{intro} {choixs}")]
 
@@ -529,3 +558,62 @@ def _blocs(r, socle: Socle, choix: _Choix, n: int = 3) -> list[tuple[int, str]] 
     if isinstance(r, ReponseApprochee):
         return _approchee(r, choix)
     return _aucune(r, choix)
+
+
+# ---------------------------------------------------------------------------
+# Réponse écrite en wolof (option B de KBD, 07/10)
+# ---------------------------------------------------------------------------
+
+
+@cache
+def _formes_ecrites() -> tuple[tuple[str, str], ...]:
+    """Ce que la voix épelle, remis tel qu'écrit : « A-EN-ES-DE » -> « ANSD » (sigles de `parole_wo.csv`)."""
+    formes = {epeler(sigle): sigle for sigle in _parole()["sigle"]}
+    formes["we we we poñ A-EN-ES-DE poñ sn"] = "www.ansd.sn"
+    return tuple(sorted(formes.items(), key=lambda kv: len(kv[0]), reverse=True))
+
+
+def _ecrire(texte: str) -> str:
+    for dit, ecrit in _formes_ecrites():
+        texte = texte.replace(dit, ecrit)
+    t = re.sub(r"\s+", " ", texte)
+    t = re.sub(r"\s+([,.:?!])", r"\1", t).strip()
+    return re.sub(r"(^|[.?!]\s+)(\w)", lambda m: m[1] + m[2].upper(), t)
+
+
+def _notes_fr(r: Resultat) -> str:
+    """Les notes qui n'ont pas encore de wolof restent en français (choix de KBD) ; la projection a le sien."""
+    morceaux = []
+    if formater(r.valeur, r.unite)[1]:
+        morceaux.append("Valeur arrondie à l'affichage, la valeur exacte figure dans les exports.")
+    if not (r.unite or "").strip():
+        morceaux.append("Unité non précisée par la source.")
+    return " ".join(morceaux)
+
+
+def texte_ecrit(rep: AskResponse, socle: Socle) -> str | None:
+    """Le texte wolof de la réponse écrite, ou None (pas de phrase wolof : la réponse reste en français)."""
+    r = rep.reponse
+    jeton = _ECRIT.set(True)
+    try:
+        blocs = _blocs(r, socle, _Choix(r.id))
+    finally:
+        _ECRIT.reset(jeton)
+    if blocs is None:
+        return None
+    texte = _ecrire(" ".join(p for _, p in blocs))
+    if isinstance(r, ReponseExacte) and (notes := _notes_fr(r.resultats[0])):
+        texte = f"{texte} {notes}"
+    return texte
+
+
+def en_wolof(rep: AskResponse, socle: Socle) -> AskResponse:
+    """La réponse française, réécrite en wolof quand KBD a écrit les phrases ; sinon inchangée (« fr »)."""
+    texte = texte_ecrit(rep, socle)
+    if texte is None:
+        return rep
+    r = rep.reponse
+    champ = "explication" if isinstance(r, ReponseExacte) else \
+        "reformulation" if isinstance(r, ReponseApprochee) else "message"
+    return rep.model_copy(update={"reponse": r.model_copy(update={champ: texte, "langue": "wo"})})
+
