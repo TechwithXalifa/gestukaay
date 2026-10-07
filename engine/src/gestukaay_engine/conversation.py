@@ -66,8 +66,10 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
                               r"definis?) ")),
     ("pourquoi", re.compile(r"^ (pourquoi|que pensez vous|qu en penses tu|tu penses que) ")),
     # hors sujet SÛR seulement (le reste : LLM) ; « njiitu réew » : question WO-025 de KBD
-    ("hors_sujet", re.compile(r" (meteo|temps fera t il|quel temps|president|njiitu reew\w*|poeme|blague|"
-                              r"recette|football|foot|match) ")),
+    # pas « recette », « foot », « match », « président » seuls : « recette touristique », « terrains de foot »
+    # sont des questions de statistique (revue de SAN sur #147)
+    ("hors_sujet", re.compile(r" (meteo|temps fera t il|quel temps fera|qui est le president|njiitu reew\w*|"
+                              r"poeme|blague) ")),
 )
 
 

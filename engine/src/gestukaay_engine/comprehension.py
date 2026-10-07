@@ -237,6 +237,10 @@ def _verifie_en_tete(code: str | None, candidats, zones, periodes) -> str | None
         return code
     if any(not (tete.periode_debut[:4] <= p[:4] <= tete.periode_fin[:4]) for p in periodes):
         return code
+    # dernière donnée : un choix observé qui va plus loin dans le temps n'est pas remplacé par plus ancien
+    # (revue de SAN) ; une projection, si (RGPH-5 2023 plutôt que la projection de 2013 jusqu'en 2025)
+    if not periodes and choisi.periode_fin[:4] > tete.periode_fin[:4] and projection(choisi.dataset_id) is None:
+        return code
     return tete.code
 
 
@@ -268,7 +272,8 @@ class Comprehension:
                 proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
                 # une forme sûre des règles (salutations de KBD, merci…) prime sur un « incompréhensible » du LLM :
                 # « naka leu » seul lui est opaque (essai du 07/10)
-                conv = sortie.conversation or conversation_regles(question)
+                # mais pas si le LLM a trouvé un indicateur : la question est alors une question de chiffre
+                conv = sortie.conversation or (conversation_regles(question) if req.indicateur is None else None)
                 return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
                                 lieux_inconnus(question), proches=proches,
                                 incomprehensible=sortie.incomprehensible and conv is None, conversation=conv)

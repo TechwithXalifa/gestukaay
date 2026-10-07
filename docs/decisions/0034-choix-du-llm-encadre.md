@@ -28,3 +28,13 @@ choisit bien un candidat pertinent, mais :
 - Jeu de test (changements.csv) : FR-059, FR-060, FR-063, WO-025, WO-026 attendent `conversation` (0033) ;
   FR-051 attend région de Diourbel ou Sénégal (0030). Cinq vrais refus « donnée absente » à ajouter (KBD).
 - À confirmer par une nouvelle passe Gemini.
+
+## Revue de SAN (07/10)
+
+- Hors sujet par règles resserré : plus « recette », « foot », « match » ni « président » seuls (« recette
+  touristique », « terrains de foot » sont des questions de chiffre) ; et une règle de conversation ne
+  contredit plus le LLM quand il a trouvé un indicateur.
+- B repère la dimension absente par un champ de la résolution (`Introuvable.dimension_absente`), plus par le
+  texte du message.
+- A2 : sans année demandée, un choix observé qui va plus loin dans le temps n'est pas remplacé par un vérifié
+  plus ancien ; une projection l'est toujours (RGPH-5 2023 plutôt que la projection de 2013).

@@ -83,6 +83,7 @@ class Introuvable:
     detail: str
     disponibles: list[str] = field(default_factory=list)  # zones ou périodes publiées
     choix: dict[str, list[str]] = field(default_factory=dict)  # dimension ambiguë -> modalités
+    dimension_absente: str | None = None  # clé canonique (« sexe ») que ce jeu ne publie pas du tout
 
 
 # --------------------------------------------------------------------------
@@ -146,7 +147,8 @@ def imposer(lignes: list[Observation], demande: dict[str, str]) -> tuple[list[Ob
             ailleurs = [(k, m) for k in sorted(dims) for m in sorted({o.dims().get(k) for o in lignes} - {None})
                         if not est_total(m) and correspond(canon, valeur, m)]
             if len(ailleurs) != 1:
-                return [], Introuvable("desagregation_absente", f"{canon} = {valeur} : non publié pour cet indicateur")
+                return [], Introuvable("desagregation_absente", f"{canon} = {valeur} : non publié pour cet indicateur",
+                                       dimension_absente=canon)
             d = ailleurs[0][0]
         modalites = sorted({o.dims().get(d) for o in lignes} - {None})
         trouvees = [m for m in modalites if correspond(canon, valeur, m)]

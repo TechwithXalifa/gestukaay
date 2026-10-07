@@ -255,9 +255,9 @@ def _sans_precision_inventee(r: Introuvable, requete: RequeteStructuree, questio
     """B (passe du 07/10) : le LLM ajoute parfois une précision que la question ne contient pas (« femmes »
     sur la vaccination des enfants). Si elle n'est pas citée (règles) ET que le jeu ne publie pas cette
     dimension du tout, on la retire. Citée par l'utilisateur, elle reste stricte (décision 0011)."""
-    if r.raison != "desagregation_absente" or "non publié pour cet indicateur" not in r.detail:
+    cle = r.dimension_absente  # posé par la résolution, pas lu dans le message (revue de SAN)
+    if r.raison != "desagregation_absente" or not cle:
         return None
-    cle = r.detail.split(" = ", 1)[0].strip()
     desag = dict(requete.desagregation or {})
     if cle not in desag or cle in desagregation_citee(question):
         return None
