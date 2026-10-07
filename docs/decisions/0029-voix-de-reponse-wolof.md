@@ -70,3 +70,13 @@ voix la plus claire et la plus naturelle.
   texte seul (EF-21).
 - **Millions et milliards de FCFA (option B)** : le vrai montant est dit (« … milyaar ak … milyoŋi CFA »),
   « milyoŋ » une seule fois, et « CFA » au-delà du million.
+
+## Messageries : répondre dans le mode de la question (KBD, 07/10)
+
+Essai Telegram : une question vocale recevait le texte complet PUIS la note, ce qui s'empilait. Désormais,
+sur WhatsApp et Telegram (le site ne change pas) :
+- question **écrite** (français ou wolof) : **texte seul** (la réponse écrite est déjà en wolof, 0032) ;
+- question **vocale** : la **note vocale**, puis une **fiche d'une ligne** (chiffre exact, zone, période,
+  source : le chiffre reste lisible et vérifiable, 7.4) ; approchée : la note puis les choix ; refus : la
+  note puis les suggestions ;
+- voix indisponible ou en panne : le **texte complet**, comme pour une question écrite.
