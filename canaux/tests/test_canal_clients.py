@@ -151,3 +151,43 @@ def test_telegram_note_vocale_sans_le_jeton_dans_l_erreur(monkeypatch):
     with pytest.raises(telegram.ErreurTelegram) as e:
         telegram.ClientTelegram(httpx.MockTransport(panne)).vocal("600000001", b"OggS")
     assert JETON_TG not in "".join(traceback.format_exception(e.value))
+
+
+def test_whatsapp_refus_de_meta_journalise_sans_numero(caplog, monkeypatch):
+    # essai réel du 07/10 : le 400 de Meta (131030, destinataire hors liste de test) n'était pas lisible.
+    # Revue de SAN : par le vrai envoi ; l'erreur part toujours, le journal n'a ni le numéro ni le texte.
+    import logging
+
+    import httpx
+    import pytest
+    from gestukaay_canaux.whatsapp import ClientGraph
+
+    refus = {"error": {"code": 131030, "message": "(#131030) Recipient phone number not in allowed list",
+                       "error_data": {"details": "Ajoutez le numéro"}}}
+    monkeypatch.setenv("WHATSAPP_TOKEN", "jeton-de-test")
+    monkeypatch.setenv("WHATSAPP_PHONE_NUMBER_ID", "1000")
+    client = ClientGraph(transport=httpx.MockTransport(lambda r: httpx.Response(400, json=refus)))
+    with caplog.at_level(logging.WARNING), pytest.raises(httpx.HTTPStatusError):
+        client.texte("221770000000", "Combien d'habitants à Thiès ?")
+    assert "131030" in caplog.text and "allowed list" in caplog.text
+    assert "221770000000" not in caplog.text and "habitants" not in caplog.text
+
+
+@pytest.mark.parametrize("corps", [["inattendu"], "texte", {"error": "proxy"}, {"error": {"code": 1, "error_data": "x"}}])
+def test_raison_meta_corps_inattendu(corps):  # revue de SAN : jamais d'AttributeError qui cache le 400
+    import httpx
+    from gestukaay_canaux.whatsapp import _raison_meta
+    assert _raison_meta(httpx.Response(400, json=corps)).startswith("HTTP 400")
+
+
+def test_statut_non_remis_journalise_sans_numero(caplog):
+    # essai réel du 07/10 : envois acceptés mais jamais remis (131031, compte verrouillé)
+    import logging
+
+    from gestukaay_canaux.whatsapp import lire
+    statut = {"entry": [{"changes": [{"value": {"statuses": [{
+        "id": "wamid.X", "status": "failed", "recipient_id": "221770000000",
+        "errors": [{"code": 131031, "title": "Business Account locked"}]}]}}]}]}
+    with caplog.at_level(logging.WARNING):
+        assert lire(statut) == []
+    assert "131031" in caplog.text and "221770000000" not in caplog.text
