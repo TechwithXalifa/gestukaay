@@ -206,7 +206,7 @@ def desagregation_citee(question: str) -> dict[str, str]:
     # = dessus) et « àll » seul ne suffisent pas
     if re.search(r"\b(ruraux|rurales?|rural|goxaan|kaw gi|all bi)\b", t):
         d["milieu"] = "rural"
-    elif re.search(r"\b(urbains?|urbaines?)\b", t):
+    elif re.search(r"\b(urbains?|urbaines?|dekku taax)\b", t):  # « dëkku taax yi » = l'urbain (KBD) ; pas « taax » seul
         d["milieu"] = "urbain"
     if m := re.search(r"\b(\d{1,2})\s*(?:a|ba|-)\s*(\d{1,2})\s*ans\b", t):
         d["age"] = f"{m[1]}-{m[2]}"

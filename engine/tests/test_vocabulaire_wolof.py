@@ -92,6 +92,11 @@ def test_milieu_rural_en_wolof(question):  # KBD, 07/10 : gox-goxaan, kaw gi, à
     assert desagregation_citee(question) == {"milieu": "rural"}
 
 
+def test_milieu_urbain_en_wolof():  # KBD, 07/10 : « dëkku taax yi » = urbain ; « taax » seul = bâtiment
+    assert desagregation_citee("Ñaata kër ci dëkku taax yi ñoo am kuraŋ ?") == {"milieu": "urbain"}
+    assert "milieu" not in desagregation_citee("Ñaata taax ñoo am ci Dakar ?")
+
+
 def test_kaw_seul_n_est_pas_le_rural():
     assert "milieu" not in desagregation_citee("Ban diiwaan moo ëpp ci kaw ?")
 
