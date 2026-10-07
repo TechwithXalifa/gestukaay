@@ -76,7 +76,8 @@ voix la plus claire et la plus naturelle.
 Essai Telegram : une question vocale recevait le texte complet PUIS la note, ce qui s'empilait. Désormais,
 sur WhatsApp et Telegram (le site ne change pas) :
 - question **écrite** (français ou wolof) : **texte seul** (la réponse écrite est déjà en wolof, 0032) ;
-- question **vocale** : la **note vocale**, puis une **fiche d'une ligne** (chiffre exact, zone, période,
-  source : le chiffre reste lisible et vérifiable, 7.4) ; approchée : la note puis les choix ; refus : la
+- question **vocale** : la **note vocale**, puis une **fiche** : une ligne (chiffre exact, indicateur, zone,
+  période, source), le lien de la réponse et la mention gestukaay, pour qu'elle se suffise si on la transfère
+  (7.4, US-14, revue de SAN) ; approchée : la note puis les choix ; refus : la
   note puis les suggestions ;
-- voix indisponible ou en panne : le **texte complet**, comme pour une question écrite.
+- voix indisponible ou en panne (calcul **ou envoi**) : le **texte complet**, comme pour une question écrite.

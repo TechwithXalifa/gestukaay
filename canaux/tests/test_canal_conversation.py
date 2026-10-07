@@ -187,8 +187,9 @@ def test_question_vocale_la_voix_puis_une_fiche():
     traiter(entrant(type="audio", media="300000000000001"), s, e)
     assert [k for k, _ in e.envois] == ["accuse", "preparer_vocal", "vocal", "texte"]
     assert e.envois[2] == ("vocal", b"OggS-note")
-    ligne = e.textes()[-1]
-    assert "2\u202f463\u202f677" in ligne and "Source" in ligne and "\n" not in ligne  # une seule ligne
+    ligne, lien, mention = e.textes()[-1].split("\n")  # revue de SAN : se suffit si on la transfère
+    assert "2\u202f463\u202f677" in ligne and "Source" in ligne and " · " in ligne
+    assert lien.startswith("http") and mention == "— gestukaay"
 
 
 def test_question_ecrite_en_wolof_texte_seul():
@@ -232,4 +233,17 @@ def test_approchee_vocale_la_voix_puis_les_choix():
                                           "approchee").reponse.model_copy(update={"transcription": q})}))
     traiter(entrant(type="audio", media="300000000000001"), s, e)
     assert [k for k, _ in e.envois] == ["accuse", "preparer_vocal", "vocal", "choix"]
+
+
+def test_envoi_de_la_note_en_panne_le_texte_complet_part():
+    # revue de SAN sur #146 : l'envoi de la note (dépôt chez Meta, sendVoice) peut échouer aussi
+    class EnvoyeurSansVoix(Envoyeur):
+        def vocal(self, destinataire, opus):
+            raise RuntimeError("dépôt du média refusé")
+
+    e, (s, _) = EnvoyeurSansVoix(), services(derniere=rep("exacte_valeur"), transcrire=_vocale(),
+                                             demander=lambda q: avec_question(q, transcription=q))
+    traiter(entrant(type="audio", media="300000000000001"), s, e)  # ne remonte pas
+    assert texte("erreur") not in e.textes()
+    assert "2\u202f463\u202f677" in e.textes()[-1] and "— gestukaay" in e.textes()[-1]  # le texte complet
 

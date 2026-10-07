@@ -60,21 +60,23 @@ def _aucune(r: ReponseAucune) -> str:
 
 
 def fiche(rep: AskResponse, gras: bool = True) -> str | None:
-    """Ce qui accompagne une note vocale (choix de KBD, 07/10) : une ligne avec le chiffre exact et sa
-    source, pour le lire, le noter, le vérifier (7.4). Approchée : rien (les choix suivent) ; refus : les
-    suggestions s'il y en a."""
+    """Ce qui accompagne une note vocale (choix de KBD, 07/10) : le chiffre exact, l'indicateur, la zone, la
+    période et la source sur une ligne, puis le lien de la réponse et la mention gestukaay. C'est souvent ce
+    message qu'on transfère : il doit se suffire (P1 étape 5, US-14, revue de SAN sur #146).
+    Approchée : rien (les choix suivent) ; refus : les suggestions s'il y en a."""
     r = rep.reponse
     if isinstance(r, ReponseExacte):
         res = r.resultats
         if r.intention == "valeur":
             x = res[0]
             chiffre = avec_unite(x.valeur_affichee, x.unite)
-            corps = f"{f'*{chiffre}*' if gras else chiffre} · {x.zone.libelle} · {x.periode.libelle}"
-        else:  # comparaison, classement : les trois premiers, la période commune
-            corps = " · ".join(f"{x.zone.libelle} {avec_unite(x.valeur_affichee, x.unite)}" for x in res[:3])
+            corps = (f"{f'*{chiffre}*' if gras else chiffre} · {x.indicateur.libelle} · {x.zone.libelle}"
+                     f" · {x.periode.libelle}")
+        else:  # comparaison, classement : l'indicateur, les trois premiers, la période commune
+            corps = f"{res[0].indicateur.libelle} : " + " · ".join(
+                f"{x.zone.libelle} {avec_unite(x.valeur_affichee, x.unite)}" for x in res[:3])
             corps += f" ({res[0].periode.libelle})"
-        return f"{corps} — Source : {res[0].source.libelle}"
+        return "\n".join([f"{corps} — Source : {res[0].source.libelle}", r.url, MENTION])
     if isinstance(r, ReponseAucune) and r.suggestions:
-        return "\n".join(f"• {s.question_suggeree}" for s in r.suggestions)
+        return "\n".join([*(f"• {s.question_suggeree}" for s in r.suggestions), MENTION])
     return None
-

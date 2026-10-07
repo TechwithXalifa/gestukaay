@@ -12,7 +12,7 @@
     ligne (chiffre exact et source) et, pour une approchée, les choix ; si la voix manque ou tombe en
     panne, le texte complet, comme pour une question écrite.
 Une erreur envoie le texte « erreur » puis remonte au backend, qui la journalise sans le numéro ; une
-panne de la voix est seulement journalisée : le texte est déjà parti.
+panne de la voix (calcul ou envoi) est journalisée et le texte complet part à la place.
 """
 
 from __future__ import annotations
@@ -108,21 +108,25 @@ def _choisir(dest: str, choix_id: str, services: Services, envoyeur: Envoyeur) -
 
 def _envoyer(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> None:
     s: Sortant = formater(rep, envoyeur.gras)
-    if rep.reponse.transcription is not None and (note := _note(dest, rep, services, envoyeur)):
-        envoyeur.vocal(dest, note.opus)  # question vocale : la voix, puis une ligne à lire
-        if f := fiche(rep, envoyeur.gras):
+    if rep.reponse.transcription is not None and _dire(dest, rep, services, envoyeur):
+        if f := fiche(rep, envoyeur.gras):  # question vocale : la voix est partie, puis la fiche
             envoyeur.texte(dest, f)
-    else:  # question écrite, ou voix indisponible : le texte complet
+    else:  # question écrite, ou voix indisponible ou en panne : le texte complet
         envoyeur.texte(dest, s.texte)
     if s.choix:
         envoyeur.choix(dest, s.choix)
 
 
-def _note(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur):
-    """La note vocale, ou None (pas de phrase wolof, services absents, panne) : le texte part alors."""
+def _dire(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> bool:
+    """Prépare ET envoie la note vocale ; False (le texte complet partira) si pas de phrase wolof, services
+    absents ou une panne, y compris à l'envoi (dépôt chez Meta, sendVoice) : revue de SAN sur #146."""
     try:
         envoyeur.preparer_vocal(dest)
-        return services.parler(rep)
+        note = services.parler(rep)
+        if note is None:
+            return False
+        envoyeur.vocal(dest, note.opus)
+        return True
     except Exception:  # noqa: BLE001 — une panne de la voix ne doit jamais empêcher la réponse
-        _log.exception("voix : la note n'a pas pu être préparée (réponse %s)", rep.reponse.id)
-        return None
+        _log.exception("voix : la note n'a pas pu être envoyée (réponse %s)", rep.reponse.id)
+        return False
