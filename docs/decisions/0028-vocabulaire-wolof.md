@@ -34,3 +34,13 @@ dëkk seajo » répondait « cette donnée n'existe pas ». KBD a validé les fi
   population (le LLM choisit bien).
 - À proposer : un glossaire wolof dans la consigne du LLM (Njaaréem = Diourbel, ñakk / ñàkk, ren /
   daaw…), à mesurer par une passe payante.
+
+## Ajout du 06/10 : électricité (questions et validation de KBD)
+
+Trois questions de KBD répondaient à côté en règles (robinet, pauvreté, valeur nationale au lieu du rural) :
+
+- **ŋ** est lu « ng » (`texte_normalise`, aussi pour le sens du classement) : « kuraŋ » devenait « kura » ;
+- **kër** = ménage ; **gox-goxaan (yi)** = milieu rural (le mot pour « urbain » reste à donner par KBD) ;
+- **ñàkk + une chose connue** (« ñàkk kuraŋ », « ñàkk liggéey ») = manquer de cette chose, pas la pauvreté ;
+- **gëna ñàkk kuraŋ / mbëj** = l'accès le plus faible (classement croissant). « gëna ñàkk » seul (le plus
+  pauvre) et « gëna ñàkk liggéey » (chômage) restent « le plus élevé » : l'indicateur y mesure déjà le manque.

@@ -292,7 +292,7 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
            precedente: RequeteStructuree | None) -> RequeteStructuree:
     if aucun_mot_connu(question):
         return RequeteStructuree(intention="hors_perimetre", zones=zones, confiance=0.1)
-    t = normaliser(question)
+    t = texte_normalise(question)  # « ŋ » et ponctuation collée, comme les candidats
     meilleur = max(candidats, key=lambda c: c.score, default=None)  # le tri par couverture ne compte pas ici
     meilleur = meilleur if meilleur and meilleur.score >= SEUIL_REGLES else None
     code = meilleur.indicateur.code if meilleur else None

@@ -2,7 +2,15 @@
 
 import pytest
 from gestukaay_contracts.models import AskRequest
-from gestukaay_engine.candidats import ORDRE_ASC, SYNONYMES, lieux_inconnus, zones_citees
+from gestukaay_engine.candidats import (
+    ORDRE_ASC,
+    SYNONYMES,
+    desagregation_citee,
+    index,
+    lieux_inconnus,
+    texte_normalise,
+    zones_citees,
+)
 from gestukaay_engine.comprehension import _COMPARAISON, _TEMPS, Comprehension
 from gestukaay_socle.zones import normaliser
 from test_moteur import MOTEUR
@@ -42,3 +50,39 @@ def test_mots_et_marqueurs():
 def test_classement_wolof_le_moins_pauvre():
     r = Comprehension(None).comprendre("ban diwaan moo gëna néew tolluwaayu ñàkk").requete
     assert (r.intention, r.ordre) == ("classement", "asc")
+
+
+# --- Électricité en wolof (questions de KBD, 06/10) : ŋ, kër, gox-goxaan, gëna ñàkk ---------------------
+
+
+def _comprise(question):
+    return Comprehension(None).comprendre(question).requete
+
+
+def test_n_tilde_ng_n_est_plus_efface():
+    # « kuraŋ » devenait « kura » (ŋ sans équivalent ASCII) : le mot n'était plus reconnu
+    assert texte_normalise("kuraŋ") == "kurang"
+    assert "kurang" in index().requete("Ñaata kër ñoo am kuraŋ ci Senegaal ?")
+
+
+def test_ker_menages_et_kurang_electricite():
+    r = _comprise("Ñaata kër ñoo am kuraŋ ci Senegaal ?")
+    assert r.indicateur == "asongtc" and r.zones == ["SN"]  # ménages et éclairage, pas le robinet
+
+
+def test_gena_nakk_kurang_le_plus_faible_acces():
+    r = _comprise("Ban diiwaan moo gëna ñàkk kuraŋ ?")
+    assert (r.indicateur, r.intention, r.ordre) == ("asongtc", "classement", "asc")  # pas la pauvreté
+
+
+@pytest.mark.parametrize("question, indicateur", [
+    ("Ban diiwaan moo gëna ñàkk ?", "jcvcajc.taux-de-pauvrete"),  # le plus pauvre : la pauvreté la plus élevée
+    ("Ban diiwaan moo gëna ñàkk liggéey ?", "dwibrlf"),  # le chômage le plus élevé
+])
+def test_gena_nakk_seul_ou_liggeey_reste_le_plus_eleve(question, indicateur):
+    r = _comprise(question)
+    assert (r.indicateur, r.intention, r.ordre) == (indicateur, "classement", "desc")
+
+
+def test_gox_goxaan_milieu_rural():
+    assert desagregation_citee("Ñaata kër yu dëkk ci gox-goxaan yi ñoo am mbëj ?") == {"milieu": "rural"}

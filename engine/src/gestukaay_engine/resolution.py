@@ -35,7 +35,7 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.indicateurs import REFERENTIELS, Indicateur, indicateurs
 from gestukaay_socle.zones import normaliser, zones
 
-from .candidats import ORDRE_ASC, periodes_citees
+from .candidats import ORDRE_ASC, periodes_citees, texte_normalise
 from .gabarits import formater
 from .graphique import (
     graphique_classement,
@@ -338,7 +338,7 @@ def _chercher_indicateur(code: str | None) -> Indicateur | None:
 def ordre_effectif(requete: RequeteStructuree, question: str = "") -> str:
     """Sens du classement : requete.ordre, sinon repli lexical (« le moins », « le plus faible »).
     Partagé par le tri (ici) et la phrase (gabarits), pour qu'ils ne se contredisent jamais."""
-    if requete.ordre == "desc" and ORDRE_ASC.search(normaliser(question)):
+    if requete.ordre == "desc" and ORDRE_ASC.search(texte_normalise(question)):
         return "asc"
     return requete.ordre
 
