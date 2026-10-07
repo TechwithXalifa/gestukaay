@@ -272,8 +272,10 @@ class Comprehension:
                 proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
                 # une forme sûre des règles (salutations de KBD, merci…) prime sur un « incompréhensible » du LLM :
                 # « naka leu » seul lui est opaque (essai du 07/10)
-                # mais pas si le LLM a trouvé un indicateur : la question est alors une question de chiffre
-                conv = sortie.conversation or (conversation_regles(question) if req.indicateur is None else None)
+                # sauf le hors sujet quand le LLM a trouvé un indicateur (« recette touristique ») ; définition et
+                # « pourquoi » restent rattrapés, le LLM y donne justement un candidat (revue de SAN sur #147)
+                regle = sortie.conversation or conversation_regles(question)
+                conv = None if regle == "hors_sujet" and req.indicateur and not sortie.conversation else regle
                 return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
                                 lieux_inconnus(question), proches=proches,
                                 incomprehensible=sortie.incomprehensible and conv is None, conversation=conv)

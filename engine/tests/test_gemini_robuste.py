@@ -113,3 +113,15 @@ def test_a2_ne_ramene_pas_une_donnee_plus_ancienne_sans_annee():
     v, n = paire
     assert _verifie_en_tete(n.code, [Candidat(v, 10.0), Candidat(n, 5.0)], [], []) == n.code
 
+
+def test_definition_rattrapee_meme_si_le_llm_donne_un_indicateur():
+    # revue de SAN sur #147 : la garde ne vaut que pour le hors sujet ; « c'est quoi… » reste une définition
+    from gestukaay_engine.comprehension import SortieLLM
+
+    class Llm:  # le LLM donne le candidat mais oublie la catégorie
+        def structurer(self, systeme, message, modele):
+            return SortieLLM(intention="valeur", candidat=1, confiance=0.9), None
+
+    c = Comprehension(Llm()).comprendre("C'est quoi le taux de pauvreté ?")
+    assert c.conversation == "definition" and c.requete.indicateur
+
