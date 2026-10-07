@@ -42,6 +42,16 @@ test("réponse exacte : chiffre, source, graphique et tableau", async ({ page })
   await accessible(page, "réponse exacte, tableau");
 });
 
+test("classement : la zone demandée en grand, même si elle n'est pas en tête", async ({ page }) => {
+  // Le moteur trie par valeur : Dakar est en tête, mais la question porte sur Thiès (mise en évidence)
+  await poser(page, "Où se classe Thiès pour la population en 2023 ?");
+  await expect(page.locator(".valeur")).toHaveCount(1);
+  await expect(page.locator(".valeur")).toContainText(/2.463.677/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Thiès");
+  await expect(page.getByText("Le classement complet des 2 zones")).toBeVisible();
+  await accessible(page, "classement");
+});
+
 test("réponse approchée : aucun chiffre avant le choix, puis la valeur", async ({ page }) => {
   await poser(page, "Population de la ville de Thiès en 2023");
   await expect(page.getByText("Correspondance approchée")).toBeVisible();
@@ -73,7 +83,8 @@ test("refus : suggérer l'indicateur manquant à l'équipe (EF-51)", async ({ pa
 test("projection : badge et base, jamais présentée comme observée", async ({ page }) => {
   await poser(page, "Espérance de vie au Sénégal en 2035");
   await expect(page.locator(".badge.projection")).toHaveText("Projection");
-  await expect(page.getByText(/Ce n'est pas une valeur observée\. Base :/)).toBeVisible();
+  // \s : espace insécable devant « : » (typographie française, lib/typo.ts)
+  await expect(page.getByText(/Ce n'est pas une valeur observée\.\sBase\s:/)).toBeVisible();
   await accessible(page, "projection");
 });
 
@@ -148,4 +159,15 @@ test("suivi : les questions d'un même onglet partagent une conversation (décis
   await expect.poll(() => ids.length).toBe(2);
   expect(ids[0]).toBeTruthy();
   expect(ids[1]).toBe(ids[0]);
+});
+
+test("vote : on peut encore signaler après un « Oui », et « Non » ouvre le signalement", async ({ page }) => {
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.getByRole("button", { name: "Oui" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "votre retour a été transmis" })).toBeVisible();
+  await page.getByRole("button", { name: "Signaler une erreur" }).click();
+  await expect(page.getByRole("group", { name: "Qu'est-ce qui ne va pas ?" })).toBeVisible();
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.getByRole("button", { name: "Non" }).click();
+  await expect(page.getByRole("group", { name: "Qu'est-ce qui ne va pas ?" })).toBeVisible();
 });

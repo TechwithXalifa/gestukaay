@@ -44,6 +44,21 @@ def test_indicateurs_de_qualite():
     assert st.tableau(30, langue="wo")["part_wolof"] == 1.0
 
 
+def test_salutations_ni_refus_ni_non_resolues():
+    # 0033 : « Bonjour » reçoit une réponse polie (motif conversation), ce n'est pas un échec du moteur
+    st = Stockage("")
+    _poser(st, "Combien d'habitants à Thiès ?", 1000)
+    _poser(st, "Combien de personnes parlent sérère au Sénégal ?", 1000)
+    for i in range(3):  # le faux moteur n'a pas de motif conversation : un refus relabellisé
+        rep = MOTEUR.repondre(AskRequest(question="Combien de personnes parlent sérère au Sénégal ?"))
+        rep.reponse.motif, rep.reponse.question, rep.reponse.id = "conversation", "Bonjour", f"conv{i}"
+        st.enregistrer(rep, AskRequest(question="Bonjour"))
+    t = st.tableau(30)
+    assert t["questions"] == 5 and t["conversations"] == 3
+    assert t["issues"] == {"exacte": 1, "approchee": 0, "aucune": 1}
+    assert [g["question"] for g in t["non_resolues"]] == ["Combien de personnes parlent sérère au Sénégal ?"]
+
+
 def test_periode_et_confirmations():
     st = Stockage("")
     approchee = _poser(st, "Population de la ville de Thiès en 2023", 2000)
@@ -62,4 +77,5 @@ def test_route_admin(monkeypatch):
     assert client.get("/admin/tableau").status_code == 401
     ok = client.get("/admin/tableau?jours=7", headers={"Authorization": "Bearer secret-de-test"})
     assert ok.status_code == 200 and ok.json()["jours"] == 7 and ok.headers["cache-control"] == "no-store"
+    assert "benchmark" in ok.json()  # dernière exécution du jeu de test (US-28), None s'il n'y en a pas
     assert client.get("/admin/tableau?jours=12", headers={"Authorization": "Bearer secret-de-test"}).status_code == 422

@@ -94,6 +94,7 @@ export function PageReponse({ id, initiale }: { id: string; initiale: AskRespons
             r={r}
             onChoix={(choix) => charger(() => confirmer(r.id, choix), true)}
             onQuestion={(q) => charger(() => demander({ question: q }), true)}
+            onMicro={() => setEcoute(true)}
           />
         ) : horsLigne ? (
           <HorsLigne onReessayer={() => charger(() => lireReponse(id))} />

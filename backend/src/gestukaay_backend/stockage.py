@@ -290,7 +290,16 @@ class Stockage:
 
         latences = sorted(lg[4] for lg in courantes if lg[4] is not None)
         p95 = latences[min(len(latences) - 1, int(0.95 * len(latences)))] if latences else None
-        issues = Counter(lg[3] for lg in courantes)
+
+        # Motif de chaque « aucune » : une salutation ou un merci (0033) n'est ni un refus ni une
+        # question non résolue, on les compte à part.
+        motifs: dict[str, str] = {}
+        for rid in {lg[6] for lg in courantes if lg[3] == "aucune"}:
+            contenu = self._executer("SELECT contenu FROM reponses WHERE id = ?", (rid,))
+            if contenu:
+                motifs[rid] = json.loads(contenu[0][0])["reponse"].get("motif", "")
+        conversations = [lg for lg in courantes if lg[3] == "aucune" and motifs.get(lg[6]) == "conversation"]
+        issues = Counter(lg[3] for lg in courantes if not (lg[3] == "aucune" and motifs.get(lg[6]) == "conversation"))
 
         ids = {lg[6] for lg in courantes}
         votes: dict[str, tuple[str, str]] = {}  # dernier vote de chaque réponse
@@ -309,12 +318,7 @@ class Stockage:
         jours_liste = [(debut + timedelta(days=i + 1)).date().isoformat() for i in range(jours)]
 
         # Questions non résolues (refus), regroupées par question normalisée, les plus fréquentes d'abord
-        refus = [lg for lg in courantes if lg[3] == "aucune"]
-        motifs: dict[str, str] = {}
-        for rid in {lg[6] for lg in refus}:
-            contenu = self._executer("SELECT contenu FROM reponses WHERE id = ?", (rid,))
-            if contenu:
-                motifs[rid] = json.loads(contenu[0][0])["reponse"].get("motif", "")
+        refus = [lg for lg in courantes if lg[3] == "aucune" and motifs.get(lg[6]) != "conversation"]
         groupes: dict[str, dict] = {}
         for lg in refus:
             cle = " ".join(lg[5].lower().split())
@@ -327,6 +331,7 @@ class Stockage:
             "questions": total,
             "questions_periode_precedente": precedentes,
             "issues": {k: issues.get(k, 0) for k in ("exacte", "approchee", "aucune")},
+            "conversations": len(conversations),
             "latence_mediane_ms": round(statistics.median(latences)) if latences else None,
             "latence_p95_ms": p95,
             "part_wolof": round(sum(lg[2] == "wo" for lg in courantes) / total, 3) if total else None,

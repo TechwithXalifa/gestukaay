@@ -3,6 +3,7 @@
 Permet au backend et au web d'avancer sans attendre le moteur réel.
 Questions reconnues (insensible à la casse) :
   « wolof » / « ñaata » -> exacte_wolof_vocal
+  « classe »            -> exacte_classement      (ex. « Où se classe Thiès ? », Thiès mise en évidence)
   « et »  + deux villes -> exacte_comparaison     (ex. « Dakar et Thiès »)
   « ville »             -> approchee
   « 2035 »              -> exacte_projection (badge « projection »)
@@ -54,6 +55,8 @@ class MoteurFactice:
         q = req.question.lower()
         if "ñaata" in q or "naata" in q or req.langue == "wo":
             nom = "exacte_wolof_vocal"
+        elif "classe" in q:
+            nom = "exacte_classement"
         elif " et " in q and ("dakar" in q or "thi" in q):
             nom = "exacte_comparaison"
         elif "ville" in q:

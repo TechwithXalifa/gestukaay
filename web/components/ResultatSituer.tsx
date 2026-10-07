@@ -2,6 +2,7 @@
 
 import type { Resultat, SituateResponse } from "@contracts/situate_response";
 import { useLangue } from "@/i18n/langue";
+import { insecables } from "@/lib/typo";
 import { Livre } from "./icones";
 
 function Source({ v }: { v: Resultat }) {
@@ -47,7 +48,7 @@ export function ResultatSituer({ r }: { r: SituateResponse }) {
         ))}
       </ul>
 
-      <p className="explication">{r.explication}</p>
+      <p className="explication">{insecables(r.explication)}</p>
 
       {r.contexte.length > 0 && (
         <>
@@ -56,7 +57,10 @@ export function ResultatSituer({ r }: { r: SituateResponse }) {
             {r.contexte.map((v) => (
               <li key={v.observation_id}>
                 <span>{v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle}</span>
-                <strong>{v.valeur_affichee}{v.unite === "%" ? " %" : ` ${v.unite}`}</strong>
+                <strong>
+                  {v.valeur_affichee}
+                  {v.unite ? ` ${v.unite}` : <small className="sans-unite"> {t("reponse.sansUnite")}</small>}
+                </strong>
                 <Source v={v} />
               </li>
             ))}

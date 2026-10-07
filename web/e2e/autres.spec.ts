@@ -181,3 +181,11 @@ test("jeu de test : écran du back-office, benchmark réservé au moteur réel (
   await expect(page.getByRole("link", { name: "Jeu de test" })).toHaveAttribute("aria-current", "page");
   await accessible(page, "jeu de test");
 });
+
+test("adresse inconnue : page en français, avec l'en-tête et une suite (7.1 n° 7)", async ({ page }) => {
+  const r = await page.goto("/cette-page-n-existe-pas");
+  expect(r?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Cette page n'existe pas.");
+  await expect(page.getByRole("link", { name: "Poser une question" }).last()).toHaveAttribute("href", "/");
+  await accessible(page, "page introuvable");
+});

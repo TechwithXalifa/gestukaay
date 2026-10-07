@@ -462,3 +462,23 @@ main:focus { outline: none; }
 .mesures-erreurs { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
 .mesures-erreurs li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--gk-lin); font-size: 15px; }
 .mesures-erreurs strong { flex: none; color: var(--gk-baobab); }
+
+/* Recette du 07/10 : conversation, incompréhension, unité absente, cibles tactiles */
+.bulle-conversation { background: var(--gk-baobab-50); border-color: transparent; }
+.texte-conversation { margin: 0; max-width: 660px; font-family: var(--font-serif); font-size: 18px; line-height: 28px; font-weight: 400; color: var(--gk-encre); }
+.unite.sans-unite { font-size: 14px; line-height: 20px; font-style: italic; }
+.exemples.gauche { justify-content: flex-start; margin-top: 12px; }
+.bouton-micro-reessayer { margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; }
+.puce { text-align: left; }
+.logo { min-height: 44px; }
+.garanties { margin: 20px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; line-height: 20px; color: var(--gk-ardoise); }
+.garanties li { display: flex; align-items: center; gap: 6px; }
+.garanties .ic { color: var(--gk-feuille); }
+.micro-geant { display: none; }
+@media (max-width: 767px) {
+  .micro-geant { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 8px auto 16px; padding: 0; border: 0; background: transparent; color: var(--gk-baobab); font: inherit; font-weight: 600; cursor: pointer; }
+  .micro-geant-rond { display: flex; align-items: center; justify-content: center; width: 96px; height: 96px; border-radius: 50%; background: var(--gk-feuille); color: var(--gk-sur-action); box-shadow: 0 0 0 8px var(--gk-feuille-50); }
+  .accueil .champ .bouton-icone.micro { display: none; }
+  .garanties { flex-direction: column; align-items: flex-start; }
+}
+.contexte .sans-unite { font-size: 12px; font-weight: 400; font-style: italic; color: var(--gk-ardoise); }

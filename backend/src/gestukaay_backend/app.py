@@ -355,7 +355,10 @@ def tableau(
     _admin(authorization)
     if jours not in (7, 30, 90):
         raise ErreurApi(422, "Période inconnue", "jours = 7, 30 ou 90.")
-    return stockage.tableau(jours, canal or None, langue or None)
+    # Exactitude et refus pertinents (US-28) : la dernière exécution terminée du jeu de test
+    derniere = next((e for e in stockage.executions() if e["statut"] == "terminee" and e["resultat"]), None)
+    return {**stockage.tableau(jours, canal or None, langue or None),
+            "benchmark": {"lancee_le": derniere["lancee_le"], **jeu_de_test.resume(derniere["resultat"])} if derniere else None}
 
 
 # Jeu de test (cahier 5.10, maquette BO-JeuTest) : le benchmark de KBD lancé depuis le back-office

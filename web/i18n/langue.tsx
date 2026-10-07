@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { insecables } from "@/lib/typo";
 import { type Cle, fr } from "./fr";
 import { wo } from "./wo";
 
@@ -41,7 +42,7 @@ export function LangueProvider({ children }: { children: React.ReactNode }) {
   const t = useCallback<T>(
     (cle, vars) => {
       const texte = (langue === "wo" && wo[cle]) || fr[cle];
-      return vars ? texte.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "") : texte;
+      return insecables(vars ? texte.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "") : texte);
     },
     [langue],
   );
