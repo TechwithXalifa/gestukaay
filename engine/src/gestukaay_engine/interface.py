@@ -51,6 +51,7 @@ class NoteVocale:
     opus: bytes
     duree_s: float
     voix: str  # « oolel » ou « adia » (repli)
+    texte: str = ""  # ce que la note dit (revue #136 : affiché sous le lecteur, cahier 7.5 et 9.7)
 
 
 class Moteur(Protocol):

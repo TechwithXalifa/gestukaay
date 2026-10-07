@@ -24,7 +24,6 @@ import unicodedata
 import wave
 from collections.abc import Mapping
 
-import av
 import httpx
 
 from .interface import NoteVocale
@@ -106,6 +105,10 @@ def ecrire_wav(pcm: bytes, taux: int) -> bytes:
 
 
 def en_opus(pcm: bytes, taux: int, debit: int) -> bytes:
+    # PyAV importé ici seulement : le moteur doit se charger partout, même là où PyAV est bloqué (poste
+    # Windows de SAN, revue #136) ; il n'est requis que là où une note est vraiment fabriquée
+    import av
+
     sortie = io.BytesIO()
     with av.open(sortie, "w", format="ogg") as c:
         flux = c.add_stream("libopus", rate=24000, layout="mono")

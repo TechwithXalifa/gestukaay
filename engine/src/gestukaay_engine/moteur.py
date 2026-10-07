@@ -25,6 +25,7 @@ from __future__ import annotations
 import os
 import sys
 import uuid
+from dataclasses import replace
 from datetime import UTC, datetime
 
 from gestukaay_contracts.models import (
@@ -117,7 +118,8 @@ class MoteurReel:
     def parler(self, rep: AskResponse) -> NoteVocale | None:
         """Texte wolof composé (parole.py), puis voix (synthese.py) ; None : le texte part seul."""
         texte = texte_parle(rep, self.socle)
-        return self.synthetiseur.parler(texte) if texte else None
+        note = self.synthetiseur.parler(texte) if texte else None
+        return replace(note, texte=texte) if note else None
 
     # Catalogue, fiche et séries (décision 0023) : à écrire par KBD après les priorités V1.0 ;
     # en attendant, 503 côté backend plutôt que les exemples du faux moteur.

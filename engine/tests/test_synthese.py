@@ -6,7 +6,6 @@ import json
 import math
 import struct
 
-import av
 import httpx
 import pytest
 from gestukaay_engine.synthese import (
@@ -20,6 +19,8 @@ from gestukaay_engine.synthese import (
     morceaux,
     note_opus,
 )
+
+av = pytest.importorskip("av")  # tests d'encodage seulement : sautés là où PyAV est bloqué
 
 TAUX = 24000
 
@@ -143,3 +144,32 @@ def test_rien_ne_repond_texte_seul():
 def test_rien_de_configure_aucun_appel_reseau():
     appels = []
     assert Synthetiseur({}, reseau(appels)).parler(TEXTE) is None and appels == []
+
+
+def test_le_moteur_se_charge_sans_pyav():
+    # revue #136 : sur le Windows de SAN, PyAV est bloqué ; le moteur doit quand même se charger
+    import subprocess
+    import sys
+    code = ("import sys; import gestukaay_engine.moteur, gestukaay_engine.synthese; "
+            "print('av' in sys.modules)")
+    sortie = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
+    assert sortie.stdout.strip() == "False"
+
+
+
+def test_la_note_porte_le_texte_parle():
+    # revue #136 : le site affiche sous le lecteur ce que la note dit (cahier 7.5 et 9.7)
+    from gestukaay_contracts.models import AskRequest
+    from gestukaay_engine.interface import NoteVocale
+    from test_moteur import MOTEUR
+
+    class Faux:
+        def parler(self, texte):
+            return NoteVocale(b"OggS", 3.0, "oolel")
+
+    avant, MOTEUR.synthetiseur = MOTEUR.synthetiseur, Faux()
+    try:
+        note = MOTEUR.parler(MOTEUR.repondre(AskRequest(question="Combien d'habitants à Thiès ?")))
+    finally:
+        MOTEUR.synthetiseur = avant  # MOTEUR est partagé avec les autres fichiers de tests
+    assert note.voix == "oolel" and "Cees" in note.texte
