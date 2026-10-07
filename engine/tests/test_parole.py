@@ -23,12 +23,14 @@ from gestukaay_engine.parole import (
     argent_wo,
     chiffre_wo,
     duree_estimee,
+    en_wolof,
     entier_wo,
     epeler,
     fr_entier,
     nombre_wo,
     periode_wo,
     suffixe,
+    texte_ecrit,
     texte_parle,
     zone_wo,
 )
@@ -292,3 +294,23 @@ def test_approchee_sans_motif_connu_lit_quand_meme_les_choix():
                Choix(id="2", libelle="Inspection d'académie de Pikine-Guédiawaye", requete=req_)])
     t = texte_parle(AskResponse(reponse=a), SOCLE)
     assert t.startswith("Leralal li nga bëgg") and "benn: Inspection d'académie de Dakar" in t
+
+
+def test_reponse_ecrite_en_wolof():
+    # option B de KBD (0032) : mêmes phrases que la voix ; chiffre et année tels qu'affichés, sigles écrits,
+    # mots d'unité de KBD, pas de limite de 20 s
+    rep = MOTEUR.repondre(AskRequest(question="Combien d'habitants à Thiès ?"))
+    t = texte_ecrit(rep, SOCLE)
+    assert "2 463 677 nit" in t and "2023" in t and "Cees" in t
+    assert "deux mille" not in t and "milyoŋ" not in t and "A-EN-ES-DE" not in t
+    assert texte_parle(rep, SOCLE) != t  # la voix garde les mots
+    r = en_wolof(rep, SOCLE).reponse
+    assert r.langue == "wo" and r.explication == t
+
+
+def test_voix_d_une_approchee_deja_ecrite_en_wolof():
+    # #136 + #138 : la reformulation est déjà en wolof ; la voix la lit, puis les choix (pas l'intro générique)
+    rep = MOTEUR.repondre(AskRequest(question="Ñaata nit ñoo dëkk Tuubaa ?"))
+    assert rep.reponse.issue == "approchee" and rep.reponse.langue == "wo"
+    dit = texte_parle(rep, SOCLE)
+    assert dit.startswith(rep.reponse.reformulation.split(":")[0].strip()) and "Benn" in dit.replace("benn", "Benn")

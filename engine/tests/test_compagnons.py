@@ -28,10 +28,10 @@ SOCLE = Socle([
 MOTEUR = MoteurReel(SOCLE, Comprehension(None))
 
 
-def demander(indicateur, periode=None):
+def demander(indicateur, periode=None, langue="fr"):
     p = Periode(type="derniere") if periode is None else Periode(type="trimestre", valeur=periode)
     req = RequeteStructuree(intention="valeur", indicateur=indicateur, periode=p, confiance=0.9)
-    return MOTEUR.executer(req, "Ñi amul ligéey ci Senegaal ?", "wo").reponse
+    return MOTEUR.executer(req, "Ñi amul ligéey ci Senegaal ?", langue).reponse
 
 
 def test_le_nombre_vient_avec_son_taux_au_meme_trimestre():
@@ -42,6 +42,14 @@ def test_le_nombre_vient_avec_son_taux_au_meme_trimestre():
         "Le Sénégal compte 1 590 818 personnes au chômage au 1er trimestre 2026, dernière donnée "
         "publiée. Le taux de chômage est de 22,9 % des personnes actives (celles qui travaillent ou "
         "cherchent un emploi).")
+
+
+def test_le_nombre_et_son_taux_ecrits_en_wolof():
+    # option B de KBD (0032) : les phrases de KBD, le chiffre tel qu'affiché, « % » et non « pour cent »
+    r = demander(NOMBRE, langue="wo")
+    assert r.langue == "wo"
+    assert "1 590 818 nit" in r.explication and "2026" in r.explication  # 2 variantes de KBD : l'une ou l'autre
+    assert "22,9 % amuñu liggéey" in r.explication and "ANSD" in r.explication
 
 
 def test_pas_de_taux_d_une_autre_periode():
