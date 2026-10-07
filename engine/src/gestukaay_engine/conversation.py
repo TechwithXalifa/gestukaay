@@ -96,9 +96,13 @@ _POLITESSE = re.compile(
 
 def sans_politesse(question: str) -> str:
     """La question sans la politesse de tête ; inchangée s'il n'y a pas de politesse ou rien après."""
+    # tout le message est une formule (« Merci beaucoup », « Salam naka leu ») : on n'y touche pas
+    if _POLITESSE.match(_t(question)) or regles(question) == "salutation":
+        return question
     jetons = question.split()
     for k in range(min(len(jetons) - 1, 6), 0, -1):  # le plus long préfixe de politesse d'abord
         if _POLITESSE.match(_t(" ".join(jetons[:k]))):
             reste = " ".join(jetons[k:]).lstrip(" ,.;:!-–")
-            return reste if len(reste) >= 3 else question
+            # rien après, ou encore une salutation (« Salam naka leu ») : tout le message est la salutation
+            return reste if len(reste) >= 3 and regles(reste) is None else question
     return question

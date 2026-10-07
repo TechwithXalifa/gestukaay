@@ -226,9 +226,12 @@ class Comprehension:
                 if suivi:
                     req = heriter(req, precedente, question, periodes)
                 proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
+                # une forme sûre des règles (salutations de KBD, merci…) prime sur un « incompréhensible » du LLM :
+                # « naka leu » seul lui est opaque (essai du 07/10)
+                conv = sortie.conversation or conversation_regles(question)
                 return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
                                 lieux_inconnus(question), proches=proches,
-                                incomprehensible=sortie.incomprehensible, conversation=sortie.conversation)
+                                incomprehensible=sortie.incomprehensible and conv is None, conversation=conv)
             except EchecLLM as e:
                 appel = e.appel
         else:

@@ -88,7 +88,7 @@ def test_definition_absente_propose_le_chiffre():
     ("Salut ! Quel est le taux de pauvreté à Kolda ?", "Quel est le taux de pauvreté à Kolda ?"),
     ("Merci. Et à Dakar ?", "Et à Dakar ?"), ("Salam, ñaata nit ñoo dëkk Tiés ?", "ñaata nit ñoo dëkk Tiés ?"),
     ("Naka nga def, ñaata nit ñoo dëkk Kaolack ?", "ñaata nit ñoo dëkk Kaolack ?"),
-    ("Bonjour", "Bonjour"), ("Merci beaucoup !", "Merci beaucoup !"),  # rien après : inchangé
+    ("Bonjour", "Bonjour"), ("Merci beaucoup !", "Merci beaucoup !"), ("Merci beaucoup", "Merci beaucoup"),
     ("Naka njëg ceeb", "Naka njëg ceeb"),  # « naka » + mot n'est pas une politesse fixe
 ])
 def test_politesse_de_tete_retiree(message, reste):
@@ -119,3 +119,16 @@ def test_pourquoi_sans_chiffre_ne_promet_rien():
     r = MOTEUR.repondre(AskRequest(question="Pourquoi le chômage augmente ?")).reponse
     assert r.suggestions == [] and r.message == texte("pourquoi_sans_chiffre")
     assert not r.message.rstrip().endswith(":")
+
+
+def test_forme_sure_prime_sur_un_llm_qui_ne_comprend_pas():
+    # essai réel du 07/10 : le LLM jugeait « naka leu » incompréhensible ; la salutation de KBD prime
+    from gestukaay_engine.comprehension import SortieLLM
+
+    class LlmPerdu:
+        def structurer(self, systeme, message, modele):
+            return SortieLLM(intention="hors_perimetre", confiance=0.2, incomprehensible=True), None
+
+    c = Comprehension(LlmPerdu()).comprendre("Salam naka leu")
+    assert c.conversation == "salutation" and not c.incomprehensible
+    assert sans_politesse("Salam naka leu") == "Salam naka leu"  # tout le message est la salutation
