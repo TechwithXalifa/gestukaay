@@ -88,6 +88,19 @@ class ClientGraph:
                                        "action": {"button": bouton_liste(),
                                                   "sections": [{"title": "Choix", "rows": lignes}]}}})
 
+    def preparer_vocal(self, destinataire: str) -> None:
+        pass  # l'API Cloud n'a pas d'indicateur « enregistre un audio »
+
+    def vocal(self, destinataire: str, opus: bytes) -> None:
+        """Note vocale (0029) : le fichier est déposé chez Meta, puis envoyé comme message vocal."""
+        with self._http() as h:
+            r = h.post(f"/{os.environ['WHATSAPP_PHONE_NUMBER_ID']}/media",
+                       data={"messaging_product": "whatsapp", "type": "audio/ogg"},
+                       files={"file": ("reponse.ogg", opus, "audio/ogg")})
+            ident = r.raise_for_status().json()["id"]
+        self._envoyer({"recipient_type": "individual", "to": destinataire, "type": "audio",
+                       "audio": {"id": ident, "voice": True}})
+
     def media(self, contenu: Contenu) -> bytes:
         """Note vocale : l'adresse du média, puis son contenu (en mémoire seulement, 2 Mo au plus)."""
         with self._http() as h:

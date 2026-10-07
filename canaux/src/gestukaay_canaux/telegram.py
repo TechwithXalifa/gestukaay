@@ -78,6 +78,18 @@ class ClientTelegram:
         self._appel("sendMessage", {"chat_id": destinataire, "text": texte("choisir"),
                                     "reply_markup": {"inline_keyboard": boutons}})
 
+    def preparer_vocal(self, destinataire: str) -> None:
+        self._appel("sendChatAction", {"chat_id": destinataire, "action": "record_voice"})
+
+    def vocal(self, destinataire: str, opus: bytes) -> None:
+        """Note vocale (0029). Erreur relancée sans l'adresse, qui contient le jeton du bot."""
+        try:
+            with httpx.Client(timeout=DELAI_S, transport=self._transport) as h:
+                h.post(f"https://api.telegram.org/bot{self._jeton()}/sendVoice", data={"chat_id": destinataire},
+                       files={"voice": ("reponse.ogg", opus, "audio/ogg")}).raise_for_status()
+        except httpx.HTTPError as e:
+            raise ErreurTelegram(f"Telegram sendVoice : {type(e).__name__}") from None
+
     def media(self, contenu: Contenu) -> bytes:
         chemin = self._appel("getFile", {"file_id": contenu.media}).get("file_path", "")
         try:

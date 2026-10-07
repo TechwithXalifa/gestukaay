@@ -112,3 +112,42 @@ def test_telegram_erreur_sans_le_jeton_du_bot(monkeypatch):
         client.texte("600000001", "Bonjour")
     trace = "".join(traceback.format_exception(e.value))  # ce que le backend journaliserait
     assert JETON_TG not in trace and "sendMessage" in trace
+
+
+def test_graph_note_vocale_deposee_puis_envoyee(monkeypatch):
+    monkeypatch.setenv("WHATSAPP_TOKEN", "jeton-meta")
+    monkeypatch.setenv("WHATSAPP_PHONE_NUMBER_ID", "1331556276698765")
+    requetes = []
+
+    def gerer(r: httpx.Request):
+        requetes.append(r)
+        if r.url.path.endswith("/media"):
+            return httpx.Response(200, json={"id": "media-123"})
+        return httpx.Response(200, json={"messages": [{"id": "wamid.VOIX"}]})
+    whatsapp.ClientGraph(httpx.MockTransport(gerer)).vocal("221700000001", b"OggS-note")
+    depot, envoi = requetes
+    assert depot.url.path == "/v25.0/1331556276698765/media" and b"OggS-note" in depot.content
+    assert b"audio/ogg" in depot.content and depot.headers["Authorization"] == "Bearer jeton-meta"
+    assert json.loads(envoi.content) == {"messaging_product": "whatsapp", "recipient_type": "individual",
+                                         "to": "221700000001", "type": "audio",
+                                         "audio": {"id": "media-123", "voice": True}}
+
+
+def test_telegram_note_vocale_sans_le_jeton_dans_l_erreur(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", JETON_TG)
+    requetes = []
+
+    def gerer(r: httpx.Request):
+        requetes.append(r)
+        return httpx.Response(200, json={"ok": True, "result": {}})
+    client = telegram.ClientTelegram(httpx.MockTransport(gerer))
+    client.preparer_vocal("600000001")
+    client.vocal("600000001", b"OggS-note")
+    assert json.loads(requetes[0].content) == {"chat_id": "600000001", "action": "record_voice"}
+    assert requetes[1].url.path.endswith("/sendVoice") and b"OggS-note" in requetes[1].content
+
+    def panne(r: httpx.Request):
+        raise httpx.ConnectError("échec", request=r)
+    with pytest.raises(telegram.ErreurTelegram) as e:
+        telegram.ClientTelegram(httpx.MockTransport(panne)).vocal("600000001", b"OggS")
+    assert JETON_TG not in "".join(traceback.format_exception(e.value))
