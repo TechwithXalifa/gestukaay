@@ -33,7 +33,6 @@ def test_categories_par_regles(message, categorie):
 @pytest.mark.parametrize("message", [
     "Combien d'habitants à Thiès ?", "Ñaata nit ñoo dëkk Tiés ?", "Salam, ñaata nit ñoo dëkk Tiés ?",
     "Bonjour, combien d'habitants à Thiès ?", "naka la limu askan wi tollu ci kaolack", "Quel est le PIB ?",
-    "Naka météo bi di mel euleuk ?",  # hors sujet : seul le LLM le classe ; en règles, refus comme avant
 ])
 def test_une_question_n_est_pas_une_conversation(message):
     assert regles(message) is None
@@ -132,3 +131,12 @@ def test_forme_sure_prime_sur_un_llm_qui_ne_comprend_pas():
     c = Comprehension(LlmPerdu()).comprendre("Salam naka leu")
     assert c.conversation == "salutation" and not c.incomprehensible
     assert sans_politesse("Salam naka leu") == "Salam naka leu"  # tout le message est la salutation
+
+
+@pytest.mark.parametrize("message", [
+    "Qui est le président du Sénégal ?", "Quel temps fera-t-il demain à Dakar ?", "Écris-moi un poème sur la Casamance",
+    "Kan mooy njiitu réewum Senegaal ?", "Naka météo bi di mel euleuk ?", "Raconte-moi une blague",
+])
+def test_hors_sujet_evident_par_regles(message):  # jeu de test : FR-059, FR-060, FR-063, WO-025, WO-026
+    assert regles(message) == "hors_sujet"
+
