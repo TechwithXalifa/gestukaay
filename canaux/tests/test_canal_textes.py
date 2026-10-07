@@ -38,7 +38,7 @@ def test_une_phrase_n_est_pas_une_commande(message):
     "/start", "Salam Naka leu", "Naka nga def ?", "nanga def", "Na ngeen def", "nakamou", "Lou bess",
     "naka affaire yi", "Ya ngi ci djam", "naka souba si", "Naka beuceug bi", "Jàmm nga am", "djam nga am",
     "Assalamou aleykoum", "Salam aleykoum, naka nga def", "Bonjour", "salut !", "naka mbir mi",
-    "naka kaolack",  # KBD : « naka » + un mot = salutation
+    "naka leu",  # KBD : « naka » + un mot = salutation
 ])
 def test_salutations_de_kbd(message):
     assert est_salutation(message)
@@ -48,6 +48,7 @@ def test_salutations_de_kbd(message):
     "Salam, ñaata nit ñoo dëkk Tiés ?", "Bonjour, combien d'habitants à Thiès ?",
     "Naka la limu askan wi tollu ci Kaolack ?",  # « naka » qui ouvre une vraie question (plus de 3 mots)
     "Combien d'habitants à Thiès ?", "Ñaata kër ñoo am kuraŋ ci Senegaal ?", "salamandre",
+    "Naka njëg ceeb", "Naka mbëj bi", "Naka Kaolack ?",  # « naka » + un sujet ou un lieu (revue de SAN)
 ])
 def test_une_question_n_est_pas_une_salutation(message):
     assert not est_salutation(message)

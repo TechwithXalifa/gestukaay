@@ -26,3 +26,12 @@ de statistique finissait en refus, sur le site comme sur les messageries.
 
 - Contrat 1.5.0, exemple `aucune_conversation.json` ; moteur : catégorie dans `SortieLLM`, textes fixes,
   repli par règles ; site : bulle de message et libellé « Conversation » au tableau de bord (SAN).
+
+## Revue de SAN (07/10)
+
+- **Politesse de tête retirée avant la compréhension** : « Bonjour, combien d'habitants à Thiès ? », « Merci.
+  Et à Dakar ? » ; le LLM gardait parfois la politesse seule. Seules des formules fixes sont retirées (bonjour,
+  salam, merci, naka nga def…) ; la réponse garde la question telle que posée.
+- **« naka » + un mot** (règle de KBD) reste une salutation, sauf si un mot suivant est un sujet du vocabulaire
+  ou un lieu : « Naka njëg ceeb », « Naka Kaolack ? » sont des questions (moteur et canaux).
+- **« Pourquoi » sans chiffre vérifiable** : seulement la première phrase de KBD, sans « Voici le chiffre : ».

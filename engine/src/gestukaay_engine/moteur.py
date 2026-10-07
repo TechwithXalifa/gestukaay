@@ -48,6 +48,7 @@ from gestukaay_socle.zones import normaliser
 from .approchee import Approchee, RepliAucune, modalite_citee, proposer_approchee, rattachements
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
+from .conversation import sans_politesse
 from .conversation import texte as conversation_texte
 from .gabarits import citation, explication, note_perimetre
 from .interface import NonDisponible, NoteVocale
@@ -93,7 +94,13 @@ class MoteurReel:
     def repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         # langue de la réponse (#24, 0032) : celle choisie par l'utilisateur, sinon celle de la question
         langue = req.langue if req.langue in ("fr", "wo") else detecter(req.question)
-        return self._dans_la_langue(self._repondre(req, contexte), langue)
+        # « Bonjour, combien d'habitants à Thiès ? » : la politesse de tête est retirée avant la compréhension
+        # (0033, revue de SAN) ; la réponse garde la question telle que posée
+        reste = sans_politesse(req.question)
+        rep = self._repondre(req.model_copy(update={"question": reste}) if reste != req.question else req, contexte)
+        if reste != req.question:
+            rep = rep.model_copy(update={"reponse": rep.reponse.model_copy(update={"question": req.question})})
+        return self._dans_la_langue(rep, langue)
 
     def _repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         question = req.question
@@ -212,8 +219,8 @@ class MoteurReel:
             message = conversation_texte("definition", langue, definition=ind.definition.strip().rstrip(".") + ".")
         elif cle == "definition":
             message = conversation_texte("definition_absente" if sugg else "aide", langue)
-        elif cle == "pourquoi" and not sugg:
-            message = conversation_texte("hors_sujet", langue)
+        elif cle == "pourquoi" and not sugg:  # pas de « Voici le chiffre : » sans chiffre (revue de SAN)
+            message = conversation_texte("pourquoi_sans_chiffre", langue)
         else:
             message = conversation_texte(cle, langue)
         ident = _ident()

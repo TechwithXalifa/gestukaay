@@ -2,8 +2,17 @@
 
 import pytest
 from gestukaay_contracts.models import AskRequest
-from gestukaay_engine.conversation import CATEGORIES, _textes, regles, texte
+from gestukaay_engine.comprehension import Comprehension
+from gestukaay_engine.conversation import (
+    CATEGORIES,
+    _textes,
+    naka_sujet,
+    regles,
+    sans_politesse,
+    texte,
+)
 from gestukaay_engine.langue import detecter
+from gestukaay_engine.moteur import MoteurReel
 from test_moteur import MOTEUR
 
 
@@ -69,7 +78,44 @@ def test_definition_absente_propose_le_chiffre():
     assert r.motif == "conversation" and r.suggestions
 
 
-def test_pourquoi_sans_chiffre_verifiable_reste_poli():
-    # le socle de test n'a pas le chômage national : pas de suggestion inventée, message de hors sujet
+
+
+# --- Revue de SAN sur #140 --------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("message, reste", [
+    ("Bonjour, combien d'habitants à Thiès ?", "combien d'habitants à Thiès ?"),
+    ("Salut ! Quel est le taux de pauvreté à Kolda ?", "Quel est le taux de pauvreté à Kolda ?"),
+    ("Merci. Et à Dakar ?", "Et à Dakar ?"), ("Salam, ñaata nit ñoo dëkk Tiés ?", "ñaata nit ñoo dëkk Tiés ?"),
+    ("Naka nga def, ñaata nit ñoo dëkk Kaolack ?", "ñaata nit ñoo dëkk Kaolack ?"),
+    ("Bonjour", "Bonjour"), ("Merci beaucoup !", "Merci beaucoup !"),  # rien après : inchangé
+    ("Naka njëg ceeb", "Naka njëg ceeb"),  # « naka » + mot n'est pas une politesse fixe
+])
+def test_politesse_de_tete_retiree(message, reste):
+    assert sans_politesse(message) == reste
+
+
+def test_bonjour_puis_question_repond_au_chiffre_meme_si_le_llm_dit_salutation():
+    # le LLM gardait parfois la politesse seule : la politesse est retirée AVANT lui, il ne voit que la question
+    vus = []
+
+    class Llm(Comprehension):
+        def comprendre(self, question, contexte=None):
+            vus.append(question)
+            return super().comprendre(question, contexte)
+
+    m = MoteurReel(MOTEUR.socle, Llm(None))
+    r = m.repondre(AskRequest(question="Bonjour, combien d'habitants à Thiès ?")).reponse
+    assert vus == ["combien d'habitants à Thiès ?"] and r.issue == "exacte"
+    assert r.question == "Bonjour, combien d'habitants à Thiès ?"  # la réponse garde la question posée
+
+
+@pytest.mark.parametrize("message", ["Naka njëg ceeb", "Naka mbëj bi", "Naka Kaolack ?"])
+def test_naka_suivi_d_un_sujet_n_est_pas_une_salutation(message):
+    assert regles(message) is None and naka_sujet(message)
+
+
+def test_pourquoi_sans_chiffre_ne_promet_rien():
     r = MOTEUR.repondre(AskRequest(question="Pourquoi le chômage augmente ?")).reponse
-    assert r.motif == "conversation" and r.suggestions == [] and r.message == texte("hors_sujet")
+    assert r.suggestions == [] and r.message == texte("pourquoi_sans_chiffre")
+    assert not r.message.rstrip().endswith(":")

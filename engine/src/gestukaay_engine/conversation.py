@@ -20,6 +20,8 @@ from typing import Literal
 
 from gestukaay_socle.zones import normaliser
 
+from .candidats import SYNONYMES, mots, periodes_citees, zones_citees
+
 ICI = Path(__file__).resolve().parent
 
 Categorie = Literal["salutation", "remerciement", "au_revoir", "a_propos", "langue", "aide", "definition",
@@ -66,7 +68,37 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
 )
 
 
+def naka_sujet(question: str) -> bool:
+    """« Naka njëg ceeb », « Naka mbëj bi », « Naka Kaolack ? » : « naka » (comment) suivi d'un sujet
+    statistique ou d'un lieu est une question, pas une salutation (revue de SAN sur #137 et #140).
+    La règle de KBD « naka + un mot = salutation » vaut pour les autres mots (« naka leu », « nakamu »)."""
+    return bool(zones_citees(question) or periodes_citees(question)
+                or any(m in SYNONYMES for m in mots(question) if m != "naka"))
+
+
 def regles(question: str) -> str | None:
     """Catégorie de conversation par les formes sûres, ou None (question de statistique, ou autre)."""
     t = _t(question)
-    return next((cle for cle, motif in _REGLES if motif.search(t)), None)
+    cle = next((cle for cle, motif in _REGLES if motif.search(t)), None)
+    if cle == "salutation" and t.split()[0] == "naka" and naka_sujet(question):
+        return None
+    return cle
+
+
+# Formules de politesse FIXES qui peuvent précéder une question : « Bonjour, combien d'habitants à
+# Thiès ? », « Merci. Et à Dakar ? ». Retirées avant la compréhension, quoi que dise le LLM (revue de SAN :
+# le LLM gardait parfois la politesse seule). Pas « naka + mot » : « Naka njëg ceeb » est une question.
+_POLITESSE = re.compile(
+    r"^ ((bonjour|bonsoir|salut|hello|coucou|salam|salamaleekum|aleykoum|alekum|asalaa?maa?le?kum|"
+    r"as+alamo?u?|ale?ykou?m|merci|beaucoup|jerejef|jerrejef|naka nga def|na ?nga def|na ?ngee?n def|"
+    r"comment (tu vas|allez vous|ca va)|ca va|madame|monsieur) ?)+ $")
+
+
+def sans_politesse(question: str) -> str:
+    """La question sans la politesse de tête ; inchangée s'il n'y a pas de politesse ou rien après."""
+    jetons = question.split()
+    for k in range(min(len(jetons) - 1, 6), 0, -1):  # le plus long préfixe de politesse d'abord
+        if _POLITESSE.match(_t(" ".join(jetons[:k]))):
+            reste = " ".join(jetons[k:]).lstrip(" ,.;:!-–")
+            return reste if len(reste) >= 3 else question
+    return question
