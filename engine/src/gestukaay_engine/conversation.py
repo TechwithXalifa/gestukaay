@@ -6,8 +6,8 @@ Une case wolof vide fait partir le français (choix de KBD, 0032). La définitio
 (colonne `definition` de indicateurs.csv) ; « pourquoi » et « définition » proposent le chiffre lié.
 
 Les règles sont prudentes : elles ne reconnaissent que les formes sûres (salutations de KBD, « merci »,
-« qui es-tu », « c'est quoi… »). Le hors sujet et l'impolitesse ne viennent que du LLM : sans lui, ces
-messages restent des refus « hors_socle », comme avant.
+« qui es-tu », « c'est quoi… », quelques hors-sujet évidents : météo, président, poème…). Le reste du hors
+sujet et l'impolitesse ne viennent que du LLM.
 """
 
 from __future__ import annotations
@@ -65,6 +65,9 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
     ("definition", re.compile(r"^ (c est quoi|qu est ce que?|que veut dire|ca veut dire quoi|definition( de| du)?|"
                               r"definis?) ")),
     ("pourquoi", re.compile(r"^ (pourquoi|que pensez vous|qu en penses tu|tu penses que) ")),
+    # hors sujet SÛR seulement (le reste : LLM) ; « njiitu réew » : question WO-025 de KBD
+    ("hors_sujet", re.compile(r" (meteo|temps fera t il|quel temps|president|njiitu reew\w*|poeme|blague|"
+                              r"recette|football|foot|match) ")),
 )
 
 
