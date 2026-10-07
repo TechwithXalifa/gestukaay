@@ -125,3 +125,34 @@ def test_definition_rattrapee_meme_si_le_llm_donne_un_indicateur():
     c = Comprehension(Llm()).comprendre("C'est quoi le taux de pauvreté ?")
     assert c.conversation == "definition" and c.requete.indicateur
 
+
+
+def test_b_en_amont_ville_de_thies_reste_une_approchee():
+    # passe Gemini du 07/10 (FR-047, WO-020) : « ville » -> milieu = urbain ajouté par le LLM ; le recensement
+    # ne publie pas de milieu, toutes les propositions échouaient et l'approchée finissait en refus
+    from dataclasses import replace
+
+    from gestukaay_contracts.models import AskRequest
+    from gestukaay_engine.moteur import MoteurReel
+    from test_moteur import SOCLE
+
+    class LlmVille(Comprehension):
+        def comprendre(self, question, contexte=None):
+            c = super().comprendre(question, contexte)
+            return replace(c, requete=c.requete.model_copy(update={"desagregation": {"milieu": "urbain"}}))
+
+    r = MoteurReel(SOCLE, LlmVille(None)).repondre(AskRequest(question="Combien d'habitants dans la ville de Thiès ?")).reponse
+    assert r.issue == "approchee" and [c.requete.zones for c in r.choix] == [["SN-TH"], ["SN"]]
+
+
+def test_une_demande_de_chiffre_absente_n_est_pas_hors_sujet():
+    # passe Gemini du 07/10 (FR-071) : le LLM classait « parler sérère » en hors sujet
+    from gestukaay_engine.comprehension import SortieLLM
+
+    class LlmHorsSujet:
+        def structurer(self, systeme, message, modele):
+            return SortieLLM(intention="hors_perimetre", confiance=0.5, conversation="hors_sujet"), None
+
+    assert Comprehension(LlmHorsSujet()).comprendre("Combien de personnes parlent sérère au Sénégal ?").conversation is None
+    assert Comprehension(LlmHorsSujet()).comprendre("Quel temps fera-t-il demain ?").conversation == "hors_sujet"
+

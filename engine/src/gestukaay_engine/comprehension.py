@@ -112,7 +112,8 @@ Réponds :
   viennent tes chiffres), « langue » (tu parles wolof ?), « aide » (que puis-je demander ?),
   « definition » (c'est quoi tel indicateur : donne aussi son candidat), « pourquoi » (causes,
   analyse, opinion : donne aussi le candidat lié s'il existe), « hors_sujet » (météo, sport,
-  politique, poème, conseils…), « impoli ». Une salutation suivie d'une question de chiffre
+  politique, poème, conseils…), « impoli ». Une demande de CHIFFRE que les candidats n'ont pas
+  (« combien de personnes parlent sérère ») n'est pas hors sujet : conversation = null. Une salutation suivie d'une question de chiffre
   (« Salam, ñaata nit ñoo dëkk Tiés ? ») est une question : conversation = null.
 Si un échange précédent est donné et que la question le prolonge (« Et pour Kaolack ? »,
 « Kaolack nak ? »), reprends son indicateur, sauf si la question en demande un autre."""
@@ -204,6 +205,12 @@ def heriter(req: RequeteStructuree, precedente: RequeteStructuree, question: str
     return req.model_copy(update=maj)
 
 
+# Une demande de chiffre n'est jamais du hors sujet (passe Gemini du 07/10, FR-071) : si le socle ne l'a pas,
+# c'est un refus « donnée absente », avec « Suggérer cet indicateur à l'équipe ».
+_DEMANDE_DE_CHIFFRE = re.compile(r"^(combien|quel est le (nombre|taux|pourcentage|prix|montant)|quelle est la "
+                                 r"(part|proportion|population)|naata|nata|niata|ban tolluwaay)\b")
+
+
 @cache
 def _natures() -> dict[str, set[str]]:
     """dataset -> {« toutes », « en_partie »} d'après socle/referentiels/natures.csv (décision 0007)."""
@@ -276,6 +283,8 @@ class Comprehension:
                 # « pourquoi » restent rattrapés, le LLM y donne justement un candidat (revue de SAN sur #147)
                 regle = sortie.conversation or conversation_regles(question)
                 conv = None if regle == "hors_sujet" and req.indicateur and not sortie.conversation else regle
+                if conv == "hors_sujet" and _DEMANDE_DE_CHIFFRE.search(normaliser(question)):
+                    conv = None  # « Combien de personnes parlent sérère ? » : un chiffre absent, pas du hors sujet
                 return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
                                 lieux_inconnus(question), proches=proches,
                                 incomprehensible=sortie.incomprehensible and conv is None, conversation=conv)

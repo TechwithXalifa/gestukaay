@@ -38,3 +38,14 @@ choisit bien un candidat pertinent, mais :
   texte du message.
 - A2 : sans année demandée, un choix observé qui va plus loin dans le temps n'est pas remplacé par un vérifié
   plus ancien ; une projection l'est toujours (RGPH-5 2023 plutôt que la projection de 2013).
+
+## Passe Gemini de confirmation (07/10, soir)
+
+78/84 (92,9 %), refus 19/20, 1 chiffre faux (FR-020, connu), invariant 0 ; latence médiane 3,1 s (voir plus bas).
+Deux écarts corrigés :
+- **B en amont** : « ville de Thiès » -> le LLM ajoutait `milieu = urbain`, que le recensement ne publie pas ;
+  l'approchée finissait en refus. Le retrait d'une précision non citée et non publiée se fait désormais avant
+  toute résolution, donc aussi pour l'approchée.
+- **Demande de chiffre absente** : « Combien de personnes parlent sérère ? » était classée hors sujet par le
+  LLM ; une question qui commence par « combien », « quel est le taux », « ñaata »… n'est jamais hors sujet
+  (refus « donnée absente », avec « Suggérer cet indicateur »).

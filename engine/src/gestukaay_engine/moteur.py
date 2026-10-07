@@ -33,6 +33,7 @@ from gestukaay_contracts.models import (
     AskResponse,
     CatalogueResponse,
     FicheIndicateur,
+    Periode,
     ReponseApprochee,
     ReponseAucune,
     ReponseExacte,
@@ -107,6 +108,8 @@ class MoteurReel:
         question = req.question
         transcription = question if req.source == "voix" else None
         c = self.comprehension.comprendre(question, contexte)
+        if c.requete and (propre := self._precisions_publiees(c.requete, question)) is not c.requete:
+            c = replace(c, requete=propre)  # B en amont : vaut aussi pour l'approchée (« ville de Thiès »)
         if c.conversation:  # salutation, « qui es-tu », définition, « pourquoi »… : pas un refus (0033)
             langue = req.langue if req.langue in ("fr", "wo") else detecter(question)
             return self._conversation(c, question, transcription, langue)
@@ -183,6 +186,26 @@ class MoteurReel:
         if isinstance(a, RepliAucune) and a.suggestions:  # un seul choix vérifié : proposé en suggestion
             return self._aucune(Refus(a.motif, a.message, a.suggestions, c.requete), question, transcription)
         return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
+
+    def _precisions_publiees(self, requete: RequeteStructuree, question: str) -> RequeteStructuree:
+        """B (0034), en amont de toute résolution : une précision du LLM que la question ne cite pas (règles) et
+        dont le jeu ne publie pas la dimension est retirée. Essai réel du 07/10 : « ville de Thiès » -> le LLM
+        ajoutait milieu = urbain, que le recensement ne publie pas, et l'approchée finissait en refus."""
+        desag = dict(requete.desagregation or {})
+        if not requete.indicateur or not desag:
+            return requete
+        citees = desagregation_citee(question)
+        for cle, valeur in list(desag.items()):
+            if cle in citees:
+                continue
+            essai = requete.model_copy(update={"zones": ["SN"], "periode": Periode(type="derniere"),
+                                               "desagregation": {cle: valeur}, "intention": "valeur"})
+            r = resoudre(self.socle, essai, LANGUE)
+            if isinstance(r, Introuvable) and r.dimension_absente == cle:
+                desag.pop(cle)
+        if len(desag) == len(requete.desagregation or {}):
+            return requete
+        return requete.model_copy(update={"desagregation": desag or None})
 
     def _approchee(self, a: Approchee, requete: RequeteStructuree, question: str,
                    transcription: str | None) -> AskResponse:
