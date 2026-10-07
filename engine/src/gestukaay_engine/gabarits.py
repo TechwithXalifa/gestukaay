@@ -175,6 +175,8 @@ def notes(r: Resultat, arrondi: bool) -> str | None:
         morceaux.append("il s'agit d'une estimation" + (f" ({r.base_projection})" if r.base_projection else ""))
     if arrondi:
         morceaux.append("valeur arrondie à l'affichage, la valeur exacte figure dans les exports")
+    if not (r.unite or "").strip():  # #132 : jamais un nombre nu sans le dire (le portail ne la donne pas)
+        morceaux.append("unité non précisée par la source")
     if not morceaux:
         return None
     texte = " ; ".join(morceaux)

@@ -122,3 +122,13 @@ def test_ponctuation_collee_au_nom_de_lieu():
     assert zones_citees("Population de Kaolack!") == ["SN-KL"]
     assert zones_citees("Chômage à Dakar et Thiès?") == ["SN-DK", "SN-TH"]
     assert zones_citees('Ziguinchor; "Matam": Louga?') == ["SN-ZG", "SN-MT", "SN-LG"]
+
+
+def test_candidat_sans_unite_signale_au_llm():
+    # #132 : à sujet égal, le LLM doit pouvoir préférer l'indicateur qui a une unité
+    from gestukaay_engine.candidats import index
+    from gestukaay_engine.comprehension import SYSTEME, Comprehension
+    candidats = index().chercher("Taux d'accès des ménages à l'électricité")
+    message = Comprehension._message("électricité", [], [], candidats, None)
+    assert "(unité non précisée)" in message or all(c.indicateur.unite or c.indicateur.unite_affichee for c in candidats)
+    assert "dont l'unité est indiquée" in SYSTEME

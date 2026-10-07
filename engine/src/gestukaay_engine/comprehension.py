@@ -86,7 +86,8 @@ Réponds :
   valeur est publiée. Un produit précis (riz, mil) peut relever d'un indicateur plus large
   (céréales) : choisis-le et indique le produit.
   Entre plusieurs candidats pertinents, préfère dans l'ordre : celui dont la couverture
-  [zones ; années] contient la zone et l'année demandées, puis ceux marqués ★ (vérifiés).
+  [zones ; années] contient la zone et l'année demandées, puis ceux marqués ★ (vérifiés), puis
+  ceux dont l'unité est indiquée et dont la dernière année est la plus récente.
 - periode_type / periode_valeur : l'année (2023), le trimestre (2024-T2) ou le mois (2024-03)
   demandés ; « derniere » et null si la question n'en cite pas.
 - sexe, milieu, age, cycle, produit : seulement si la question les précise, sinon null.
@@ -246,7 +247,7 @@ class Comprehension:
             unite = x.unite_affichee or x.unite
             etoile = "★ " if x.verification == "verifie" else ""
             couverture = ", ".join(_NIVEAUX[n_] for n_ in x.niveaux_zone) or "national"
-            lignes.append(f"{n}. {etoile}{x.libelle_fr}{f' ({unite})' if unite else ''} — jeu : {x.jeu} "
+            lignes.append(f"{n}. {etoile}{x.libelle_fr} ({unite or 'unité non précisée'}) — jeu : {x.jeu} "
                           f"[{couverture} ; {x.periode_debut}–{x.periode_fin}]")
         return "\n".join(lignes)
 

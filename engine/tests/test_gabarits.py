@@ -109,3 +109,19 @@ def test_citation_ef35():
     assert citation(r, date(2026, 10, 3), "https://gestukaay.sn/r/abc") == (
         "Source : ANSD, RGPH-5 (2023), publié le 31 octobre 2023. Consulté via Gëstukaay le 3 octobre 2026, "
         "https://gestukaay.sn/r/abc.")
+
+
+def test_unite_manquante_signalee():
+    # #132 : un nombre nu se lit de travers (70,3 quoi ?) ; on le dit quand la source ne donne pas l'unité
+    code = next(c for c, x in indicateurs().items() if x.priorite == "P3" and not (x.unite or x.unite_affichee))
+    assert "Unité non précisée par la source" in explication([res(code, "SN", "pays", "2019", 54.8, "")])
+    assert "unité non précisée" not in explication([res(code, "SN", "pays", "2019", 54.8, "%")])
+
+
+def test_unites_deduites_132():
+    # unite_affichee remplie avec preuve (libellé et valeurs) ; ahjjzgc = asongtc en %
+    i = indicateurs()
+    assert i["ahjjzgc.taux-dacces-des-menages-a-lelectricite"].unite_affichee == "%"
+    deduites = [x for x in i.values() if "unité déduite (#132)" in x.note]
+    assert len(deduites) == 146 and all(x.unite_affichee for x in deduites)
+    assert all(x.unite_affichee == "pour 1 000 000 habitants" for x in deduites if "1 000 000" in x.libelle_fr)
