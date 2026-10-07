@@ -18,6 +18,10 @@ _FR = {
     "quelles", "en", "au", "aux", "et", "pour", "dans", "par", "sur", "entre", "y", "a", "t", "il",
     "elle", "on", "qui", "que", "qu", "plus", "moins", "avec", "ou", "habitants", "nombre", "personnes",
     "menages", "annee", "part", "pays", "region", "ville", "depuis", "ce", "cette", "se", "ont",
+    # conversation (0033) : « comment tu vas », « ça va », « merci », « qui es-tu »…
+    "comment", "tu", "vas", "va", "ca", "merci", "bonjour", "bonsoir", "salut", "vous", "je", "moi",
+    "toi", "es", "suis", "peux", "pouvez", "pourquoi", "quoi", "veut", "dire", "revoir", "aide", "parles",
+    "parlez", "fait", "faire", "bien", "oui", "non", "un", "une", "mon", "ton", "votre", "avez", "as",
 }
 _WO = {
     "ci", "ak", "ag", "nit", "nu", "ni", "yi", "bi", "ba", "bu", "yu", "la", "na", "dekk", "deuk", "ko",

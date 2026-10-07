@@ -1,0 +1,12 @@
+cle;fr;wo
+salutation;Bonjour, je vais bien, merci ! Je suis Gëstukaay : posez-moi une question sur les statistiques officielles du Sénégal, par exemple « Combien d'habitants à Thiès ? »;
+remerciement;Avec plaisir ! N'hésitez pas si vous avez une autre question sur les statistiques du Sénégal.;
+au_revoir;Au revoir ! Revenez quand vous voulez pour d'autres chiffres officiels.;
+a_propos;Je suis Gëstukaay, un assistant qui répond en français et en wolof avec les statistiques officielles du Sénégal (ANSD et producteurs publics du portail Open Data). Je n'invente jamais un chiffre : chaque réponse cite sa source et sa date.;
+langue;Oui, je comprends le français et le wolof, à l'écrit comme à la voix. Posez votre question dans la langue de votre choix.;
+aide;Vous pouvez me demander par exemple la population d'une région, le taux de chômage, la pauvreté, l'accès à l'électricité ou le prix du riz. Exemple : « Quel est le taux de pauvreté à Kolda ? »;
+definition;{definition} Voulez-vous le chiffre ?;
+definition_absente;Je n'ai pas encore la définition officielle de cet indicateur, mais je peux vous donner son chiffre.;
+pourquoi;Gëstukaay donne les chiffres officiels, pas d'analyse ni d'opinion. Voici le chiffre lié à votre question :;
+hors_sujet;Je réponds seulement aux questions sur les statistiques officielles du Sénégal. Essayez par exemple : « Combien d'habitants à Thiès ? »;
+impoli;Je reste à votre disposition pour toute question sur les statistiques officielles du Sénégal.;
