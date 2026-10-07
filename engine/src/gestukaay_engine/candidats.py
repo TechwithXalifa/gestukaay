@@ -76,7 +76,8 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "nakk": ("pauvrete", "vaccines"), "ndool": ("pauvrete",), "tolluwaay": ("taux",),
     "tolluwaayu": ("taux",), "toluwaay": ("taux",), "toluwaayu": ("taux",),
     "mbej": ("eclairage", "electricite"), "kurang": ("eclairage", "electricite"),
-    "njang": ("scolarisation",), "dee": ("mortalite",), "ndaw": ("population", "age"),
+    "njang": ("scolarisation",), "jang": ("scolarisation", "njang"),  # jàng = étudier (KBD, 07/10, remarque SAN)
+    "dee": ("mortalite",), "ndaw": ("population", "age"),
     "goor": ("population", "masculin"), "tej": ("emprisonnees",), "napp": ("captures", "peche"),
     "ndab": ("vehicule",), "vootuur": ("vehicule",),
     "ker": ("menages",),  # kër = ménage (KBD, 06/10)

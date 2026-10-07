@@ -96,3 +96,7 @@ def test_gox_goxaan_milieu_rural():
 ])
 def test_nit_dekk_population_et_kaso_prison(question, indicateur):
     assert _comprise(question).indicateur == indicateur
+
+
+def test_jang_scolarisation():  # KBD, 07/10 (remarque de SAN sur #138) : jàng = étudier, pas le retard de croissance
+    assert _comprise("Ñaata xale ñoo jàng ci Kolda ?").indicateur == "ervtjfc.taux-brut-de-scolarisation"
