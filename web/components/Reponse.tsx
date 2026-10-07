@@ -143,7 +143,8 @@ function Exacte({ r }: { r: ReponseExacte }) {
   // Classement (5.4) : la zone demandée en grand, les autres dans les barres triées. Quatorze
   // chiffres géants les uns sous les autres repoussaient le graphique trois écrans plus bas.
   const classement = r.intention === "classement" && !!r.graphique && r.resultats.length > 1;
-  const affiches = classement ? r.resultats.slice(0, 1) : r.resultats;
+  // Le moteur trie par valeur : la zone demandée est celle mise en évidence, pas forcément la première.
+  const affiches = classement ? [r.resultats.find((v) => v.mise_en_evidence) ?? r.resultats[0]] : r.resultats;
   return (
     <article className="carte" aria-labelledby="titre-reponse">
       <div className="ligne-badges">

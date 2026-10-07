@@ -42,6 +42,16 @@ test("réponse exacte : chiffre, source, graphique et tableau", async ({ page })
   await accessible(page, "réponse exacte, tableau");
 });
 
+test("classement : la zone demandée en grand, même si elle n'est pas en tête", async ({ page }) => {
+  // Le moteur trie par valeur : Dakar est en tête, mais la question porte sur Thiès (mise en évidence)
+  await poser(page, "Où se classe Thiès pour la population en 2023 ?");
+  await expect(page.locator(".valeur")).toHaveCount(1);
+  await expect(page.locator(".valeur")).toContainText(/2.463.677/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Thiès");
+  await expect(page.getByText("Le classement complet des 2 zones")).toBeVisible();
+  await accessible(page, "classement");
+});
+
 test("réponse approchée : aucun chiffre avant le choix, puis la valeur", async ({ page }) => {
   await poser(page, "Population de la ville de Thiès en 2023");
   await expect(page.getByText("Correspondance approchée")).toBeVisible();
