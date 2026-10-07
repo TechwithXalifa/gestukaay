@@ -57,3 +57,40 @@ def _commandes() -> dict[str, str]:
 def commande(message: str) -> str | None:
     """« aide », « exemples », « langue », « stop », « 1 », « 2 », « 3 », ou None."""
     return _commandes().get(mot(message)) if len(message) <= 30 else None
+
+
+# ---------------------------------------------------------------------------
+# Salutations (formes de KBD, 07/10) : un message qui n'est QUE salutation reçoit l'accueil ; suivie
+# d'une question (« Salam, ñaata nit ñoo dëkk Tiés ? »), la salutation laisse partir la question.
+# ---------------------------------------------------------------------------
+
+
+def plier(texte_: str) -> str:
+    """Comme `mot`, en ignorant les écritures francisées (conseil de KBD) : « ou » = « u », « dj » = « j »,
+    lettres doublées simples (« jàmm » = « djam », « bees » = « bess » -> « bes »)."""
+    return re.sub(r"(\w)\1+", r"\1", mot(texte_).replace("ou", "u").replace("dj", "j"))
+
+
+@cache
+def _salutations() -> tuple[str, ...]:
+    with (ICI / "salutations.csv").open(encoding="utf-8") as f:
+        formes = {plier(x) for r in csv.DictReader(f, delimiter=";") for x in r["formes"].split("|") if x.strip()}
+    return tuple(sorted(formes, key=len, reverse=True))  # la plus longue d'abord : « salam aleykoum » avant « salam »
+
+
+def est_salutation(message: str) -> bool:
+    """« /start » (Telegram), « Salam naka leu », « Naka nga def ? », « Bonjour » ; pas « Salam, ñaata… »."""
+    if message.strip().lower().startswith("/start"):
+        return True
+    reste = plier(message)
+    if not reste or len(reste.split()) > 8:
+        return False
+    if reste.split()[0] == "naka" and len(reste.split()) <= 3:  # KBD : « naka » + un mot = salutation
+        return True
+    while reste:
+        forme = next((f for f in _salutations() if reste == f or reste.startswith(f + " ")), None)
+        if forme is None:
+            return False
+        reste = reste[len(forme):].strip()
+    return True
+
