@@ -1,5 +1,7 @@
-# Contrat d'API Gëstukaay — v1.4.0
+# Contrat d'API Gëstukaay — v1.5.0
 
+> **Nouveautés v1.5.0** (décision 0033), **additif**, rien ne casse : motif `conversation` des réponses
+> `aucune` (salutation, remerciement, « qui es-tu ? », définition, « pourquoi… », hors sujet).
 > **Nouveautés v1.4.0** (décision 0023), **additif**, rien ne casse : catalogue `GET /v1/indicators`,
 > fiche `GET /v1/indicators/{code}`, séries d'Explorer `GET /v1/series` (§4 bis).
 > **Nouveautés v1.3.0** (décisions 0012 et 0019), **additif**, rien ne casse : tranches de dépenses
@@ -111,6 +113,7 @@ switch (r.reponse.issue) {
 | `projection` | prévision demandée | `message` qui renvoie vers les projections officielles de l'ANSD |
 | `incomprehension` | question inintelligible, transcription vide | « Je n'ai pas bien compris » + exemples + réessayer au micro |
 | `non_disponible` (v1.3.0) | type de question que le moteur ne sait pas encore traiter | `message` (« Ce type de question n'est pas encore disponible. »), sans suggestion ; jamais « cette donnée n'existe pas » (décision 0019) |
+| `conversation` (v1.5.0) | le message n'est pas une question de statistique : salutation, merci, « qui es-tu ? », langue, aide, définition d'un indicateur, « pourquoi… », hors sujet (décision 0033) | une **bulle de message ordinaire** (pas l'icône de refus), `message` = texte fixe de KBD ; `suggestions` éventuelles (le chiffre lié à une définition ou à un « pourquoi ») ; jamais « cette donnée n'existe pas » |
 
 Jamais de rouge, jamais de vocabulaire d'erreur (7.1, principe 6).
 
@@ -210,3 +213,4 @@ Procédure :
 | 1.2.0 | 2026-10-03 | Additif comparaison & classement (#14) : `Periode.fin` (deuxième borne temporelle) ; `RequeteStructuree.ordre` (`"desc"` / `"asc"`) |
 | 1.3.0 | 2026-10-04 | Additif (décisions 0012 et 0019) : `TrancheDepense` gagne `500k_750k`, `750k_1m`, `plus_1m`, `plus_500k` gardé mais plus proposé ; `ReponseAucune.motif` gagne `non_disponible` |
 | 1.4.0 | 2026-10-04 | Additif (décision 0023) : `GET /v1/indicators`, `GET /v1/indicators/{code}`, `GET /v1/series` ; modèles `CatalogueResponse`, `FicheIndicateur`, `SeriesResponse` |
+| 1.5.0 | 2026-10-07 | Additif (décision 0033) : `ReponseAucune.motif` gagne `conversation` |

@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_CONTRAT = "1.4.0"
+VERSION_CONTRAT = "1.5.0"
 
 
 class _Strict(BaseModel):
@@ -245,7 +245,10 @@ class ReponseAucune(_ReponseBase):
     # incomprehension: question inintelligible / transcription vide [7.3]
     # non_disponible (v1.3.0) : type de question que le moteur ne sait pas encore traiter ;
     #   jamais « cette donnée n'existe pas », la donnée existe peut-être (décision 0019)
-    motif: Literal["hors_socle", "projection", "incomprehension", "non_disponible"]
+    # conversation (v1.5.0, décision 0033) : le message n'est pas une question de statistique
+    #   (salutation, merci, « qui es-tu ? », définition, « pourquoi… », hors sujet) : réponse fixe écrite
+    #   par KBD, jamais générée ; ce n'est pas un refus (jamais « cette donnée n'existe pas »)
+    motif: Literal["hors_socle", "projection", "incomprehension", "non_disponible", "conversation"]
     message: str
     suggestions: list[Suggestion] = Field(default_factory=list, max_length=3)
 
