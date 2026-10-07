@@ -49,3 +49,11 @@ Deux écarts corrigés :
 - **Demande de chiffre absente** : « Combien de personnes parlent sérère ? » était classée hors sujet par le
   LLM ; une question qui commence par « combien », « quel est le taux », « ñaata »… n'est jamais hors sujet
   (refus « donnée absente », avec « Suggérer cet indicateur »).
+
+## Latence (choix de KBD, 07/10)
+
+Mesuré sans couperet : Gemini 2.5 Flash répond en 1,7 s en médiane, mais 4 appels sur 10 dépassent 2 s ; avec
+un délai de 2 s par maillon, ils retombaient sur Flash-Lite (médiane du benchmark : 3,1 s). Délai du maillon
+principal porté à **3 s** et hébergeurs OpenRouter triés par **latence** (`LLM_PRINCIPAL_DELAI_S=3`,
+`LLM_PRINCIPAL_TRI=latency`). Vérifié sur 20 questions : médiane 1,88 s ; 15 par Flash, 3 par Flash-Lite,
+2 par les règles (pire cas 6 s, quand les deux maillons dépassent).
