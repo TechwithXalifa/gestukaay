@@ -156,3 +156,21 @@ def test_une_demande_de_chiffre_absente_n_est_pas_hors_sujet():
     assert Comprehension(LlmHorsSujet()).comprendre("Combien de personnes parlent sérère au Sénégal ?").conversation is None
     assert Comprehension(LlmHorsSujet()).comprendre("Quel temps fera-t-il demain ?").conversation == "hors_sujet"
 
+
+@pytest.mark.parametrize("incomprehensible", [False, True])
+def test_serere_de_bout_en_bout_refus_donnee_absente(incomprehensible):
+    # revue de SAN sur #149 : la réponse finale, pas seulement la compréhension ; même si le LLM se dit perdu
+    from gestukaay_contracts.models import AskRequest
+    from gestukaay_engine.comprehension import SortieLLM
+    from gestukaay_engine.moteur import MoteurReel
+    from test_moteur import SOCLE
+
+    class LlmHorsSujet:
+        def structurer(self, systeme, message, modele):
+            return SortieLLM(intention="hors_perimetre", confiance=0.5, conversation="hors_sujet",
+                             incomprehensible=incomprehensible), None
+
+    r = MoteurReel(SOCLE, Comprehension(LlmHorsSujet())).repondre(
+        AskRequest(question="Combien de personnes parlent sérère au Sénégal ?")).reponse
+    assert (r.issue, r.motif) == ("aucune", "hors_socle")
+

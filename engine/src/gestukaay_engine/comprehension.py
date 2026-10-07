@@ -283,11 +283,14 @@ class Comprehension:
                 # « pourquoi » restent rattrapés, le LLM y donne justement un candidat (revue de SAN sur #147)
                 regle = sortie.conversation or conversation_regles(question)
                 conv = None if regle == "hors_sujet" and req.indicateur and not sortie.conversation else regle
-                if conv == "hors_sujet" and _DEMANDE_DE_CHIFFRE.search(normaliser(question)):
+                chiffre = bool(_DEMANDE_DE_CHIFFRE.search(normaliser(question)))
+                if conv == "hors_sujet" and chiffre:
                     conv = None  # « Combien de personnes parlent sérère ? » : un chiffre absent, pas du hors sujet
+                # une demande de chiffre n'est pas incompréhensible non plus (revue de SAN sur #149)
                 return Comprise(req, candidats, "llm", appel, {"sortie": sortie.model_dump()},
                                 lieux_inconnus(question), proches=proches,
-                                incomprehensible=sortie.incomprehensible and conv is None, conversation=conv)
+                                incomprehensible=sortie.incomprehensible and conv is None and not chiffre,
+                                conversation=conv)
             except EchecLLM as e:
                 appel = e.appel
         else:
