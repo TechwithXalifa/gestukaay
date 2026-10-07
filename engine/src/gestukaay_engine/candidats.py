@@ -202,7 +202,9 @@ def desagregation_citee(question: str) -> dict[str, str]:
         d["sexe"] = "femmes"
     elif re.search(r"\b(hommes|garcons|goor)\b", t):
         d["sexe"] = "hommes"
-    if re.search(r"\b(ruraux|rurales?|rural|goxaan)\b", t):  # « gox-goxaan yi » = le milieu rural (KBD)
+    # wolof (KBD) : « gox-goxaan yi », « kaw gi », « àll bi » = le milieu rural ; « kaw » seul (« ci kaw »
+    # = dessus) et « àll » seul ne suffisent pas
+    if re.search(r"\b(ruraux|rurales?|rural|goxaan|kaw gi|all bi)\b", t):
         d["milieu"] = "rural"
     elif re.search(r"\b(urbains?|urbaines?)\b", t):
         d["milieu"] = "urbain"

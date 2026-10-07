@@ -84,8 +84,16 @@ def test_gena_nakk_seul_ou_liggeey_reste_le_plus_eleve(question, indicateur):
     assert (r.indicateur, r.intention, r.ordre) == (indicateur, "classement", "desc")
 
 
-def test_gox_goxaan_milieu_rural():
-    assert desagregation_citee("Ñaata kër yu dëkk ci gox-goxaan yi ñoo am mbëj ?") == {"milieu": "rural"}
+@pytest.mark.parametrize("question", [
+    "Ñaata kër yu dëkk ci gox-goxaan yi ñoo am mbëj ?", "Ñaata kër ci kaw gi ñoo am kuraŋ ?",
+    "Ñaata kër ci àll bi ñoo am kuraŋ ?",
+])
+def test_milieu_rural_en_wolof(question):  # KBD, 07/10 : gox-goxaan, kaw gi, àll bi = rural
+    assert desagregation_citee(question) == {"milieu": "rural"}
+
+
+def test_kaw_seul_n_est_pas_le_rural():
+    assert "milieu" not in desagregation_citee("Ban diiwaan moo ëpp ci kaw ?")
 
 
 @pytest.mark.parametrize("question, indicateur", [
