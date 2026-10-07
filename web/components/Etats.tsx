@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useLangue } from "@/i18n/langue";
 import { ErreurApi } from "@/lib/api";
@@ -38,6 +39,15 @@ export function Erreur({ erreur, onReessayer }: { erreur: unknown; onReessayer: 
       <section className="carte">
         <h1 className="titre-etat">{t("etat.introuvable")}</h1>
         <p className="explication">{t("etat.introuvableAide")}</p>
+      </section>
+    );
+  // Fonction pas encore construite dans le moteur (0019) : ce n'est pas une panne, Réessayer n'y change rien
+  if (e?.statut === 503 && e.message === "Pas encore disponible")
+    return (
+      <section className="carte">
+        <h1 className="titre-etat">{t("etat.bientot")}</h1>
+        <p className="explication">{t("etat.bientotAide")}</p>
+        <Link href="/" className="primaire">{t("etat.accueil")}</Link>
       </section>
     );
   return (

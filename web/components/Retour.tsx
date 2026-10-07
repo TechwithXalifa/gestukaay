@@ -12,20 +12,33 @@ const MOTIFS: Motif[] = ["chiffre_faux", "mauvaise_zone", "mauvaise_comprehensio
 /** Vote et signalement (EF-49 à EF-51). */
 export function Retour({ reponseId }: { reponseId: string }) {
   const { t } = useLangue();
-  const [etat, setEtat] = useState<"repos" | "signaler" | "merci" | "erreur">("repos");
+  const [etat, setEtat] = useState<"repos" | "vote" | "signaler" | "merci" | "erreur">("repos");
   const [motif, setMotif] = useState<Motif>("chiffre_faux");
   const [commentaire, setCommentaire] = useState("");
+  const [aVote, setAVote] = useState(false); // « Annuler » ne repropose pas le vote déjà envoyé
 
-  async function envoyer(retour: Omit<FeedbackRequest, "reponse_id">) {
+  async function envoyer(retour: Omit<FeedbackRequest, "reponse_id">, ensuite: typeof etat = "merci") {
     try {
       await envoyerRetour({ reponse_id: reponseId, ...retour });
-      setEtat("merci");
+      if (retour.type === "vote") setAVote(true);
+      setEtat(ensuite);
     } catch {
       setEtat("erreur");
     }
   }
 
   if (etat === "merci") return <p className="retour" role="status">{t("retour.merci")}</p>;
+
+  // Après un vote, on peut encore signaler une erreur ; après « Non », on demande tout de suite ce qui ne va pas.
+  if (etat === "vote")
+    return (
+      <div className="retour">
+        <span role="status">{t("retour.merci")}</span>
+        <button type="button" className="tertiaire lien-signaler" onClick={() => setEtat("signaler")}>
+          <Drapeau taille={16} />{t("retour.signaler")}
+        </button>
+      </div>
+    );
 
   if (etat === "signaler")
     return (
@@ -49,7 +62,7 @@ export function Retour({ reponseId }: { reponseId: string }) {
         <textarea id="commentaire" maxLength={1000} value={commentaire} onChange={(e) => setCommentaire(e.target.value)} />
         <div className="actions">
           <button type="submit" className="primaire">{t("retour.envoyer")}</button>
-          <button type="button" className="tertiaire" onClick={() => setEtat("repos")}>{t("retour.annuler")}</button>
+          <button type="button" className="tertiaire" onClick={() => setEtat(aVote ? "vote" : "repos")}>{t("retour.annuler")}</button>
         </div>
       </form>
     );
@@ -57,10 +70,10 @@ export function Retour({ reponseId }: { reponseId: string }) {
   return (
     <div className="retour">
       <span>{t("retour.question")}</span>
-      <button type="button" className="secondaire petit" onClick={() => envoyer({ type: "vote", vote: "utile" })}>
+      <button type="button" className="secondaire petit" onClick={() => envoyer({ type: "vote", vote: "utile" }, "vote")}>
         <Pouce taille={16} />{t("retour.oui")}
       </button>
-      <button type="button" className="secondaire petit" onClick={() => envoyer({ type: "vote", vote: "pas_utile" })}>
+      <button type="button" className="secondaire petit" onClick={() => envoyer({ type: "vote", vote: "pas_utile" }, "signaler")}>
         <Pouce taille={16} bas />{t("retour.non")}
       </button>
       <button type="button" className="tertiaire lien-signaler" onClick={() => setEtat("signaler")}>

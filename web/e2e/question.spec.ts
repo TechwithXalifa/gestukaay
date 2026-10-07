@@ -73,7 +73,8 @@ test("refus : suggérer l'indicateur manquant à l'équipe (EF-51)", async ({ pa
 test("projection : badge et base, jamais présentée comme observée", async ({ page }) => {
   await poser(page, "Espérance de vie au Sénégal en 2035");
   await expect(page.locator(".badge.projection")).toHaveText("Projection");
-  await expect(page.getByText(/Ce n'est pas une valeur observée\. Base :/)).toBeVisible();
+  // \s : espace insécable devant « : » (typographie française, lib/typo.ts)
+  await expect(page.getByText(/Ce n'est pas une valeur observée\.\sBase\s:/)).toBeVisible();
   await accessible(page, "projection");
 });
 
@@ -148,4 +149,15 @@ test("suivi : les questions d'un même onglet partagent une conversation (décis
   await expect.poll(() => ids.length).toBe(2);
   expect(ids[0]).toBeTruthy();
   expect(ids[1]).toBe(ids[0]);
+});
+
+test("vote : on peut encore signaler après un « Oui », et « Non » ouvre le signalement", async ({ page }) => {
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.getByRole("button", { name: "Oui" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "votre retour a été transmis" })).toBeVisible();
+  await page.getByRole("button", { name: "Signaler une erreur" }).click();
+  await expect(page.getByRole("group", { name: "Qu'est-ce qui ne va pas ?" })).toBeVisible();
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.getByRole("button", { name: "Non" }).click();
+  await expect(page.getByRole("group", { name: "Qu'est-ce qui ne va pas ?" })).toBeVisible();
 });

@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChampQuestion } from "@/components/ChampQuestion";
 import { Ecoute } from "@/components/Ecoute";
-import { Fleche } from "@/components/icones";
+import { Coche, Fleche, Livre, Micro, Telecharger } from "@/components/icones";
 import { DOMAINES_PRINCIPAUX } from "@/lib/domaines";
+import { insecables } from "@/lib/typo";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { HorsLigne } from "@/components/HorsLigne";
@@ -54,6 +55,13 @@ export default function Accueil() {
         <p className="eyebrow">{t("accueil.eyebrow")}</p>
         <h1 className="titre-accueil">{t("accueil.titre1")}<br />{t("accueil.titre2")}</h1>
         <p className="chapeau">{t("accueil.chapeau")}</p>
+        {/* 7.1 n° 2 et 8.3 : sur mobile, le micro est l'élément le plus visible de l'accueil (96 px) */}
+        {!horsLigne && (
+          <button type="button" className="micro-geant" onClick={() => setEcoute(true)}>
+            <span className="micro-geant-rond"><Micro taille={40} /></span>
+            <span>{t("accueil.parler")}</span>
+          </button>
+        )}
         <ChampQuestion
           grand
           desactive={horsLigne}
@@ -66,10 +74,17 @@ export default function Accueil() {
             {EXEMPLES.map((e) => (
               <button key={e.texte} type="button" className="puce" onClick={() => poser(e.texte)}>
                 {e.wo && <span className="marqueur-wo">WO</span>}
-                <span lang={e.wo ? "wo" : undefined}>{e.texte}</span>
+                <span lang={e.wo ? "wo" : undefined}>{insecables(e.texte)}</span>
               </button>
             ))}
           </div>
+        )}
+        {!horsLigne && (
+          <ul className="garanties" aria-label={t("accueil.garanties")}>
+            <li><Coche taille={16} />{t("accueil.garantie1")}</li>
+            <li><Livre taille={16} />{t("accueil.garantie2")}</li>
+            <li><Telecharger taille={16} />{t("accueil.garantie3")}</li>
+          </ul>
         )}
         {!horsLigne && (
           <Link href="/situer" className="lien-situer">
@@ -95,7 +110,7 @@ export default function Accueil() {
                 <li key={d.nom}>
                   <button type="button" onClick={() => poser(d.exemple)}>
                     <strong>{d.nom}</strong>
-                    <span>{d.exemple}</span>
+                    <span>{insecables(d.exemple)}</span>
                   </button>
                 </li>
               ))}

@@ -8,7 +8,8 @@ import { Actions } from "./Actions";
 import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
 import { Retour } from "./Retour";
-import { Base, Coche, Externe, Fleche, Info, Livre, Tendance } from "./icones";
+import { insecables } from "@/lib/typo";
+import { Base, Coche, Externe, Fleche, Info, Livre, Micro, Tendance } from "./icones";
 
 type R = AskResponse["reponse"];
 
@@ -17,10 +18,12 @@ export function Reponse({
   r,
   onChoix,
   onQuestion,
+  onMicro,
 }: {
   r: R;
   onChoix: (id: string) => void;
   onQuestion: (question: string) => void;
+  onMicro?: () => void;
 }) {
   const { t } = useLangue();
   switch (r.issue) {
@@ -30,11 +33,11 @@ export function Reponse({
       return (
         <article className="carte" aria-labelledby="titre-reponse">
           <span className="badge approchee"><Info taille={16} />{t("reponse.approchee")}</span>
-          <p id="titre-reponse" className="explication">{r.reformulation}</p>
+          <p id="titre-reponse" className="explication">{insecables(r.reformulation)}</p>
           <div className="choix">
             {r.choix.map((c) => (
               <button key={c.id} type="button" className="secondaire" onClick={() => onChoix(c.id)}>
-                {c.libelle}
+                {insecables(c.libelle)}
               </button>
             ))}
           </div>
@@ -42,29 +45,71 @@ export function Reponse({
         </article>
       );
     case "aucune":
+      // Conversation (0033) : une bulle, pas un refus. Incompréhension (7.3) : exemples et micro.
+      if (r.motif === "conversation")
+        return (
+          <article className="carte bulle-conversation" aria-labelledby="titre-reponse">
+            <h1 id="titre-reponse" className="texte-conversation">{insecables(r.message)}</h1>
+            <Suggestions r={r} onQuestion={onQuestion} />
+          </article>
+        );
+      if (r.motif === "incomprehension")
+        return (
+          <article className="carte" aria-labelledby="titre-reponse">
+            <span className="pastille-icone"><Info taille={24} /></span>
+            <h1 id="titre-reponse" className="titre-etat">{t("reponse.incompris")}</h1>
+            {r.langue === "wo" && <p className="explication" lang="wo">{insecables(r.message)}</p>}
+            <p className="explication">{t("reponse.incomprisAide")}</p>
+            <div className="exemples gauche">
+              {EXEMPLES_INCOMPRIS.map((e) => (
+                <button key={e.texte} type="button" className="puce" onClick={() => onQuestion(e.texte)}>
+                  {e.wo && <span className="marqueur-wo">WO</span>}
+                  <span lang={e.wo ? "wo" : undefined}>{insecables(e.texte)}</span>
+                </button>
+              ))}
+            </div>
+            {onMicro && (
+              <button type="button" className="secondaire bouton-micro-reessayer" onClick={onMicro}>
+                <Micro taille={18} />{t("reponse.micro")}
+              </button>
+            )}
+          </article>
+        );
       return (
         <article className="carte" aria-labelledby="titre-reponse">
           <span className="pastille-icone"><Base taille={24} /></span>
-          <h1 id="titre-reponse" className="titre-etat">{r.message}</h1>
-          {r.suggestions.length > 0 && (
-            <ul className="suggestions">
-              {r.suggestions.map((s) => (
-                <li key={s.indicateur.code}>
-                  <button type="button" onClick={() => onQuestion(s.question_suggeree)}>
-                    <span>
-                      <strong>{s.question_suggeree}</strong>
-                      <small>{s.indicateur.libelle}</small>
-                    </span>
-                    <Fleche />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <SuggererIndicateur reponseId={r.id} question={r.question} />
+          <h1 id="titre-reponse" className="titre-etat">{insecables(r.message)}</h1>
+          <Suggestions r={r} onQuestion={onQuestion} />
+          {/* EF-51 : suggérer un indicateur n'a de sens que s'il manque au socle */}
+          {r.motif === "hors_socle" && <SuggererIndicateur reponseId={r.id} question={r.question} />}
         </article>
       );
   }
+}
+
+const EXEMPLES_INCOMPRIS = [
+  { texte: "Combien d'habitants à Thiès ?" },
+  { texte: "Quel est le taux de pauvreté à Kolda ?" },
+  { texte: "Ñaata nit ñoo dëkk Tiés ?", wo: true },
+];
+
+function Suggestions({ r, onQuestion }: { r: Extract<R, { issue: "aucune" }>; onQuestion: (q: string) => void }) {
+  if (r.suggestions.length === 0) return null;
+  return (
+    <ul className="suggestions">
+      {r.suggestions.map((s) => (
+        <li key={s.indicateur.code}>
+          <button type="button" onClick={() => onQuestion(s.question_suggeree)}>
+            <span>
+              <strong>{insecables(s.question_suggeree)}</strong>
+              <small>{s.indicateur.libelle}</small>
+            </span>
+            <Fleche />
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 /** EF-51 : depuis un refus, suggérer l'indicateur manquant à l'équipe (maquette M-Refus). */
@@ -95,6 +140,10 @@ function Exacte({ r }: { r: ReponseExacte }) {
   const sources = [...new Map(r.resultats.map((v) => [v.source.url, v.source])).values()];
   // Décision 0002 : une projection ou une estimation officielle est toujours étiquetée.
   const nonObservee = r.resultats.find((v) => v.nature === "projection" || v.nature === "estimation");
+  // Classement (5.4) : la zone demandée en grand, les autres dans les barres triées. Quatorze
+  // chiffres géants les uns sous les autres repoussaient le graphique trois écrans plus bas.
+  const classement = r.intention === "classement" && !!r.graphique && r.resultats.length > 1;
+  const affiches = classement ? r.resultats.slice(0, 1) : r.resultats;
   return (
     <article className="carte" aria-labelledby="titre-reponse">
       <div className="ligne-badges">
@@ -107,7 +156,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
         <p className="note">{t("reponse.base", { base: nonObservee.base_projection })}</p>
       )}
 
-      {r.resultats.map((v, i) => {
+      {affiches.map((v, i) => {
         // Un seul titre de niveau 1 par page : les résultats suivants (comparaison, taux compagnon
         // d'un nombre, décision 0024) sont des titres de niveau 2, même apparence.
         const Titre = i === 0 ? "h1" : "h2";
@@ -118,7 +167,8 @@ function Exacte({ r }: { r: ReponseExacte }) {
             {r.periode_par_defaut && ` · ${t("reponse.derniere")}`}
           </Titre>
           <p className="valeur">
-            <span>{v.valeur_affichee}</span> <span className="unite">{v.unite}</span>
+            <span>{v.valeur_affichee}</span>{" "}
+            {v.unite ? <span className="unite">{v.unite}</span> : <span className="unite sans-unite">{t("reponse.sansUnite")}</span>}
           </p>
           <p className="source-ligne">
             <Livre taille={16} />
@@ -127,7 +177,8 @@ function Exacte({ r }: { r: ReponseExacte }) {
         </div>
         );
       })}
-      <p className="explication">{r.explication}</p>
+      {classement && <p className="note">{t("reponse.classement", { n: String(r.resultats.length) })}</p>}
+      <p className="explication">{insecables(r.explication)}</p>
       {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
 
       <div className="corps">

@@ -6,8 +6,8 @@ import { CANAUX, Cadre, Choix, Connexion, useAdmin } from "@/components/Admin";
 
 /**
  * Tableau de bord du back-office (US-28, maquette BO-Tableau, route /admin/tableau).
- * Indicateurs de qualité calculés sur le journal. L'exactitude et les refus pertinents viennent du
- * benchmark (mesure/rapports) : ils ne sont pas recalculés ici.
+ * Indicateurs de qualité calculés sur le journal. L'exactitude et les refus pertinents viennent de la
+ * dernière exécution terminée du jeu de test (écran Jeu de test) : ils ne sont pas recalculés ici.
  */
 
 type Tableau = {
@@ -23,6 +23,16 @@ type Tableau = {
   signalements: number;
   par_jour: { jour: string; questions: number }[];
   non_resolues: { question: string; langue: string; motif: string; occurrences: number }[];
+  conversations?: number; // salutations et remerciements (0033) : ni refus ni question non résolue
+  benchmark: Benchmark | null;
+};
+
+type Benchmark = {
+  lancee_le: string;
+  mode: string;
+  nb_total: number;
+  score_exactitude: number;
+  score_refus: number;
 };
 
 const PERIODES = [7, 30, 90] as const;
@@ -36,9 +46,13 @@ const MOTIFS: Record<string, string> = {
 const CIBLE_LATENCE_MS = 3000; // ENF-01
 const CIBLE_WOLOF = 0.3; // objectif 02 du cahier, à 3 mois
 const CIBLE_SATISFACTION = 0.8; // objectif 04
+const CIBLE_EXACTITUDE = 0.85; // 12.1, V1.0
+const CIBLE_REFUS = 0.95;
+const dateHeure = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 const entier = new Intl.NumberFormat("fr-FR");
 const pourcent = new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 0 });
+const pourcent1 = new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 1 });
 const jourCourt = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
 
 function secondes(ms: number | null): string {
@@ -139,8 +153,21 @@ export default function TableauDeBord() {
             </li>
             <li>
               <span className="admin-tuile-titre">Exactitude et refus pertinents</span>
-              <strong className="admin-tuile-texte">Mesurés par le benchmark</strong>
-              <span className="note">jeu de test de 103 questions · mesure/rapports</span>
+              {t.benchmark ? (
+                <>
+                  <strong className={t.benchmark.score_exactitude < CIBLE_EXACTITUDE || t.benchmark.score_refus < CIBLE_REFUS ? "hors-cible" : undefined}>
+                    {pourcent1.format(t.benchmark.score_exactitude)} · {pourcent1.format(t.benchmark.score_refus)}
+                  </strong>
+                  <span className="note">
+                    jeu de test du {dateHeure.format(new Date(t.benchmark.lancee_le))} ({t.benchmark.mode.startsWith("llm") ? "LLM" : "règles"}, {t.benchmark.nb_total} questions) · cibles ≥ 85 % et ≥ 95 %
+                  </span>
+                </>
+              ) : (
+                <>
+                  <strong className="admin-tuile-texte">Pas encore mesurés</strong>
+                  <span className="note"><Link href="/admin/jeu-de-test">Lancer le jeu de test</Link></span>
+                </>
+              )}
             </li>
           </ul>
 
@@ -187,6 +214,9 @@ export default function TableauDeBord() {
                   );
                 })}
               </ul>
+              {!!t.conversations && (
+                <p className="note">Hors de ces issues : {entier.format(t.conversations)} salutations ou remerciements, auxquels Gëstukaay a répondu poliment.</p>
+              )}
             </section>
           </div>
 
