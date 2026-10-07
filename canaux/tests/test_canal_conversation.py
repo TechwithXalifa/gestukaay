@@ -77,7 +77,7 @@ def test_premier_message_accueil_puis_reponse():
     traiter(entrant(type="texte", texte="Combien d'habitants à Thiès ?"), s, e)
     assert e.envois[0] == ("accuse", "wamid.X")
     assert e.textes()[0] == texte("accueil") and "2 463 677" in e.textes()[1]
-    assert appels == [("demander", "Combien d'habitants à Thiès ?", {"audio_retour": False})]
+    assert appels == [("demander", "Combien d'habitants à Thiès ?", {})]
 
 
 def test_conversation_en_cours_pas_d_accueil():
@@ -179,20 +179,24 @@ def avec_question(question: str, transcription: str | None = None) -> AskRespons
         update={"question": question, "transcription": transcription})})
 
 
-def test_question_vocale_texte_puis_note_vocale():
+def test_question_vocale_la_voix_puis_une_fiche():
+    # choix de KBD (07/10) : plus d'empilement texte + voix ; la voix, puis une ligne (chiffre exact, source)
     tr = TranscriptionResponse(transcription="Ñaata nit ñoo dëkk Tiés ?", langue="wo", duree_s=3.0)
     e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=tr,
                                       demander=lambda q: avec_question(q, transcription=q))
     traiter(entrant(type="audio", media="300000000000001"), s, e)
-    genres = [k for k, _ in e.envois]
-    assert genres == ["accuse", "texte", "preparer_vocal", "vocal"]  # le texte d'abord, puis la voix
-    assert e.envois[-1] == ("vocal", b"OggS-note")
+    assert [k for k, _ in e.envois] == ["accuse", "preparer_vocal", "vocal", "texte"]
+    assert e.envois[2] == ("vocal", b"OggS-note")
+    ligne, lien, mention = e.textes()[-1].split("\n")  # revue de SAN : se suffit si on la transfère
+    assert "2\u202f463\u202f677" in ligne and "Source" in ligne and " · " in ligne
+    assert lien.startswith("http") and mention == "— gestukaay"
 
 
-def test_question_ecrite_en_wolof_recoit_la_voix():
+def test_question_ecrite_en_wolof_texte_seul():
+    # choix de KBD (07/10) : question écrite -> texte seul, même en wolof (la réponse écrite est en wolof)
     e, (s, appels) = Envoyeur(), services(derniere=rep("exacte_valeur"), demander=lambda q: avec_question(q))
     traiter(entrant(type="texte", texte="Ñaata nit ñoo dëkk Tiés ?"), s, e)
-    assert ("vocal", b"OggS-note") in e.envois and appels[0][2] == {"audio_retour": True}
+    assert "vocal" not in [k for k, _ in e.envois] and appels[0][2] == {}
 
 
 def test_question_ecrite_en_francais_texte_seul():
@@ -201,17 +205,45 @@ def test_question_ecrite_en_francais_texte_seul():
     assert "vocal" not in [k for k, _ in e.envois]
 
 
-def test_panne_de_la_voix_le_texte_reste_envoye():
+def _vocale():
+    return TranscriptionResponse(transcription="Ñaata nit ñoo dëkk Tiés ?", langue="wo", duree_s=3.0)
+
+
+def test_panne_de_la_voix_le_texte_complet_part():
     def panne(r):
         raise RuntimeError("Oolel tombé")
-    e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), demander=lambda q: avec_question(q),
-                                      parler=panne)
-    traiter(entrant(type="texte", texte="Ñaata nit ñoo dëkk Tiés ?"), s, e)  # ne remonte pas
-    assert "2\u202f463\u202f677" in e.textes()[0] and texte("erreur") not in e.textes()
-
-
-def test_pas_de_voix_texte_seul():
-    e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), demander=lambda q: avec_question(q),
-                                      parler=lambda r: None)
-    traiter(entrant(type="texte", texte="Ñaata nit ñoo dëkk Tiés ?"), s, e)
+    e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=_vocale(), parler=panne,
+                                      demander=lambda q: avec_question(q, transcription=q))
+    traiter(entrant(type="audio", media="300000000000001"), s, e)  # ne remonte pas
     assert "vocal" not in [k for k, _ in e.envois]
+    assert "2\u202f463\u202f677" in e.textes()[-1] and "gestukaay" in e.textes()[-1]  # le texte complet
+    assert texte("erreur") not in e.textes()
+
+
+def test_pas_de_voix_le_texte_complet_part():
+    e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=_vocale(), parler=lambda r: None,
+                                      demander=lambda q: avec_question(q, transcription=q))
+    traiter(entrant(type="audio", media="300000000000001"), s, e)
+    assert "vocal" not in [k for k, _ in e.envois] and "Source" in e.textes()[-1]
+
+
+def test_approchee_vocale_la_voix_puis_les_choix():
+    e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=_vocale(),
+                                      demander=lambda q: rep("approchee").model_copy(update={"reponse": rep(
+                                          "approchee").reponse.model_copy(update={"transcription": q})}))
+    traiter(entrant(type="audio", media="300000000000001"), s, e)
+    assert [k for k, _ in e.envois] == ["accuse", "preparer_vocal", "vocal", "choix"]
+
+
+def test_envoi_de_la_note_en_panne_le_texte_complet_part():
+    # revue de SAN sur #146 : l'envoi de la note (dépôt chez Meta, sendVoice) peut échouer aussi
+    class EnvoyeurSansVoix(Envoyeur):
+        def vocal(self, destinataire, opus):
+            raise RuntimeError("dépôt du média refusé")
+
+    e, (s, _) = EnvoyeurSansVoix(), services(derniere=rep("exacte_valeur"), transcrire=_vocale(),
+                                             demander=lambda q: avec_question(q, transcription=q))
+    traiter(entrant(type="audio", media="300000000000001"), s, e)  # ne remonte pas
+    assert texte("erreur") not in e.textes()
+    assert "2\u202f463\u202f677" in e.textes()[-1] and "— gestukaay" in e.textes()[-1]  # le texte complet
+

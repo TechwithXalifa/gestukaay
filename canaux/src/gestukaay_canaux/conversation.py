@@ -7,10 +7,12 @@
     approchée (EF-06) ; sans approchée en attente, « choix invalide » ;
   - note vocale : transcription si elle existe (#28), sinon « je ne sais pas encore écouter » ;
   - question : le moteur, par le même chemin que le web (suivi, journal, lien /r/{id}) ;
-  - réponse : le texte d'abord ; puis, si la question était vocale ou en wolof, la note vocale en
-    wolof (EF-20, décision 0029), qui se calcule pendant que la personne lit. Sans voix, rien ne change.
+  - réponse dans le mode de la question (choix de KBD, 07/10, décision 0029) : question écrite (français
+    ou wolof) -> le texte seul ; question vocale -> la note vocale en wolof (EF-20) puis une fiche d'une
+    ligne (chiffre exact et source) et, pour une approchée, les choix ; si la voix manque ou tombe en
+    panne, le texte complet, comme pour une question écrite.
 Une erreur envoie le texte « erreur » puis remonte au backend, qui la journalise sans le numéro ; une
-panne de la voix est seulement journalisée : le texte est déjà parti.
+panne de la voix (calcul ou envoi) est journalisée et le texte complet part à la place.
 """
 
 from __future__ import annotations
@@ -22,9 +24,8 @@ from typing import Literal, Protocol
 from gestukaay_backend.canaux import Entrant, Services
 from gestukaay_contracts.models import AskResponse, Choix, ReponseApprochee
 from gestukaay_engine import NonDisponible
-from gestukaay_engine.langue import detecter
 
-from .format import Sortant, formater
+from .format import Sortant, fiche, formater
 from .media import NoteTropGrosse
 from .textes import commande, est_salutation, texte
 
@@ -94,9 +95,7 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
         return envoyeur.texte(dest, texte(cmd))
     if len(c.texte.strip()) < 3:  # « ok », « ?? » : trop court pour une question (contrat : 3 caractères)
         return envoyeur.texte(dest, texte("aide"))
-    question = c.texte.strip()[:300]
-    rep = services.demander(question, audio_retour=detecter(question) == "wo")
-    _envoyer(dest, rep, services, envoyeur)
+    _envoyer(dest, services.demander(c.texte.strip()[:300]), services, envoyeur)  # écrite : texte seul
 
 
 def _choisir(dest: str, choix_id: str, services: Services, envoyeur: Envoyeur) -> None:
@@ -109,24 +108,25 @@ def _choisir(dest: str, choix_id: str, services: Services, envoyeur: Envoyeur) -
 
 def _envoyer(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> None:
     s: Sortant = formater(rep, envoyeur.gras)
-    envoyeur.texte(dest, s.texte)
+    if rep.reponse.transcription is not None and _dire(dest, rep, services, envoyeur):
+        if f := fiche(rep, envoyeur.gras):  # question vocale : la voix est partie, puis la fiche
+            envoyeur.texte(dest, f)
+    else:  # question écrite, ou voix indisponible ou en panne : le texte complet
+        envoyeur.texte(dest, s.texte)
     if s.choix:
         envoyeur.choix(dest, s.choix)
-    if _voix_voulue(rep):
-        _dire(dest, rep, services, envoyeur)
 
 
-def _voix_voulue(rep: AskResponse) -> bool:
-    """EF-20 : audio si la question était vocale (transcription gardée) ou écrite en wolof."""
-    r = rep.reponse
-    return r.transcription is not None or detecter(r.question) == "wo"
-
-
-def _dire(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> None:
+def _dire(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> bool:
+    """Prépare ET envoie la note vocale ; False (le texte complet partira) si pas de phrase wolof, services
+    absents ou une panne, y compris à l'envoi (dépôt chez Meta, sendVoice) : revue de SAN sur #146."""
     try:
         envoyeur.preparer_vocal(dest)
         note = services.parler(rep)
-        if note is not None:
-            envoyeur.vocal(dest, note.opus)
-    except Exception:  # noqa: BLE001 — le texte est déjà parti : la voix ne doit jamais le faire échouer
+        if note is None:
+            return False
+        envoyeur.vocal(dest, note.opus)
+        return True
+    except Exception:  # noqa: BLE001 — une panne de la voix ne doit jamais empêcher la réponse
         _log.exception("voix : la note n'a pas pu être envoyée (réponse %s)", rep.reponse.id)
+        return False
