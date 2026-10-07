@@ -41,7 +41,10 @@ _VIDES = {
 # Formes normalisées (minuscules, sans accents), FR et WO dans les deux écritures.
 SYNONYMES: dict[str, tuple[str, ...]] = {
     "habitants": ("population",), "habitant": ("population",), "peuplee": ("population",),
-    "nit": ("population",), "nitt": ("population",), "deuk": ("population",), "dekk": ("population",),
+    # « askan » : le mot du libellé wolof de la population (KBD). Sans lui, « nit », présent dans le seul
+    # libellé wolof des prisons, faisait répondre les détenus à « Ñaata nit ñoo dëkk Kaolack ? » (07/10)
+    "nit": ("population", "askan"), "nitt": ("population", "askan"), "deuk": ("population", "askan"),
+    "dekk": ("population", "askan"),
     "askan": ("population",), "askanu": ("population",), "jigeen": ("population", "feminin"),
     "chomeurs": ("chomage",), "liggeey": ("chomage",), "ligeey": ("chomage",), "amul": ("chomage",),
     "pauvre": ("pauvrete",), "pauvres": ("pauvrete",),
@@ -76,6 +79,7 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "njang": ("scolarisation",), "dee": ("mortalite",), "ndaw": ("population", "age"),
     "goor": ("population", "masculin"), "tej": ("emprisonnees",), "napp": ("captures", "peche"),
     "ndab": ("vehicule",), "vootuur": ("vehicule",),
+    "ker": ("menages",),  # kër = ménage (KBD, 06/10)
 }
 
 _MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, "juillet": 7,
@@ -86,6 +90,8 @@ def texte_normalise(texte: str) -> str:
     """Normalisé, apostrophes ouvertes : « d'habitants » -> « d habitants ». La ponctuation collée
     (« Thiès? », « Kaolack! ») est détachée : c'est ainsi qu'on tape sur une messagerie et que les
     modèles de transcription écrivent. Pas dans `normaliser` : il fabrique aussi les codes."""
+    # « ŋ » n'a pas d'équivalent ASCII : sans ce remplacement, « kuraŋ » devenait « kura » (KBD, 06/10)
+    texte = texte.replace("ŋ", "ng").replace("Ŋ", "Ng")
     return normaliser(re.sub(r"['’`?!;:\"]", " ", texte))
 
 
@@ -165,7 +171,11 @@ def _lieux_rattaches() -> tuple[str, ...]:
 # Classement « le plus faible » (sens croissant), sur une question normalisée. « moins de » suivi d'un
 # nombre est une tranche (« enfants de moins de 5 ans »), pas un sens de tri (FR-045).
 ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\bmoins d[e']\b(?!\s*\d)"
-                       r"|\bgena (neew|tuuti)\b")  # wolof (KBD) : « moo gëna néew / tuuti » = le moins
+                       r"|\bgena (neew|tuuti)\b"  # wolof (KBD) : « moo gëna néew / tuuti » = le moins
+                       # « gëna ñàkk kuraŋ » = manquer le plus d'électricité = l'accès le plus faible (KBD, 06/10).
+                       # Pas « gëna ñàkk » seul (le plus pauvre) ni « gëna ñàkk liggéey » (chômage le plus élevé) :
+                       # là, l'indicateur mesure déjà le manque.
+                       r"|\bgena nakk (kurang|kuran|kouran|courant|mbej)\b")
 
 
 def periodes_citees(question: str) -> list[str]:
@@ -192,7 +202,7 @@ def desagregation_citee(question: str) -> dict[str, str]:
         d["sexe"] = "femmes"
     elif re.search(r"\b(hommes|garcons|goor)\b", t):
         d["sexe"] = "hommes"
-    if re.search(r"\b(ruraux|rurales?|rural)\b", t):
+    if re.search(r"\b(ruraux|rurales?|rural|goxaan)\b", t):  # « gox-goxaan yi » = le milieu rural (KBD)
         d["milieu"] = "rural"
     elif re.search(r"\b(urbains?|urbaines?)\b", t):
         d["milieu"] = "urbain"
@@ -238,7 +248,10 @@ class Index:
         """Mots de la question, sans les noms de zones (« Matam » ne doit pas faire remonter
         « femmes écrouées à Matam »), élargis par le vocabulaire FR / WO."""
         q = [m for m in mots(question) if not resoudre(m) and not m.isdigit()]  # ni zones ni années
-        return q + [s for m in q for s in _SYN.get(m, ())]
+        # « ñàkk » suivi d'une chose connue (« ñàkk kuraŋ », « ñàkk liggéey ») = manquer de cette chose,
+        # pas la pauvreté (KBD, 06/10) : seule la chose apporte ses mots
+        manque = {i for i, m in enumerate(q[:-1]) if m == "nakk" and q[i + 1] in _SYN}
+        return q + [s for i, m in enumerate(q) if i not in manque for s in _SYN.get(m, ())]
 
     def chercher(self, question: str, k: int = 15, niveaux: set[str] | None = None) -> list[Candidat]:
         """niveaux : niveaux des zones citées (« academie »…). Un indicateur publié à ce niveau
