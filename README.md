@@ -38,7 +38,9 @@ Pour le vrai moteur : `GESTUKAAY_MOTEUR=reel`, la chaîne LLM dans `.env` (`LLM_
 `../socle_gestukaay` (ou le chemin donné par `GESTUKAAY_SOCLE_EXTRAIT`). Il est monté en lecture seule
 dans l'API. Notes vocales : le service de transcription M-Kiriku tourne à part, sur une machine à carte graphique
 (`uv run transcription/serveur.py`, décisions 0026 et 0027) ; l'API l'appelle à `TRANSCRIPTION_URL`,
-avec ADIA en repli.
+avec ADIA en repli. Réponse vocale en wolof : le service Oolel tourne à part de la même façon
+(`uv run synthese/serveur.py`, décision 0029) ; l'API l'appelle à `SYNTHESE_URL`, contrôle la note
+avec le service de transcription, et se replie sur ADIA ; sans service, le texte part seul.
 
 Les réponses, le journal des requêtes et les retours sont gardés dans PostgreSQL (service `db`), donc
 les liens `/r/…` survivent à un redémarrage. Hors Docker, l'API utilise SQLite en mémoire, ou un

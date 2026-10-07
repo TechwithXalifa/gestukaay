@@ -27,6 +27,7 @@ from .nombres import en_chiffres
 DELAI_SERVICE_S = 5.0  # attente de la transcription ; au-delà, le service est tombé (choix KBD)
 DELAI_ADIA_S = 10.0
 DELAI_ENVOI_S = 1.0  # connexion et envoi de la note (≤ 60 s d'Opus, quelques centaines de Ko)
+DELAI_CONTROLE_S = 20.0  # relire une note de réponse de 20 s (0029) prend plus qu'une question
 ADIA_URL = "https://adia.concree.com/api/v1/asr"
 TYPES = {"ogg": "audio/ogg", "webm": "audio/webm", "wav": "audio/wav", "mp3": "audio/mpeg"}
 _log = logging.getLogger("gestukaay.transcription")
@@ -50,13 +51,23 @@ class Transcripteur:
                                          langue=langue if langue in ("fr", "wo") else detecter(texte))
         raise NonDisponible("transcription : service et repli indisponibles")
 
+    def relire(self, audio: bytes, format_audio: str = "wav") -> str | None:
+        """Contrôle d'une note de synthèse (0029) : le service seul, jamais ADIA (payant) ; None si le
+        service ne répond pas (la note n'est alors pas contrôlée)."""
+        fichier = (f"note.{format_audio}", audio, TYPES.get(format_audio, "application/octet-stream"))
+        try:
+            return self._service(fichier, "wo", DELAI_CONTROLE_S)[0].strip()
+        except (httpx.HTTPError, KeyError, ValueError, _Absent) as e:
+            _log.warning("contrôle de la voix : service de transcription indisponible (%s)", type(e).__name__)
+            return None
+
     def _client(self, delai: float, **kw) -> httpx.Client:
         """httpx applique un délai à chaque étape, pas au total : connexion et envoi ont le leur (1 s),
         l'attente de la réponse a `delai`. Au pire 1 + 1 + 5 = 7 s avant de passer au repli."""
         temps = httpx.Timeout(delai, connect=DELAI_ENVOI_S, write=DELAI_ENVOI_S, pool=DELAI_ENVOI_S)
         return httpx.Client(timeout=temps, transport=self._transport, **kw)
 
-    def _service(self, fichier: tuple, langue: str) -> tuple[str, float]:
+    def _service(self, fichier: tuple, langue: str, delai: float = DELAI_SERVICE_S) -> tuple[str, float]:
         url = self._env.get("TRANSCRIPTION_URL", "").rstrip("/")
         if not url:
             raise _Absent("TRANSCRIPTION_URL")
@@ -64,7 +75,7 @@ class Transcripteur:
         donnees = {"model": "m-kiriku-asr", "response_format": "verbose_json"}
         if langue in ("fr", "wo"):
             donnees["language"] = langue
-        with self._client(DELAI_SERVICE_S, headers={"Authorization": f"Bearer {cle}"} if cle else {}) as h:
+        with self._client(delai, headers={"Authorization": f"Bearer {cle}"} if cle else {}) as h:
             r = h.post(f"{url}/audio/transcriptions", files={"file": fichier}, data=donnees)
             r.raise_for_status()
             j = r.json()

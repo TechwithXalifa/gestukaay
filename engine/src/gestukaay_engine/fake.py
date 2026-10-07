@@ -76,6 +76,9 @@ class MoteurFactice:
     def transcrire(self, audio: bytes, format_audio: str, langue: str = "auto") -> TranscriptionResponse:
         return TranscriptionResponse.model_validate_json((EXEMPLES / "transcription.json").read_text(encoding="utf-8"))
 
+    def parler(self, rep: AskResponse) -> None:
+        return None  # pas de voix dans le faux moteur : le texte part seul
+
     def situer(self, req: SituateRequest) -> SituateResponse:
         # Toujours l'exemple de Kolda, quelle que soit la saisie (faux moteur)
         return SituateResponse.model_validate_json((EXEMPLES / "situer.json").read_text(encoding="utf-8"))
