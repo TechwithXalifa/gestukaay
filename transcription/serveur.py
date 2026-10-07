@@ -29,6 +29,9 @@ Lancer (le modèle est lu dans le cache Hugging Face, ~6 Go la première fois) :
 Sans TRANSCRIPTION_CLE, le service n'écoute que sur la machine elle-même (127.0.0.1) et refuse de
 s'ouvrir au réseau : sur le wifi d'un hôtel ou d'une salle, n'importe qui pourrait s'en servir.
 TRANSCRIPTION_MODELE change de modèle (défaut AIHubSN/M-Kiriku-ASR ; secours AIHubSN/Kiriku-Wolof-ASR).
+TRANSCRIPTION_EVEIL_S (défaut 240, 0 = jamais) : après ce délai sans note, une seconde de silence est
+transcrite pour garder le modèle chaud. Mesuré le 07/10 sur le Mac (MPS) : après une nuit sans note, la
+première a pris 21 s (le moteur abandonne à 5 s), la suivante 1,7 s.
 Rien n'est gardé : l'audio est décodé en mémoire puis oublié ; seuls la durée et le temps de calcul
 sont journalisés.
 """
@@ -40,6 +43,7 @@ import io
 import logging
 import os
 import secrets
+import threading
 import time
 
 import av
@@ -56,9 +60,27 @@ MODELE = os.environ.get("TRANSCRIPTION_MODELE", "AIHubSN/M-Kiriku-ASR")
 # Décodage glouton et court (mesuré : 16 s -> 1 s pour une question) ; horodatage au-delà de 30 s
 GENERATION = {"max_new_tokens": 128, "num_beams": 1}
 
+EVEIL_S = int(os.environ.get("TRANSCRIPTION_EVEIL_S", "240"))
+
 journal = logging.getLogger("transcription")
 app = FastAPI(title="Transcription Gëstukaay", version="1.0")
 _asr = None
+_verrou = threading.Lock()  # une seule inférence à la fois sur la carte : réveil et vraie note ne se croisent pas
+_derniere = time.monotonic()  # dernière inférence (note ou réveil)
+
+
+def _silence() -> dict:
+    """Neuf à chaque appel : le pipeline vide le dictionnaire qu'on lui passe (« raw » retiré)."""
+    return {"raw": np.zeros(TAUX, dtype=np.float32), "sampling_rate": TAUX}
+
+
+def _inferer(entree: dict, **kw) -> dict:
+    global _derniere
+    with _verrou:
+        try:
+            return _asr(entree, generate_kwargs=GENERATION, **kw)
+        finally:
+            _derniere = time.monotonic()
 
 
 def appareil() -> tuple[str, torch.dtype]:
@@ -74,8 +96,18 @@ def charger() -> None:
     nom, dtype = appareil()
     journal.warning("chargement de %s sur %s…", MODELE, nom)
     _asr = pipeline("automatic-speech-recognition", model=MODELE, device=nom, torch_dtype=dtype)
-    _asr({"raw": np.zeros(TAUX, dtype=np.float32), "sampling_rate": TAUX}, generate_kwargs=GENERATION)
+    _inferer(_silence())
     journal.warning("prêt.")
+
+
+def _garder_chaud() -> None:
+    """Fil de fond : une seconde de silence quand rien n'est passé depuis EVEIL_S (rien si occupé)."""
+    while True:
+        time.sleep(max(EVEIL_S / 4, 5))
+        if time.monotonic() - _derniere >= EVEIL_S:
+            t0 = time.perf_counter()
+            _inferer(_silence())
+            journal.warning("réveil du modèle en %.2f s", time.perf_counter() - t0)
 
 
 def decoder(octets: bytes) -> np.ndarray:
@@ -131,8 +163,8 @@ def transcrire(file: UploadFile, model: str = Form("m-kiriku-asr"),
     if duree > DUREE_MAX_S:
         raise HTTPException(400, "Note de plus de 60 s")
     t0 = time.perf_counter()
-    texte = "" if duree < 0.3 else _asr({"raw": audio, "sampling_rate": TAUX}, generate_kwargs=GENERATION,
-                                        return_timestamps=duree > 30)["text"].strip()
+    texte = "" if duree < 0.3 else _inferer({"raw": audio, "sampling_rate": TAUX},
+                                            return_timestamps=duree > 30)["text"].strip()
     journal.warning("note de %.1f s transcrite en %.2f s", duree, time.perf_counter() - t0)
     if response_format == "verbose_json":
         return {"text": texte, "duration": round(duree, 2), "language": language}
@@ -150,4 +182,6 @@ if __name__ == "__main__":
     if not cle and args.hote not in ("127.0.0.1", "localhost", "::1"):
         p.error("sans TRANSCRIPTION_CLE, le service n'écoute que sur 127.0.0.1 (définir une clé pour l'ouvrir au réseau)")
     charger()
+    if EVEIL_S > 0:
+        threading.Thread(target=_garder_chaud, name="eveil", daemon=True).start()
     uvicorn.run(app, host=args.hote, port=args.port)
