@@ -145,3 +145,18 @@ def test_image_ou_autre_aide():
     e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"))
     traiter(entrant(type="autre"), s, e)
     assert e.textes() == [texte("aide")]
+
+
+@pytest.mark.parametrize("message", ["/start", "Salam Naka leu"])
+def test_salutation_seule_l_accueil_sans_question(message):
+    # Essai Telegram du 07/10 : « /start » partait au moteur (« Cette donnée n'existe pas… »)
+    for derniere in (None, rep("exacte_valeur")):
+        e, (s, appels) = Envoyeur(), services(derniere=derniere)
+        traiter(entrant(type="texte", texte=message), s, e)
+        assert e.textes() == [texte("accueil")] and appels == []
+
+
+def test_salutation_puis_question_part_au_moteur():
+    e, (s, appels) = Envoyeur(), services(derniere=rep("exacte_valeur"))
+    traiter(entrant(type="texte", texte="Salam, ñaata nit ñoo dëkk Tiés ?"), s, e)
+    assert appels and appels[0][1] == "Salam, ñaata nit ñoo dëkk Tiés ?"

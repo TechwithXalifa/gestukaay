@@ -21,7 +21,7 @@ from gestukaay_engine import NonDisponible
 
 from .format import Sortant, formater
 from .media import NoteTropGrosse
-from .textes import commande, texte
+from .textes import commande, est_salutation, texte
 
 
 @dataclass(frozen=True)
@@ -48,6 +48,8 @@ def traiter(entrant: Entrant, services: Services, envoyeur: Envoyeur) -> None:
     dest, c = entrant.expediteur, entrant.contenu
     envoyeur.accuser(dest, c)
     try:
+        if c.type == "texte" and est_salutation(c.texte):  # « /start », « Salam naka leu » : l'accueil seul
+            return envoyeur.texte(dest, texte("accueil"))
         if services.derniere() is None:
             envoyeur.texte(dest, texte("accueil"))
         _repondre(dest, c, services, envoyeur)
