@@ -57,8 +57,12 @@ export function Reponse({
         return (
           <article className="carte" aria-labelledby="titre-reponse">
             <span className="pastille-icone"><Info taille={24} /></span>
-            <h1 id="titre-reponse" className="titre-etat">{t("reponse.incompris")}</h1>
-            {r.langue === "wo" && <p className="explication" lang="wo">{insecables(r.message)}</p>}
+            {/* En wolof, le message du moteur seul : pas de titre français au-dessus (revue de KBD) */}
+            {r.langue === "wo" ? (
+              <h1 id="titre-reponse" className="titre-etat" lang="wo">{insecables(r.message)}</h1>
+            ) : (
+              <h1 id="titre-reponse" className="titre-etat">{t("reponse.incompris")}</h1>
+            )}
             <p className="explication">{t("reponse.incomprisAide")}</p>
             <div className="exemples gauche">
               {EXEMPLES_INCOMPRIS.map((e) => (
