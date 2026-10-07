@@ -46,6 +46,7 @@ from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import normaliser
 
 from .approchee import Approchee, RepliAucune, modalite_citee, proposer_approchee, rattachements
+from .candidats import desagregation_citee
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
 from .conversation import sans_politesse
@@ -116,6 +117,10 @@ class MoteurReel:
             if isinstance(a, Approchee):
                 return self._approchee(a, c.requete, question, transcription)
         r = resoudre(self.socle, c.requete, LANGUE, question, c.lieux_inconnus)
+        if isinstance(r, Introuvable) and (sans := _sans_precision_inventee(r, c.requete, question)):
+            r2 = resoudre(self.socle, sans, LANGUE, question, c.lieux_inconnus)
+            if isinstance(r2, Resolution):
+                c, r = replace(c, requete=sans), r2
         if isinstance(r, Resolution):
             return self._exacte(r, c.requete, question, transcription)
         return self._sans_valeur(r, c, question, transcription)
@@ -244,6 +249,20 @@ class MoteurReel:
         return {"id": ident, "url": URL_PROVISOIRE.format(id=ident), "question": question,
                 "langue": LANGUE, "transcription": transcription, "requete": requete,
                 "version_socle": self.socle.version, "cree_le": datetime.now(UTC)}
+
+
+def _sans_precision_inventee(r: Introuvable, requete: RequeteStructuree, question: str) -> RequeteStructuree | None:
+    """B (passe du 07/10) : le LLM ajoute parfois une précision que la question ne contient pas (« femmes »
+    sur la vaccination des enfants). Si elle n'est pas citée (règles) ET que le jeu ne publie pas cette
+    dimension du tout, on la retire. Citée par l'utilisateur, elle reste stricte (décision 0011)."""
+    if r.raison != "desagregation_absente" or "non publié pour cet indicateur" not in r.detail:
+        return None
+    cle = r.detail.split(" = ", 1)[0].strip()
+    desag = dict(requete.desagregation or {})
+    if cle not in desag or cle in desagregation_citee(question):
+        return None
+    desag.pop(cle)
+    return requete.model_copy(update={"desagregation": desag or None})
 
 
 def _ident() -> str:

@@ -17,8 +17,10 @@ Le LLM ne voit aucune valeur du socle [EF-04].
 
 from __future__ import annotations
 
+import csv
 import re
 from dataclasses import dataclass, field
+from functools import cache
 from typing import Literal
 
 from gestukaay_contracts.models import Periode, RequeteStructuree
@@ -27,6 +29,7 @@ from gestukaay_socle.zones import normaliser
 from gestukaay_socle.zones import zones as zones_ref
 from pydantic import BaseModel, ConfigDict, Field
 
+from .approchee import REFERENTIELS
 from .candidats import (
     ORDRE_ASC,
     Candidat,
@@ -90,8 +93,9 @@ Réponds :
   valeur est publiée. Un produit précis (riz, mil) peut relever d'un indicateur plus large
   (céréales) : choisis-le et indique le produit.
   Entre plusieurs candidats pertinents, préfère dans l'ordre : celui dont la couverture
-  [zones ; années] contient la zone et l'année demandées, puis ceux marqués ★ (vérifiés), puis
-  ceux dont l'unité est indiquée et dont la dernière année est la plus récente.
+  [zones ; années] contient la zone et l'année demandées, puis ceux marqués ★ (vérifiés), puis,
+  pour une année passée ou la dernière donnée, une valeur OBSERVÉE (recensement, enquête, registre)
+  plutôt qu'un jeu marqué « projection », puis ceux dont l'unité est indiquée.
 - periode_type / periode_valeur : l'année (2023), le trimestre (2024-T2) ou le mois (2024-03)
   demandés ; « derniere » et null si la question n'en cite pas.
 - sexe, milieu, age, cycle, produit : seulement si la question les précise, sinon null.
@@ -200,6 +204,42 @@ def heriter(req: RequeteStructuree, precedente: RequeteStructuree, question: str
     return req.model_copy(update=maj)
 
 
+@cache
+def _natures() -> dict[str, set[str]]:
+    """dataset -> {« toutes », « en_partie »} d'après socle/referentiels/natures.csv (décision 0007)."""
+    out: dict[str, set[str]] = {}
+    with (REFERENTIELS / "natures.csv").open(encoding="utf-8") as f:
+        for r in csv.DictReader(f, delimiter=";"):
+            if r["nature"] == "projection":
+                out.setdefault(r["dataset_id"], set()).add(
+                    "toutes" if not (r["periode_debut"] or r["periode_fin"]) else "en_partie")
+    return out
+
+
+def projection(dataset_id: str) -> str | None:
+    """« toutes » si le jeu n'est que projection, « en_partie » s'il en contient, sinon None."""
+    n = _natures().get(dataset_id, set())
+    return "toutes" if "toutes" in n else "en_partie" if n else None
+
+
+def _verifie_en_tete(code: str | None, candidats, zones, periodes) -> str | None:
+    """A2 (passe du 07/10) : le LLM prend parfois un doublon (projection de 2013 au lieu du RGPH-5, jeu arrêté
+    en 2023 au lieu de 2025). S'il choisit un indicateur NON vérifié alors que le premier candidat est un
+    indicateur vérifié du même domaine qui couvre la zone et l'année demandées, on prend le vérifié."""
+    tete = candidats[0].indicateur if candidats else None
+    choisi = indicateurs().get(code) if code else None
+    if not (tete and choisi) or tete.code == choisi.code:
+        return code
+    if choisi.verification == "verifie" or tete.verification != "verifie" or tete.domaine != choisi.domaine:
+        return code
+    niveaux = {zones_ref()[z].niveau for z in zones if z != "SN" and z in zones_ref()}
+    if not niveaux <= set(tete.niveaux_zone) and niveaux:
+        return code
+    if any(not (tete.periode_debut[:4] <= p[:4] <= tete.periode_fin[:4]) for p in periodes):
+        return code
+    return tete.code
+
+
 class Comprehension:
     def __init__(self, client: ClientLLM | None):
         self.client = client  # None : règles locales seulement (essais, secours)
@@ -263,7 +303,8 @@ class Comprehension:
             unite = x.unite_affichee or x.unite
             etoile = "★ " if x.verification == "verifie" else ""
             couverture = ", ".join(_NIVEAUX[n_] for n_ in x.niveaux_zone) or "national"
-            lignes.append(f"{n}. {etoile}{x.libelle_fr} ({unite or 'unité non précisée'}) — jeu : {x.jeu} "
+            proj = {"toutes": " — projection", "en_partie": " — en partie projection"}.get(projection(x.dataset_id), "")
+            lignes.append(f"{n}. {etoile}{x.libelle_fr} ({unite or 'unité non précisée'}) — jeu : {x.jeu}{proj} "
                           f"[{couverture} ; {x.periode_debut}–{x.periode_fin}]")
         return "\n".join(lignes)
 
@@ -289,6 +330,11 @@ class Comprehension:
             zones = list(precedente.zones)
         desag = {k: v for k, v in (("sexe", s.sexe), ("milieu", s.milieu), ("age", s.age),
                                    ("cycle", s.cycle), ("produit", s.produit)) if v}
+        # B (passe du 07/10) : une précision que la question cite aussi selon les règles prend la forme des
+        # règles, vocabulaire validé (« moins de 5 » et non « 0-5 ») ; les autres restent, le moteur les
+        # écarte si la question ne les cite pas et que le jeu ne les publie pas (moteur._sans_precision_inventee)
+        desag |= {k: v for k, v in desagregation_citee(question).items() if k in desag}
+        code = _verifie_en_tete(code, candidats, zones, periodes)
         return RequeteStructuree(intention=intention, indicateur=code if intention != "hors_perimetre" else None,
                                  zones=zones, periode=periode, desagregation=desag or None,
                                  ordre=s.ordre, confiance=round(s.confiance, 2))
