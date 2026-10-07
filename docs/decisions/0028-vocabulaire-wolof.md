@@ -44,3 +44,6 @@ Trois questions de KBD répondaient à côté en règles (robinet, pauvreté, va
 - **ñàkk + une chose connue** (« ñàkk kuraŋ », « ñàkk liggéey ») = manquer de cette chose, pas la pauvreté ;
 - **gëna ñàkk kuraŋ / mbëj** = l'accès le plus faible (classement croissant). « gëna ñàkk » seul (le plus
   pauvre) et « gëna ñàkk liggéey » (chômage) restent « le plus élevé » : l'indicateur y mesure déjà le manque.
+- **nit, nitt, dëkk, deuk** renvoient aussi à « askan » (le mot du libellé wolof de la population) : « nit », seul
+  dans le libellé wolof des prisons, faisait répondre les détenus à « Ñaata nit ñoo dëkk Kaolack ? ». Benchmark
+  en règles : 72 -> 75/84 (WO-001, WO-017, WO-029), chiffres faux 8 -> 5.

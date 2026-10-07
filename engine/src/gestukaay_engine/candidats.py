@@ -41,7 +41,10 @@ _VIDES = {
 # Formes normalisées (minuscules, sans accents), FR et WO dans les deux écritures.
 SYNONYMES: dict[str, tuple[str, ...]] = {
     "habitants": ("population",), "habitant": ("population",), "peuplee": ("population",),
-    "nit": ("population",), "nitt": ("population",), "deuk": ("population",), "dekk": ("population",),
+    # « askan » : le mot du libellé wolof de la population (KBD). Sans lui, « nit », présent dans le seul
+    # libellé wolof des prisons, faisait répondre les détenus à « Ñaata nit ñoo dëkk Kaolack ? » (07/10)
+    "nit": ("population", "askan"), "nitt": ("population", "askan"), "deuk": ("population", "askan"),
+    "dekk": ("population", "askan"),
     "askan": ("population",), "askanu": ("population",), "jigeen": ("population", "feminin"),
     "chomeurs": ("chomage",), "liggeey": ("chomage",), "ligeey": ("chomage",), "amul": ("chomage",),
     "pauvre": ("pauvrete",), "pauvres": ("pauvrete",),

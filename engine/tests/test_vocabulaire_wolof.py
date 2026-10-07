@@ -86,3 +86,13 @@ def test_gena_nakk_seul_ou_liggeey_reste_le_plus_eleve(question, indicateur):
 
 def test_gox_goxaan_milieu_rural():
     assert desagregation_citee("Ñaata kër yu dëkk ci gox-goxaan yi ñoo am mbëj ?") == {"milieu": "rural"}
+
+
+@pytest.mark.parametrize("question, indicateur", [
+    # « nit » n'est que dans le libellé wolof des prisons : sans « askan », les détenus répondaient (07/10)
+    ("Ñaata nit ñoo dëkk Kaolack ?", "pvswjnd"), ("Ñaata nit ñoo dëkk ci Senegaal ?", "pvswjnd"),
+    ("Ñaata nit ñoo nekk kaso ci Senegaal ?", "ioxbglg.nombre-de-personnes-emprisonnees"),
+    ("Ñata nitt nio nek kaso senegal ?", "ioxbglg.nombre-de-personnes-emprisonnees"),
+])
+def test_nit_dekk_population_et_kaso_prison(question, indicateur):
+    assert _comprise(question).indicateur == indicateur
