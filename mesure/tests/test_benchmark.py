@@ -531,6 +531,18 @@ def test_evaluation_refus_pertinent():
     assert "conforme" in detail
 
 
+@pytest.mark.parametrize("message, attendu", [
+    ("Lim bii amul ci xibaari ANSD yi ñu yor.", True),  # le refus du cahier en wolof de KBD (0032)
+    ("Ndax yow la ?", False),  # un autre texte wolof n'est pas le refus du cahier
+])
+def test_refus_hors_socle_ecrit_en_wolof(message, attendu):
+    rep = AskResponse(reponse=ReponseAucune(
+        id="ref002", url="https://gestukaay.sn/r/ref002", question="Kan mooy njiitu réewum Senegaal ?",
+        langue="wo", cree_le=datetime.now(UTC), version_socle="test-2026", motif="hors_socle",
+        message=message, suggestions=[]))
+    assert verifier_refus_reponse({"id": "WO-025", "motif": "hors_socle"}, rep)[0] is attendu
+
+
 # ---------------------------------------------------------------------------
 # Utilitaires de normalisation
 # ---------------------------------------------------------------------------
