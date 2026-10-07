@@ -24,12 +24,19 @@ DELAI_S = 10
 
 
 def lire(payload: dict) -> list[Entrant]:
-    """Les messages du payload ; les statuts (envoyé, lu…) ne donnent rien."""
+    """Les messages du payload ; les statuts (envoyé, lu…) ne donnent rien, sauf un échec, journalisé
+    sans le numéro (essai du 07/10 : envois acceptés par l'API mais jamais remis)."""
     out = []
     for entree in payload.get("entry", []):
         for changement in entree.get("changes", []):
-            for m in changement.get("value", {}).get("messages", []) or []:
+            valeur = changement.get("value", {})
+            for m in valeur.get("messages", []) or []:
                 out.append(Entrant(m["id"], m["from"], _contenu(m)))
+            for st in valeur.get("statuses", []) or []:  # un envoi accepté peut échouer ensuite : on le dit
+                if st.get("status") == "failed":
+                    raisons = "; ".join(f"code {e.get('code')} : {e.get('title', '')} {(e.get('error_data') or {}).get('details', '')}".strip()
+                                        for e in st.get("errors", []) or [])
+                    _log.warning("whatsapp : message non remis (%s)", raisons or "sans raison donnée")
     return out
 
 
@@ -55,10 +62,15 @@ def _contenu(m: dict) -> Contenu:
 def _raison_meta(r: httpx.Response) -> str:
     """Code et message d'erreur de l'API Graph, sans le corps envoyé ni le numéro du destinataire."""
     try:
-        e = r.json().get("error", {})
+        corps = r.json()
     except ValueError:
         return f"HTTP {r.status_code}"
-    details = (e.get("error_data") or {}).get("details", "")
+    # un corps inattendu (liste, chaîne, {"error": "…"} d'un proxy) ne doit pas cacher l'erreur HTTP (revue de SAN)
+    e = corps.get("error") if isinstance(corps, dict) else None
+    if not isinstance(e, dict):
+        return f"HTTP {r.status_code}"
+    details = e.get("error_data") or {}
+    details = details.get("details", "") if isinstance(details, dict) else ""
     return f"HTTP {r.status_code}, code {e.get('code')} : {e.get('message', '')} {details}".strip()
 
 class ClientGraph:
