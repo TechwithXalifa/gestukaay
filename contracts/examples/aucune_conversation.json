@@ -1,0 +1,18 @@
+{
+  "version_contrat": "1.5.0",
+  "reponse": {
+    "id": "c0nv3rs4t10n",
+    "url": "https://app.gestukaay.test/r/c0nv3rs4t10n",
+    "question": "Comment tu vas ?",
+    "langue": "fr",
+    "transcription": null,
+    "requete": null,
+    "version_socle": "2026.10.0",
+    "cree_le": "2026-09-30T10:00:00Z",
+    "latence_ms": 1240,
+    "issue": "aucune",
+    "motif": "conversation",
+    "message": "Bonjour, je vais bien, merci ! Je suis Gëstukaay : posez-moi une question sur les statistiques officielles du Sénégal, par exemple « Combien d'habitants à Thiès ? »",
+    "suggestions": []
+  }
+}
