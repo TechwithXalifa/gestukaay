@@ -12,11 +12,11 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | 1 · Socle | 8 | 8 | Préparation |
 | 2 · Moteur | 11 | 11 | Préparation |
 | 3 · Jeu de test et mesure | 3 | 4 | Préparation |
-| 4 · Wolof | 1 | 5 | Préparation |
+| 4 · Wolof | 3 | 5 | Préparation |
 | 5 · Voix | 4 | 4 | Hackathon |
-| 6 · WhatsApp et Telegram | 3 | 6 | Préparation |
+| 6 · WhatsApp et Telegram | 4 | 6 | Préparation |
 | 7 · Intégration et démo | 1 | 5 | Hackathon |
-| **Total** | **35** | **47** | |
+| **Total** | **38** | **47** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -84,8 +84,8 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 
 - [ ] **4.1** Table de normalisation wolof — [#22](https://github.com/TechwithXalifa/gestukaay/issues/22) · échéance 05/10 · après 1.2
 - [ ] **4.2** Lexique métier bilingue — [#23](https://github.com/TechwithXalifa/gestukaay/issues/23) · échéance 05/10 · après 1.3
-- [ ] **4.3** Détection automatique de la langue — [#24](https://github.com/TechwithXalifa/gestukaay/issues/24) · échéance 05/10
-- [ ] **4.4** Gabarits de réponse en wolof — [#25](https://github.com/TechwithXalifa/gestukaay/issues/25) · échéance 06/10 · après 2.8
+- [x] **4.3** Détection automatique de la langue — [#24](https://github.com/TechwithXalifa/gestukaay/issues/24) · échéance 05/10
+- [x] **4.4** Gabarits de réponse en wolof — [#25](https://github.com/TechwithXalifa/gestukaay/issues/25) · échéance 06/10 · après 2.8
 - [x] **4.5** ~~Trouver 2 locuteurs natifs dont un linguiste~~ → validation par KBD, décision 0009 — [#26](https://github.com/TechwithXalifa/gestukaay/issues/26) · échéance 01/10
 
 ## 5 · Voix
@@ -102,7 +102,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 - [x] **6.3** Message de réponse WhatsApp — [#33](https://github.com/TechwithXalifa/gestukaay/issues/33) · échéance 05/10 · après 2.9
 - [x] **6.4** Accueil, choix numérotés, commandes — [#34](https://github.com/TechwithXalifa/gestukaay/issues/34) · échéance 06/10 · après 6.3
 - [ ] **6.5** Envoi de l'audio WhatsApp ⏳ — [#35](https://github.com/TechwithXalifa/gestukaay/issues/35) · échéance 08/10 · après 5.3, 6.3
-- [ ] **6.6** Bot Telegram de secours — [#36](https://github.com/TechwithXalifa/gestukaay/issues/36) · échéance 06/10 · après 6.3
+- [x] **6.6** Bot Telegram de secours — [#36](https://github.com/TechwithXalifa/gestukaay/issues/36) · échéance 06/10 · après 6.3
 
 ## 7 · Intégration et démo
 
