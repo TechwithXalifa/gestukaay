@@ -7,6 +7,7 @@ des messages sont vérifiées par le backend avant d'arriver ici.
 
 from __future__ import annotations
 
+import logging
 import os
 
 import httpx
@@ -17,6 +18,7 @@ from .conversation import Contenu, traiter
 from .media import telecharger
 from .textes import bouton_liste, texte
 
+_log = logging.getLogger("gestukaay.canaux.whatsapp")
 VERSION = "v25.0"
 DELAI_S = 10
 
@@ -48,6 +50,17 @@ def _contenu(m: dict) -> Contenu:
     return Contenu("autre", accuse=accuse)
 
 
+
+
+def _raison_meta(r: httpx.Response) -> str:
+    """Code et message d'erreur de l'API Graph, sans le corps envoyé ni le numéro du destinataire."""
+    try:
+        e = r.json().get("error", {})
+    except ValueError:
+        return f"HTTP {r.status_code}"
+    details = (e.get("error_data") or {}).get("details", "")
+    return f"HTTP {r.status_code}, code {e.get('code')} : {e.get('message', '')} {details}".strip()
+
 class ClientGraph:
     """Envoi par l'API Graph. Le jeton est dans l'en-tête, jamais dans l'adresse ni les journaux."""
 
@@ -66,8 +79,11 @@ class ClientGraph:
 
     def _envoyer(self, corps: dict) -> None:
         with self._http() as h:
-            h.post(f"/{os.environ['WHATSAPP_PHONE_NUMBER_ID']}/messages",
-                   json={"messaging_product": "whatsapp", **corps}).raise_for_status()
+            r = h.post(f"/{os.environ['WHATSAPP_PHONE_NUMBER_ID']}/messages",
+                       json={"messaging_product": "whatsapp", **corps})
+        if r.is_error:  # la raison donnée par Meta (code 131030 : destinataire hors de la liste de test…),
+            _log.warning("whatsapp : envoi refusé (%s)", _raison_meta(r))  # jamais le numéro ni le texte
+        r.raise_for_status()
 
     def accuser(self, destinataire: str, contenu: Contenu) -> None:
         """Lu (coches bleues) et « en train d'écrire » jusqu'à la réponse (#32)."""

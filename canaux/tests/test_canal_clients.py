@@ -151,3 +151,15 @@ def test_telegram_note_vocale_sans_le_jeton_dans_l_erreur(monkeypatch):
     with pytest.raises(telegram.ErreurTelegram) as e:
         telegram.ClientTelegram(httpx.MockTransport(panne)).vocal("600000001", b"OggS")
     assert JETON_TG not in "".join(traceback.format_exception(e.value))
+
+
+def test_whatsapp_refus_de_meta_journalise_sans_numero(caplog):
+    # essai réel du 07/10 : le 400 de Meta (131030, destinataire hors liste de test) n'était pas lisible
+    import httpx
+    from gestukaay_canaux.whatsapp import _raison_meta
+
+    r = httpx.Response(400, json={"error": {"code": 131030, "message": "(#131030) Recipient phone number not in allowed list",
+                                            "error_data": {"details": "Ajoutez le numéro"}}})
+    raison = _raison_meta(r)
+    assert "131030" in raison and "allowed list" in raison and "221" not in raison
+    assert _raison_meta(httpx.Response(502, text="Bad Gateway")) == "HTTP 502"
