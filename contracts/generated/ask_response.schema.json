@@ -836,7 +836,7 @@
   "description": "Enveloppe HTTP de toutes les routes qui renvoient une réponse.",
   "properties": {
     "version_contrat": {
-      "default": "1.5.0",
+      "default": "1.6.0",
       "type": "string"
     },
     "reponse": {

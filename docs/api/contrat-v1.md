@@ -151,8 +151,21 @@ Le portail ne publie **aucun seuil** de décile ni de quintile : on compare le m
     2022) face à une dépense actuelle, et la consommation de l'enquête (EHCVM) inclut
     l'autoconsommation et les loyers imputés, souvent absents des dépenses déclarées. Sinon un ménage
     peut se croire plus aisé qu'il ne l'est.
+- **v1.6.0 (décision 0039)**, tout facultatif :
+  - entrée `milieu` (`urbain` / `rural`) : le portail ne publie le milieu qu'au **niveau national** ;
+    le ménage est comparé **en plus** aux ménages urbains ou ruraux du Sénégal (`moyenne_milieu`,
+    `position_milieu`) ;
+  - `seuil_pauvrete`, `position_seuil` : seuil de pauvreté officiel (EHCVM 2018, FCFA par personne
+    et par an), même règle de position (#59) ;
+  - `repartition_bien_etre` : part de la population de la région dans chacun des cinq groupes de
+    bien-être, du plus bas au plus élevé. **Le ménage n'y est pas placé** : les seuils des groupes ne
+    sont pas publiés ;
+  - `moyennes_regions` : consommation moyenne par tête des 14 régions, même période que
+    `moyenne_region` (carte, graphique). « Et si… » et « une autre région » rappellent la route :
+    **aucun calcul côté site**.
 - **Rien n'est conservé** : ni base, ni journal, ni compte (EF-40, US-21).
-- Exemple : `situer.json` (Kolda, 7 personnes, 100 000 à 200 000 FCFA par mois).
+- Exemples : `situer.json` (Kolda, 7 personnes, 100 000 à 200 000 FCFA par mois) ; `situer_milieu.json`
+  (le même ménage, milieu rural, avec tous les champs de la 1.6.0).
 
 ## 4 bis. Catalogue, fiche et séries (v1.4.0, décision 0023)
 
@@ -214,3 +227,4 @@ Procédure :
 | 1.3.0 | 2026-10-04 | Additif (décisions 0012 et 0019) : `TrancheDepense` gagne `500k_750k`, `750k_1m`, `plus_1m`, `plus_500k` gardé mais plus proposé ; `ReponseAucune.motif` gagne `non_disponible` |
 | 1.4.0 | 2026-10-04 | Additif (décision 0023) : `GET /v1/indicators`, `GET /v1/indicators/{code}`, `GET /v1/series` ; modèles `CatalogueResponse`, `FicheIndicateur`, `SeriesResponse` |
 | 1.5.0 | 2026-10-07 | Additif (décision 0033) : `ReponseAucune.motif` gagne `conversation` |
+| 1.6.0 | 2026-10-08 | Additif (décision 0039) : `SituateRequest.milieu` ; `SituateResponse` gagne `moyenne_milieu`, `position_milieu`, `seuil_pauvrete`, `position_seuil`, `repartition_bien_etre`, `moyennes_regions` ; exemple `situer_milieu.json` |

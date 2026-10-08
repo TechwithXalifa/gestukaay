@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_CONTRAT = "1.5.0"
+VERSION_CONTRAT = "1.6.0"
 
 
 class _Strict(BaseModel):
@@ -307,6 +307,9 @@ class SituateRequest(_Strict):
     # Demandé par le cahier (EF-37) mais aucune donnée publiée ne le croise
     # encore : accepté, non exploité en v1.1.0.
     niveau_instruction_chef: Literal["aucun", "primaire", "moyen", "secondaire", "superieur"] | None = None
+    # v1.6.0 (décision 0039) : facultatif. La consommation par milieu n'est publiée qu'au niveau national :
+    # le ménage est comparé en plus aux ménages urbains ou ruraux du Sénégal.
+    milieu: Literal["urbain", "rural"] | None = None
 
 
 class Intervalle(_Strict):
@@ -335,6 +338,18 @@ class SituateResponse(_Strict):
     contexte: list[Resultat] = Field(default_factory=list, max_length=6)
     # 1 à 3 phrases par gabarit + encadré « C'est quoi une moyenne ? » [EF-39]
     explication: str
+    # --- v1.6.0 (décision 0039), tous facultatifs : chaque valeur est une ligne publiée, avec sa source ---
+    # Consommation moyenne par tête du Sénégal pour le milieu déclaré (urbain / rural), et la position
+    moyenne_milieu: Resultat | None = None
+    position_milieu: Position | None = None
+    # Seuil de pauvreté officiel (#59), même règle de position que les moyennes
+    seuil_pauvrete: Resultat | None = None
+    position_seuil: Position | None = None
+    # Part de la population de la région dans chacun des cinq groupes de bien-être, du plus bas au plus
+    # élevé. Le ménage n'y est PAS placé : les seuils des groupes ne sont pas publiés (0004 §2).
+    repartition_bien_etre: list[Resultat] = Field(default_factory=list, max_length=5)
+    # Consommation moyenne par tête des 14 régions, même période que moyenne_region (carte, graphique)
+    moyennes_regions: list[Resultat] = Field(default_factory=list, max_length=14)
 
 
 

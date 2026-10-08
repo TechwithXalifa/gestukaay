@@ -23,6 +23,81 @@ export interface SituateResponse {
     | [Resultat, Resultat, Resultat, Resultat, Resultat]
     | [Resultat, Resultat, Resultat, Resultat, Resultat, Resultat];
   explication: string;
+  moyenne_milieu: Resultat | null;
+  position_milieu: ("en_dessous" | "autour" | "au_dessus") | null;
+  seuil_pauvrete: Resultat | null;
+  position_seuil: ("en_dessous" | "autour" | "au_dessus") | null;
+  /**
+   * @maxItems 5
+   */
+  repartition_bien_etre:
+    | []
+    | [Resultat]
+    | [Resultat, Resultat]
+    | [Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat, Resultat];
+  /**
+   * @maxItems 14
+   */
+  moyennes_regions:
+    | []
+    | [Resultat]
+    | [Resultat, Resultat]
+    | [Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat]
+    | [Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat, Resultat]
+    | [
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat
+      ]
+    | [
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat
+      ]
+    | [
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat,
+        Resultat
+      ];
 }
 export interface Intervalle {
   minimum: number;

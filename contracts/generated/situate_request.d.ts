@@ -17,4 +17,5 @@ export interface SituateRequest {
     | "plus_1m"
     | "plus_500k";
   niveau_instruction_chef?: ("aucun" | "primaire" | "moyen" | "secondaire" | "superieur") | null;
+  milieu?: ("urbain" | "rural") | null;
 }

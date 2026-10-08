@@ -1,0 +1,865 @@
+{
+  "version_contrat": "1.6.0",
+  "depense_par_personne_an": {
+    "minimum": 171429.0,
+    "maximum": 342857.0,
+    "libelle": "entre 171 429 et 342 857 FCFA par personne et par an"
+  },
+  "moyenne_region": {
+    "indicateur": {
+      "code": "jcvcajc.total",
+      "libelle": "Consommation moyenne par tête"
+    },
+    "zone": {
+      "code": "SN-KD",
+      "libelle": "Kolda",
+      "niveau": "region"
+    },
+    "periode": {
+      "valeur": "2022",
+      "libelle": "2022"
+    },
+    "desagregation": null,
+    "valeur": 387934.0,
+    "valeur_affichee": "387 934",
+    "unite": "FCFA par personne et par an",
+    "source": {
+      "producteur": "ANSD",
+      "operation": "EHCVM",
+      "titre": "10.1_Indices de pauvreté",
+      "date_publication": "2024-07-15",
+      "licence": "",
+      "url": "https://senegal.opendataforafrica.org/jcvcajc",
+      "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+    },
+    "observation_id": "20edf6b093ecce22",
+    "mise_en_evidence": false,
+    "nature": "observee",
+    "base_projection": null
+  },
+  "moyenne_pays": {
+    "indicateur": {
+      "code": "jcvcajc.total",
+      "libelle": "Consommation moyenne par tête"
+    },
+    "zone": {
+      "code": "SN",
+      "libelle": "Sénégal",
+      "niveau": "pays"
+    },
+    "periode": {
+      "valeur": "2022",
+      "libelle": "2022"
+    },
+    "desagregation": null,
+    "valeur": 542706.0,
+    "valeur_affichee": "542 706",
+    "unite": "FCFA par personne et par an",
+    "source": {
+      "producteur": "ANSD",
+      "operation": "EHCVM",
+      "titre": "10.1_Indices de pauvreté",
+      "date_publication": "2024-07-15",
+      "licence": "",
+      "url": "https://senegal.opendataforafrica.org/jcvcajc",
+      "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+    },
+    "observation_id": "e8aa681bf055398b",
+    "mise_en_evidence": false,
+    "nature": "observee",
+    "base_projection": null
+  },
+  "position_region": "en_dessous",
+  "position_pays": "en_dessous",
+  "contexte": [
+    {
+      "indicateur": {
+        "code": "jcvcajc.taux-de-pauvrete",
+        "libelle": "Taux de pauvreté des ménages de 5 à 9 personnes"
+      },
+      "zone": {
+        "code": "SN",
+        "libelle": "Sénégal",
+        "niveau": "pays"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": {
+        "taille-du-ménage": "5-9 personnes"
+      },
+      "valeur": 24.2,
+      "valeur_affichee": "24,2",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "fd94094871b25878",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "qjyrtof.le-plus-bas",
+        "libelle": "Population dans le quintile de bien-être le plus bas"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": null,
+      "valeur": 63.0,
+      "valeur_affichee": "63",
+      "unite": "",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EDS",
+        "titre": "Quintile de bien-être économique et coefficients de GINI",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/qjyrtof",
+        "libelle": "ANSD · EDS · publié le 15 juillet 2024"
+      },
+      "observation_id": "843c9d7241db72d1",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "asongtc",
+        "libelle": "Ménages éclairés à l'électricité"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": null,
+      "valeur": 39.6,
+      "valeur_affichee": "39,6",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EDS",
+        "titre": "22.4a_Pourcentage de ménages selon leur principale source d'éclairage (électricité comprise)",
+        "date_publication": "2026-07-11",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/asongtc",
+        "libelle": "ANSD · EDS · publié le 11 juillet 2026"
+      },
+      "observation_id": "f962b4c15fcb0bbc",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    }
+  ],
+  "explication": "Votre ménage dépense entre 171 429 et 342 857 FCFA par personne et par an. C'est moins que la consommation moyenne par tête publiée pour la région de Kolda (387 934 FCFA) et pour le Sénégal (542 706 FCFA). Par rapport aux ménages ruraux du Sénégal (402 240 FCFA), c'est moins que leur consommation moyenne. Le seuil de pauvreté officiel est de 333 441 FCFA par personne et par an (enquête de 2018) : votre estimation est autour de ce seuil. Une moyenne additionne les dépenses de tous les ménages puis divise par le nombre de personnes : elle ne dit pas où se situe la majorité. Deux précautions : ces moyennes ont été mesurées en 2022, en FCFA de 2022, alors que vos dépenses sont celles d'aujourd'hui ; et la consommation mesurée par l'enquête compte aussi ce que le ménage produit lui-même et la valeur du logement occupé, que l'on oublie souvent dans ses dépenses. La comparaison donne donc un ordre de grandeur, pas un classement.",
+  "moyenne_milieu": {
+    "indicateur": {
+      "code": "jcvcajc.total",
+      "libelle": "Consommation moyenne par tête des ménages ruraux"
+    },
+    "zone": {
+      "code": "SN",
+      "libelle": "Sénégal",
+      "niveau": "pays"
+    },
+    "periode": {
+      "valeur": "2022",
+      "libelle": "2022"
+    },
+    "desagregation": {
+      "milieu-de-résidence": "Rural"
+    },
+    "valeur": 402240.0,
+    "valeur_affichee": "402 240",
+    "unite": "FCFA par personne et par an",
+    "source": {
+      "producteur": "ANSD",
+      "operation": "EHCVM",
+      "titre": "10.1_Indices de pauvreté",
+      "date_publication": "2024-07-15",
+      "licence": "",
+      "url": "https://senegal.opendataforafrica.org/jcvcajc",
+      "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+    },
+    "observation_id": "ce29535fc3cfa653",
+    "mise_en_evidence": false,
+    "nature": "observee",
+    "base_projection": null
+  },
+  "position_milieu": "en_dessous",
+  "seuil_pauvrete": {
+    "indicateur": {
+      "code": "ahjjzgc.seuil-de-pauvrete",
+      "libelle": "Seuil de pauvreté"
+    },
+    "zone": {
+      "code": "SN",
+      "libelle": "Sénégal",
+      "niveau": "pays"
+    },
+    "periode": {
+      "valeur": "2018",
+      "libelle": "2018"
+    },
+    "desagregation": null,
+    "valeur": 333441.0,
+    "valeur_affichee": "333 441",
+    "unite": "FCFA par personne et par an",
+    "source": {
+      "producteur": "ANSD",
+      "operation": "Indicateurs genre à partir des données des enquêtes EDS",
+      "titre": "Indicateurs genre à partir des données des enquêtes EDS",
+      "date_publication": "2022-11-04",
+      "licence": "",
+      "url": "https://senegal.opendataforafrica.org/ahjjzgc",
+      "libelle": "ANSD · Indicateurs genre à partir des données des enquêtes EDS · publié le 4 novembre 2022"
+    },
+    "observation_id": "a31976378c53d6ea",
+    "mise_en_evidence": false,
+    "nature": "observee",
+    "base_projection": null
+  },
+  "position_seuil": "autour",
+  "repartition_bien_etre": [
+    {
+      "indicateur": {
+        "code": "sfxudug",
+        "libelle": "Groupe de bien-être le plus bas"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": {
+        "quintile": "Le plus bas"
+      },
+      "valeur": 63.0,
+      "valeur_affichee": "63",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "Enquête démographiques et de Santé (EDS)",
+        "titre": "10.2_Indice de bien-être (par région et milieu de résidence)",
+        "date_publication": "2026-07-11",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/sfxudug",
+        "libelle": "ANSD · Enquête démographiques et de Santé (EDS) · publié le 11 juillet 2026"
+      },
+      "observation_id": "8d1d9ddf4320f778",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "sfxudug",
+        "libelle": "Deuxième groupe de bien-être"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": {
+        "quintile": "Second"
+      },
+      "valeur": 18.7,
+      "valeur_affichee": "18,7",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "Enquête démographiques et de Santé (EDS)",
+        "titre": "10.2_Indice de bien-être (par région et milieu de résidence)",
+        "date_publication": "2026-07-11",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/sfxudug",
+        "libelle": "ANSD · Enquête démographiques et de Santé (EDS) · publié le 11 juillet 2026"
+      },
+      "observation_id": "e26664fd13e9c143",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "sfxudug",
+        "libelle": "Groupe de bien-être du milieu"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": {
+        "quintile": "Moyen"
+      },
+      "valeur": 8.7,
+      "valeur_affichee": "8,7",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "Enquête démographiques et de Santé (EDS)",
+        "titre": "10.2_Indice de bien-être (par région et milieu de résidence)",
+        "date_publication": "2026-07-11",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/sfxudug",
+        "libelle": "ANSD · Enquête démographiques et de Santé (EDS) · publié le 11 juillet 2026"
+      },
+      "observation_id": "721645f83fe7c80e",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "sfxudug",
+        "libelle": "Quatrième groupe de bien-être"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": {
+        "quintile": "Quatrième"
+      },
+      "valeur": 6.7,
+      "valeur_affichee": "6,7",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "Enquête démographiques et de Santé (EDS)",
+        "titre": "10.2_Indice de bien-être (par région et milieu de résidence)",
+        "date_publication": "2026-07-11",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/sfxudug",
+        "libelle": "ANSD · Enquête démographiques et de Santé (EDS) · publié le 11 juillet 2026"
+      },
+      "observation_id": "04e20f5314cbb92a",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "sfxudug",
+        "libelle": "Groupe de bien-être le plus élevé"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2023",
+        "libelle": "2023"
+      },
+      "desagregation": {
+        "quintile": "Le plus élevé"
+      },
+      "valeur": 2.9,
+      "valeur_affichee": "2,9",
+      "unite": "%",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "Enquête démographiques et de Santé (EDS)",
+        "titre": "10.2_Indice de bien-être (par région et milieu de résidence)",
+        "date_publication": "2026-07-11",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/sfxudug",
+        "libelle": "ANSD · Enquête démographiques et de Santé (EDS) · publié le 11 juillet 2026"
+      },
+      "observation_id": "5556f3d2112f59d5",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    }
+  ],
+  "moyennes_regions": [
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-DB",
+        "libelle": "Diourbel",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 464236.0,
+      "valeur_affichee": "464 236",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "069b37729d7c80a0",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-DK",
+        "libelle": "Dakar",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 861364.0,
+      "valeur_affichee": "861 364",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "23af005b69856d97",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-FK",
+        "libelle": "Fatick",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 433634.0,
+      "valeur_affichee": "433 634",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "503ec3a08ebfdd13",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-KA",
+        "libelle": "Kaffrine",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 391980.0,
+      "valeur_affichee": "391 980",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "037ae83e8e15498c",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-KD",
+        "libelle": "Kolda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 387934.0,
+      "valeur_affichee": "387 934",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "20edf6b093ecce22",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-KE",
+        "libelle": "Kédougou",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 359121.0,
+      "valeur_affichee": "359 121",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "73a5f393a43ddc1e",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-KL",
+        "libelle": "Kaolack",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 442489.0,
+      "valeur_affichee": "442 489",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "2bc4d3b4277a79ac",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-LG",
+        "libelle": "Louga",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 444651.0,
+      "valeur_affichee": "444 651",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "e70ce36ab197fbfd",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-MT",
+        "libelle": "Matam",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 439221.0,
+      "valeur_affichee": "439 221",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "5be20bd8ca8f1551",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-SE",
+        "libelle": "Sédhiou",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 345506.0,
+      "valeur_affichee": "345 506",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "3b0fb610cf47c358",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-SL",
+        "libelle": "Saint-Louis",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 498177.0,
+      "valeur_affichee": "498 177",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "8ded04d2abfd4477",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-TC",
+        "libelle": "Tambacounda",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 363543.0,
+      "valeur_affichee": "363 543",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "7e7f3f04c7528b8e",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-TH",
+        "libelle": "Thiès",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 540343.0,
+      "valeur_affichee": "540 343",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "e1feb4dcbcb26a05",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    },
+    {
+      "indicateur": {
+        "code": "jcvcajc.total",
+        "libelle": "Consommation moyenne par tête"
+      },
+      "zone": {
+        "code": "SN-ZG",
+        "libelle": "Ziguinchor",
+        "niveau": "region"
+      },
+      "periode": {
+        "valeur": "2022",
+        "libelle": "2022"
+      },
+      "desagregation": null,
+      "valeur": 437354.0,
+      "valeur_affichee": "437 354",
+      "unite": "FCFA par personne et par an",
+      "source": {
+        "producteur": "ANSD",
+        "operation": "EHCVM",
+        "titre": "10.1_Indices de pauvreté",
+        "date_publication": "2024-07-15",
+        "licence": "",
+        "url": "https://senegal.opendataforafrica.org/jcvcajc",
+        "libelle": "ANSD · EHCVM · publié le 15 juillet 2024"
+      },
+      "observation_id": "428c44d0b9b71a05",
+      "mise_en_evidence": false,
+      "nature": "observee",
+      "base_projection": null
+    }
+  ]
+}
