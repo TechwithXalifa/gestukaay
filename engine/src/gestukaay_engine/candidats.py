@@ -35,6 +35,9 @@ _VIDES = {
     "mon", "ma", "mes", "ton", "ta", "tes", "son", "sa", "ses", "notre", "nos", "votre", "vos", "leur", "leurs",
     "euh", "bon", "voila", "voici", "hein", "bah", "trop",
     "waa", "man", "tay", "dama", "xiif", "lii", "mbaa", "diamm", "tamit",
+    # le pays de toutes les questions : « la population sénégalaise » ne cherche pas la nationalité « Sénégalaise »
+    # (recette du 08/10 : « Sénégalaise : 25 160 » pour « de combien la population sénégalaise a-t-elle augmenté »)
+    "senegal", "senegalais", "senegalaise", "senegalaises", "senegaal",
 }
 
 # Amorce du lexique métier (#23) : mot de la question -> mots des libellés.
@@ -49,6 +52,7 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "chomeurs": ("chomage",), "liggeey": ("chomage",), "ligeey": ("chomage",), "amul": ("chomage",),
     "pauvre": ("pauvrete",), "pauvres": ("pauvrete",),
     "coute": ("prix",), "cout": ("prix",), "njeg": ("prix",), "diar": ("prix",), "jar": ("prix",),
+    "coutait": ("prix",), "coutent": ("prix",), "coutaient": ("prix",),
     "ceeb": ("riz",), "thieb": ("riz",), "dugub": ("mil",),
     "inflation": ("indice", "prix", "consommation"), "ihpc": ("indice", "prix", "consommation"),
     # l'école n'est pas le taux de scolarisation : « Combien d'écoles ? » donnait 84,7 % (KBD, 08/10) ; étudier = jàng
@@ -63,7 +67,8 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "inegalites": ("gini",), "pib": ("produit", "interieur", "brut"),
     "telephone": ("telephonie", "mobile"), "portable": ("telephonie", "mobile"), "telefon": ("telephonie", "mobile"),
     "touristes": ("arrivees", "residents"), "prison": ("emprisonnees",), "kaso": ("emprisonnees",),
-    "prisonniers": ("emprisonnees",), "detenus": ("emprisonnees",),
+    "prisonniers": ("emprisonnees",), "detenus": ("emprisonnees",), "detenues": ("emprisonnees",),
+    "detenu": ("emprisonnees",), "carcerale": ("emprisonnees",),
     "poisson": ("captures", "halieutiques"), "peche": ("captures", "halieutiques"), "jen": ("captures",),
     "voitures": ("vehicule",), "vehicules": ("vehicule",), "woto": ("vehicule",),
     "crimes": ("criminalite",), "salaire": ("salaire",), "payooru": ("salaire",),
@@ -80,14 +85,24 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "tolluwaayu": ("taux",), "toluwaay": ("taux",), "toluwaayu": ("taux",),
     "mbej": ("eclairage", "electricite"), "kurang": ("eclairage", "electricite"),
     "njang": ("scolarisation",), "jang": ("scolarisation", "njang"),  # jàng = étudier (KBD, 07/10, remarque SAN)
-    "dee": ("mortalite",), "ndaw": ("population", "age"),
+    "dee": ("mortalite",), "deeg": ("mortalite",), "yamadi": ("gini",),  # formes de KBD, 08/10
+    "nakkug": ("vaccines",),  # ñakkug xale yi : la vaccination des enfants (KBD, 08/10) "ndaw": ("population", "age"),
     "goor": ("population", "masculin"), "tej": ("emprisonnees",), "napp": ("captures", "peche"),
     "ndab": ("vehicule",), "vootuur": ("vehicule",),
     "ker": ("menages",), "keur": ("menages",),  # kër = ménage (KBD, 06/10), graphie WhatsApp « keur »
 }
 
 _MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, "juillet": 7,
-         "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11, "decembre": 12}
+         "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11, "decembre": 12,
+         # mois en wolof, formes de KBD (questions du 08/10) : seulement celles qu'il a écrites
+         "samwiye": 1, "fewriye": 2, "suweng": 6, "sulet": 7, "desambar": 12}
+# « weeru mars atum 2026 », « ñaareelu ñetti weer yi ci atum 2023 » (KBD, 08/10) : ramenés à « mars 2026 », « t2 2023 » ;
+# « ñetti » peut déjà être devenu « 3 » (nombres en lettres convertis avant la compréhension, #153)
+_DATES_WO = ((re.compile(r"\bweeru "), ""),
+             (re.compile(r"\b(" + "|".join(_MOIS) + r") (?:ci )?atum (?=(?:19|20)\d\d\b)"), r"\1 "),
+             (re.compile(r"\b(?:netti|3) weer yu njekk (?:yu |yi |ci |atum )*(?=(?:19|20)\d\d\b)"), "t1 "),
+             (re.compile(r"\bnaareelu (?:netti|3) weer (?:yu |yi |ci |atum )*(?=(?:19|20)\d\d\b)"), "t2 "),
+             (re.compile(r"\b(?:netti|3) weer yu mujj (?:yu |yi |ci |atum )*(?=(?:19|20)\d\d\b)"), "t4 "))
 
 
 def texte_normalise(texte: str) -> str:
@@ -151,7 +166,9 @@ _PAS_UN_LIEU_MAJ = {"merci", "svp", "stp", "bonjour", "bonsoir", "salut", "salam
                     "bceao", "ansd", "nationale", "national", "total", "afrique"}
 # Hors du Sénégal sans nom propre : « dans le monde », « en Afrique »
 _AILLEURS = {"monde", "mondial", "mondiale", "afrique", "africain", "europe", "etranger", "international",
-             "internationale", "france", "gambie", "mali", "mauritanie", "guinee", "maroc", "chine", "usa"}
+             "internationale", "france", "gambie", "mali", "mauritanie", "guinee", "maroc", "chine", "usa",
+             # « se compare-t-il à celui du Mali / de la Côte d'Ivoire / de l'UEMOA / des pays voisins » (recette 08/10)
+             "ivoire", "uemoa", "cedeao", "voisins", "burkina", "niger", "nigeria", "ghana", "benin", "togo"}
 
 
 def _debut_de_zone(nom: str, question: str) -> bool:
@@ -226,31 +243,111 @@ _IL_Y_A = re.compile(r"\bil y a (\d{1,2}) ans?\b")
 _DANS = re.compile(r"\bdans (\d{1,2}) ans?\b")
 
 
+_RANG = {"premier": 1, "1er": 1, "1ere": 1, "deuxieme": 2, "second": 2, "seconde": 2, "2e": 2, "2eme": 2,
+         "troisieme": 3, "3e": 3, "3eme": 3, "quatrieme": 4, "4e": 4, "4eme": 4, "dernier": 4}
+_TRIMESTRE = re.compile(r"\b(?P<r1>" + "|".join(_RANG) + r")(?: (?:et|au|a) (?:le |du )?(?P<r2>" + "|".join(_RANG)
+                        + r"))? trimestres? (?:de |du |en )?(?P<an>(?:19|20)\d\d)\b")
+_DEUX_MOIS = re.compile(r"\b(?P<m1>" + "|".join(_MOIS) + r") (?:et|a|au|ak) (?:le |la |l )?(?P<m2>" + "|".join(_MOIS)
+                        + r") (?P<an>(?:19|20)\d\d)\b")
+
+
 def periodes_citees(question: str) -> list[str]:
     """« mars 2025 » -> 2025-03 ; « 2023 » -> 2023 ; « T2 2024 » -> 2024-T2. Dans l'ordre.
-    « l'année dernière », « il y a 5 ans », « l'an prochain » : l'année correspondante."""
+    « l'année dernière », « il y a 5 ans », « l'an prochain » : l'année correspondante.
+    « le premier trimestre 2026 » -> 2026-T1 ; « entre février et mars 2026 » -> 2026-02, 2026-03 (recette 08/10)."""
     from .resolution import ANNEE_EN_COURS
 
     t = texte_normalise(question)
-    out = [str(ANNEE_EN_COURS + d) for motif, d in _RELATIVES if motif.search(t)]
-    out += [str(ANNEE_EN_COURS - int(m[1])) for m in _IL_Y_A.finditer(t)]
-    out += [str(ANNEE_EN_COURS + int(m[1])) for m in _DANS.finditer(t)]
+    for motif, par in _DATES_WO:  # mois et trimestres en wolof (KBD) ramenés aux formes lues ci-dessous
+        t = motif.sub(par, t)
+    trouves: list[tuple[int, str]] = []
+    pris: list[tuple[int, int]] = []  # zones du texte déjà lues, pour ne pas relire « 2026 » seul
+
+    def libre(a: int, b: int) -> bool:
+        return all(b <= x or a >= y for x, y in pris)
+
+    for m in _TRIMESTRE.finditer(t):
+        trouves.append((m.start(), f"{m['an']}-T{_RANG[m['r1']]}"))
+        if m["r2"]:
+            trouves.append((m.start() + 1, f"{m['an']}-T{_RANG[m['r2']]}"))
+        pris.append(m.span())
+    for m in _DEUX_MOIS.finditer(t):
+        if libre(*m.span()):
+            trouves += [(m.start(), f"{m['an']}-{_MOIS[m['m1']]:02d}"), (m.start() + 1, f"{m['an']}-{_MOIS[m['m2']]:02d}")]
+            pris.append(m.span())
+    for motif, d in _RELATIVES:
+        if r := motif.search(t):
+            trouves.append((r.start(), str(ANNEE_EN_COURS + d)))
+    trouves += [(m.start(), str(ANNEE_EN_COURS - int(m[1]))) for m in _IL_Y_A.finditer(t)]
+    trouves += [(m.start(), str(ANNEE_EN_COURS + int(m[1]))) for m in _DANS.finditer(t)]
     for m in re.finditer(r"\b(?:(?P<mois>" + "|".join(_MOIS) + r")\s+)?(?:(?P<t>t[1-4])\s+)?"
                          r"(?P<an>(?:19|20)\d\d)\b", t):
+        if not libre(*m.span()):
+            continue
         if m["mois"]:
-            out.append(f"{m['an']}-{_MOIS[m['mois']]:02d}")
+            trouves.append((m.start(), f"{m['an']}-{_MOIS[m['mois']]:02d}"))
         elif m["t"]:
-            out.append(f"{m['an']}-T{m['t'][1]}")
+            trouves.append((m.start(), f"{m['an']}-T{m['t'][1]}"))
         else:
-            out.append(m["an"])
+            trouves.append((m.start(), m["an"]))
+    out: list[str] = []
+    for _, v in sorted(trouves):
+        if v not in out:
+            out.append(v)
     return out
+
+
+# Une question d'évolution (recette du 08/10 : 33 réponses sur 170 ne donnaient qu'une valeur) : deux périodes
+EVOLUTION = re.compile(
+    r"\bevolu|\btendance|\b(augment|diminu|baiss|progress|recul|amelior|degrad)\w*|\bdepuis\b"
+    r"|\bapres (?:la |le |l )?(?:(?:19|20)\d\d|pandemie|covid)|\bqu il y a\b|\blong terme\b|\bhistorique\b"
+    r"|\bd (?:un|une) (?:mois|trimestre|an|annee) (?:a|sur) l autre\b"
+    r"|\b(?:\d+|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|quinze|vingt|trente|quarante) (?:dernieres|derniers)"
+    r" (?:annees|ans|mois|trimestres)\b|\bdernieres decennies\b|\bsur (?:pres de |plus de )?(?:\d+|dix|vingt|trente|quarante) ans\b")
+_NOMBRES = {"deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six": 6, "sept": 7, "huit": 8, "neuf": 9, "dix": 10,
+            "quinze": 15, "vingt": 20, "trente": 30, "quarante": 40}
+
+
+def fenetre_annees(question: str) -> int | None:
+    """« au cours des dix dernières années », « sur près de quarante ans » -> 10, 40 ; « dernières décennies » -> 30."""
+    t = texte_normalise(question)
+    if m := re.search(r"\b(\d+|" + "|".join(_NOMBRES) + r") (?:dernieres|derniers) (?:annees|ans)\b", t) or \
+            re.search(r"\bsur (?:pres de |plus de )?(\d+|" + "|".join(_NOMBRES) + r") ans\b", t):
+        return int(m[1]) if m[1].isdigit() else _NOMBRES[m[1]]
+    return 30 if re.search(r"\bdernieres decennies\b", t) else None
+
+
+# « Quel mois a enregistré le plus d'arrivées en 2018 ? », « À quelle période le riz était-il le moins cher ? »,
+# « En quelle année les captures ont-elles atteint leur niveau le plus élevé ? » (recette du 08/10)
+_EXTREMUM = re.compile(r"\b(?:quel|quelle|a quel|a quelle|en quel|en quelle) (?:mois|annee|trimestre|periode)\b")
+_EXTREMUM_BAS = re.compile(r"\b(?:le |la |les )?(?:moins|plus bas(?:se)?|plus faibles?|minimum)\b")
+
+
+def extremum(question: str) -> str | None:
+    """« max » ou « min » si la question cherche la période du plus haut ou du plus bas niveau d'une série."""
+    t = texte_normalise(question)
+    if not _EXTREMUM.search(t) or not re.search(r"\b(plus|moins|maximum|minimum|record)\b", t):
+        return None
+    return "min" if _EXTREMUM_BAS.search(t) else "max"
+
+
+def fenetre_periodes(question: str) -> int | None:
+    """« au cours des douze derniers mois », « des quatre derniers trimestres » -> 12, 4 (périodes de la série)."""
+    t = texte_normalise(question)
+    m = re.search(r"\b(\d+|douze|" + "|".join(_NOMBRES) + r") (?:derniers|dernieres) (?:mois|trimestres)\b", t)
+    return None if not m else 12 if m[1] == "douze" else int(m[1]) if m[1].isdigit() else _NOMBRES[m[1]]
+
+
+def est_evolution(question: str) -> bool:
+    return bool(EVOLUTION.search(texte_normalise(question)))
 
 
 def milieu_cite(texte: str) -> str | None:
     """« rural » ou « urbain » si le texte (normalisé) cite un milieu."""
-    if re.search(r"\b(ruraux|rurales?|rural|goxaan)\b", texte):  # « gox-goxaan yi » = le milieu rural (KBD)
+    # « gox-goxaan yi », « all bi » = le milieu rural ; « dëkk yi » = les villes (KBD, 06/10 et 08/10)
+    if re.search(r"\b(ruraux|rurales?|rural|goxaan|all bi)\b", texte):
         return "rural"
-    if re.search(r"\b(urbains?|urbaines?)\b", texte):
+    if re.search(r"\b(urbains?|urbaines?|dekk yi)\b", texte):
         return "urbain"
     return None
 

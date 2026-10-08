@@ -1,4 +1,4 @@
-# 0037 — Délai du LLM tenu pour de bon, et relais en parallèle
+# 0038 — Délai du LLM tenu pour de bon, et relais en parallèle
 
 **Date** : 2026-10-08 · **Statut** : accepté (KBD) · **Issue** : #156 · **Complète** : 0010, 0034
 

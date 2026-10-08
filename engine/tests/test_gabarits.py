@@ -125,3 +125,16 @@ def test_unites_deduites_132():
     deduites = [x for x in i.values() if "unité déduite (#132)" in x.note]
     assert len(deduites) == 146 and all(x.unite_affichee for x in deduites)
     assert all(x.unite_affichee == "pour 1 000 000 habitants" for x in deduites if "1 000 000" in x.libelle_fr)
+
+
+def test_unite_non_precisee_seulement_si_ambigu():  # KBD, 08/10 : « 21 426 accidents » sans la mention
+    from gestukaay_contracts.models import RefIndicateur, Resultat
+    from gestukaay_engine.gabarits import unite_ambigue
+
+    def r(libelle, valeur, unite=""):  # la règle ne lit que le libellé, la valeur et l'unité
+        return Resultat.model_construct(indicateur=RefIndicateur(code="x", libelle=libelle), valeur=valeur, unite=unite)
+    assert not unite_ambigue(r("Accidents de la circulation", 21426.0))  # un compte évident
+    assert unite_ambigue(r("Taux d'accès des ménages à l'électricité", 70.3))  # 70,3 : % ? taux ?
+    assert unite_ambigue(r("Indice des prix", 112.0))  # un indice n'est pas un compte
+    assert unite_ambigue(r("Accidents graves", 42.0))  # petit entier : peut être un %
+    assert not unite_ambigue(r("Taux de chômage", 20.4, "%"))  # unité connue

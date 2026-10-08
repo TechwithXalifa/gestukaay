@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { AskResponse, ReponseExacte } from "@contracts/ask_response";
 import { useLangue } from "@/i18n/langue";
 import { envoyerRetour } from "@/lib/api";
+import { uniteAmbigue } from "@/lib/unites";
 import { Actions } from "./Actions";
 import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
@@ -176,7 +177,8 @@ function Exacte({ r }: { r: ReponseExacte }) {
               (montants en millions de FCFA), il passe à la taille « longue » pour tenir sur un téléphone. */}
           <p className={v.valeur_affichee.length > 11 ? "valeur longue" : "valeur"}>
             <span>{chiffres(v.valeur_affichee)}</span>{" "}
-            {v.unite ? <span className="unite">{v.unite}</span> : <span className="unite sans-unite">{t("reponse.sansUnite")}</span>}
+            {v.unite ? <span className="unite">{v.unite}</span>
+              : uniteAmbigue(v) && <span className="unite sans-unite">{t("reponse.sansUnite")}</span>}
           </p>
           <p className="source-ligne">
             <Livre taille={16} />

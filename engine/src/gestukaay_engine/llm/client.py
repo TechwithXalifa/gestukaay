@@ -188,7 +188,8 @@ def lire_chaine(env: Mapping[str, str] = os.environ) -> list[Maillon]:
     LLM_N_TEMPERATURE (« aucune » pour ne pas l'envoyer), LLM_N_JSON,
     LLM_N_PRIX_ENTREE, LLM_N_PRIX_SORTIE ($ par million de jetons),
     LLM_N_HEBERGEURS (OpenRouter : « cerebras,groq »), LLM_N_TRI (« latency »…),
-    LLM_N_RAISONNEMENT (OpenRouter : « non », « minimal », « low »…)."""
+    LLM_N_RAISONNEMENT (OpenRouter : « non », « minimal », « low »… ; Gemini direct : « non » seulement, les autres
+    valeurs y sont ignorées)."""
     noms = [n.strip() for n in env.get("LLM_CHAINE", "").split(",") if n.strip()]
     delai_defaut = float(env.get("LLM_DELAI_S", "2"))
     chaine = []

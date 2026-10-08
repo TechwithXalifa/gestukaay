@@ -21,6 +21,7 @@ def test_catalogue_et_filtres():
 def test_fiche_et_indicateur_inconnu():
     f = FicheIndicateur.model_validate(client.get(f"/v1/indicators/{PAUVRETE}").json())
     assert f.source.libelle and f.citation.startswith("Source : ")
+    assert "app.gestukaay.test" not in f.citation  # l'adresse publique du site, pas l'adresse provisoire
     r = client.get("/v1/indicators/inconnu")
     assert r.status_code == 404 and r.headers["content-type"].startswith("application/problem+json")
 

@@ -81,3 +81,10 @@ sur WhatsApp et Telegram (le site ne change pas) :
   (7.4, US-14, revue de SAN) ; approchée : la note puis les choix ; refus : la
   note puis les suggestions ;
 - voix indisponible ou en panne (calcul **ou envoi**) : le **texte complet**, comme pour une question écrite.
+
+## Question vocale en français (KBD, 08/10)
+
+Essai Telegram : une question dite en français recevait une note vocale en wolof, la seule voix du projet
+(Oolel, et ADIA en secours, ne parlent que wolof). Désormais, sur WhatsApp et Telegram, une question vocale
+**en français** reçoit le **texte complet en français**, comme une question écrite. La note vocale wolof reste
+pour les questions vocales en wolof (EF-20). Une voix française pourra être ajoutée après la démonstration.

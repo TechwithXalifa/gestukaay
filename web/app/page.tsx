@@ -11,7 +11,7 @@ import { DOMAINES_PRINCIPAUX } from "@/lib/domaines";
 import { MESURE, TAUX_BONNES } from "@/lib/mesure";
 import { SOCLE } from "@/lib/socle";
 import { insecables, nombre } from "@/lib/typo";
-import { ENTREE_DONNEES, Entete, PiedDePage } from "@/components/Entete";
+import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { HorsLigne } from "@/components/HorsLigne";
 import { MicroRefuse } from "@/components/MicroRefuse";
@@ -177,11 +177,11 @@ export default function Accueil() {
                     </a>
                   </li>
                   <li>
-                    <Link href={ENTREE_DONNEES}>
+                    <Link href="/explorer">
                       <span className="facon-icone"><Donnees taille={26} /></span>
-                      <strong>{t("accueil.facons.domaines")}</strong>
-                      <span>{t("accueil.facons.domainesTexte")}</span>
-                      <em>{t("accueil.facons.domainesLien")} <Fleche taille={16} /></em>
+                      <strong>{t("accueil.facons.explorer")}</strong>
+                      <span>{t("accueil.facons.explorerTexte")}</span>
+                      <em>{t("accueil.facons.explorerLien")} <Fleche taille={16} /></em>
                     </Link>
                   </li>
                   <li>
