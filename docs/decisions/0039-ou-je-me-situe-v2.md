@@ -10,7 +10,7 @@ repères. Le socle 2026.10.0 permet plus, sans jamais fabriquer de chiffre :
 
 - consommation moyenne par tête par milieu (`jcvcajc.total`, 2019 et 2022) : **niveau national
   seulement**, ni par région ni par département. Urbain : 697 989 FCFA ; rural : 402 240 FCFA (2022) ;
-- seuil de pauvreté officiel (`ahjjzgc.seuil-de-pauvrete`, EHCVM 2018) : 333 441 FCFA par personne et
+- seuil de pauvreté officiel (`ahjjzgc.seuil-de-pauvrete`, année 2018, jeu cité comme source) : 333 441 FCFA par personne et
   par an ;
 - part de la population de chaque région dans les cinq groupes de bien-être (`sfxudug`, jusqu'en 2023) ;
 - consommation moyenne par tête des 14 régions (`jcvcajc.total`, 2022).
@@ -37,6 +37,7 @@ repères. Le socle 2026.10.0 permet plus, sans jamais fabriquer de chiffre :
 
 - Contrat **1.6.0**, additif : `SituateRequest.milieu` ; `SituateResponse.moyenne_milieu`,
   `position_milieu`, `seuil_pauvrete`, `position_seuil`, `repartition_bien_etre`, `moyennes_regions`.
-  Exemple `situer_milieu.json`, que le faux moteur sert désormais.
+  Exemple `situer_milieu.json`, que le faux moteur sert à partir de la PR du moteur (#172) ; avec la seule
+  PR du contrat (#174), il sert encore `situer.json`. Une position n'arrive jamais sans sa valeur (validateur).
 - Écarté pour l'instant : cadre de vie (eau, toilettes, logement, pièces), sexe et situation
   matrimoniale du chef (national, 2018), insécurité alimentaire par département.
