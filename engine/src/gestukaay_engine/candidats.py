@@ -86,7 +86,8 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "mbej": ("eclairage", "electricite"), "kurang": ("eclairage", "electricite"),
     "njang": ("scolarisation",), "jang": ("scolarisation", "njang"),  # jàng = étudier (KBD, 07/10, remarque SAN)
     "dee": ("mortalite",), "deeg": ("mortalite",), "yamadi": ("gini",),  # formes de KBD, 08/10
-    "nakkug": ("vaccines",),  # ñakkug xale yi : la vaccination des enfants (KBD, 08/10) "ndaw": ("population", "age"),
+    "nakkug": ("vaccines",),  # ñakkug xale yi : la vaccination des enfants (KBD, 08/10)
+    "ndaw": ("population", "age"),
     "goor": ("population", "masculin"), "tej": ("emprisonnees",), "napp": ("captures", "peche"),
     "ndab": ("vehicule",), "vootuur": ("vehicule",),
     "ker": ("menages",), "keur": ("menages",),  # kër = ménage (KBD, 06/10), graphie WhatsApp « keur »
