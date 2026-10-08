@@ -104,6 +104,33 @@ def test_comparaison_et_projection():
     assert x.nature == "projection" and x.base_projection == "Projections démographiques RGPHAE 2013"
 
 
+def test_sans_annee_derniere_valeur_observee_jamais_une_projection_future():
+    """#116 : « l'espérance de vie » sans année répondait 2035, « dernière donnée publiée »."""
+    vie, isf = "pexioke.esperance-de-vie-a-la-naissance", "elwxsmc.indice-synthetique-de-fecondite"
+    contra, naiss = "hltemyf.utilisation-actuelle-de-la-contraception", "pexioke.naissances"
+    socle = Socle([
+        *[obs(vie, "SN", p, v, nature="projection", sexe="Total") for p, v in (("2013", 64.8), ("2026", 70.2),
+                                                                                ("2035", 74.6))],
+        obs(isf, "SN", "2023", 3.9), obs(isf, "SN", "2025", 3.7, nature="projection"),
+        obs(contra, "SN", "2024", 25.1, nature="estimation"), obs(contra, "SN", "2025", 26.0, nature="estimation"),
+        obs(naiss, "SN", "2030", 700000, nature="projection"), obs(naiss, "SN", "2035", 720000, nature="projection"),
+    ], {d: SOURCES["pexioke"] for d in ("pexioke", "elwxsmc", "hltemyf")})
+
+    # série observée puis projetée : la dernière observée, « dernière donnée publiée »
+    r = resoudre(socle, req(isf))
+    assert (une(r).periode.valeur, une(r).nature, r.defauts["periode"]) == ("2023", "observee", True)
+    # projection seule : l'année en cours, sans « dernière donnée publiée »
+    r = resoudre(socle, req(vie))
+    assert (une(r).periode.valeur, une(r).nature, r.defauts["periode"]) == ("2026", "projection", False)
+    # estimation seule qui s'arrête avant l'année en cours : c'est bien la dernière publiée
+    r = resoudre(socle, req(contra))
+    assert (une(r).periode.valeur, r.defauts["periode"]) == ("2025", True)
+    # projection qui ne commence qu'après l'année en cours : la plus proche
+    assert une(resoudre(socle, req(naiss))).periode.valeur == "2030"
+    # l'année demandée reste servie
+    assert une(resoudre(socle, req(vie, periode="2035"))).valeur == 74.6
+
+
 def test_formats():
     assert libelle_periode("2026-03") == "mars 2026" and libelle_periode("2024-T2") == "2e trimestre 2024"
 

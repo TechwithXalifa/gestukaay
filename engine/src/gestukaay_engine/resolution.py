@@ -48,6 +48,8 @@ from .socle import Observation, Socle
 Raison = Literal["indicateur_inconnu", "zone_non_couverte", "periode_absente", "desagregation_absente",
                  "desagregation_ambigue", "non_traite"]
 
+ANNEE_EN_COURS = 2026  # au-delà, une valeur publiée est une prévision (refus, #116)
+
 _TOTAUX = {"total", "totale", "totaux", "ensemble", "global", "globale", "tous", "toutes", "all",
            "les deux sexes", "deux sexes", "ensemble du pays", "national"}
 
@@ -289,6 +291,19 @@ def portee_par_indicateur(ind: Indicateur, valeur: str) -> bool:
     return all(f" {m} " in texte for m in normaliser(valeur).split())
 
 
+def periode_par_defaut(lignes: list[Observation]) -> tuple[str, bool]:
+    """Période servie quand la question n'en cite pas (#116), et si c'est la « dernière donnée publiée ».
+    La dernière période OBSERVÉE ; une série sans valeur observée (projection, estimation) donne l'année en
+    cours, sinon la plus récente avant : jamais 2035 pour « l'espérance de vie »."""
+    observees = sorted({o.periode for o in lignes if o.nature == "observee"})
+    if observees:
+        return observees[-1], True
+    periodes = sorted({o.periode for o in lignes})
+    passees = [p for p in periodes if p[:4] <= str(ANNEE_EN_COURS)]
+    p = passees[-1] if passees else periodes[0]
+    return p, p == periodes[-1]
+
+
 def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | None,
                 demande: dict[str, str], langue: str = "fr",
                 question: str = "") -> tuple[Resultat, dict] | Introuvable:
@@ -311,7 +326,9 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
     if erreur:
         return erreur
     periodes = sorted({o.periode for o in lignes})
-    p = periode or periodes[-1]
+    p = periode
+    if p is None:
+        p, defauts["periode"] = periode_par_defaut(lignes)
     if p not in periodes:
         return Introuvable("periode_absente", f"{p} non publié", disponibles=periodes)
     retenues, erreur = completer([o for o in lignes if o.periode == p], question,
