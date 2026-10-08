@@ -266,7 +266,9 @@ def catalogue(
 
 @app.get("/v1/indicators/{code}", response_model=FicheIndicateur)
 def fiche(code: str) -> FicheIndicateur:
-    return moteur.fiche(code)
+    rep = moteur.fiche(code)
+    # Le moteur cite une adresse provisoire (comme pour les réponses) : la citation EF-35 porte celle du site
+    return rep.model_copy(update={"citation": rep.citation.replace("https://app.gestukaay.test", URL_PUBLIQUE.rstrip("/"))})
 
 
 def _zones(zones: str) -> list[str]:

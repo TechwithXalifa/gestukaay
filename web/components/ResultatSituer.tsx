@@ -3,6 +3,7 @@
 import type { Resultat, SituateResponse } from "@contracts/situate_response";
 import { useLangue } from "@/i18n/langue";
 import { chiffres, insecables } from "@/lib/typo";
+import { uniteAmbigue } from "@/lib/unites";
 import { Livre } from "./icones";
 
 function Source({ v }: { v: Resultat }) {
@@ -59,7 +60,7 @@ export function ResultatSituer({ r }: { r: SituateResponse }) {
                 <span>{v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle}</span>
                 <strong>
                   {chiffres(v.valeur_affichee)}
-                  {v.unite ? ` ${v.unite}` : <small className="sans-unite"> {t("reponse.sansUnite")}</small>}
+                  {v.unite ? ` ${v.unite}` : uniteAmbigue(v) && <small className="sans-unite"> {t("reponse.sansUnite")}</small>}
                 </strong>
                 <Source v={v} />
               </li>

@@ -193,6 +193,8 @@ def gemini(client: httpx.Client, m: Maillon, systeme: str, utilisateur: str, sch
         config["responseMimeType"] = "application/json"
     if m.temperature is not None:
         config["temperature"] = m.temperature
+    if m.raisonnement == "non":  # Gemini 2.5 Flash réfléchit par défaut : 3 à 7 s et 1 000+ jetons par question (08/10)
+        config["thinkingConfig"] = {"thinkingBudget": 0}
     corps = {
         "systemInstruction": {"parts": [{"text": systeme + consigne_json(schema)}]},
         "contents": [{"role": "user", "parts": [{"text": utilisateur}]}],
