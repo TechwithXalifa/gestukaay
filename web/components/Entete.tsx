@@ -19,8 +19,9 @@ export type Actif = "question" | "donnees" | "explorer" | "situer" | "indicateur
 /** Explorer, Indicateurs et Domaines forment l'espace Données. */
 
 /**
- * Entrée de l'espace Données : Domaines, la seule page qui marche sans le moteur réel, tant que
- * catalogue, fiche et séries n'y sont pas écrits (#156, revue de KBD sur la #155).
+ * Entrée de l'espace Données (en-tête, menu, pied de page, accueil) : Domaines, la seule page qui
+ * marche sans le moteur réel, tant que catalogue, fiche et séries n'y sont pas écrits (#156, revue
+ * de KBD sur la #155). Le catalogue venu, revenir à /indicateurs et à la carte « Explorer ».
  */
 export const ENTREE_DONNEES = "/domaines";
 const espace = (actif: Actif) => (actif === "explorer" || actif === "indicateurs" ? "donnees" : actif);
@@ -115,8 +116,7 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
         <nav aria-label={t("pied.navDonnees")}>
           <h2>{t("pied.titreDonnees")}</h2>
           <Link href="/">{t("nav.poser")}</Link>
-          <Link href="/indicateurs">{t("nav.indicateurs")}</Link>
-          <Link href="/explorer">{t("nav.explorer")}</Link>
+          <Link href={ENTREE_DONNEES}>{t("nav.domaines")}</Link>
           <Link href="/situer">{t("nav.situer")}</Link>
         </nav>
         <nav aria-label={t("pied.nav")}>

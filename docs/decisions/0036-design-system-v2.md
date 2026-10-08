@@ -32,7 +32,8 @@ courts), sans toucher aux fonctionnalités ni aux adresses.
    bas (Demander, Données, Me situer, Plus) remplace le bouton menu, « Plus » ouvre la barre
    latérale. Toutes les adresses sont inchangées (`/r/…`, tests, liens WhatsApp).
    Tant que catalogue, fiche et séries ne sont pas écrits dans le moteur réel (#156), « Données »
-   ouvre Domaines, la seule page de l'espace qui répond sans eux.
+   (en-tête, menu, pied de page) et la troisième façon de l'accueil ouvrent Domaines, la seule
+   page de l'espace qui répond sans eux.
    L'en-tête flotte en pilule arrondie au-dessus de la page (inspiré d'adafrik.com) : il glisse
    hors de l'écran quand on descend et revient dès qu'on remonte, ou quand le focus clavier y
    entre ; il reste en place si moins d'animations est demandé.
