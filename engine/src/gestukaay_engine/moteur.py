@@ -46,6 +46,7 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import normaliser
 
+from . import donnees
 from .approchee import (
     Approchee,
     RepliAucune,
@@ -61,7 +62,7 @@ from .comprehension import Comprehension, Comprise
 from .conversation import sans_politesse
 from .conversation import texte as conversation_texte
 from .gabarits import citation, explication, note_perimetre
-from .interface import NonDisponible, NoteVocale
+from .interface import NoteVocale
 from .langue import detecter
 from .nombres import en_chiffres
 from .parole import en_wolof, texte_parle
@@ -181,16 +182,15 @@ class MoteurReel:
         note = self.synthetiseur.parler(texte) if texte else None
         return replace(note, texte=texte) if note else None
 
-    # Catalogue, fiche et séries (décision 0023) : à écrire par KBD après les priorités V1.0 ;
-    # en attendant, 503 côté backend plutôt que les exemples du faux moteur.
+    # Catalogue, fiche et séries (décision 0023, #156) : lecture seule du référentiel et du socle (donnees.py)
     def catalogue(self, domaine=None, q=None, niveau=None, limite=50, decalage=0) -> CatalogueResponse:
-        raise NonDisponible("catalogue des indicateurs : pas encore disponible (0023)")
+        return donnees.catalogue(self.socle, domaine, q, niveau, limite, decalage)
 
     def fiche(self, code: str) -> FicheIndicateur:
-        raise NonDisponible("fiche indicateur : pas encore disponible (0023)")
+        return donnees.fiche(self.socle, code)
 
     def series(self, indicateur: str, zones: list[str], debut=None, fin=None) -> SeriesResponse:
-        raise NonDisponible("séries d'Explorer : pas encore disponibles (0023)")
+        return donnees.series(self.socle, indicateur, zones, debut, fin)
 
     def version_socle(self) -> str:
         return self.socle.version
