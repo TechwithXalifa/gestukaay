@@ -108,8 +108,8 @@ def test_comparaison_et_projection():
     assert x.nature == "projection" and x.base_projection == "Projections démographiques RGPHAE 2013"
 
 
-def test_sans_annee_derniere_valeur_observee_jamais_une_projection_future():
-    """#116 : « l'espérance de vie » sans année répondait 2035, « dernière donnée publiée »."""
+def test_sans_annee_jamais_une_annee_future():
+    """#116, 0035 : « l'espérance de vie » sans année répondait 2035, « dernière donnée publiée »."""
     vie, isf = "pexioke.esperance-de-vie-a-la-naissance", "elwxsmc.indice-synthetique-de-fecondite"
     contra, naiss = "hltemyf.utilisation-actuelle-de-la-contraception", "pexioke.naissances"
     socle = Socle([
@@ -118,10 +118,14 @@ def test_sans_annee_derniere_valeur_observee_jamais_une_projection_future():
         obs(isf, "SN", "2023", 3.9), obs(isf, "SN", "2025", 3.7, nature="projection"),
         obs(contra, "SN", "2024", 25.1, nature="estimation"), obs(contra, "SN", "2025", 26.0, nature="estimation"),
         obs(naiss, "SN", "2030", 700000, nature="projection"), obs(naiss, "SN", "2035", 720000, nature="projection"),
-    ], {d: SOURCES["pexioke"] for d in ("pexioke", "elwxsmc", "hltemyf")})
+        obs("pvswjnd", "SN", "2023", 18126390), obs("pvswjnd", "SN", "2030", 21000000, nature="projection"),
+    ], {d: SOURCES["pexioke"] for d in ("pexioke", "elwxsmc", "hltemyf", "pvswjnd")})
 
-    # série observée puis projetée : la dernière observée, « dernière donnée publiée »
+    # observée puis projetée jusqu'à une année passée (FR-009) : la projection 2025, badge projection
     r = resoudre(socle, req(isf))
+    assert (une(r).periode.valeur, une(r).nature, r.defauts["periode"]) == ("2025", "projection", True)
+    # observée puis projetée dans le futur : la dernière observée, « dernière donnée publiée »
+    r = resoudre(socle, req("pvswjnd"))
     assert (une(r).periode.valeur, une(r).nature, r.defauts["periode"]) == ("2023", "observee", True)
     # projection seule : l'année en cours, sans « dernière donnée publiée »
     r = resoudre(socle, req(vie))
