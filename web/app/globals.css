@@ -455,7 +455,73 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .contexte strong { font-family: var(--font-display); font-weight: 700; color: var(--baobab); font-variant-numeric: tabular-nums; }
 .contexte .source-ligne { grid-column: 1 / -1; }
 .contexte .sans-unite { font: italic 400 12px/16px var(--font-sans); color: var(--encre-douce); }
-.encadre { width: 100%; margin-top: 24px; padding: 16px 20px; border-radius: var(--radius-md); background: var(--or-50); font-size: 14.5px; line-height: 22px; }
+
+/* ---- « Où je me situe » v2 (décision 0039) ------------------------------ */
+.resultat-tete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; width: 100%; }
+.resultat-situer[aria-busy="true"] .graphique-situer, .resultat-situer[aria-busy="true"] .comparaisons { opacity: .55; transition: opacity var(--duree-moyenne); }
+.situer-bloc { width: 100%; margin-top: 28px; }
+.situer-bloc .aide { margin: 4px 0 0; color: var(--encre-douce); }
+.graphique-situer { width: 100%; margin-top: 20px; }
+.situer-axe { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.situer-ligne { display: grid; grid-template-columns: minmax(110px, 30%) 1fr minmax(96px, 26%); align-items: center; gap: 10px; }
+.situer-libelle { font: 600 13.5px/18px var(--font-sans); color: var(--encre); }
+.situer-valeur { font: 700 13.5px/18px var(--font-sans); color: var(--encre); font-variant-numeric: tabular-nums; text-align: right; }
+.situer-valeur small { display: block; font-weight: 400; color: var(--encre-douce); }
+.situer-piste { position: relative; height: 28px; border-bottom: 1px solid var(--axe); }
+.situer-bande { position: absolute; top: 4px; bottom: 4px; min-width: 4px; border: 1.5px dashed var(--or-texte); border-radius: var(--radius-xs); background: var(--or-50); }
+.situer-point { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border: 2px solid var(--carte); border-radius: 50%; background: var(--baobab); box-shadow: 0 0 0 1px var(--baobab); }
+.situer-ligne.pays .situer-point { background: var(--encre); box-shadow: 0 0 0 1px var(--encre); }
+.situer-ligne.milieu .situer-point { background: var(--data-5); box-shadow: 0 0 0 1px var(--data-5); }
+.situer-seuil { position: absolute; top: -6px; bottom: -6px; width: 0; border-left: 2px dashed var(--erreur); opacity: .45; }
+.situer-seuil.fort { opacity: 1; }
+.situer-ligne.graduations .situer-piste { height: 18px; border: 0; }
+.situer-graduation { position: absolute; transform: translateX(-50%); font: 400 11.5px/16px var(--font-mono); color: var(--encre-douce); white-space: nowrap; }
+.situer-graduation:first-child { transform: none; }
+.situer-graduation:last-child { transform: translateX(-100%); }
+@media (max-width: 560px) {
+  .situer-ligne { grid-template-columns: 1fr auto; grid-template-areas: "lib val" "piste piste"; gap: 2px 8px; }
+  .situer-libelle { grid-area: lib; } .situer-valeur { grid-area: val; } .situer-piste { grid-area: piste; }
+  .situer-ligne.graduations > span:not(.situer-piste) { display: none; }
+}
+.seq-1 { background: var(--seq-1); color: var(--sur-seq-clair); } .seq-2 { background: var(--seq-2); color: var(--sur-seq-clair); }
+.seq-3 { background: var(--seq-3); color: var(--sur-seq-clair); } .seq-4 { background: var(--seq-4); color: var(--sur-seq-fonce); }
+.seq-5 { background: var(--seq-5); color: var(--sur-seq-fonce); }
+[data-theme="dark"] .seq-3, [data-theme="dark"] .seq-4, [data-theme="dark"] .seq-5 { color: var(--sur-seq-fonce); }
+[data-theme="dark"] .seq-1, [data-theme="dark"] .seq-2 { color: var(--sur-seq-clair); }
+.repartition-barre { display: flex; gap: 2px; height: 28px; margin-top: 14px; border-radius: var(--radius-xs); overflow: hidden; }
+.repartition-barre span { min-width: 3px; }
+.repartition-liste { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.repartition-liste li { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; font-size: 14px; }
+.repartition-liste strong { font-variant-numeric: tabular-nums; }
+.pastille { display: inline-block; width: 14px; height: 14px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
+.carte-regions { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: minmax(64px, auto); gap: 4px; margin-top: 14px; }
+.tuile { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 64px; padding: 6px; border: 0; border-radius: var(--radius-sm); text-align: left; cursor: pointer; }
+.tuile:disabled { cursor: progress; }
+.tuile-nom { font: 650 12.5px/15px var(--font-sans); hyphens: auto; overflow-wrap: normal; }
+.tuile-valeur { font: 700 12px/15px var(--font-mono); font-variant-numeric: tabular-nums; }
+.tuile.ici { outline: 3px solid var(--or); outline-offset: 2px; }
+.tuile:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .carte-regions { gap: 3px; grid-auto-rows: minmax(56px, auto); }
+  .tuile { min-height: 56px; padding: 4px 5px; border-radius: var(--radius-xs); }
+  .tuile-nom { font-size: 10.5px; line-height: 12px; }
+  .tuile-valeur { font-size: 9.5px; line-height: 12px; letter-spacing: -.02em; }
+}
+.carte-legende { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; color: var(--encre-douce); }
+.etsi { padding: 18px 20px; border: 1px solid var(--ligne); border-radius: var(--radius-md); background: var(--carte); }
+.etsi-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 12px 16px; margin-top: 12px; }
+.etsi-champs label, .etsi-taille { display: flex; flex-direction: column; gap: 6px; font: 600 13.5px/18px var(--font-sans); }
+.etsi-champs select { min-height: 44px; padding: 0 10px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font: 400 15px/20px var(--font-sans); }
+.compteur.petit { margin: 0; justify-content: flex-start; gap: 10px; }
+.compteur.petit button { width: 44px; height: 44px; font-size: 22px; }
+.compteur.petit output { min-width: 40px; text-align: center; font: 700 22px/1 var(--font-display); color: var(--baobab); }
+@media print {
+  .entete, .pied, .barre-onglets, .evitement, .actions-situer, .etsi, .imprimer, .lien-bouton, .bandeau-langue { display: none !important; }
+  .site, main { padding: 0 !important; background: #fff !important; }
+  .carte { box-shadow: none !important; border: 0 !important; }
+  .situer-bloc, .graphique-situer, .comparaisons li { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}.encadre { width: 100%; margin-top: 24px; padding: 16px 20px; border-radius: var(--radius-md); background: var(--or-50); font-size: 14.5px; line-height: 22px; }
 .encadre p { margin: 0; }
 .actions-situer { display: flex; flex-wrap: wrap; gap: 12px; }
 .actions-situer > * { flex: 1 1 200px; justify-content: center; }
