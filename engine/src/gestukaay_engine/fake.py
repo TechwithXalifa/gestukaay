@@ -15,6 +15,7 @@ Questions reconnues (insensible à la casse) :
 
 from __future__ import annotations
 
+import re
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -85,8 +86,14 @@ class MoteurFactice:
     def situer(self, req: SituateRequest) -> SituateResponse:
         # Toujours l'exemple de Kolda, quelle que soit la saisie (faux moteur) ; contrat 1.6.0 : seuil, groupes de
         # bien-être et moyennes des régions toujours, la comparaison au milieu seulement s'il est déclaré (0039)
+        # (la comparaison au milieu est celle des ménages ruraux, même si « urbain » est déclaré : exemple fixe)
         r = SituateResponse.model_validate_json((EXEMPLES / "situer_milieu.json").read_text(encoding="utf-8"))
-        return r if req.milieu else r.model_copy(update={"moyenne_milieu": None, "position_milieu": None})
+        if req.milieu:
+            return r
+        # sans milieu : ni la valeur, ni la phrase qui la cite (revue de SAN : 402 240 FCFA restait sans sa source)
+        explication = re.sub(r"Par rapport aux ménages (?:ruraux|urbains) du Sénégal \([^)]*\)[^.]*\. ", "",
+                             r.explication)
+        return r.model_copy(update={"moyenne_milieu": None, "position_milieu": None, "explication": explication})
 
     # ------------------------------------------------------------------
     # v1.4.0 (décision 0023) : catalogue, fiche et séries, sur les exemples du contrat.
