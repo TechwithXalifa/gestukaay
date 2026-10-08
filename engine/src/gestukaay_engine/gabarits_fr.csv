@@ -14,6 +14,7 @@ elwxsmc.indice-synthetique-de-fecondite;Une femme a en moyenne {nombre} enfants{
 smcofug.quotient-de-mortalite-infanto-juvenile;Sur 1 000 enfants nés vivants{precisions}, {nombre} meurent avant l'âge de 5 ans {zone_dans} {periode}.;oui
 wdvdnub.proportion-denfants-de-12-a-23-mois;{valeur} des enfants de 12 à 23 mois{precisions} sont complètement vaccinés {zone_dans} {periode}.;oui
 xsitdae.enfants-souffrant-dun-retard-de-croissance;{valeur} des enfants de moins de 5 ans{precisions} souffrent d'un retard de croissance {zone_dans} {periode}.;oui
+pagfmnc.prevalence-du-retard-de-croissance;{valeur} des enfants de moins de 5 ans{precisions} souffrent d'un retard de croissance {zone_dans} {periode}.;oui
 ervtjfc.taux-brut-de-scolarisation;Le taux brut de scolarisation{precisions} est de {valeur} {zone_dans} {periode}.;oui
 ervtjfc.pourcentage-de-filles-dans-les-effectifs;Les filles représentent {valeur} des élèves{precisions} {zone_dans} {periode}.;oui
 kdtstle.robinet-dans-logement-concession;{valeur} des ménages{precisions} ont un robinet dans le logement ou la concession {zone_dans} {periode}.;oui
