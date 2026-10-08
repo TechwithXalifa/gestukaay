@@ -69,13 +69,11 @@ def test_periode_et_confirmations():
     assert (t["questions"], t["questions_periode_precedente"]) == (0, 1)
 
 
-def test_route_admin(monkeypatch):
+def test_route_admin(connecter):
     client = TestClient(module_app.app)
-    monkeypatch.delenv("GESTUKAAY_ADMIN_JETON", raising=False)
-    assert client.get("/admin/tableau").status_code == 404
-    monkeypatch.setenv("GESTUKAAY_ADMIN_JETON", "secret-de-test")
     assert client.get("/admin/tableau").status_code == 401
-    ok = client.get("/admin/tableau?jours=7", headers={"Authorization": "Bearer secret-de-test"})
+    connecter(client)
+    ok = client.get("/admin/tableau?jours=7")
     assert ok.status_code == 200 and ok.json()["jours"] == 7 and ok.headers["cache-control"] == "no-store"
     assert "benchmark" in ok.json()  # dernière exécution du jeu de test (US-28), None s'il n'y en a pas
-    assert client.get("/admin/tableau?jours=12", headers={"Authorization": "Bearer secret-de-test"}).status_code == 422
+    assert client.get("/admin/tableau?jours=12").status_code == 422

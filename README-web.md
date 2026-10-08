@@ -94,7 +94,7 @@ Les erreurs suivent la RFC 9457 (`application/problem+json`) : 404 réponse intr
 - Limites par adresse IP et par minute, en fenêtre glissante : questions 30, transcription 10, situer 30, retours 20, exports 30, admin 20. Au-delà : 429 avec `Retry-After`.
 - Derrière le proxy de l'hébergeur : `GESTUKAAY_PROXY_DE_CONFIANCE=1` lit `X-Forwarded-For`. Sans proxy, cet en-tête est ignoré.
 - En-têtes : `nosniff`, `no-referrer`, interdiction des cadres, CSP `default-src 'none'` (sauf `/docs`). Le journal admin n'est jamais mis en cache.
-- Back-office fermé sans `GESTUKAAY_ADMIN_JETON` (404) ; comparaison du jeton à temps constant.
+- Back-office : comptes nominatifs, identifiant et mot de passe haché par scrypt, session dans un cookie `HttpOnly` `SameSite=Strict` (8 h sans activité, 12 h au plus), compte bloqué 15 min après 5 essais manqués, `POST /admin/*` d'une autre origine refusé. Fermé (404) tant qu'aucun compte n'existe (décision 0037).
 - `GESTUKAAY_LIMITES=off` coupe les limites pour les tests.
 
 ## 4. Site (`web/`, Next.js + TypeScript)
@@ -210,7 +210,6 @@ Les tests du site tournent sur le faux moteur : ils ne dépendent ni du socle ni
 | `GESTUKAAY_SOCLE_EXTRAIT` | dossier du socle sur la machine (défaut `../socle_gestukaay`) |
 | `GESTUKAAY_BASE` | base de données (PostgreSQL dans Docker) |
 | `GESTUKAAY_SEL` | sel du hachage des conversations, fixe en préproduction |
-| `GESTUKAAY_ADMIN_JETON` | ouvre le back-office |
 | `GESTUKAAY_LIMITES` | `off` seulement pour les tests |
 | `GESTUKAAY_PROXY_DE_CONFIANCE` | `1` derrière le proxy de l'hébergeur |
 | `NEXT_PUBLIC_API_URL`, `API_INTERNE` | adresse de l'API vue du navigateur et vue du serveur web |

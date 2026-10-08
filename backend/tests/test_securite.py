@@ -43,6 +43,7 @@ def test_entetes_de_securite():
     assert "content-security-policy" not in client.get("/docs").headers  # Swagger UI garde son CDN
 
 
-def test_journal_jamais_en_cache(monkeypatch):
-    monkeypatch.setenv("GESTUKAAY_ADMIN_JETON", "x")
-    assert client.get("/admin/journal", headers={"Authorization": "Bearer x"}).headers["cache-control"] == "no-store"
+def test_journal_jamais_en_cache(connecter):
+    connecte = TestClient(module_app.app)
+    connecter(connecte)
+    assert connecte.get("/admin/journal").headers["cache-control"] == "no-store"

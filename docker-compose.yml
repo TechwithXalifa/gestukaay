@@ -11,10 +11,9 @@ services:
       GESTUKAAY_URL_PUBLIQUE: ${GESTUKAAY_URL_PUBLIQUE:-http://localhost:3000}
       # Dans le conteneur, le socle est toujours ici (monté ci-dessous)
       GESTUKAAY_SOCLE_EXTRAIT: /socle
-      # Réponses, journal et retours (stockage.py). GESTUKAAY_ADMIN_JETON (dans .env)
-      # ouvre /admin/journal ; sans lui, le back-office est fermé.
+      # Réponses, journal, retours et comptes du back-office (stockage.py). Sans compte, le
+      # back-office est fermé : docker compose exec api python -m gestukaay_backend.comptes creer SAN
       GESTUKAAY_BASE: postgresql://gestukaay:${POSTGRES_PASSWORD:-gestukaay}@db:5432/gestukaay
-      GESTUKAAY_ADMIN_JETON: ${GESTUKAAY_ADMIN_JETON:-}
     # Clés du moteur (LLM_PRINCIPAL_CLE…) : dans .env, jamais dans Git
     env_file:
       - path: .env

@@ -67,14 +67,14 @@ function variation(t: Tableau): string {
 }
 
 export default function TableauDeBord() {
-  const { jeton, ouvrir, fermer, appeler } = useAdmin();
+  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
   const [jours, setJours] = useState<(typeof PERIODES)[number]>(30);
   const [filtres, setFiltres] = useState({ canal: "", langue: "" });
   const [t, setT] = useState<Tableau | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!jeton) return;
+    if (!identifiant) return;
     let annule = false;
     const p = new URLSearchParams({ jours: String(jours) });
     for (const [k, v] of Object.entries(filtres)) if (v) p.set(k, v);
@@ -90,12 +90,12 @@ export default function TableauDeBord() {
     return () => {
       annule = true;
     };
-  }, [jeton, jours, filtres, appeler]);
+  }, [identifiant, jours, filtres, appeler]);
 
-  if (!jeton) {
+  if (!identifiant) {
     return (
       <Cadre actif="tableau">
-        <Connexion titre="Tableau de bord" bouton="Ouvrir le tableau de bord" erreur={erreur} onOuvrir={ouvrir} />
+        <Connexion titre="Tableau de bord" bouton="Ouvrir le tableau de bord" erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
       </Cadre>
     );
   }
@@ -104,7 +104,7 @@ export default function TableauDeBord() {
   const totalIssues = t ? t.issues.exacte + t.issues.approchee + t.issues.aucune : 0;
 
   return (
-    <Cadre actif="tableau" onFermer={() => { fermer(); setT(null); }}>
+    <Cadre actif="tableau" identifiant={identifiant} onFermer={() => { fermer(); setT(null); }}>
       <div className="admin-titre">
         <div>
           <h1 className="titre-etat">Tableau de bord</h1>

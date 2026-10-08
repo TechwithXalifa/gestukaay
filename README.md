@@ -44,8 +44,15 @@ avec le service de transcription, et se replie sur ADIA ; sans service, le texte
 
 Les réponses, le journal des requêtes et les retours sont gardés dans PostgreSQL (service `db`), donc
 les liens `/r/…` survivent à un redémarrage. Hors Docker, l'API utilise SQLite en mémoire, ou un
-fichier avec `GESTUKAAY_BASE=sqlite:///gestukaay.db`. Le journal se lit sur `/admin/journal` (et
-`/admin/journal.csv`) avec l'en-tête `Authorization: Bearer <GESTUKAAY_ADMIN_JETON>`. Sans ce jeton,
-le back-office est fermé.
+fichier avec `GESTUKAAY_BASE=sqlite:///gestukaay.db`. Le back-office (`/admin/journal`, `/admin/tableau`,
+`/admin/jeu-de-test`) s'ouvre avec un compte nominatif, identifiant et mot de passe (décision 0037).
+Les comptes se créent en ligne de commande, sur la base de l'API ; sans compte, le back-office est fermé :
+
+```bash
+docker compose exec api python -m gestukaay_backend.comptes creer SAN
+```
+
+Hors Docker : `uv run python -m gestukaay_backend.comptes creer SAN` (avec le même `GESTUKAAY_BASE`
+que l'API). Aussi : `changer` (nouveau mot de passe), `desactiver`, `lister`.
 
 Référence fonctionnelle : cahier des charges v1.1 (30 septembre 2026).

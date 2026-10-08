@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
+import { COMPTE_ADMIN } from "../playwright.config";
 
 /** Aucune violation WCAG 2.1 A et AA détectable automatiquement (cahier, accessibilité). */
 export async function accessible(page: Page, ecran: string) {
@@ -18,4 +19,10 @@ export async function poser(page: Page, question: string) {
   await page.getByRole("textbox", { name: "Votre question" }).fill(question);
   await page.getByRole("button", { name: "Envoyer la question" }).click();
   await page.waitForURL(/\/r\/[\w-]+$/);
+}
+
+/** Connexion au back-office avec le compte des tests (créé au lancement de l'API). */
+export async function seConnecter(page: Page) {
+  await page.getByLabel("Identifiant").fill(COMPTE_ADMIN.identifiant);
+  await page.getByLabel("Mot de passe").fill(COMPTE_ADMIN.motDePasse);
 }

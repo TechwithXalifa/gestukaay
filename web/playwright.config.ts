@@ -6,7 +6,8 @@ import { defineConfig, devices } from "@playwright/test";
  *
  *     npm run build && npm run test:e2e
  */
-export const JETON_ADMIN = "jeton-des-tests-e2e";
+// Compte du back-office des tests, créé au lancement de l'API dans une base jetable (décision 0037)
+export const COMPTE_ADMIN = { identifiant: "e2e", motDePasse: "mot-de-passe-des-tests-e2e" };
 
 export default defineConfig({
   testDir: "e2e",
@@ -36,11 +37,19 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "uv run python -m uvicorn gestukaay_backend.app:app --port 8000",
+      command:
+        "rm -f .base-e2e.db && printf '%s\\n' \"$MOT_DE_PASSE\" | uv run python -m gestukaay_backend.comptes creer e2e" +
+        " && uv run python -m uvicorn gestukaay_backend.app:app --port 8000",
       cwd: "..",
       url: "http://localhost:8000/health",
       // Limites de requêtes coupées : les tests posent des dizaines de questions par minute
-      env: { GESTUKAAY_MOTEUR: "fake", GESTUKAAY_ADMIN_JETON: JETON_ADMIN, GESTUKAAY_LIMITES: "off", PYTHONUTF8: "1" },
+      env: {
+        GESTUKAAY_MOTEUR: "fake",
+        GESTUKAAY_BASE: "sqlite:///.base-e2e.db",
+        MOT_DE_PASSE: COMPTE_ADMIN.motDePasse,
+        GESTUKAAY_LIMITES: "off",
+        PYTHONUTF8: "1",
+      },
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },

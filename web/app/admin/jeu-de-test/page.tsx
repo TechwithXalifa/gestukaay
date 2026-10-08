@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Cadre, Connexion, useAdmin } from "@/components/Admin";
-import { API_URL } from "@/lib/api";
+import { Cadre, Connexion, appelAdmin, useAdmin } from "@/components/Admin";
 
 /**
  * Jeu de test du back-office (cahier 5.10, maquette BO-JeuTest). Lance le benchmark de KBD
@@ -42,7 +41,7 @@ function libelleExecution(e: Execution): string {
 }
 
 export default function JeuDeTest() {
-  const { jeton, ouvrir, fermer, appeler } = useAdmin();
+  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
   const [liste, setListe] = useState<Liste | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [idA, setIdA] = useState("");
@@ -66,8 +65,8 @@ export default function JeuDeTest() {
   }, [appeler]);
 
   useEffect(() => {
-    if (jeton) charger();
-  }, [jeton, charger]);
+    if (identifiant) charger();
+  }, [identifiant, charger]);
 
   // Une exécution en cours : on relit la liste toutes les 3 s jusqu'à sa fin
   const enCours = liste?.executions.some((e) => e.statut === "en_cours");
@@ -94,9 +93,9 @@ export default function JeuDeTest() {
   async function lancer(mode: "regles" | "llm") {
     setConfirmerLlm(false);
     try {
-      const r = await fetch(`${API_URL}/admin/jeu-de-test/executions`, {
+      const r = await appelAdmin("/admin/jeu-de-test/executions", {
         method: "POST",
-        headers: { Authorization: `Bearer ${jeton}`, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode }),
       });
       if (!r.ok) throw new Error((await r.json().catch(() => null))?.detail ?? "Le lancement a échoué.");
@@ -131,16 +130,16 @@ export default function JeuDeTest() {
   const echecs = b ? Object.values(b).filter((e) => !e.reponse_correcte).length : 0;
   const q = liste?.questions.find((x) => x.id === choisie);
 
-  if (!jeton) {
+  if (!identifiant) {
     return (
       <Cadre actif="jeu">
-        <Connexion titre="Jeu de test" bouton="Ouvrir le jeu de test" erreur={erreur} onOuvrir={ouvrir} />
+        <Connexion titre="Jeu de test" bouton="Ouvrir le jeu de test" erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
       </Cadre>
     );
   }
 
   return (
-    <Cadre actif="jeu" onFermer={() => { fermer(); setListe(null); }}>
+    <Cadre actif="jeu" identifiant={identifiant} onFermer={() => { fermer(); setListe(null); }}>
       <div className="admin-titre">
         <div>
           <h1 className="titre-etat">Jeu de test</h1>

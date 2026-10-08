@@ -6,7 +6,6 @@ from gestukaay_contracts.models import AskRequest, FeedbackRequest
 from gestukaay_engine.fake import MoteurFactice
 
 client = TestClient(app)
-ADMIN = {"Authorization": "Bearer secret-de-test"}
 
 
 def test_une_reponse_survit_au_redemarrage(tmp_path):
@@ -52,19 +51,20 @@ def test_un_choix_confirme_garde_son_canal():
     assert ligne["canal"] == "telegram" and ligne["confirme_depuis"] == rid
 
 
-def test_admin_ferme_sans_jeton(monkeypatch):
-    monkeypatch.delenv("GESTUKAAY_ADMIN_JETON", raising=False)
-    assert client.get("/admin/journal", headers=ADMIN).status_code == 404
+def test_admin_ferme_sans_compte(sans_compte):
+    assert client.get("/admin/journal").status_code == 404
 
 
-def test_admin_journal(monkeypatch):
-    monkeypatch.setenv("GESTUKAAY_ADMIN_JETON", "secret-de-test")
+def test_admin_journal(connecter):
+    client = TestClient(app)
     client.post("/v1/ask", json={"question": "Combien de personnes parlent sérère au Sénégal ?"})
     assert client.get("/admin/journal").status_code == 401
-    assert client.get("/admin/journal", headers={"Authorization": "Bearer faux"}).status_code == 401
-    r = client.get("/admin/journal", params={"issue": "aucune", "limite": 1}, headers=ADMIN)
+    client.cookies.set("gestukaay_admin", "faux", path="/admin")
+    assert client.get("/admin/journal").status_code == 401
+    connecter(client)
+    r = client.get("/admin/journal", params={"issue": "aucune", "limite": 1})
     assert r.status_code == 200 and r.json()["total"] >= 1 and len(r.json()["lignes"]) == 1
-    csv = client.get("/admin/journal.csv", headers=ADMIN)
+    csv = client.get("/admin/journal.csv")
     assert csv.status_code == 200 and csv.text.startswith("﻿recu_le;canal;")
 
 
