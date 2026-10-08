@@ -34,6 +34,7 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import normaliser, zones
 
+from .gabarits import libelle_court
 from .resolution import Introuvable, Resolution, est_total, libelle_periode, resoudre
 from .socle import Socle
 
@@ -109,7 +110,7 @@ def _nom_indicateur(code: str | None, langue: str = "fr") -> str:
     ind = indicateurs().get(code)
     if not ind:
         return code
-    nom = ind.libelle_fr
+    nom = libelle_court(ind)
     for sigle, forme in SIGLES_SANS_CHIFFRE.items():
         nom = nom.replace(sigle, forme)
     return nom

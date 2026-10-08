@@ -161,6 +161,14 @@ def precisions(r: Resultat, sauf: set[str] = frozenset()) -> str:
     return f" ({' ; '.join(valeurs)})" if valeurs else ""
 
 
+def libelle_court(ind: Indicateur) -> str:
+    """« Taux de chômage — Indicateurs du marché du travail : emploi, chômage, salaires/gain » -> « Taux de
+    chômage » dans les phrases (recette du 08/10). Le nom du jeu reste quand la tête seule ne dit rien
+    (« Recettes — Bulletin touristique ») ; le libellé complet reste dans la fiche et la source."""
+    tete, _, jeu = ind.libelle_fr.partition(" — ")
+    return tete if jeu and len(re.findall(r"\w{3,}", tete)) >= 3 else ind.libelle_fr
+
+
 def phrase_principale(r: Resultat, ind: Indicateur, derniere: bool) -> tuple[str, bool]:
     nombre, arrondi = formater(r.valeur, r.unite)
     z = zone_en_lettres(r.zone.code)
@@ -168,7 +176,7 @@ def phrase_principale(r: Resultat, ind: Indicateur, derniere: bool) -> tuple[str
     phrase = gabarit(ind).phrase
     nommees = set(re.findall(r"\{d\[([^\]]+)\]\}", phrase))  # {d[prix-pib]} : modalité citée par le gabarit
     texte = phrase.format(
-        valeur=avec_unite(nombre, r.unite), nombre=nombre, libelle=ind.libelle_fr,
+        valeur=avec_unite(nombre, r.unite), nombre=nombre, libelle=libelle_court(ind),
         precisions=precisions(r, nommees), d=_Modalites(r.desagregation or {}),
         zone_dans=z["dans"], zone_sujet=z["sujet"], zone_de=z["de"], periode=periode)
     return texte[0].upper() + texte[1:], arrondi
@@ -277,7 +285,7 @@ def comparaison(resultats: list[Resultat], ind: Indicateur) -> str:
         p1 = periode_en_lettres(r1.periode.valeur)
         p2 = periode_en_lettres(r2.periode.valeur)
         z = zone_en_lettres(r1.zone.code)
-        tete = ind.libelle_fr + precisions(r1)
+        tete = libelle_court(ind) + precisions(r1)
         tendance = "en hausse" if r2.valeur > r1.valeur else "en baisse" if r2.valeur < r1.valeur else "stable"
         phrase = f"{tete} {z['dans']} : {v1} {p1} et {v2} {p2}, soit une évolution {tendance}."
         phrase = phrase[0].upper() + phrase[1:]
@@ -294,7 +302,7 @@ def comparaison(resultats: list[Resultat], ind: Indicateur) -> str:
         arrondi |= a
         morceau = f"{avec_unite(nombre, r.unite)} {zone_en_lettres(r.zone.code)['dans']}"
         morceaux.append(morceau if memes_periodes else f"{morceau} {periode_en_lettres(r.periode.valeur)}")
-    tete = ind.libelle_fr + precisions(resultats[0])
+    tete = libelle_court(ind) + precisions(resultats[0])
     if memes_periodes:
         tete += " " + periode_en_lettres(resultats[0].periode.valeur)
     phrases = [f"{tete} : {', '.join(morceaux[:-1])} et {morceaux[-1]}."]
