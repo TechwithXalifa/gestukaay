@@ -30,8 +30,8 @@ _WO = {
     "lu", "dem", "ren", "daaw", "tey", "ndaw", "mag", "waa", "sunu", "seen", "yokk", "yokku", "wanniku",
 }
 # Mots qui suffisent : interrogatifs et marqueurs wolof (formes sans accent, ñ -> n)
-_WO_FORTS = {"naata", "nata", "niata", "ndax", "ban", "lan", "naka", "noo", "nio", "nioy", "nooy",
-             "mooy", "moy"}
+_WO_FORTS = {"naata", "nata", "niata", "gnata", "gnaata", "nyata", "nyaata", "ndax", "ban", "lan", "naka", "noo",
+             "nio", "nioy", "nooy", "mooy", "moy"}
 
 
 def _mots(texte: str) -> list[str]:

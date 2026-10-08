@@ -53,6 +53,15 @@ def test_reponse_exacte_complete():
     assert r.url.endswith(f"/r/{r.id}") and r.citation.endswith(f"/r/{r.id}.")
 
 
+def test_annee_tapee_en_lettres():
+    """#22 : un nombre écrit en lettres est converti comme dans une note vocale (0027) ; la question affichée
+    reste celle posée."""
+    for q in ("Ñaata nit ñoo dëkk Thiès ci ñaari junni ak ñaar-fukk ak ñett ?",
+              "Combien d'habitants à Thiès en deux mille vingt-trois ?"):
+        rep = MOTEUR.repondre(AskRequest(question=q)).reponse
+        assert rep.resultats[0].valeur == 2463677 and not rep.periode_par_defaut and rep.question == q
+
+
 def test_refus_projection():
     r = demander("Combien d'habitants à Thiès en 2045 ?")
     assert (r.issue, r.motif) == ("aucune", "projection")
