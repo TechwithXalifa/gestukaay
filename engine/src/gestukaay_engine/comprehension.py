@@ -92,6 +92,9 @@ Réponds :
   proposée), et même pour une prévision (« quel sera… en 2030 ») : c'est le socle qui dira si la
   valeur est publiée. Un produit précis (riz, mil) peut relever d'un indicateur plus large
   (céréales) : choisis-le et indique le produit.
+  Un candidat qui ne mesure pas la chose demandée n'est jamais pertinent, même s'il couvre l'année :
+  pour « la recette touristique en 2022 », les recettes du tourisme (jusqu'en 2018), jamais les
+  recettes contentieuses (2022) ; le socle proposera les années publiées.
   Entre plusieurs candidats pertinents, préfère dans l'ordre : celui dont la couverture
   [zones ; années] contient la zone et l'année demandées, puis ceux marqués ★ (vérifiés), puis,
   pour une année passée ou la dernière donnée, une valeur OBSERVÉE (recensement, enquête, registre)
@@ -251,6 +254,28 @@ def _verifie_en_tete(code: str | None, candidats, zones, periodes) -> str | None
     return tete.code
 
 
+RAPPORT_HORS_SUJET = 1.5  # le premier candidat doit dominer nettement le choix du LLM
+IDF_DISTINCTIF = 4.0  # mot rare du référentiel (« touristique »), pas « taux » ni « nombre »
+
+
+def _hors_sujet(code: str | None, candidats, question: str) -> str | None:
+    """#156 (passe de SAN du 08/10) : le LLM prenait « Recettes contentieuses » (2012-2023) pour « la recette
+    touristique en 2022 » parce qu'elles couvrent 2022, alors que « Recettes — Bulletin touristique » (jusqu'en
+    2018) est en tête. Si le premier candidat domine nettement le choix du LLM et porte un mot rare de la
+    question que le choix n'a pas, on prend le premier : un chiffre hors sujet est pire qu'une approchée."""
+    tete = candidats[0] if candidats else None
+    if not (tete and code) or tete.indicateur.code == code:
+        return code
+    choisi = next((c for c in candidats if c.indicateur.code == code), None)
+    if choisi is None or tete.score < RAPPORT_HORS_SUJET * choisi.score:
+        return code
+    ix = index()
+    d_tete, d_choisi = ix.mots_de(tete.indicateur.code), ix.mots_de(code)
+    if any(ix.idf.get(m, 0) >= IDF_DISTINCTIF and m in d_tete and m not in d_choisi for m in ix.requete(question)):
+        return tete.indicateur.code
+    return code
+
+
 class Comprehension:
     def __init__(self, client: ClientLLM | None):
         self.client = client  # None : règles locales seulement (essais, secours)
@@ -353,7 +378,7 @@ class Comprehension:
         # règles, vocabulaire validé (« moins de 5 » et non « 0-5 ») ; les autres restent, le moteur les
         # écarte si la question ne les cite pas et que le jeu ne les publie pas (moteur._sans_precision_inventee)
         desag |= {k: v for k, v in desagregation_citee(question).items() if k in desag}
-        code = _verifie_en_tete(code, candidats, zones, periodes)
+        code = _hors_sujet(_verifie_en_tete(code, candidats, zones, periodes), candidats, question)
         return RequeteStructuree(intention=intention, indicateur=code if intention != "hors_perimetre" else None,
                                  zones=zones, periode=periode, desagregation=desag or None,
                                  ordre=s.ordre, confiance=round(s.confiance, 2))

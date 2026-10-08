@@ -7,6 +7,7 @@ from gestukaay_engine.comprehension import (
     SYSTEME,
     Comprehension,
     K,
+    _hors_sujet,
     _verifie_en_tete,
     couvrant,
     projection,
@@ -174,3 +175,17 @@ def test_serere_de_bout_en_bout_refus_donnee_absente(incomprehensible):
         AskRequest(question="Combien de personnes parlent sérère au Sénégal ?")).reponse
     assert (r.issue, r.motif) == ("aucune", "hors_socle")
 
+
+
+def test_choix_hors_sujet_remplace_par_la_tete():  # #156 (SAN) : « Recettes contentieuses » pour le tourisme
+    q = "Quelle est la recette touristique en 2022 ?"
+    cands, _, _ = _candidats(q)
+    assert cands[0].indicateur.code == "gownytd.recettes"
+    assert _hors_sujet("tusrwld.recettes-contentieuses", cands, q) == "gownytd.recettes"
+    assert "recettes contentieuses" in SYSTEME  # consigne : la pertinence avant la couverture de l'année
+
+
+def test_choix_pertinent_jamais_remplace():  # un mot rare de la question est aussi dans le choix : il reste
+    q = "Combien coûte le mil au détail ?"
+    cands, _, _ = _candidats(q)
+    assert _hors_sujet("sbsryhc", cands, q) == "sbsryhc"

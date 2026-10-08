@@ -44,4 +44,7 @@ def detecter(texte: str) -> str:
     mots = _mots(texte)
     if any(m in _WO_FORTS for m in mots):
         return "wo"
-    return "fr" if sum(m in _FR for m in mots) > sum(m in _WO for m in mots) else "wo"
+    fr, wo = sum(m in _FR for m in mots), sum(m in _WO for m in mots)
+    if not fr and not wo:  # « asdkjh qwe » : aucun mot connu, le français par défaut (SAN, #156)
+        return "fr"
+    return "fr" if fr > wo else "wo"
