@@ -1,6 +1,6 @@
 # 0036 — Design system v2 « Terre et baobab » et nouvelle structure du site
 
-**Date** : 2026-10-07 · **Statut** : proposé (SAN), à valider par KBD · **Touche** : `web/` seulement
+**Date** : 2026-10-07 · **Statut** : accepté (SAN, KBD le 08/10) · **Touche** : `web/` seulement
 (aucun changement de contrat, de moteur ni de canal) · **Écart au cahier** : §9.3, §9.4 et §12.1
 
 ## Contexte
