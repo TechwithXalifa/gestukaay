@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CANAUX, Cadre, Choix, Connexion, useAdmin } from "@/components/Admin";
+import { nombre } from "@/lib/typo";
 
 /**
  * Tableau de bord du back-office (US-28, maquette BO-Tableau, route /admin/tableau).
@@ -50,7 +51,6 @@ const CIBLE_EXACTITUDE = 0.85; // 12.1, V1.0
 const CIBLE_REFUS = 0.95;
 const dateHeure = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
-const entier = new Intl.NumberFormat("fr-FR");
 const pourcent = new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 0 });
 const pourcent1 = new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 1 });
 const jourCourt = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
@@ -129,7 +129,7 @@ export default function TableauDeBord() {
           <ul className="admin-tuiles">
             <li>
               <span className="admin-tuile-titre">Questions traitées</span>
-              <strong>{entier.format(t.questions)}</strong>
+              <strong>{nombre(t.questions)}</strong>
               <span className="note">{variation(t)}</span>
             </li>
             <li>
@@ -149,7 +149,7 @@ export default function TableauDeBord() {
               <strong className={t.satisfaction !== null && t.satisfaction < CIBLE_SATISFACTION ? "hors-cible" : undefined}>
                 {t.satisfaction === null ? "–" : pourcent.format(t.satisfaction)}
               </strong>
-              <span className="note">{entier.format(t.votes)} votes · {entier.format(t.signalements)} signalements · cible ≥ 80 %</span>
+              <span className="note">{nombre(t.votes)} votes · {nombre(t.signalements)} signalements · cible ≥ 80 %</span>
             </li>
             <li>
               <span className="admin-tuile-titre">Exactitude et refus pertinents</span>
@@ -209,13 +209,13 @@ export default function TableauDeBord() {
                       <span>{ISSUES[k]}</span>
                       <strong>{pourcent.format(part)}</strong>
                       <span className="admin-jauge" aria-hidden="true"><span style={{ width: `${part * 100}%` }} /></span>
-                      <span className="note">{entier.format(t.issues[k])} questions</span>
+                      <span className="note">{nombre(t.issues[k])} questions</span>
                     </li>
                   );
                 })}
               </ul>
               {!!t.conversations && (
-                <p className="note">Hors de ces issues : {entier.format(t.conversations)} salutations ou remerciements, auxquels Gëstukaay a répondu poliment.</p>
+                <p className="note">Hors de ces issues : {nombre(t.conversations)} salutations ou remerciements, auxquels Gëstukaay a répondu poliment.</p>
               )}
             </section>
           </div>

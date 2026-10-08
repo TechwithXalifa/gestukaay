@@ -38,3 +38,24 @@ test("on ne peut pas continuer sans répondre", async ({ page }) => {
   await page.getByRole("button", { name: "Commencer" }).click();
   await expect(page.getByRole("button", { name: "Continuer" })).toBeDisabled();
 });
+
+test("mobile : une région choisie amène « Continuer » au-dessus de la barre d'onglets", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "la barre d'onglets n'existe que sous 768 px");
+  await page.goto("/situer");
+  await page.getByRole("button", { name: "Commencer" }).click();
+  await page.getByRole("radio", { name: "Kolda" }).check({ force: true });
+  // C'est le site qui fait défiler (pas le clic de Playwright) : le bouton doit être visible et
+  // rien ne doit le recouvrir (revue de la PR #155 : il s'arrêtait derrière la barre d'onglets)
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const bouton = document.querySelector<HTMLElement>(".continuer");
+        const onglets = document.querySelector(".barre-onglets");
+        if (!bouton || !onglets) return false;
+        const r = bouton.getBoundingClientRect();
+        const centre = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return r.top >= 0 && r.bottom <= onglets.getBoundingClientRect().top && !!centre && bouton.contains(centre);
+      }),
+    )
+    .toBe(true);
+});

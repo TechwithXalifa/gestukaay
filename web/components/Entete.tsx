@@ -1,41 +1,84 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLangue } from "@/i18n/langue";
 import { BarreLaterale } from "./BarreLaterale";
-import { Baobab, Menu } from "./icones";
+import { Baobab, Donnees, Points, Question, Repere } from "./icones";
 
-/** En-tête commun : logo, navigation, bascule FR/WO toujours visible (9.7). */
-export type Actif = "question" | "explorer" | "situer" | "indicateurs" | null;
+/**
+ * En-tête commun (design system v2) : logo, trois espaces et la Méthode, bascule FR/WO toujours
+ * visible (9.7). Sous 768 px, la navigation passe dans une barre d'onglets en bas de l'écran ;
+ * « Plus » ouvre la barre latérale (maquette M-Menu).
+ * L'en-tête flotte en pilule au-dessus de la page (inspiré d'adafrik.com) : il glisse hors de
+ * l'écran quand on descend et revient dès qu'on remonte. Il reste visible en haut de page, menu
+ * ouvert, quand le focus clavier y entre, et toujours si moins d'animations est demandé (CSS).
+ */
+export type Actif = "question" | "donnees" | "explorer" | "situer" | "indicateurs" | "methode" | null;
+
+/** Explorer, Indicateurs et Domaines forment l'espace Données. */
+
+/**
+ * Entrée de l'espace Données (en-tête, menu, pied de page, accueil) : Domaines, la seule page qui
+ * marche sans le moteur réel, tant que catalogue, fiche et séries n'y sont pas écrits (#156, revue
+ * de KBD sur la #155). Le catalogue venu, revenir à /indicateurs et à la carte « Explorer ».
+ */
+export const ENTREE_DONNEES = "/domaines";
+const espace = (actif: Actif) => (actif === "explorer" || actif === "indicateurs" ? "donnees" : actif);
 
 export function Entete({ actif = "question" }: { actif?: Actif }) {
   const { langue, setLangue, t, incomplet } = useLangue();
   const [menu, setMenu] = useState(false);
+  const ici = espace(actif);
+  const courant = (e: Actif) => (ici === e ? "page" : undefined);
+  const entete = useRef<HTMLElement>(null);
+  const [cache, setCache] = useState(false);
+
+  // Place prise en haut de page par l'en-tête flottant, bandeau « wolof en cours » compris (1 à 3
+  // lignes selon la largeur) : le contenu et les sections plein écran commencent dessous.
+  useEffect(() => {
+    const el = entete.current;
+    if (!el || !("ResizeObserver" in window)) return;
+    const racine = document.documentElement.style;
+    const mesure = new ResizeObserver(() => racine.setProperty("--hauteur-entete", `${el.offsetTop + el.offsetHeight}px`));
+    mesure.observe(el);
+    return () => {
+      mesure.disconnect();
+      racine.removeProperty("--hauteur-entete");
+    };
+  }, []);
+
+  // Descendre cache l'en-tête, remonter le fait revenir ; un petit seuil ignore les tremblements.
+  // Le navigateur envoie au plus un « scroll » par image, et React ignore un état inchangé.
+  useEffect(() => {
+    let dernier = window.scrollY;
+    const defiler = () => {
+      const y = window.scrollY;
+      if (y < 80) {
+        setCache(false);
+        dernier = y;
+      } else if (Math.abs(y - dernier) > 8) {
+        setCache(y > dernier);
+        dernier = y;
+      }
+    };
+    window.addEventListener("scroll", defiler, { passive: true });
+    return () => window.removeEventListener("scroll", defiler);
+  }, []);
+
   return (
     <>
       <a href="#contenu" className="evitement">{t("nav.evitement")}</a>
-      <header className="entete">
+      <header ref={entete} className={cache && !menu ? "entete cache" : "entete"}>
         <div className="entete-int">
-          {/* Mobile (< 768 px) : la navigation passe dans la barre latérale (maquette M-Menu) */}
-          <button
-            type="button"
-            className="bouton-icone bouton-menu"
-            aria-label={t("nav.menu")}
-            aria-expanded={menu}
-            aria-haspopup="dialog"
-            onClick={() => setMenu(true)}
-          >
-            <Menu />
-          </button>
           <Link href="/" className="logo">
             <Baobab /> <span>Gëstukaay</span>
           </Link>
           <nav aria-label={t("nav.principale")} className="nav">
-            <Link href="/" aria-current={actif === "question" ? "page" : undefined}>{t("nav.poser")}</Link>
-            <Link href="/explorer" aria-current={actif === "explorer" ? "page" : undefined}>{t("nav.explorer")}</Link>
-            <Link href="/situer" aria-current={actif === "situer" ? "page" : undefined}>{t("nav.situer")}</Link>
-            <Link href="/indicateurs" aria-current={actif === "indicateurs" ? "page" : undefined}>{t("nav.indicateurs")}</Link>
+            <Link href="/" aria-current={courant("question")}>{t("nav.demander")}</Link>
+            <Link href={ENTREE_DONNEES} aria-current={courant("donnees")}>{t("nav.donnees")}</Link>
+            <Link href="/situer" aria-current={courant("situer")}>{t("nav.situer")}</Link>
+            <Link href="/methode" aria-current={courant("methode")}>{t("nav.methode")}</Link>
           </nav>
           <div role="group" aria-label={t("langue.groupe")} className="bascule">
             {(["fr", "wo"] as const).map((l) => (
@@ -44,10 +87,19 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
               </button>
             ))}
           </div>
+          {ici !== "question" && <Link href="/" className="primaire bouton-poser">{t("nav.poser")}</Link>}
         </div>
+        {incomplet && <p className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
       </header>
-      {menu && <BarreLaterale actif={actif} onFermer={() => setMenu(false)} />}
-      {incomplet && <p className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
+      <nav aria-label={t("nav.onglets")} className="barre-onglets">
+        <Link href="/" aria-current={courant("question")}><Question taille={22} />{t("nav.demander")}</Link>
+        <Link href={ENTREE_DONNEES} aria-current={courant("donnees")}><Donnees taille={22} />{t("nav.donnees")}</Link>
+        <Link href="/situer" aria-current={courant("situer")}><Repere taille={22} />{t("nav.meSituer")}</Link>
+        <button type="button" aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)}>
+          <Points taille={22} />{t("nav.plus")}
+        </button>
+      </nav>
+      {menu && <BarreLaterale actif={ici} onFermer={() => setMenu(false)} />}
     </>
   );
 }
@@ -57,12 +109,25 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
   return (
     <footer className="pied">
       <div className="pied-int">
-        <p>{adresse ? t("pied.adresse", { adresse: adresse.replace(/^https?:\/\//, "") }) : "Gëstukaay"}</p>
+        <div>
+          <Link href="/" className="logo"><Baobab /> <span>Gëstukaay</span></Link>
+          <p>{t("pied.promesse")}</p>
+        </div>
+        <nav aria-label={t("pied.navDonnees")}>
+          <h2>{t("pied.titreDonnees")}</h2>
+          <Link href="/">{t("nav.poser")}</Link>
+          <Link href={ENTREE_DONNEES}>{t("nav.domaines")}</Link>
+          <Link href="/situer">{t("nav.situer")}</Link>
+        </nav>
         <nav aria-label={t("pied.nav")}>
+          <h2>{t("pied.titreConfiance")}</h2>
           <Link href="/methode">{t("pied.methode")}</Link>
           <Link href="/a-propos">{t("pied.apropos")}</Link>
           <Link href="/confidentialite">{t("pied.confidentialite")}</Link>
         </nav>
+      </div>
+      <div className="pied-bas">
+        <p>{adresse ? t("pied.adresse", { adresse: adresse.replace(/^https?:\/\//, "") }) : t("pied.donnees")}</p>
       </div>
     </footer>
   );

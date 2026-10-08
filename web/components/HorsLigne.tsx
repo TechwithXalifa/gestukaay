@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { Cle } from "@/i18n/fr";
 import { useLangue } from "@/i18n/langue";
 import { type Consultation, historique } from "@/lib/historique";
+import { chiffres } from "@/lib/typo";
 import { Wifi } from "./icones";
 
 function quand(iso: string, t: (c: Cle, v?: Record<string, string>) => string): string {
@@ -46,7 +47,7 @@ export function HorsLigne({ onReessayer }: { onReessayer: () => void }) {
                 <li key={r.id}>
                   <Link href={`/r/${r.id}`}>
                     <span className="discret">{v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle}</span>
-                    <span className="valeur-petite">{v.valeur_affichee} <span>{v.unite}</span></span>
+                    <span className="valeur-petite">{chiffres(v.valeur_affichee)} <span>{v.unite}</span></span>
                     <span className="discret">{v.source.libelle} · {quand(consulteeLe, t)}</span>
                   </Link>
                 </li>

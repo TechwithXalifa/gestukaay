@@ -2,7 +2,7 @@
 
 import type { Resultat, SituateResponse } from "@contracts/situate_response";
 import { useLangue } from "@/i18n/langue";
-import { insecables } from "@/lib/typo";
+import { chiffres, insecables } from "@/lib/typo";
 import { Livre } from "./icones";
 
 function Source({ v }: { v: Resultat }) {
@@ -33,7 +33,7 @@ export function ResultatSituer({ r }: { r: SituateResponse }) {
 
       <div className="estimation">
         <p className="eyebrow-gris">{t("situer.estimation")}</p>
-        <p className="valeur-estimation">{r.depense_par_personne_an.libelle}</p>
+        <p className="valeur-estimation">{chiffres(r.depense_par_personne_an.libelle)}</p>
       </div>
 
       <h2 className="sous-titre">{t("situer.comparaison")}</h2>
@@ -41,7 +41,7 @@ export function ResultatSituer({ r }: { r: SituateResponse }) {
         {comparaisons.map(({ v, position }) => (
           <li key={v.observation_id}>
             <p className="libelle">{v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle}</p>
-            <p className="valeur-petite">{v.valeur_affichee} <span>{v.unite}</span></p>
+            <p className="valeur-petite">{chiffres(v.valeur_affichee)} <span>{v.unite}</span></p>
             <p className={`position ${position}`}>{t(`situer.pos.${position}`)}</p>
             <Source v={v} />
           </li>
@@ -58,7 +58,7 @@ export function ResultatSituer({ r }: { r: SituateResponse }) {
               <li key={v.observation_id}>
                 <span>{v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle}</span>
                 <strong>
-                  {v.valeur_affichee}
+                  {chiffres(v.valeur_affichee)}
                   {v.unite ? ` ${v.unite}` : <small className="sans-unite"> {t("reponse.sansUnite")}</small>}
                 </strong>
                 <Source v={v} />

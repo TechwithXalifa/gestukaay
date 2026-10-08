@@ -99,7 +99,7 @@ Les erreurs suivent la RFC 9457 (`application/problem+json`) : 404 réponse intr
 
 ## 4. Site (`web/`, Next.js + TypeScript)
 
-Les types viennent directement de `contracts/generated/` : si le contrat change sans régénération, la CI casse. Les couleurs, tailles et rayons viennent de `web/app/tokens.css`, copié des maquettes (design system §9).
+Les types viennent directement de `contracts/generated/` : si le contrat change sans régénération, la CI casse. Les couleurs, tailles, rayons et durées viennent de `web/app/tokens.css`, design system v2 « Terre et baobab » (décision 0036).
 
 ### 4.1 Pages
 
@@ -109,7 +109,7 @@ Les types viennent directement de `contracts/generated/` : si le contrat change 
 | `/r/{id}` | page réponse, rendue côté serveur | Reponse, M-Reponse, ReponseComparee |
 | `/situer` | « Où je me situe » en 3 étapes puis le résultat | M-SituerIntro, M-Situer, M-SituerResultat |
 | `/domaines` | les 32 domaines du socle | |
-| `/methode` | méthode et transparence : 5 étapes, données, objectifs de mesure (aucun chiffre de qualité tant que le rapport #21 n'existe pas) | Methode |
+| `/methode` | méthode et transparence : taux de bonnes réponses aux tests (`lib/mesure.ts`, décision 0036), 5 étapes, données | Methode |
 | `/a-propos` | ce que fait Gëstukaay ; précise que ce n'est pas un service de l'ANSD | |
 | `/confidentialite` | ce que le code garde vraiment | |
 | `/admin/journal` | journal des requêtes, non indexé, absent des menus | BO-Journal |
@@ -171,7 +171,7 @@ Filtres canal, langue, issue et recherche ; tableau paginé par 50 ; une requêt
 ### 4.10 Sécurité et performance du site
 
 - CSP en production (nos scripts, notre API, l'audio, rien d'autre), `Permissions-Policy` (micro pour le site seulement), pas d'en-tête `X-Powered-By`.
-- Polices Poppins et Lora auto-hébergées, sous-ensemble latin, `font-display: swap`. Plus aucune requête vers un tiers.
+- Polices Unbounded, Bricolage Grotesque et Space Mono auto-hébergées (next/font), sous-ensemble latin, `font-display: swap`. Plus aucune requête vers un tiers. Le PDF garde pour l'instant Poppins et Lora (décision 0036).
 - Mesures Lighthouse en 3G rapide simulée, processeur ralenti ×4, écran 360 × 640 (`docs/performance.md`) :
 
 | | Cible | Accueil | Réponse | Où je me situe |
@@ -190,7 +190,7 @@ Lien « Aller au contenu », titre propre à chaque page (la question pour une r
 ## 5. Tests et CI
 
 - **Backend** (`backend/tests/`) : API, exports, sécurité, situer (la saisie n'apparaît ni en base ni dans les journaux), stockage (persistance après redémarrage, hachage, filtres, accès admin), transcription.
-- **Site** (`web/e2e/`, Playwright + axe-core, sur bureau et sur l'appareil de référence 360 × 640) : exacte, approchée, refus, projection, comparaison, exports, adresse `/r/…`, vote, signalement, Où je me situe, domaines, hors ligne, bascule FR/WO, journal, audio, en-têtes et CSP, accessibilité WCAG 2.1 A et AA sur chaque écran, mode sombre compris. 51 tests verts.
+- **Site** (`web/e2e/`, Playwright + axe-core, sur bureau et sur l'appareil de référence 360 × 640) : exacte, approchée, refus, projection, comparaison, exports, adresse `/r/…`, vote, signalement, Où je me situe, domaines, hors ligne, bascule FR/WO, journal, audio, en-têtes et CSP, accessibilité WCAG 2.1 A et AA sur chaque écran (le mode sombre, prévu en V1.1 par le cahier §9.10, n'est pas activé). 81 tests verts, 5 ignorés exprès (propres au bureau ou au mobile).
 - **CI** (`.github/workflows/ci.yml`) : job `web` (types TypeScript, build de production, budget JavaScript, tests de bout en bout) et job `docker` (les deux images démarrent, une question renvoie une réponse exacte).
 
 ```bash

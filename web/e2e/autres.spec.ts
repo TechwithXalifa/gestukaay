@@ -96,14 +96,21 @@ test("fenêtre « Je vous écoute » : focus dedans, Échap ferme, focus rendu a
 });
 
 
-test("mode sombre : contrastes sur l'accueil, la réponse et le refus", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("/");
-  await accessible(page, "accueil, mode sombre");
-  await poser(page, "Combien d'habitants à Thiès ?");
-  await accessible(page, "réponse, mode sombre");
-  await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
-  await accessible(page, "refus, mode sombre");
+test("en-tête flottant : se cache en descendant, revient en remontant ou au clavier", async ({ page }) => {
+  await page.goto("/methode");
+  const entete = page.locator("header.entete");
+  await expect(entete).not.toHaveClass(/cache/);
+  await page.evaluate(() => window.scrollTo(0, 700));
+  await expect(entete).toHaveClass(/cache/);
+  await expect(entete).toHaveCSS("opacity", "0");
+  await page.evaluate(() => window.scrollTo(0, 500));
+  await expect(entete).not.toHaveClass(/cache/);
+  await expect(entete).toHaveCSS("opacity", "1");
+  // Caché, il revient dès que le focus clavier y entre (WCAG 2.4.7 et 2.4.11)
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await expect(entete).toHaveClass(/cache/);
+  await entete.getByRole("link", { name: "Gëstukaay" }).focus();
+  await expect(entete).toHaveCSS("opacity", "1");
 });
 
 test("pied de page : Méthode, À propos et Confidentialité", async ({ page }) => {
@@ -141,7 +148,7 @@ test("tableau de bord : indicateurs, issues et questions non résolues (US-28)",
 test("barre latérale mobile : ouverture, navigation, fermeture (M-Menu)", async ({ page, isMobile }) => {
   test.skip(!isMobile, "la barre latérale remplace la navigation sous 768 px");
   await page.goto("/");
-  const bouton = page.getByRole("button", { name: "Ouvrir le menu" });
+  const bouton = page.getByRole("button", { name: "Plus", exact: true }); // onglet « Plus » de la barre mobile
   await bouton.click();
   const menu = page.getByRole("dialog", { name: "Menu" });
   await expect(menu).toBeVisible();
@@ -158,15 +165,14 @@ test("barre latérale mobile : ouverture, navigation, fermeture (M-Menu)", async
   await expect(page.getByRole("dialog", { name: "Menu" })).toBeHidden();
 });
 
-test("méthode : résultats de la mesure publiés, réussites et erreurs (cahier 12.1)", async ({ page }) => {
+test("méthode : le taux de bonnes réponses aux tests est publié, et lui seul (décision 0036)", async ({ page }) => {
   await page.goto("/methode");
-  const mesure = page.getByRole("region", { name: "Ce que nous mesurons" });
+  const mesure = page.getByRole("region", { name: "Résultat des tests" });
   await expect(mesure).toContainText("89,2 %");
-  await expect(mesure).toContainText("100 %");
-  await expect(mesure).toContainText("1,4 s");
-  await expect(mesure.getByText("objectif atteint", { exact: false })).toHaveCount(4);
-  await expect(page.getByRole("region", { name: "Résultats par langue de la question" })).toContainText("pas encore mesuré");
-  await expect(page.getByRole("region", { name: "Là où Gëstukaay se trompe encore" })).toContainText("5 questions");
+  await expect(mesure).toContainText("74 questions sur 83");
+  // Choix de SAN du 08/10 : ni temps de réponse ni liste d'erreurs sur la page
+  await expect(page.getByText("temps de réponse", { exact: false })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Là où Gëstukaay se trompe encore" })).toHaveCount(0);
   await accessible(page, "méthode, résultats");
 });
 

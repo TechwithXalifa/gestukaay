@@ -8,7 +8,7 @@ import { Actions } from "./Actions";
 import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
 import { Retour } from "./Retour";
-import { insecables } from "@/lib/typo";
+import { chiffres, insecables } from "@/lib/typo";
 import { Base, Coche, Externe, Fleche, Info, Livre, Micro, Tendance } from "./icones";
 
 type R = AskResponse["reponse"];
@@ -150,7 +150,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
   // Le moteur trie par valeur : la zone demandée est celle mise en évidence, pas forcément la première.
   const affiches = classement ? [r.resultats.find((v) => v.mise_en_evidence) ?? r.resultats[0]] : r.resultats;
   return (
-    <article className="carte" aria-labelledby="titre-reponse">
+    <article className="carte reponse" aria-labelledby="titre-reponse">
       <div className="ligne-badges">
         <span className="badge exacte"><Coche taille={16} />{t("reponse.exacte")}</span>
         {nonObservee?.nature && (
@@ -171,8 +171,11 @@ function Exacte({ r }: { r: ReponseExacte }) {
             {v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle}
             {r.periode_par_defaut && ` · ${t("reponse.derniere")}`}
           </Titre>
-          <p className="valeur">
-            <span>{v.valeur_affichee}</span>{" "}
+          {/* Le chiffre officiel s'affiche d'emblée, jamais une valeur intermédiaire (revue UI du 08/10 :
+              un compteur montrait « 197 156 habitants » au lieu de 2 463 677). Au-delà de 11 caractères
+              (montants en millions de FCFA), il passe à la taille « longue » pour tenir sur un téléphone. */}
+          <p className={v.valeur_affichee.length > 11 ? "valeur longue" : "valeur"}>
+            <span>{chiffres(v.valeur_affichee)}</span>{" "}
             {v.unite ? <span className="unite">{v.unite}</span> : <span className="unite sans-unite">{t("reponse.sansUnite")}</span>}
           </p>
           <p className="source-ligne">
@@ -185,6 +188,9 @@ function Exacte({ r }: { r: ReponseExacte }) {
       {classement && <p className="note">{t("reponse.classement", { n: String(r.resultats.length) })}</p>}
       <p className="explication">{insecables(r.explication)}</p>
       {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
+
+      {/* Partager vient juste sous le chiffre : sur mobile, la barre était 1,4 écran plus bas (revue UI) */}
+      <Actions id={r.id} citation={r.citation} url={r.url} />
 
       <div className="corps">
         {r.graphique && <Graphique g={r.graphique} />}
@@ -203,7 +209,6 @@ function Exacte({ r }: { r: ReponseExacte }) {
         </aside>
       </div>
 
-      <Actions id={r.id} citation={r.citation} url={r.url} />
       <Retour reponseId={r.id} />
     </article>
   );

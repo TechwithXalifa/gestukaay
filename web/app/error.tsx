@@ -11,7 +11,7 @@ import { useLangue } from "@/i18n/langue";
 export default function ErreurPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const { t } = useLangue();
   return (
-    <PageTexte eyebrow="etat.erreurEyebrow" titre="etat.service">
+    <PageTexte titre="etat.service">
       <p className="explication">{t("etat.erreurAide")}</p>
       <div className="actions">
         <button type="button" className="primaire" onClick={reset}>{t("etat.reessayer")}</button>

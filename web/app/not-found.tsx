@@ -8,7 +8,7 @@ import { useLangue } from "@/i18n/langue";
 export default function PageIntrouvable() {
   const { t } = useLangue();
   return (
-    <PageTexte eyebrow="etat.erreur404" titre="etat.pageIntrouvable">
+    <PageTexte titre="etat.pageIntrouvable">
       <p className="explication">{t("etat.pageIntrouvableAide")}</p>
       <div className="actions">
         <Link href="/" className="primaire">{t("etat.accueil")}</Link>

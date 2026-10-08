@@ -1,153 +1,97 @@
 /* =============================================================================
-   Gëstukaay — jetons de design, version 1.1 (septembre 2026)
-   Source : cahier des charges v1.1, §9, complété par les arbitrages de la
-   critique design (teintes nommées, contour des champs, échelles fermées).
-   Tous les écrans du canevas lisent ce fichier : changer une valeur ici la
-   change partout. À copier tel quel dans app/globals.css (Next.js + shadcn/ui).
+   Gëstukaay — jetons de design, version 2 « Terre et baobab » (octobre 2026)
+   Source : design system Gëstukaay (tokens.json). Remplace la version 1.1 (cahier §9).
+   Le vert baobab du logo reste la couleur de marque ; brun-noir, crème et or donnent le monde.
+   Tous les écrans lisent ce fichier : changer une valeur ici la change partout.
    ============================================================================= */
 
 :root {
-  /* ---- Couleurs de marque et sémantiques (§9.3) ------------------------- */
-  --gk-baobab: #1D4448;        /* brand — logo, titres, surfaces fortes (10,6:1 sur blanc) */
-  --gk-feuille: #0F6E56;       /* action — boutons principaux, liens, sélection (6,2:1) */
-  --gk-sable: #C8A25E;         /* accent décoratif — jamais en texte sur fond clair (2,4:1) */
-  --gk-sable-fonce: #8B6B2E;   /* accent lisible sur fond clair : marqueur WO, série 3 (4,9:1) */
-  --gk-sable-clair: #E0BE7E;   /* accent sur fond sombre : sur-titres, bouton sur Baobab (6,1:1) */
-  --gk-blanc: #FFFFFF;         /* surface — cartes */
-  --gk-coton: #F6F2EA;         /* surface-alt — blocs source, encadrés */
-  --gk-ivoire: #FBFAF7;        /* background — fond de page */
-  --gk-encre: #1A1A18;         /* text — texte courant (16,7:1) */
-  --gk-ardoise: #5C6867;       /* text-muted — texte secondaire (5,8:1) */
-  --gk-lin: #E4DFD5;           /* border — bordures décoratives, séparateurs */
-  --gk-champ: #87918F;         /* input — contour des champs de saisie (3,2:1, WCAG 1.4.11) */
-  --gk-trait: #A9B7B5;         /* border-strong — axes des graphiques, repères */
-  --gk-ocre: #855A0D;          /* warning — correspondance approchée (5,4:1 sur ocre-50) */
-  --gk-laterite: #B42318;      /* danger — erreurs système et suppressions, jamais un refus */
-  --gk-sur-action: #FFFFFF;    /* texte posé sur Feuille */
-  --gk-sur-marque: #FFFFFF;    /* texte posé sur Baobab */
-  --gk-sur-marque-2: rgba(255, 255, 255, .82); /* texte secondaire sur Baobab */
+  /* ---- Surfaces ---------------------------------------------------------- */
+  --fond: #f6f0e3;             /* fond de page (crème) */
+  --fond-2: #eee5d1;           /* bloc source, encadrés, en-têtes de tableau */
+  --carte: #fffdf8;            /* carte réponse, champ, cartes, options */
+  --sombre: #17110b;           /* en-tête, héros, pied, écoute : sombres dans les deux thèmes */
+  --sombre-2: #2a1f15;         /* surface posée sur sombre : puces, bascule */
 
-  /* ---- Teintes nommées (fonds de badges, sélections, encadrés) ----------- */
-  --gk-feuille-50: #E3F1EC;    /* badge « exacte », élément sélectionné, halo du micro */
-  --gk-baobab-50: #E6EEED;     /* badge de domaine, refus, icône neutre */
-  --gk-ocre-50: #FBF1DC;       /* badge « approchée », bandeau d'avertissement */
-  --gk-laterite-50: #FBEAE8;   /* pastille d'erreur système */
-  --gk-sable-50: #F3EBDD;      /* lecteur audio, encadré pédagogique */
-  --gk-squelette: #EFEAE1;     /* chargement, pistes des jauges */
+  /* ---- Texte -------------------------------------------------------------- */
+  --encre: #1c140d;            /* texte courant (16:1 sur fond) */
+  --encre-douce: #6b5d4c;      /* texte secondaire (5,6:1 sur fond) */
+  --sur-sombre: #f6f0e3;       /* texte sur sombre */
+  --sur-sombre-doux: #bfb09a;  /* texte secondaire sur sombre (8,8:1) */
 
-  /* ---- Visualisation de données (§9.8) ---------------------------------- */
-  --gk-data-1: #1D4448;        /* ordre fixe, 6 séries au plus */
-  --gk-data-2: #0F6E56;
-  --gk-data-3: #8B6B2E;        /* Sable assombri : 3:1 minimum pour un trait sur blanc */
-  --gk-data-4: #6B8FA3;
-  --gk-data-5: #B5654A;
-  --gk-data-6: #8A7FB0;
-  --gk-data-neutre: #B9CFCB;   /* zones non demandées, toujours avec étiquette de valeur */
-  --gk-seq-1: #E3F1EC; --gk-seq-2: #BFDDD2; --gk-seq-3: #93C5B3; --gk-seq-4: #62A893;
-  --gk-seq-5: #368A73; --gk-seq-6: #176E58; --gk-seq-7: #0B5040;
+  /* ---- Traits ------------------------------------------------------------- */
+  --ligne: #e3d7c0;            /* filets décoratifs, bordure des cartes */
+  --ligne-sombre: #3d2e20;     /* filets sur sombre */
+  --champ: #958670;            /* contour des champs et des options (3,1:1, WCAG 1.4.11) */
+  --axe: #b3a589;              /* axes des graphiques */
 
-  /* ---- Typographie (§9.4) — taille / interligne -------------------------- */
-  --font-sans: 'Poppins', 'Segoe UI', system-ui, sans-serif;
-  --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
-  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  --text-display: 52px/56px;          /* valeur de la réponse */
-  --text-display-mobile: 40px/44px;
-  --text-h1: 40px/48px;               /* titre de page, promesse de l'accueil */
-  --text-h1-mobile: 28px/34px;
-  --text-h2: 26px/34px;               /* titres de section, titres d'outil */
-  --text-stat: 30px/36px;             /* chiffres clés des tableaux de bord */
-  --text-h3: 18px/26px;               /* titres de carte */
-  --text-lead: 18px/28px;             /* chapeau Lora des pages éditoriales */
-  --text-editorial: 17px/28px;        /* explications Lora */
-  --text-editorial-mobile: 15px/24px;
-  --text-body-lg: 16px/24px;          /* champs et listes sur mobile */
-  --text-body: 15px/24px;
-  --text-body-sm: 14px/20px;          /* texte dense, back-office, bulles WhatsApp */
-  --text-label: 13px/18px;
-  --text-caption: 12px/16px;          /* minimum absolu, sauf sur-titre */
-  --text-eyebrow: 11px/16px;          /* capitales, +14 % d'espacement */
+  /* ---- Marque et action --------------------------------------------------- */
+  --baobab: #1d4448;           /* marque : chiffre, titres de carte, liens, micro (9,4:1) */
+  --baobab-50: #e1ebe8;        /* refus, domaine, pastille neutre */
+  --sur-baobab: #ffffff;
+  --or: #d9952e;               /* action : fin du dégradé du bouton principal */
+  --or-clair: #e2bd6b;         /* début du dégradé ; sur-titres et liens actifs sur sombre */
+  --or-texte: #8c5e12;         /* or lisible en texte sur fond clair (5:1) */
+  --or-50: #f6e7c4;            /* lecteur audio, encadré pédagogique */
+  --sur-or: #1c140d;           /* texte sur le dégradé or (7,2:1) */
 
-  /* ---- Espacements, rayons, contrôles, icônes, ombre (§9.5 à 9.7) -------- */
-  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px; --space-5: 20px;
-  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px; --space-20: 80px;
-  --radius-xs: 4px;            /* graphiques uniquement */
-  --radius-sm: 8px;            /* champs secondaires, code */
-  --radius-md: 12px;           /* boutons, blocs source */
-  --radius-lg: 18px;           /* cartes, champ de question, feuilles mobiles */
-  --radius-full: 999px;        /* badges, puces, bascules */
-  --control-sm: 40px;          /* actions denses du back-office */
-  --control-touch: 44px;       /* minimum pour toute cible tactile */
-  --control-md: 48px;          /* bouton standard */
-  --control-lg: 56px;          /* action principale d'un parcours mobile */
-  --icon-sm: 16px; --icon-md: 20px; --icon-lg: 24px;
-  --shadow-question: 0 8px 30px rgba(29, 68, 72, .12);   /* réservée au champ de question */
+  /* ---- Issues ------------------------------------------------------------- */
+  --exacte: #0f6e56;           --exacte-50: #ddeee5;
+  --approchee: #8a5300;        --approchee-50: #f8e6c3;
+  --projection: #5a4a8c;       --projection-50: #e9e4f3;
+  --erreur: #b42318;           --erreur-50: #f9e3df;   /* pannes système seulement, jamais un refus */
+  --focus: #1d4448;
+  --squelette: #ebe1cc;
+
+  /* ---- Graphiques (cahier 9.8 : zone demandée en vert) -------------------- */
+  --data-evidence: #0f6e56;
+  --data-neutre: #d5c7ad;
+  --data-1: #1d4448; --data-2: #b07222; --data-3: #0f6e56;
+  --data-4: #a4472b; --data-5: #3f6a8a; --data-6: #7a4f8c;
+
+  /* ---- Typographie : familles posées par next/font sur <body> (layout.tsx) -- */
+  --font-display: "Unbounded", "Bricolage Grotesque", system-ui, sans-serif;
+  --font-sans: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, "Cascadia Mono", monospace;
+
+  /* ---- Espacements, rayons, contrôles, ombres ----------------------------- */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px;
+  --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px; --space-24: 96px;
+  --radius-xs: 4px;            /* barres de graphique */
+  --radius-sm: 10px;           /* champs secondaires, filtres */
+  --radius-md: 14px;           /* boutons, bloc source, options */
+  --radius-lg: 22px;           /* cartes, champ de question */
+  --radius-xl: 32px;           /* panneaux, écoute */
+  --radius-full: 999px;        /* badges, puces, bascule */
+  --controle-tactile: 44px; --controle-md: 48px; --controle-lg: 56px; --controle-micro: 96px;
+  --ombre-carte: 0 1px 0 rgba(28, 20, 13, .04), 0 18px 40px -26px rgba(28, 20, 13, .35);
+  --ombre-or: 0 14px 30px -12px rgba(199, 147, 45, .6);
+  --ombre-question: 0 24px 60px -28px rgba(23, 17, 11, .55);
+
+  /* ---- Mouvement ---------------------------------------------------------- */
+  --ease-sortie: cubic-bezier(.22, 1, .36, 1);
+  --ease-ressort: cubic-bezier(.34, 1.45, .64, 1);
+  --duree-rapide: 160ms;
+  --duree-moyenne: 260ms;
+  --duree-lente: 560ms;
+
+  /* ---- La frise statistique (demi-disque, point, histogramme, quart de disque,
+          nœud du baobab, barres) : couleurs fixes de l'identité ------------- */
+  --frise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='168' height='28' viewBox='0 0 168 28'%3E%3Crect width='28' height='28' fill='%231d4448'/%3E%3Cpath d='M0 28a14 14 0 0 1 28 0z' fill='%23f6f0e3'/%3E%3Crect x='28' width='28' height='28' fill='%23f6f0e3'/%3E%3Ccircle cx='42' cy='14' r='7' fill='%23d9952e'/%3E%3Crect x='56' width='28' height='28' fill='%23a4472b'/%3E%3Cpath d='M61 24h4v-8h-4zM68 24h4V11h-4zM75 24h4V6h-4z' fill='%23f6f0e3'/%3E%3Crect x='84' width='28' height='28' fill='%23d9952e'/%3E%3Cpath d='M84 28V0a28 28 0 0 1 28 28z' fill='%231c140d'/%3E%3Crect x='112' width='28' height='28' fill='%231c140d'/%3E%3Cpath d='M118 23l13-13' stroke='%23f6f0e3' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='132' cy='9' r='3.2' fill='%23e2bd6b'/%3E%3Crect x='140' width='28' height='28' fill='%23f6f0e3'/%3E%3Cpath d='M145 9h18v4h-18zM145 16h11v4h-11z' fill='%231d4448'/%3E%3C/svg%3E");
 }
 
-/* ---- Mode sombre (§9.10, V1.1) — data-theme="dark" ou classe gk-dark ------
-   Les exports PDF et PNG restent toujours en clair. */
-[data-theme="dark"], .gk-dark {
-  --gk-baobab: #E6EEED;
-  --gk-feuille: #4FC29B;
-  --gk-sable: #E0BE7E;
-  --gk-sable-fonce: #E0BE7E;
-  --gk-sable-clair: #E0BE7E;
-  --gk-blanc: #152A2D;
-  --gk-coton: #1B3336;
-  --gk-ivoire: #0F1F21;
-  --gk-encre: #EDEFEA;
-  --gk-ardoise: #A9B7B5;
-  --gk-lin: #2A4245;
-  --gk-champ: #6F8784;
-  --gk-trait: #3C5A5E;
-  --gk-ocre: #E0BE7E;
-  --gk-laterite: #F19A8F;
-  --gk-sur-action: #0F1F21;
-  --gk-sur-marque: #0F1F21;
-  --gk-sur-marque-2: rgba(15, 31, 33, .8);
-  --gk-feuille-50: #193935;
-  --gk-baobab-50: #1B3336;
-  --gk-ocre-50: #303830;
-  --gk-laterite-50: #3A2A28;
-  --gk-sable-50: #2A3530;
-  --gk-squelette: #1B3336;
-}
-
-/* ---- Correspondance shadcn/ui (recalculée en mode sombre) ----------------- */
-:root, [data-theme="dark"], .gk-dark {
-  --background: var(--gk-ivoire);
-  --foreground: var(--gk-encre);
-  --card: var(--gk-blanc);
-  --card-foreground: var(--gk-encre);
-  --popover: var(--gk-blanc);
-  --popover-foreground: var(--gk-encre);
-  --primary: var(--gk-feuille);
-  --primary-foreground: var(--gk-sur-action);
-  --secondary: var(--gk-blanc);
-  --secondary-foreground: var(--gk-baobab);
-  --muted: var(--gk-coton);
-  --muted-foreground: var(--gk-ardoise);
-  --accent: var(--gk-feuille-50);
-  --accent-foreground: var(--gk-feuille);
-  --destructive: var(--gk-laterite);
-  --warning: var(--gk-ocre);
-  --warning-background: var(--gk-ocre-50);
-  --border: var(--gk-lin);
-  --input: var(--gk-champ);
-  --ring: var(--gk-feuille);
-  --radius: 12px;
-  --sidebar: var(--gk-baobab);
-  --sidebar-foreground: var(--gk-sur-marque);
-  --sidebar-primary: var(--gk-sable);
-  --sidebar-accent: rgba(255, 255, 255, .12);
-  --chart-1: var(--gk-data-1);
-  --chart-2: var(--gk-data-2);
-  --chart-3: var(--gk-data-3);
-  --chart-4: var(--gk-data-4);
-  --chart-5: var(--gk-data-5);
-}
-
-/* ---- Simulation de WhatsApp : couleurs de l'application tierce, hors charte */
-:root {
-  --wa-fond: #ECE5DA;
-  --wa-bulle-sortante: #D9F2E3;
+/* ---- Thème sombre (V1.1) : data-theme="dark". Les exports PDF restent en clair. */
+[data-theme="dark"] {
+  --fond: #17110b; --fond-2: #211810; --carte: #241a11; --sombre: #100c08; --sombre-2: #1e160f;
+  --encre: #f3ebdb; --encre-douce: #b5a68f; --sur-sombre: #f3ebdb; --sur-sombre-doux: #a99b85;
+  --ligne: #3a2c1e; --ligne-sombre: #33271b; --champ: #7d6b55; --axe: #5a4936;
+  --baobab: #8cc2bc; --baobab-50: #172a29; --sur-baobab: #0f1f21;
+  --or: #e2a646; --or-clair: #ebc77a; --or-texte: #e2bd6b; --or-50: #2c2112;
+  --exacte: #5fc79e; --exacte-50: #13291f; --approchee: #f0b45c; --approchee-50: #2e2210;
+  --projection: #b9aee6; --projection-50: #221d33; --erreur: #f19a8f; --erreur-50: #3a1e1a;
+  --focus: #e2bd6b; --squelette: #2a1f15;
+  --data-evidence: #5fc79e; --data-neutre: #4a3b2b;
+  --data-1: #8cc2bc; --data-2: #e2a646; --data-3: #5fc79e; --data-4: #e08a6a; --data-5: #8fb4d4; --data-6: #c79bd8;
+  --ombre-carte: 0 1px 0 rgba(0, 0, 0, .3), 0 18px 40px -26px rgba(0, 0, 0, .8);
+  --ombre-question: 0 24px 60px -28px rgba(0, 0, 0, .9);
 }

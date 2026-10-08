@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLangue } from "@/i18n/langue";
 import { transcrire } from "@/lib/api";
 import { type Enregistrement, type ErreurMicro, enregistrer } from "@/lib/enregistreur";
-import { Fleche, Micro, Tourne } from "./icones";
+import { Croix, Fleche, Micro, Tourne } from "./icones";
 
 type Etat = "ecoute" | "transcription" | "verification" | "vide" | "erreur" | "format";
 const BARRES = 24;
@@ -111,10 +111,10 @@ export function Ecoute({
   const minuteur = `0:${String(secondes).padStart(2, "0")}`;
 
   return (
-    <div ref={fenetre} className="ecoute gk-dark" role="dialog" aria-modal="true" aria-labelledby="ecoute-titre">
+    <div ref={fenetre} className="ecoute" role="dialog" aria-modal="true" aria-labelledby="ecoute-titre">
       <div className="ecoute-haut">
         <button type="button" className="bouton-contour" aria-label={t("ecoute.annuler")} onClick={fermer}>
-          ✕
+          <Croix />
         </button>
       </div>
 

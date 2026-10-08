@@ -7,12 +7,14 @@ import type { CatalogueResponse } from "@contracts/catalogue_response";
 import type { FicheIndicateur } from "@contracts/fiche_indicateur";
 import type { SeriesResponse } from "@contracts/series_response";
 import { Entete, PiedDePage } from "@/components/Entete";
+import { OngletsDonnees } from "@/components/OngletsDonnees";
 import { Chargement, Erreur } from "@/components/Etats";
 import { Graphique } from "@/components/Graphique";
 import { Croix, Externe, Livre, Telecharger } from "@/components/icones";
 import { useLangue } from "@/i18n/langue";
 import { catalogue, fiche, series, seriesCsvUrl } from "@/lib/api";
 import { REGIONS } from "@/lib/regions";
+import { chiffres } from "@/lib/typo";
 
 const ZONES_MAX = 6; // US-18
 const ZONES = [{ code: "SN", libelle: "Sénégal" }, ...REGIONS];
@@ -90,7 +92,7 @@ function Explorer() {
     <div className="site">
       <Entete actif="explorer" />
       <main id="contenu" tabIndex={-1} className="explorer">
-        <p className="eyebrow">{t("explorer.eyebrow")}</p>
+        <OngletsDonnees actif="explorer" />
         <h1 className="titre-situer">{f?.indicateur.libelle ?? t("explorer.titre")}</h1>
 
         {!indicateur ? (
@@ -178,7 +180,6 @@ function Explorer() {
               ) : (
                 <>
                   <div className="explorer-entete">
-                    <p className="eyebrow">{f?.indicateur.domaine}</p>
                     <a className="secondaire" href={seriesCsvUrl({ indicateur, zones, debut, fin })} download>
                       <Telecharger />{t("explorer.csv")}
                     </a>
@@ -206,7 +207,7 @@ function Explorer() {
                             <tr key={x.zone.code}>
                               <th scope="row">{x.zone.libelle}</th>
                               {lignes.map((p) => (
-                                <td key={p} className="nombre">{x.points.find((pt) => pt.periode === p)?.valeur_affichee ?? "–"}</td>
+                                <td key={p} className="nombre">{chiffres(x.points.find((pt) => pt.periode === p)?.valeur_affichee ?? "–")}</td>
                               ))}
                             </tr>
                           ))}
