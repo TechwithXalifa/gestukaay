@@ -6,89 +6,120 @@ import { API_URL } from "@/lib/api";
 import { Baobab } from "./icones";
 
 /**
- * Pièces communes du back-office (journal, tableau de bord). Réservé à l'équipe, en français
- * seulement : ces textes ne passent pas par i18n. Le jeton (GESTUKAAY_ADMIN_JETON) reste dans
- * l'onglet (sessionStorage), jamais ailleurs.
+ * Pièces communes du back-office (journal, tableau de bord, jeu de test). Réservé à l'équipe, en
+ * français seulement : ces textes ne passent pas par i18n. Connexion par identifiant et mot de passe
+ * (décision 0037) : la session vit dans un cookie HttpOnly posé par l'API, invisible pour la page.
  */
-
-const CLE_JETON = "gestukaay.admin";
 
 export const CANAUX: Record<string, string> = { web: "Web", whatsapp: "WhatsApp", telegram: "Telegram", api: "API" };
 
-function lireJeton(): string {
-  try {
-    return sessionStorage.getItem(CLE_JETON) ?? "";
-  } catch {
-    return "";
-  }
+const FERME = "Back-office fermé : aucun compte n'est créé sur l'API (python -m gestukaay_backend.comptes).";
+
+/** Fetch du back-office : le cookie de session part avec chaque appel. */
+export function appelAdmin(chemin: string, init?: RequestInit) {
+  return fetch(`${API_URL}${chemin}`, { ...init, credentials: "include" });
 }
 
-function garderJeton(jeton: string) {
-  try {
-    if (jeton) sessionStorage.setItem(CLE_JETON, jeton);
-    else sessionStorage.removeItem(CLE_JETON);
-  } catch {
-    /* navigation privée : le jeton vit seulement en mémoire */
-  }
-}
-
-/** Jeton de l'onglet et appel authentifié à l'API ; un jeton refusé ramène à l'écran de connexion. */
+/**
+ * Session du back-office. `identifiant` vaut undefined pendant la vérification, null hors connexion ;
+ * `avis` dit pourquoi on ne peut pas se connecter (back-office fermé).
+ * Une session refusée en cours de route (expirée, fermée ailleurs) ramène à l'écran de connexion.
+ */
 export function useAdmin() {
-  const [jeton, setJeton] = useState("");
-  useEffect(() => setJeton(lireJeton()), []);
+  const [identifiant, setIdentifiant] = useState<string | null | undefined>(undefined);
+  const [avis, setAvis] = useState<string | null>(null);
 
-  const ouvrir = useCallback((j: string) => {
-    garderJeton(j);
-    setJeton(j);
+  useEffect(() => {
+    appelAdmin("/admin/moi")
+      .then(async (r) => {
+        if (r.status === 404) setAvis(FERME);
+        setIdentifiant(r.ok ? (await r.json()).identifiant : null);
+      })
+      .catch(() => setIdentifiant(null));
   }, []);
-  const fermer = useCallback(() => ouvrir(""), [ouvrir]);
 
-  const appeler = useCallback(
-    async (chemin: string) => {
-      const r = await fetch(`${API_URL}${chemin}`, { headers: { Authorization: `Bearer ${jeton}` } });
-      if (r.status === 401) {
-        fermer();
-        throw new Error("Jeton refusé.");
-      }
-      if (r.status === 404) throw new Error("Back-office fermé : GESTUKAAY_ADMIN_JETON n'est pas configuré sur l'API.");
-      if (!r.ok) throw new Error("L'API ne répond pas.");
-      return r;
-    },
-    [jeton, fermer],
-  );
+  const connecter = useCallback(async (id: string, motDePasse: string) => {
+    let r: Response;
+    try {
+      r = await appelAdmin("/admin/connexion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifiant: id, mot_de_passe: motDePasse }),
+      });
+    } catch {
+      throw new Error("L'API ne répond pas.");
+    }
+    if (r.status === 404) throw new Error(FERME);
+    if (r.status === 401) throw new Error("Identifiant ou mot de passe incorrect. Après 5 essais manqués, le compte est bloqué 15 minutes.");
+    if (r.status === 429) throw new Error("Trop d'essais : patientez une minute.");
+    if (!r.ok) throw new Error("L'API ne répond pas.");
+    setIdentifiant((await r.json()).identifiant);
+  }, []);
 
-  return { jeton, ouvrir, fermer, appeler };
+  const fermer = useCallback(() => {
+    appelAdmin("/admin/deconnexion", { method: "POST" }).catch(() => {});
+    setIdentifiant(null);
+  }, []);
+
+  const appeler = useCallback(async (chemin: string) => {
+    const r = await appelAdmin(chemin);
+    if (r.status === 401) {
+      setIdentifiant(null);
+      throw new Error("Session expirée : reconnectez-vous.");
+    }
+    if (r.status === 404) throw new Error(FERME);
+    if (!r.ok) throw new Error("L'API ne répond pas.");
+    return r;
+  }, []);
+
+  return { identifiant, avis, connecter, fermer, appeler };
 }
 
-export function Connexion({ titre, bouton, erreur, onOuvrir }: {
+export function Connexion({ titre, bouton, erreur, verification, onConnecter }: {
   titre: string;
   bouton: string;
   erreur: string | null;
-  onOuvrir: (jeton: string) => void;
+  verification: boolean;
+  onConnecter: (identifiant: string, motDePasse: string) => Promise<void>;
 }) {
-  const [saisie, setSaisie] = useState("");
+  const [id, setId] = useState("");
+  const [motDePasse, setMotDePasse] = useState("");
+  const [refus, setRefus] = useState<string | null>(null);
+  const [envoi, setEnvoi] = useState(false);
+  if (verification) return <p className="note" role="status">Vérification de la session…</p>;
+  const message = refus ?? erreur;
   return (
     <form
       className="admin-connexion"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        onOuvrir(saisie.trim());
-        setSaisie("");
+        setEnvoi(true);
+        try {
+          await onConnecter(id.trim(), motDePasse);
+        } catch (err) {
+          setRefus((err as Error).message);
+        } finally {
+          setMotDePasse("");
+          setEnvoi(false);
+        }
       }}
     >
       <h1 className="titre-etat">{titre}</h1>
-      <label htmlFor="jeton">Jeton d'administration</label>
-      <input id="jeton" type="password" autoComplete="off" value={saisie} onChange={(e) => setSaisie(e.target.value)} required />
-      <p className="note">Valeur de GESTUKAAY_ADMIN_JETON. Elle reste dans cet onglet et disparaît à sa fermeture.</p>
-      {erreur && <p className="erreur-admin" role="alert">{erreur}</p>}
-      <button type="submit" className="primaire">{bouton}</button>
+      <label htmlFor="identifiant">Identifiant</label>
+      <input id="identifiant" autoComplete="username" autoCapitalize="none" spellCheck={false} value={id} onChange={(e) => setId(e.target.value)} required />
+      <label htmlFor="mot-de-passe">Mot de passe</label>
+      <input id="mot-de-passe" type="password" autoComplete="current-password" value={motDePasse} onChange={(e) => setMotDePasse(e.target.value)} required />
+      <p className="note">Compte nominatif de l'équipe. La session se ferme après 8 h sans activité.</p>
+      {message && <p className="erreur-admin" role="alert">{message}</p>}
+      <button type="submit" className="primaire" disabled={envoi}>{bouton}</button>
     </form>
   );
 }
 
-export function Cadre({ children, actif, onFermer }: {
+export function Cadre({ children, actif, identifiant, onFermer }: {
   children: React.ReactNode;
   actif: "tableau" | "journal" | "jeu";
+  identifiant?: string | null;
   onFermer?: () => void;
 }) {
   return (
@@ -103,7 +134,8 @@ export function Cadre({ children, actif, onFermer }: {
         </nav>
         {onFermer && (
           <div className="admin-actions">
-            <button type="button" className="secondaire petit" onClick={onFermer}>Fermer la session</button>
+            {identifiant && <span className="note">{identifiant}</span>}
+            <button type="button" className="secondaire petit" onClick={onFermer}>Se déconnecter</button>
           </div>
         )}
       </header>

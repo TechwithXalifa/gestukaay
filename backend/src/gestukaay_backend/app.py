@@ -23,7 +23,7 @@ import time
 from typing import Literal
 from urllib.parse import urlencode
 
-from fastapi import BackgroundTasks, FastAPI, Form, Header, Query, Request, UploadFile
+from fastapi import BackgroundTasks, Cookie, FastAPI, Form, Header, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from gestukaay_contracts.models import (
@@ -42,18 +42,21 @@ from gestukaay_contracts.models import (
     TranscriptionResponse,
 )
 from gestukaay_engine import IndicateurInconnu, NonDisponible, SaisieInvalide, charger_moteur
+from pydantic import BaseModel, Field
 
-from . import jeu_de_test, securite
+from . import comptes, jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
 from .exports import vers_csv, vers_csv_series, vers_pdf
 from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
+ORIGINES = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(","),
+    allow_origins=ORIGINES,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type"],
+    allow_credentials=True,  # cookie de session du back-office (décision 0037)
 )
 
 moteur = charger_moteur()
@@ -65,6 +68,11 @@ limiteur = securite.Limiteur()
 async def _proteger(requete: Request, suite):
     """Limite de requêtes par adresse (429 + Retry-After) et en-têtes de sécurité (securite.py)."""
     grp = securite.groupe(requete.url.path)
+    if (requete.url.path.startswith("/admin") and requete.method == "POST"
+            and requete.headers.get("origin") not in (None, *ORIGINES)):
+        # Le back-office tient par un cookie : un POST venu d'un autre site est refusé (CSRF)
+        probleme = Problem(title="Origine refusée", status=403)
+        return JSONResponse(probleme.model_dump(), status_code=403, media_type="application/problem+json")
     if grp and requete.method != "OPTIONS" and securite.limites_actives():
         attente = limiteur.attente(securite.adresse(requete), grp)
         if attente:
@@ -314,13 +322,51 @@ def retour(req: FeedbackRequest) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _admin(authorization: str | None) -> None:
-    """Jeton GESTUKAAY_ADMIN_JETON. Sans jeton configuré, le back-office n'existe pas (404)."""
-    jeton = os.environ.get("GESTUKAAY_ADMIN_JETON")
-    if not jeton:
+COOKIE_ADMIN = "gestukaay_admin"
+
+
+def _admin(session: str | None) -> str:
+    """L'identifiant de la session du back-office (comptes.py, décision 0037). Sans compte actif,
+    le back-office n'existe pas (404)."""
+    if not stockage.back_office_ouvert():
         raise ErreurApi(404, "Not Found")
-    if not authorization or not secrets.compare_digest(authorization, f"Bearer {jeton}"):
-        raise ErreurApi(401, "Jeton d'administration requis")
+    identifiant = comptes.identifier(stockage, session)
+    if not identifiant:
+        raise ErreurApi(401, "Connexion requise")
+    return identifiant
+
+
+class Connexion(BaseModel):
+    identifiant: str = Field(max_length=64)
+    mot_de_passe: str = Field(max_length=256)
+
+
+@app.post("/admin/connexion")
+def connexion(corps: Connexion, reponse: Response) -> dict:
+    """Identifiant et mot de passe ; ouvre une session portée par un cookie HttpOnly."""
+    if not stockage.back_office_ouvert():
+        raise ErreurApi(404, "Not Found")
+    jeton = comptes.connecter(stockage, corps.identifiant, corps.mot_de_passe)
+    if not jeton:
+        raise ErreurApi(401, "Identifiant ou mot de passe incorrect",
+                        f"Après {comptes.ESSAIS_MAX} essais manqués, le compte est bloqué 15 minutes.")
+    reponse.set_cookie(COOKIE_ADMIN, jeton, max_age=int(comptes.DUREE_MAX.total_seconds()), path="/admin",
+                       httponly=True, samesite="strict", secure=URL_PUBLIQUE.startswith("https://"))
+    return {"identifiant": comptes.identifier(stockage, jeton)}
+
+
+@app.post("/admin/deconnexion", status_code=204)
+def deconnexion(reponse: Response, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    if session:
+        stockage.fermer_session(session)
+    reponse.delete_cookie(COOKIE_ADMIN, path="/admin", httponly=True, samesite="strict",
+                          secure=URL_PUBLIQUE.startswith("https://"))
+
+
+@app.get("/admin/moi")
+def moi(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """La personne connectée : le site sait s'il doit montrer le formulaire de connexion."""
+    return {"identifiant": _admin(session)}
 
 
 def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | None,
@@ -330,7 +376,7 @@ def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | N
 
 @app.get("/admin/journal")
 def journal(
-    authorization: str | None = Header(None),
+    session: str | None = Cookie(None, alias=COOKIE_ADMIN),
     issue: Literal["exacte", "approchee", "aucune"] | None = None,
     canal: str | None = None,
     langue: str | None = None,
@@ -338,21 +384,21 @@ def journal(
     limite: int = Query(50, ge=1, le=500),
     decalage: int = Query(0, ge=0),
 ) -> dict:
-    _admin(authorization)
+    _admin(session)
     total, lignes = stockage.journal(_filtre(issue, canal, langue, q, limite, decalage))
     return {"total": total, "lignes": lignes}
 
 
 @app.get("/admin/tableau")
 def tableau(
-    authorization: str | None = Header(None),
+    session: str | None = Cookie(None, alias=COOKIE_ADMIN),
     jours: int = Query(30),
     canal: str | None = None,
     langue: str | None = None,
 ) -> dict:
     """Tableau de bord (US-28) : questions, issues, latence médiane et p95, part du wolof,
     satisfaction, signalements, questions non résolues les plus fréquentes."""
-    _admin(authorization)
+    _admin(session)
     if jours not in (7, 30, 90):
         raise ErreurApi(422, "Période inconnue", "jours = 7, 30 ou 90.")
     # Exactitude et refus pertinents (US-28) : la dernière exécution terminée du jeu de test
@@ -370,9 +416,9 @@ executer_benchmark = _en_fond  # remplacé dans les tests par un appel direct
 
 
 @app.get("/admin/jeu-de-test")
-def jeu_de_test_liste(authorization: str | None = Header(None)) -> dict:
+def jeu_de_test_liste(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
     """Les questions de référence et les exécutions du benchmark (résumés, plus récentes d'abord)."""
-    _admin(authorization)
+    _admin(session)
     return {
         "disponible": jeu_de_test.moteur_pour(moteur, "regles") is not None,
         "llm_autorise": jeu_de_test.llm_autorise(),
@@ -384,9 +430,9 @@ def jeu_de_test_liste(authorization: str | None = Header(None)) -> dict:
 
 
 @app.get("/admin/jeu-de-test/executions/{eid}")
-def jeu_de_test_execution(eid: str, authorization: str | None = Header(None)) -> dict:
+def jeu_de_test_execution(eid: str, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
     """Une exécution complète : chaque question avec son issue, son statut et le détail de l'écart."""
-    _admin(authorization)
+    _admin(session)
     execution = next((e for e in stockage.executions() if e["id"] == eid), None)
     if execution is None:
         raise ErreurApi(404, "Exécution introuvable")
@@ -394,9 +440,9 @@ def jeu_de_test_execution(eid: str, authorization: str | None = Header(None)) ->
 
 
 @app.post("/admin/jeu-de-test/executions", status_code=202)
-def jeu_de_test_lancer(corps: dict, authorization: str | None = Header(None)) -> dict:
+def jeu_de_test_lancer(corps: dict, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
     """Lance le benchmark en tâche de fond. « llm » appelle la chaîne LLM (environ 0,07 $)."""
-    _admin(authorization)
+    _admin(session)
     mode = corps.get("mode")
     if mode not in jeu_de_test.MODES:
         raise ErreurApi(422, "Mode inconnu", "mode = regles ou llm.")
@@ -415,13 +461,13 @@ def jeu_de_test_lancer(corps: dict, authorization: str | None = Header(None)) ->
 
 @app.get("/admin/journal.csv")
 def journal_csv(
-    authorization: str | None = Header(None),
+    session: str | None = Cookie(None, alias=COOKIE_ADMIN),
     issue: Literal["exacte", "approchee", "aucune"] | None = None,
     canal: str | None = None,
     langue: str | None = None,
     q: str | None = Query(None, max_length=100),
 ) -> Response:
-    _admin(authorization)
+    _admin(session)
     _, lignes = stockage.journal(_filtre(issue, canal, langue, q, 100_000, 0))
     sortie = io.StringIO()
     w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], delimiter=";")

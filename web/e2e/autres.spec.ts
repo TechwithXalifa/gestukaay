@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { JETON_ADMIN } from "../playwright.config";
-import { accessible, poser } from "./outils";
+import { accessible, poser, seConnecter } from "./outils";
 
 test("domaines : la liste complète", async ({ page }) => {
   await page.goto("/domaines");
@@ -42,11 +41,11 @@ test("bascule FR/WO : le choix WO tient au rechargement, dès le premier afficha
   await expect(wo).toHaveAttribute("aria-pressed", "true"); // puis React confirme
 });
 
-test("journal des requêtes : jeton, filtres et détail", async ({ page }) => {
+test("journal des requêtes : connexion, filtres et détail", async ({ page }) => {
   await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
   await page.goto("/admin/journal");
   await accessible(page, "journal, connexion");
-  await page.getByLabel("Jeton d'administration").fill(JETON_ADMIN);
+  await seConnecter(page);
   await page.getByRole("button", { name: "Ouvrir le journal" }).click();
   await expect(page.getByRole("heading", { name: "Journal des requêtes" })).toBeVisible();
 
@@ -55,6 +54,13 @@ test("journal des requêtes : jeton, filtres et détail", async ({ page }) => {
   await ligne.click();
   await expect(page.getByRole("complementary", { name: "Détail de la requête" })).toContainText("Refus");
   await accessible(page, "journal");
+
+  // La session tient au rechargement (cookie HttpOnly), et la déconnexion la ferme côté API
+  await page.reload();
+  await page.getByRole("button", { name: "Se déconnecter" }).click();
+  await expect(page.getByLabel("Mot de passe")).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Mot de passe")).toBeVisible();
 });
 
 test("titres de page propres à chaque écran (WCAG 2.4.2)", async ({ page }) => {
@@ -131,7 +137,7 @@ test("tableau de bord : indicateurs, issues et questions non résolues (US-28)",
   await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
   await page.goto("/admin/tableau");
   await accessible(page, "tableau de bord, connexion");
-  await page.getByLabel("Jeton d'administration").fill(JETON_ADMIN);
+  await seConnecter(page);
   await page.getByRole("button", { name: "Ouvrir le tableau de bord" }).click();
   await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
   await expect(page.getByText("Questions traitées")).toBeVisible();
@@ -178,7 +184,7 @@ test("méthode : le taux de bonnes réponses aux tests est publié, et lui seul 
 
 test("jeu de test : écran du back-office, benchmark réservé au moteur réel (5.10)", async ({ page }) => {
   await page.goto("/admin/jeu-de-test");
-  await page.getByLabel("Jeton d'administration").fill(JETON_ADMIN);
+  await seConnecter(page);
   await page.getByRole("button", { name: "Ouvrir le jeu de test" }).click();
   await expect(page.getByRole("heading", { name: "Jeu de test" })).toBeVisible();
   await expect(page.getByText(/\d+ questions de référence/)).toBeVisible();

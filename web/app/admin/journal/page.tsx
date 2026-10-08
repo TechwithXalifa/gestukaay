@@ -48,7 +48,7 @@ function secondes(ms: number | null): string {
 }
 
 export default function Journal() {
-  const { jeton, ouvrir, fermer, appeler } = useAdmin();
+  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
   const [filtres, setFiltres] = useState({ canal: "", langue: "", issue: "", q: "" });
   const [recherche, setRecherche] = useState("");
   const [page, setPage] = useState(0);
@@ -66,7 +66,7 @@ export default function Journal() {
   );
 
   useEffect(() => {
-    if (!jeton) return;
+    if (!identifiant) return;
     let annule = false;
     const p = parametres({ limite: String(PAR_PAGE), decalage: String(page * PAR_PAGE) });
     appeler(`/admin/journal?${p}`)
@@ -81,7 +81,7 @@ export default function Journal() {
     return () => {
       annule = true;
     };
-  }, [jeton, page, parametres, appeler]);
+  }, [identifiant, page, parametres, appeler]);
 
   async function exporter() {
     try {
@@ -101,10 +101,10 @@ export default function Journal() {
     setChoisie(null);
   }
 
-  if (!jeton) {
+  if (!identifiant) {
     return (
       <Cadre actif="journal">
-        <Connexion titre="Journal des requêtes" bouton="Ouvrir le journal" erreur={erreur} onOuvrir={ouvrir} />
+        <Connexion titre="Journal des requêtes" bouton="Ouvrir le journal" erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
       </Cadre>
     );
   }
@@ -113,7 +113,7 @@ export default function Journal() {
   const fin = donnees ? Math.min((page + 1) * PAR_PAGE, donnees.total) : 0;
 
   return (
-    <Cadre actif="journal" onFermer={() => { fermer(); setDonnees(null); }}>
+    <Cadre actif="journal" identifiant={identifiant} onFermer={() => { fermer(); setDonnees(null); }}>
       <div className="admin-titre">
         <div>
           <h1 className="titre-etat">Journal des requêtes</h1>

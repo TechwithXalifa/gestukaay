@@ -1,4 +1,4 @@
-"""Persistance du backend : réponses, journal des requêtes, retours.
+"""Persistance du backend : réponses, journal des requêtes, retours, comptes du back-office.
 
     GESTUKAAY_BASE=postgresql://gestukaay:…@db:5432/gestukaay   # Docker, préprod
     GESTUKAAY_BASE=sqlite:///gestukaay.db                       # un fichier en local
@@ -75,6 +75,22 @@ _TABLES = [
         vote TEXT,
         motif TEXT,
         commentaire TEXT
+    )""",
+    # Back-office (comptes.py, décision 0037) : comptes nominatifs, mots de passe hachés par scrypt
+    """CREATE TABLE IF NOT EXISTS comptes_admin (
+        identifiant TEXT PRIMARY KEY,
+        hachage TEXT NOT NULL,
+        cree_le TEXT NOT NULL,
+        actif INTEGER NOT NULL DEFAULT 1,
+        echecs INTEGER NOT NULL DEFAULT 0,
+        bloque_jusqu_a TEXT
+    )""",
+    # Sessions : seul le hachage du jeton est gardé (une base copiée n'ouvre aucune session)
+    """CREATE TABLE IF NOT EXISTS sessions_admin (
+        jeton TEXT PRIMARY KEY,
+        identifiant TEXT NOT NULL,
+        ouverte_le TEXT NOT NULL,
+        vue_le TEXT NOT NULL
     )""",
 ]
 
@@ -361,3 +377,77 @@ class Stockage:
             "SELECT id, mode, lancee_le, statut, erreur, resultat FROM executions_benchmark ORDER BY lancee_le DESC, id")
         return [{"id": i, "mode": m, "lancee_le": d, "statut": st, "erreur": e,
                  "resultat": json.loads(r) if r else None} for i, m, d, st, e, r in lignes]
+
+    # ------------------------------------------------------------------ comptes du back-office
+
+    def compte(self, identifiant: str) -> dict | None:
+        """Le compte, l'identifiant comparé sans la casse (« san » ouvre SAN)."""
+        lignes = self._executer(
+            "SELECT identifiant, hachage, cree_le, actif, echecs, bloque_jusqu_a FROM comptes_admin "
+            "WHERE LOWER(identifiant) = LOWER(?)", (identifiant.strip(),))
+        if not lignes:
+            return None
+        return dict(zip(("identifiant", "hachage", "cree_le", "actif", "echecs", "bloque_jusqu_a"), lignes[0],
+                        strict=True))
+
+    def comptes(self) -> list[dict]:
+        return [{"identifiant": i, "actif": bool(a), "cree_le": c} for i, a, c in self._executer(
+            "SELECT identifiant, actif, cree_le FROM comptes_admin ORDER BY identifiant")]
+
+    def back_office_ouvert(self) -> bool:
+        """Sans compte actif, le back-office n'existe pas (404), comme avant sans jeton."""
+        return bool(self._executer("SELECT 1 FROM comptes_admin WHERE actif = 1 LIMIT 1"))
+
+    def creer_compte(self, identifiant: str, hachage: str) -> None:
+        self._executer("INSERT INTO comptes_admin (identifiant, hachage, cree_le) VALUES (?, ?, ?)",
+                       (identifiant, hachage, datetime.now(UTC).isoformat(timespec="seconds")))
+
+    def changer_mot_de_passe(self, identifiant: str, hachage: str) -> None:
+        """Nouveau mot de passe : le compte est réactivé et débloqué, ses sessions sont fermées."""
+        self._executer("UPDATE comptes_admin SET hachage = ?, actif = 1, echecs = 0, bloque_jusqu_a = NULL "
+                       "WHERE identifiant = ?", (hachage, identifiant))
+        self._executer("DELETE FROM sessions_admin WHERE identifiant = ?", (identifiant,))
+
+    def desactiver_compte(self, identifiant: str) -> None:
+        self._executer("UPDATE comptes_admin SET actif = 0 WHERE identifiant = ?", (identifiant,))
+        self._executer("DELETE FROM sessions_admin WHERE identifiant = ?", (identifiant,))
+
+    def noter_echec(self, identifiant: str, essais_max: int, bloque_jusqu_a: datetime) -> None:
+        """Un essai manqué de plus ; au dernier permis, le compte est bloqué et le compteur repart à 0."""
+        self._executer(
+            "UPDATE comptes_admin SET echecs = CASE WHEN echecs + 1 >= ? THEN 0 ELSE echecs + 1 END, "
+            "bloque_jusqu_a = CASE WHEN echecs + 1 >= ? THEN ? ELSE bloque_jusqu_a END WHERE identifiant = ?",
+            (essais_max, essais_max, bloque_jusqu_a.isoformat(timespec="seconds"), identifiant))
+
+    def remettre_echecs(self, identifiant: str) -> None:
+        self._executer("UPDATE comptes_admin SET echecs = 0, bloque_jusqu_a = NULL WHERE identifiant = ?",
+                       (identifiant,))
+
+    def ouvrir_session(self, identifiant: str, maintenant: datetime) -> str:
+        jeton = secrets.token_urlsafe(32)
+        quand = maintenant.isoformat(timespec="seconds")
+        self._executer("INSERT INTO sessions_admin (jeton, identifiant, ouverte_le, vue_le) VALUES (?, ?, ?, ?)",
+                       (_empreinte(jeton), identifiant, quand, quand))
+        return jeton
+
+    def session(self, jeton: str, maintenant: datetime, inactivite: timedelta, duree_max: timedelta) -> str | None:
+        """L'identifiant de la session si elle vit encore (activité récente, durée maximale non
+        atteinte, compte actif) ; elle est alors prolongée. Les sessions expirées sont purgées."""
+        self._executer("DELETE FROM sessions_admin WHERE vue_le < ? OR ouverte_le < ?",
+                       ((maintenant - inactivite).isoformat(timespec="seconds"),
+                        (maintenant - duree_max).isoformat(timespec="seconds")))
+        lignes = self._executer(
+            "SELECT s.identifiant FROM sessions_admin s JOIN comptes_admin c ON c.identifiant = s.identifiant "
+            "WHERE s.jeton = ? AND c.actif = 1", (_empreinte(jeton),))
+        if not lignes:
+            return None
+        self._executer("UPDATE sessions_admin SET vue_le = ? WHERE jeton = ?",
+                       (maintenant.isoformat(timespec="seconds"), _empreinte(jeton)))
+        return lignes[0][0]
+
+    def fermer_session(self, jeton: str) -> None:
+        self._executer("DELETE FROM sessions_admin WHERE jeton = ?", (_empreinte(jeton),))
+
+
+def _empreinte(jeton: str) -> str:
+    return hashlib.sha256(jeton.encode()).hexdigest()
