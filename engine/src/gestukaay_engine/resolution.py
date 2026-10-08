@@ -304,6 +304,13 @@ def periode_par_defaut(lignes: list[Observation]) -> tuple[str, bool]:
     return p, p == periodes[-1] or any(o.nature == "observee" for o in lignes if o.periode == p)
 
 
+def academie_equivalente(zone: str, publiees: list[str]) -> str | None:
+    """Une région servie par une seule académie qui la recouvre exactement (`couvre` = la région : Sédhiou,
+    Kolda…) : même territoire, la valeur de l'académie est servie, sous son nom. Pas Dakar (trois académies)."""
+    equiv = [z.code for z in zones().values() if z.niveau == "academie" and z.couvre == (zone,)]
+    return equiv[0] if len(equiv) == 1 and equiv[0] in publiees else None
+
+
 def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | None,
                 demande: dict[str, str], langue: str = "fr",
                 question: str = "") -> tuple[Resultat, dict] | Introuvable:
@@ -317,6 +324,8 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
         zone = "SN" if "SN" in publiees else publiees[0] if len(publiees) == 1 else None
         if zone is None:
             return Introuvable("zone_non_couverte", "pas de valeur nationale", disponibles=publiees)
+    if zone not in publiees:
+        zone = academie_equivalente(zone, publiees) or zone
     if zone not in publiees:
         return Introuvable("zone_non_couverte", f"{zone} non publié", disponibles=publiees)
     demande = {k: v for k, v in demande.items() if not portee_par_indicateur(ind, v)}

@@ -183,3 +183,12 @@ def test_socle_incoherent_refuse():
     verifier(SOCLE)  # tous connus
     with pytest.raises(SocleIncoherent, match="code-disparu"):
         verifier(Socle([obs("code-disparu", "SN", "2023", 1)], SOURCES, "2026.10.0"))
+
+
+def test_region_servie_par_son_academie_equivalente():  # Sédhiou : une seule académie, même territoire
+    tbs = "ervtjfc.taux-brut-de-scolarisation"
+    socle = Socle([obs(tbs, "SN-IA-SEDHIOU", "2025", 100.1), obs(tbs, "SN-IA-DAKAR", "2025", 101.2)],
+                  {"ervtjfc": SOURCES["pvswjnd"]})
+    x = une(resoudre(socle, req(tbs, ["SN-SE"])))
+    assert (x.zone.code, x.valeur) == ("SN-IA-SEDHIOU", 100.1)
+    assert resoudre(socle, req(tbs, ["SN-DK"])).raison == "zone_non_couverte"  # Dakar : trois académies

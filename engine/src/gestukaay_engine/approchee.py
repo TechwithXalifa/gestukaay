@@ -18,6 +18,7 @@ Principes non négociables :
 from __future__ import annotations
 
 import csv
+import re
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -109,6 +110,19 @@ def _nom_zone(code: str, langue: str = "fr") -> str:
     return z.libelle_fr
 
 
+_ARTICLES = (("Région de ", "la région de "), ("Département de ", "le département de "),
+             ("Inspection d'académie de ", "l'inspection d'académie de "))
+
+
+def _dans_la_phrase(nom: str) -> str:
+    """« pour Département de Pikine » -> « pour le département de Pikine » (les listes de choix gardent la
+    majuscule) ; « Sénégal » -> « le Sénégal » ; un lieu cité (« Touba ») reste tel quel."""
+    for tete, article in _ARTICLES:
+        if nom.startswith(tete):
+            return article + nom[len(tete):]
+    return "le Sénégal" if nom == "Sénégal" else nom
+
+
 def _portee(requete: RequeteStructuree, langue: str = "fr") -> str:
     """Ce que le choix donnera, selon l'intention (US-03 : savoir ce qu'on va lire avant de confirmer)."""
     if requete.intention == "classement":  # même règle que la résolution : académies si publié ainsi
@@ -153,6 +167,29 @@ def modalite_citee(requete: RequeteStructuree, question: str) -> Rattachement | 
         if dims & set(desag) and not any(_est_le_terme(v, terme_cle) for v in desag.values()):
             return None  # catégorie déjà précisée (« véhicules particuliers »)
         return rat
+    return None
+
+
+# Catégorie dite dans la question, parmi les propositions de rattachements.csv : pas de choix à proposer
+_CATEGORIES_DITES = {"VPP": re.compile(r"\b(particuliers?|particulieres?|vpp)\b")}
+
+
+def categorie_dite(requete: RequeteStructuree, question: str) -> RequeteStructuree | None:
+    """« Combien de véhicules particuliers à Kolda ? » servait le parc TOTAL (9 317 au lieu de 5 000) :
+    « véhicules » ne déclenche pas le choix des « voitures » et rien ne fixait la catégorie. Dite, elle est
+    imposée ; sinon None."""
+    if not requete.indicateur:
+        return None
+    q = normaliser(question)
+    for rat in rattachements().values():
+        if rat.type != "modalite":
+            continue
+        for prop in rat.propositions:
+            jeu, _, assign = prop.partition(":")
+            dim, _, val = assign.partition("=")
+            motif = _CATEGORIES_DITES.get(val)
+            if motif and requete.indicateur.startswith(jeu) and motif.search(q):
+                return requete.model_copy(update={"desagregation": {**(requete.desagregation or {}), dim: val}})
     return None
 
 
@@ -327,7 +364,7 @@ def proposer_approchee(
                 candidats_choix.append((req_c, lib))
 
             reformulation = (
-                f"Ce chiffre n'est pas publié pour {_nom_zone(z_demandee, langue)} ; "
+                f"Ce chiffre n'est pas publié pour {_dans_la_phrase(_nom_zone(z_demandee, langue))} ; "
                 "voici les zones pour lesquelles l'ANSD publie ce chiffre. Est-ce ce que vous cherchez ?"
             )
 
@@ -416,12 +453,12 @@ def proposer_approchee(
         )
         ref_ind = RefIndicateur(code=code_ind, libelle=_nom_indicateur(code_ind, langue))
         sugg = Suggestion(indicateur=ref_ind, question_suggeree=choix_valides[0].libelle)
-        msg = f"Cette statistique n'est pas disponible pour {lieu_nom}."
+        msg = f"Cette statistique n'est pas disponible pour {_dans_la_phrase(lieu_nom)}."
         return RepliAucune(motif="hors_socle", message=msg, suggestions=[sugg])
 
     # 0 choix valide -> Refus hors socle complet
     lieu_nom = nom_lieu_concerne or (
         _nom_zone(requete.zones[0], langue) if requete.zones else "cette zone"
     )
-    msg = f"Cette donnée n'est pas publiée par l'ANSD pour {lieu_nom}."
+    msg = f"Cette donnée n'est pas publiée par l'ANSD pour {_dans_la_phrase(lieu_nom)}."
     return RepliAucune(motif="hors_socle", message=msg, suggestions=[])

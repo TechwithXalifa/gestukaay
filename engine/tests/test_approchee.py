@@ -291,23 +291,42 @@ def test_approchee_reformulation_fr_seulement():
 
 
 def test_academie_puis_cycle_en_deux_temps():
-    """« Combien d'écoles à Kolda ? » (KBD, 08/10) : publié par académie ET par cycle. L'académie est proposée
-    même s'il reste un cycle à choisir ; le cycle est demandé après le choix, puis le chiffre."""
+    """« Combien d'écoles à Kolda ? » (KBD, 08/10) : publié par académie ET par cycle. Kolda n'a qu'une académie,
+    qui recouvre la région : le cycle est demandé tout de suite, puis le chiffre de l'académie. Pour Dakar (trois
+    académies), l'académie est proposée même s'il reste un cycle à choisir."""
     from gestukaay_engine.comprehension import Comprehension
     from gestukaay_engine.moteur import MoteurReel
 
     ecoles = "joelgdb.nombre-total-decoles"
-    socle = Socle([obs(ecoles, "SN-IA-KOLDA", p, v, cycle=c) for p, c, v in (
+    socle = Socle([obs(ecoles, z, p, v, cycle=c) for z in ("SN-IA-KOLDA", "SN-IA-DAKAR") for p, c, v in (
         ("2025", "Elémentaire", 307), ("2025", "Préscolaire", 120), ("2024", "Elémentaire", 300),
         ("2024", "Préscolaire", 110))], {"joelgdb": SOURCES["pvswjnd"]})
-    req = RequeteStructuree(intention="valeur", indicateur=ecoles, zones=["SN-KD"], periode=Periode(type="derniere"),
-                            confiance=1.0)
-    q = "Combien d'écoles à Kolda ?"
-    res = proposer_approchee(socle, req, resoudre(socle, req), q, "fr")
-    assert isinstance(res, Approchee) and res.choix[0].requete.zones == ["SN-IA-KOLDA"]
     moteur = MoteurReel(socle, Comprehension(None))
-    cycles = moteur.executer(res.choix[0].requete, q, "fr").reponse
+
+    def req(zone):
+        return RequeteStructuree(intention="valeur", indicateur=ecoles, zones=[zone], periode=Periode(type="derniere"),
+                                 confiance=1.0)
+    q = "Combien d'écoles à Kolda ?"
+    cycles = moteur.executer(req("SN-KD"), q, "fr").reponse
     assert cycles.issue == "approchee" and [c.libelle.split(" (")[0] for c in cycles.choix] == ["Elémentaire",
                                                                                                 "Préscolaire"]
     fin = moteur.executer(cycles.choix[0].requete, q, "fr").reponse
     assert fin.issue == "exacte" and fin.resultats[0].valeur == 307 and "307 Nombre" not in fin.explication
+    assert fin.resultats[0].zone.code == "SN-IA-KOLDA"
+    res = proposer_approchee(socle, req("SN-DK"), resoudre(socle, req("SN-DK")), "Combien d'écoles à Dakar ?", "fr")
+    assert isinstance(res, Approchee) and res.choix[0].requete.zones == ["SN-IA-DAKAR"]
+
+
+def test_categorie_dite_vehicules_particuliers():  # servait le parc TOTAL (KBD, petits défauts)
+    from gestukaay_engine.approchee import categorie_dite
+    req = RequeteStructuree(intention="valeur", indicateur="qbvttzc", zones=["SN-KD"], periode=Periode(type="derniere"),
+                            confiance=1.0)
+    dite = categorie_dite(req, "Combien de véhicules particuliers à Kolda ?")
+    assert dite.desagregation == {"catégories": "VPP"} and resoudre(SOCLE, dite).resultats[0].valeur == 5000
+    assert categorie_dite(req, "Combien de véhicules à Kolda ?") is None  # non dite : le choix reste
+
+
+def test_phrase_avec_article():  # « pour Département de Pikine » (KBD, petits défauts)
+    from gestukaay_engine.approchee import _dans_la_phrase
+    assert _dans_la_phrase("Département de Pikine") == "le département de Pikine"
+    assert _dans_la_phrase("Région de Kolda") == "la région de Kolda" and _dans_la_phrase("Touba") == "Touba"

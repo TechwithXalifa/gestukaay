@@ -46,7 +46,14 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import normaliser
 
-from .approchee import Approchee, RepliAucune, modalite_citee, proposer_approchee, rattachements
+from .approchee import (
+    Approchee,
+    RepliAucune,
+    categorie_dite,
+    modalite_citee,
+    proposer_approchee,
+    rattachements,
+)
 from .candidats import desagregation_citee
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
@@ -117,6 +124,8 @@ class MoteurReel:
             return self._conversation(c, question, transcription, langue)
         if c.incomprehensible:
             return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
+        if c.requete and (dite := categorie_dite(c.requete, question)):
+            c = replace(c, requete=dite)  # « véhicules particuliers » : la catégorie est dite, pas de choix
         if not c.lieux_inconnus and modalite_citee(c.requete, question):
             a = proposer_approchee(self.socle, c.requete, None, question, LANGUE)
             if isinstance(a, Approchee):
