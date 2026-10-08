@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CANAUX, Cadre, Choix, Connexion, useAdmin } from "@/components/Admin";
 import { Telecharger } from "@/components/icones";
+import { nombre } from "@/lib/typo";
 
 /**
  * Back-office minimal : journal des requêtes (maquette BO-Journal, backend #73).
@@ -117,7 +118,7 @@ export default function Journal() {
         <div>
           <h1 className="titre-etat">Journal des requêtes</h1>
           <p className="note">
-            {donnees ? `${donnees.total.toLocaleString("fr-FR")} requêtes` : "Chargement…"} · aucune donnée personnelle :
+            {donnees ? `${nombre(donnees.total)} requêtes` : "Chargement…"} · aucune donnée personnelle :
             chaque conversation n'est connue que par un code haché
           </p>
         </div>
@@ -204,7 +205,7 @@ export default function Journal() {
 
       {donnees && donnees.total > 0 && (
         <nav className="admin-pages" aria-label="Pages du journal">
-          <span className="note">{debut} à {fin} sur {donnees.total.toLocaleString("fr-FR")}</span>
+          <span className="note">{debut} à {fin} sur {nombre(donnees.total)}</span>
           <button type="button" className="secondaire petit" disabled={page === 0} onClick={() => setPage(page - 1)}>Précédentes</button>
           <button type="button" className="secondaire petit" disabled={fin >= donnees.total} onClick={() => setPage(page + 1)}>Suivantes</button>
         </nav>

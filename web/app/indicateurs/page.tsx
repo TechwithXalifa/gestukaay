@@ -1,17 +1,18 @@
 "use client";
 
-import { OngletsDonnees } from "@/components/OngletsDonnees";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import type { CatalogueResponse } from "@contracts/catalogue_response";
 import { Entete, PiedDePage } from "@/components/Entete";
+import { OngletsDonnees } from "@/components/OngletsDonnees";
 import { Erreur } from "@/components/Etats";
 import { Coche, Fleche } from "@/components/icones";
 import type { Cle } from "@/i18n/fr";
 import { useLangue } from "@/i18n/langue";
 import { catalogue } from "@/lib/api";
 import { TOUS_LES_DOMAINES } from "@/lib/domaines";
+import { nombre } from "@/lib/typo";
 
 const PAR_PAGE = 20;
 type Indicateur = CatalogueResponse["indicateurs"][number];
@@ -84,7 +85,7 @@ function Catalogue() {
         <OngletsDonnees actif="indicateurs" />
         <h1 className="titre-situer">{t("catalogue.titre")}</h1>
         {total !== null && !q && !domaine && (
-          <p className="explication">{t("catalogue.intro", { n: total.toLocaleString("fr-FR") })}</p>
+          <p className="explication">{t("catalogue.intro", { n: nombre(total) })}</p>
         )}
 
         <form
@@ -119,7 +120,7 @@ function Catalogue() {
         ) : (
           <>
             {total !== null && (q || domaine) && (
-              <p className="note" role="status">{t("catalogue.resultats", { n: total.toLocaleString("fr-FR") })}</p>
+              <p className="note" role="status">{t("catalogue.resultats", { n: nombre(total) })}</p>
             )}
             {total === 0 && <p className="explication">{t("catalogue.aucun")}</p>}
             <ul className="catalogue-liste" aria-busy={enCours}>

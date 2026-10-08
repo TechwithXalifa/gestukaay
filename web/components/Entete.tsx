@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLangue } from "@/i18n/langue";
 import { BarreLaterale } from "./BarreLaterale";
 import { Baobab, Donnees, Points, Question, Repere } from "./icones";
@@ -21,6 +21,22 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
   const [menu, setMenu] = useState(false);
   const ici = espace(actif);
   const courant = (e: Actif) => (ici === e ? "page" : undefined);
+  const bandeau = useRef<HTMLParagraphElement>(null);
+
+  // Le bandeau « wolof en cours » tient sur 1 à 3 lignes selon la largeur : sa hauteur est mesurée
+  // pour que les sections plein écran (.ecran) la retirent et ne débordent pas (revue de la PR #155)
+  useEffect(() => {
+    const el = bandeau.current;
+    if (!el || !("ResizeObserver" in window)) return;
+    const racine = document.documentElement.style;
+    const mesure = new ResizeObserver(() => racine.setProperty("--hauteur-bandeau", `${el.offsetHeight}px`));
+    mesure.observe(el);
+    return () => {
+      mesure.disconnect();
+      racine.removeProperty("--hauteur-bandeau");
+    };
+  }, [incomplet]);
+
   return (
     <>
       <a href="#contenu" className="evitement">{t("nav.evitement")}</a>
@@ -54,7 +70,7 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
         </button>
       </nav>
       {menu && <BarreLaterale actif={ici} onFermer={() => setMenu(false)} />}
-      {incomplet && <p className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
+      {incomplet && <p ref={bandeau} className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
     </>
   );
 }

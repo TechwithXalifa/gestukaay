@@ -64,7 +64,9 @@ export default function Accueil() {
     <div className="site">
       <Entete />
       <main id="contenu" tabIndex={-1} className="accueil">
-        <section className="heros sombre ecran">
+        {/* Hors ligne, le héros ne prend plus tout l'écran : le message et les dernières réponses
+            viennent juste sous le champ grisé, au lieu de rester sous le pli (revue de la PR #155) */}
+        <section className={horsLigne ? "heros sombre" : "heros sombre ecran"}>
           <div className="heros-int">
             <h1 className="titre-accueil monte monte-1">{t("accueil.titre1")}<br />{avecMot(t("accueil.titre2"))}</h1>
             <p className="chapeau monte monte-2">{t("accueil.chapeau")}</p>
@@ -197,18 +199,18 @@ export default function Accueil() {
             </section>
 
             <section className="section-accueil confiance sombre ecran" aria-labelledby="titre-confiance">
-              <div className="section-int apparait">
+              {/* Un seul chiffre, le taux de bonnes réponses aux tests (choix de SAN du 08/10) : ni temps
+                  de réponse ni liste d'erreurs sur l'accueil */}
+              <div className="section-int apparait confiance-corps">
                 <div>
                   <h2 id="titre-confiance" className="sous-titre">{t("accueil.confiance.titre")}</h2>
-                  <p className="chapeau" style={{ marginTop: 8 }}>{t("accueil.confiance.texte", { n: String(m.questions.total), date: m.date })}</p>
+                  <p className="chapeau">{t("accueil.confiance.texte", { sur: String(m.bonne.sur), date: m.date })}</p>
+                  <Link href="/methode" className="lien">{t("accueil.confiance.lien")} <Fleche taille={16} /></Link>
                 </div>
-                <ul className="stats">
-                  <li><strong><Compteur texte={pourcent.format(m.bonne.reussies / m.bonne.sur)} /></strong><span>{t("accueil.confiance.bonne")}</span></li>
-                  <li><strong><Compteur texte={pourcent.format(m.refus.reussis / m.refus.sur)} /></strong><span>{t("accueil.confiance.refus")}</span></li>
-                  <li><strong>{(m.latence.medianeMs / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} s</strong><span>{t("accueil.confiance.temps")}</span></li>
-                  <li><strong>{m.inventes}</strong><span>{t("accueil.confiance.invente")}</span></li>
-                </ul>
-                <Link href="/methode" className="lien">{t("accueil.confiance.lien")} <Fleche taille={16} /></Link>
+                <p className="confiance-chiffre">
+                  <strong><Compteur texte={pourcent.format(m.bonne.reussies / m.bonne.sur)} /></strong>
+                  <span>{t("accueil.confiance.bonne")}</span>
+                </p>
               </div>
             </section>
           </>

@@ -1,6 +1,5 @@
 "use client";
 
-import { OngletsDonnees } from "@/components/OngletsDonnees";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -8,6 +7,7 @@ import type { CatalogueResponse } from "@contracts/catalogue_response";
 import type { FicheIndicateur } from "@contracts/fiche_indicateur";
 import type { SeriesResponse } from "@contracts/series_response";
 import { Entete, PiedDePage } from "@/components/Entete";
+import { OngletsDonnees } from "@/components/OngletsDonnees";
 import { Chargement, Erreur } from "@/components/Etats";
 import { Graphique } from "@/components/Graphique";
 import { Croix, Externe, Livre, Telecharger } from "@/components/icones";

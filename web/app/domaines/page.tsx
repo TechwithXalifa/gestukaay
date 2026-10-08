@@ -1,8 +1,8 @@
 "use client";
 
-import { OngletsDonnees } from "@/components/OngletsDonnees";
 import Link from "next/link";
 import { Entete, PiedDePage } from "@/components/Entete";
+import { OngletsDonnees } from "@/components/OngletsDonnees";
 import { useLangue } from "@/i18n/langue";
 import { TOUS_LES_DOMAINES } from "@/lib/domaines";
 

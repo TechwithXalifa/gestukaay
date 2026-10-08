@@ -109,7 +109,7 @@ Les types viennent directement de `contracts/generated/` : si le contrat change 
 | `/r/{id}` | page réponse, rendue côté serveur | Reponse, M-Reponse, ReponseComparee |
 | `/situer` | « Où je me situe » en 3 étapes puis le résultat | M-SituerIntro, M-Situer, M-SituerResultat |
 | `/domaines` | les 32 domaines du socle | |
-| `/methode` | méthode et transparence : 5 étapes, données, objectifs de mesure (aucun chiffre de qualité tant que le rapport #21 n'existe pas) | Methode |
+| `/methode` | méthode et transparence : taux de bonnes réponses aux tests (`lib/mesure.ts`, décision 0036), 5 étapes, données | Methode |
 | `/a-propos` | ce que fait Gëstukaay ; précise que ce n'est pas un service de l'ANSD | |
 | `/confidentialite` | ce que le code garde vraiment | |
 | `/admin/journal` | journal des requêtes, non indexé, absent des menus | BO-Journal |

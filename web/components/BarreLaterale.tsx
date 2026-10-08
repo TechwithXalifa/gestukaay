@@ -10,7 +10,7 @@ import { Baobab, Croix } from "./icones";
  * Barre latérale de la version mobile (maquette M-Menu, cahier 7.2) : elle s'ouvre depuis l'onglet
  * « Plus » de la barre d'onglets et regroupe la navigation, la langue et les liens du pied de page. Se ferme par
  * la croix, un toucher hors du panneau ou Échap. Fenêtre modale (WCAG 2.4.3) : le focus y entre,
- * Tab tourne dedans, et il revient sur le bouton menu à la fermeture.
+ * Tab tourne dedans, et il revient sur l'onglet « Plus » à la fermeture.
  */
 export function BarreLaterale({ actif, onFermer }: { actif: Actif; onFermer: () => void }) {
   const { langue, setLangue, t } = useLangue();
@@ -82,7 +82,6 @@ export function BarreLaterale({ actif, onFermer }: { actif: Actif; onFermer: () 
         </div>
 
         <nav aria-label={t("pied.nav")} className="barre-laterale-pied">
-          <Link href="/methode" onClick={onFermer}>{t("pied.methode")}</Link>
           <Link href="/a-propos" onClick={onFermer}>{t("pied.apropos")}</Link>
           <Link href="/confidentialite" onClick={onFermer}>{t("pied.confidentialite")}</Link>
         </nav>

@@ -37,8 +37,9 @@ export default function Situer() {
   const premierAffichage = useRef(true);
   const continuer = useRef<HTMLButtonElement>(null);
 
-  // Une option choisie amène « Continuer » à l'écran : sur téléphone, il était sous les 14 régions.
-  // Un bouton collé en bas aurait recouvert des options (revue UI du 08/10).
+  // Une option touchée ou cliquée amène « Continuer » à l'écran : sur téléphone, il était sous les
+  // 14 régions. Un bouton collé en bas aurait recouvert des options (revue UI du 08/10). Pas au
+  // clavier : chaque flèche ferait sortir de l'écran l'option qui a le focus (revue de la PR #155).
   function montrerContinuer() {
     const doux = !matchMedia("(prefers-reduced-motion: reduce)").matches;
     requestAnimationFrame(() => continuer.current?.scrollIntoView({ block: "nearest", behavior: doux ? "smooth" : "auto" }));
@@ -57,7 +58,7 @@ export default function Situer() {
       titre.tabIndex = -1;
       titre.focus({ preventScroll: true });
     }
-  }, [etape, resultat]);
+  }, [etape, resultat, erreur]);
 
   async function calculer() {
     if (!region || !depenses) return;
@@ -117,8 +118,8 @@ export default function Situer() {
                 <legend><h1 className="titre-situer">{t("situer.q.region")}</h1></legend>
                 <div className="options grille">
                   {REGIONS.map((r) => (
-                    <label key={r.code} className={region === r.code ? "option choisie" : "option"}>
-                      <input type="radio" name="region" className="sr-only" checked={region === r.code} onChange={() => { setRegion(r.code); montrerContinuer(); }} />
+                    <label key={r.code} className={region === r.code ? "option choisie" : "option"} onPointerUp={montrerContinuer}>
+                      <input type="radio" name="region" className="sr-only" checked={region === r.code} onChange={() => setRegion(r.code)} />
                       {r.libelle}
                       {region === r.code && <Coche />}
                     </label>
@@ -156,8 +157,8 @@ export default function Situer() {
                 <p className="aide">{t("situer.q.depensesAide")}</p>
                 <div className="options">
                   {TRANCHES.map((d) => (
-                    <label key={d} className={depenses === d ? "option choisie" : "option"}>
-                      <input type="radio" name="depenses" className="sr-only" checked={depenses === d} onChange={() => { setDepenses(d); montrerContinuer(); }} />
+                    <label key={d} className={depenses === d ? "option choisie" : "option"} onPointerUp={montrerContinuer}>
+                      <input type="radio" name="depenses" className="sr-only" checked={depenses === d} onChange={() => setDepenses(d)} />
                       {t(`situer.d.${d}`)}
                       {depenses === d && <Coche />}
                     </label>

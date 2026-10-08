@@ -21,16 +21,19 @@ a { color: var(--baobab); text-underline-offset: 3px; }
 /* Écran utile = la fenêtre moins l'en-tête collant (68 px + filet) et, sur mobile, la barre
    d'onglets. Chaque section de l'accueil et le contenu de chaque page le remplissent au moins :
    la section suivante et le pied de page n'apparaissent qu'au défilement. */
-:root { --hauteur-entete: 69px; --hauteur-onglets: 0px; }
+:root { --hauteur-entete: 69px; --hauteur-onglets: 0px; --hauteur-bandeau: 0px; } /* bandeau : mesuré par Entete.tsx */
+/* Ce que le navigateur amène à l'écran (scrollIntoView, focus clavier, ancre) s'arrête sous
+   l'en-tête collant et au-dessus de la barre d'onglets mobile, jamais derrière (WCAG 2.4.11) */
+html { scroll-padding-top: var(--hauteur-entete); scroll-padding-bottom: var(--hauteur-onglets); }
 .site { min-height: 100vh; display: flex; flex-direction: column; }
 .site main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 40px 16px 72px; display: flex; flex-direction: column; gap: 24px;
-  min-height: calc(100vh - var(--hauteur-entete) - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-entete) - var(--hauteur-onglets)); }
-.ecran { min-height: calc(100vh - var(--hauteur-entete) - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-entete) - var(--hauteur-onglets));
+  min-height: calc(100vh - var(--hauteur-entete) - var(--hauteur-bandeau) - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-entete) - var(--hauteur-bandeau) - var(--hauteur-onglets)); }
+.ecran { min-height: calc(100vh - var(--hauteur-entete) - var(--hauteur-bandeau) - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-entete) - var(--hauteur-bandeau) - var(--hauteur-onglets));
   display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
 .ecran > .section-int, .ecran > .heros-int { width: 100%; }
 .heros.ecran .heros-int { flex: 1; justify-content: center; }
 /* Sur ordinateur, le défilement se cale doucement sur le haut de chaque section de l'accueil */
-@media (min-width: 768px) { html:has(main.accueil) { scroll-snap-type: y proximity; scroll-padding-top: var(--hauteur-entete); } }
+@media (min-width: 768px) { html:has(main.accueil) { scroll-snap-type: y proximity; } }
 main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .evitement { position: absolute; left: 16px; top: -56px; z-index: 100; padding: 10px 16px; border-radius: var(--radius-md); background: var(--or-clair); color: var(--sur-or); font-weight: 700; text-decoration: none; }
 .evitement:focus { top: 10px; }
@@ -206,6 +209,10 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .stats li:first-child { border-left: 0; padding-left: 0; }
 .stats strong { font: 700 40px/44px var(--font-display); letter-spacing: -.02em; color: var(--encre); font-variant-numeric: tabular-nums; }
 .stats li > span { font: 400 12.5px/17px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--encre-douce); }
+/* Compteur : le texte exact reste en place (lecteurs d'écran, copie), la copie animée passe dessus */
+.chiffre-defile { position: relative; display: inline-block; }
+.chiffre-defile-copie { position: absolute; top: 0; left: 0; white-space: nowrap; pointer-events: none; user-select: none; }
+.chiffre-defile.anime .chiffre-defile-exact { opacity: 0; }
 .domaines { width: 100%; text-align: left; }
 .grille-domaines { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 12px; }
 .grille-domaines button { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 20px 20px 18px; border: 1px solid var(--ligne); border-radius: var(--radius-lg);
@@ -229,9 +236,12 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .confiance { background: var(--sombre); color: var(--sur-sombre); }
 .confiance .sous-titre { color: var(--sur-sombre); }
 .confiance .chapeau { color: var(--sur-sombre-doux); }
-.confiance .stats li { border-left-color: var(--ligne-sombre); }
-.confiance .stats strong { color: var(--or-clair); }
-.confiance .stats li > span { color: var(--sur-sombre-doux); }
+.confiance-corps { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: center; gap: 28px 56px; }
+.confiance-corps .chapeau { margin-top: 12px; }
+.confiance-corps .lien { margin-top: 16px; }
+.confiance-chiffre { margin: 0; display: flex; flex-direction: column; gap: 10px; padding-left: 32px; border-left: 1px solid var(--ligne-sombre); }
+.confiance-chiffre strong { font: 700 96px/1 var(--font-display); letter-spacing: -.03em; color: var(--or-clair); font-variant-numeric: tabular-nums; }
+.confiance-chiffre > span { font: 400 13px/18px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--sur-sombre-doux); }
 .confiance .lien { color: var(--or-clair); }
 
 /* ---- Badges d'issue ---------------------------------------------------- */
@@ -441,7 +451,7 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 
 /* ---- Espace Données : onglets, domaines, catalogue, fiche, Explorer ----- */
 .onglets-donnees { display: flex; gap: 4px; padding: 4px; width: fit-content; max-width: 100%; overflow-x: auto; border-radius: var(--radius-full); background: var(--fond-2); }
-.onglets-donnees a { display: flex; align-items: center; min-height: 40px; padding: 0 18px; border-radius: var(--radius-full); color: var(--encre-douce); font: 650 14.5px/20px var(--font-sans); text-decoration: none; white-space: nowrap;
+.onglets-donnees a { display: flex; align-items: center; min-height: var(--controle-tactile); padding: 0 18px; border-radius: var(--radius-full); color: var(--encre-douce); font: 650 14.5px/20px var(--font-sans); text-decoration: none; white-space: nowrap;
   transition: background-color var(--duree-moyenne), color var(--duree-moyenne); }
 .onglets-donnees a:hover { color: var(--encre); }
 .onglets-donnees a[aria-current="page"] { background: var(--carte); color: var(--baobab); box-shadow: 0 1px 2px rgba(28, 20, 13, .12); }
@@ -506,11 +516,6 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .mesures-resultats li { display: flex; flex-direction: column; gap: 6px; padding: 18px; border: 1px solid var(--ligne); border-radius: var(--radius-md); background: var(--carte); font-size: 14px; line-height: 20px; }
 .mesures-resultats strong { font: 700 32px/38px var(--font-display); letter-spacing: -.02em; color: var(--baobab); font-variant-numeric: tabular-nums; }
 .mesure-titre { font: 700 12px/16px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--encre-douce); }
-.mesure-cible { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--encre-douce); }
-.mesure-cible.atteinte { color: var(--exacte); font-weight: 650; }
-.mesures-erreurs { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
-.mesures-erreurs li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--ligne); font-size: 15px; }
-.mesures-erreurs strong { flex: none; font-family: var(--font-mono); color: var(--baobab); }
 
 /* ---- Back-office -------------------------------------------------------- */
 .admin-entete { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 8px 24px; background: var(--sombre); color: var(--sur-sombre); border-bottom: 1px solid var(--ligne-sombre); }
@@ -572,9 +577,10 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 
 /* ---- Mobile (< 768 px) -------------------------------------------------- */
 @media (max-width: 767px) {
-  :root { --hauteur-entete: 61px; --hauteur-onglets: calc(66px + env(safe-area-inset-bottom, 0px)); }
+  /* Barre d'onglets : 54 px d'onglet + 2 × 6 px de marge + 1 px de filet = 67 px */
+  :root { --hauteur-entete: 61px; --hauteur-onglets: calc(67px + env(safe-area-inset-bottom, 0px)); }
   .site.admin main { min-height: 0; }
-  .site { padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
+  .site { padding-bottom: var(--hauteur-onglets); }
   .site.admin { padding-bottom: 0; }
   .entete-int { min-height: 60px; padding: 0 16px; gap: 12px; }
   .nav, .bouton-poser { display: none; }
@@ -599,7 +605,9 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
   .section-int .sous-titre { font-size: 24px; line-height: 30px; }
   .stats { grid-template-columns: 1fr 1fr; }
   .stats li, .stats li:first-child { padding: 4px 0 4px 14px; border-left: 1px solid var(--ligne); }
-  .confiance .stats li, .confiance .stats li:first-child { border-left-color: var(--ligne-sombre); }
+  .confiance-corps { grid-template-columns: 1fr; }
+  .confiance-chiffre { padding-left: 16px; }
+  .confiance-chiffre strong { font-size: 64px; }
   .stats strong { font-size: 28px; line-height: 32px; }
   .carte { padding: 20px 18px; }
   .carte.reponse { padding-top: 30px; }
