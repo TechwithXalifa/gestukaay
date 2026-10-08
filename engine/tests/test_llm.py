@@ -1,6 +1,7 @@
 """Client LLM multi-fournisseur (#9). Aucun appel réseau : fournisseurs simulés."""
 
 import json
+from dataclasses import replace
 
 import httpx
 import pytest
@@ -202,6 +203,70 @@ def test_delai_total_respecte_malgre_les_signaux_d_attente():
     assert "délai total" in appel.tentatives[0].detail
 
 
+def _lent(secondes, reponse):
+    """Fournisseur qui se tait `secondes` puis répond : ni octet ni signal d'attente entre-temps."""
+    import time
+
+    def gerer(req):
+        time.sleep(secondes)
+        return httpx.Response(200, json=reponse)
+    return gerer
+
+
+def test_delai_tenu_meme_quand_le_fournisseur_se_tait():
+    """Recette du 08/10 : avec un délai de 3 s, un maillon pouvait durer 7,3 s (délai de lecture de httpx
+    relancé après le dernier octet reçu). L'échéance est maintenant tenue à l'appel entier."""
+    import time
+
+    t = transport(**{G: _lent(1.5, gemini_ok()), A: anthropic_ok()})
+    debut = time.perf_counter()
+    obj, appel = ClientLLM([replace(PRINCIPAL, delai_s=0.3), REPLI], transport=t).structurer("s", "q", Capitale)
+    assert time.perf_counter() - debut < 0.8
+    assert appel.maillon == "repli" and [x.statut for x in appel.tentatives] == ["delai", "ok"]
+    assert appel.tentatives[0].latence_ms < 600
+
+
+def test_relais_le_principal_garde_la_main_s_il_repond_dans_son_delai():
+    """Relais : le repli part en parallèle au bout de 0,1 s ; le principal, meilleur, répond à 0,4 s,
+    avant son délai : c'est sa réponse qui est servie."""
+    t = transport(**{G: _lent(0.4, gemini_ok(json.dumps({"ville": "Dakar", "confiance": 0.9}))),
+                     A: anthropic_ok(json.dumps({"ville": "Dakar", "confiance": 0.5}))})
+    p = replace(PRINCIPAL, delai_s=1.0, relais_s=0.1)
+    obj, appel = ClientLLM([p, REPLI], transport=t).structurer("s", "q", Capitale)
+    assert obj.confiance == 0.9 and appel.maillon == "principal"
+    assert {r.url.host for r in t.recues} == {G, A}  # le repli est bien parti en parallèle
+
+
+def test_relais_le_repli_sert_des_l_echeance_du_principal():
+    """Le principal dépasse son délai : la réponse du repli, déjà prête, part à l'échéance du principal,
+    sans attendre un appel de plus (avant : délai du principal + durée du repli)."""
+    import time
+
+    t = transport(**{G: _lent(2.0, gemini_ok()), A: _lent(0.2, anthropic_ok())})
+    p = replace(PRINCIPAL, delai_s=0.5, relais_s=0.1)
+    debut = time.perf_counter()
+    _, appel = ClientLLM([p, REPLI], transport=t).structurer("s", "q", Capitale)
+    duree = time.perf_counter() - debut
+    assert appel.maillon == "repli" and 0.45 < duree < 0.8
+    assert [x.statut for x in appel.tentatives] == ["delai", "ok"]
+
+
+def test_relais_pas_d_appel_inutile_quand_le_principal_est_rapide():
+    t = transport(**{G: gemini_ok(), A: anthropic_ok()})
+    _, appel = ClientLLM([replace(PRINCIPAL, relais_s=0.5), REPLI], transport=t).structurer("s", "q", Capitale)
+    assert appel.maillon == "principal" and [r.url.host for r in t.recues] == [G]
+    assert [x.maillon for x in appel.tentatives] == ["principal"]
+
+
+def test_relais_le_repli_a_son_propre_delai():
+    t = transport(**{G: _lent(2.0, gemini_ok()), A: _lent(2.0, anthropic_ok())})
+    p, r = replace(PRINCIPAL, delai_s=0.4, relais_s=0.1), replace(REPLI, delai_s=0.4)
+    with pytest.raises(EchecLLM) as e:
+        ClientLLM([p, r, Maillon(nom="secours", fournisseur="regles")], transport=t).structurer("s", "q", Capitale)
+    assert [x.statut for x in e.value.appel.tentatives] == ["delai", "delai", "indisponible"]
+    assert e.value.appel.latence_ms < 800  # 0,1 + 0,4 s, pas 0,4 + 0,4 s
+
+
 def test_anthropic_refus_passe_au_suivant():
     refus = {"stop_reason": "refusal", "stop_details": {"category": "cyber"}, "content": []}
     t = transport(**{A: refus, O: openai_ok()})
@@ -287,6 +352,8 @@ def test_changer_de_fournisseur_se_fait_dans_l_environnement():
     assert [(m.nom, m.fournisseur) for m in c] == [("principal", "gemini"), ("repli", "anthropic"),
                                                    ("hf", "huggingface"), ("secours", "regles")]
     assert c[0].delai_s == 2 and c[1].delai_s == 3 and c[1].temperature is None
+    assert c[0].relais_s is None  # sans LLM_<N>_RELAIS_S : chaîne séquentielle, comme avant
+    assert lire_chaine({**ENV, "LLM_PRINCIPAL_RELAIS_S": "2.5"})[0].relais_s == 2.5
     assert lire_chaine({**ENV, "LLM_CHAINE": "or"})[0].hebergeurs == ("cerebras", "groq")
     tout_openrouter = {**ENV, "LLM_PRINCIPAL_FOURNISSEUR": "openai_compatible",
                        "LLM_PRINCIPAL_URL": "https://openrouter.ai/api/v1",
