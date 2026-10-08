@@ -71,7 +71,7 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
             <Baobab /> <span>Gëstukaay</span>
           </Link>
           <nav aria-label={t("nav.principale")} className="nav">
-            <Link href="/" aria-current={courant("question")}>{t("nav.demander")}</Link>
+            <Link href="/" aria-current={courant("question")}>{t("nav.poser")}</Link>
             <Link href={ENTREE_DONNEES} aria-current={courant("donnees")}>{t("nav.donnees")}</Link>
             <Link href="/situer" aria-current={courant("situer")}>{t("nav.situer")}</Link>
             <Link href="/methode" aria-current={courant("methode")}>{t("nav.methode")}</Link>
@@ -83,7 +83,6 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
               </button>
             ))}
           </div>
-          {ici !== "question" && <Link href="/" className="primaire bouton-poser">{t("nav.poser")}</Link>}
         </div>
         {incomplet && <p className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
       </header>
