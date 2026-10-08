@@ -110,10 +110,10 @@ def test_qu_il_y_a_vingt_ans_part_de_l_annee_publiee_la_plus_proche():
     assert [x.periode.valeur for x in r.resultats] == ["2005", "2025"]
 
 
-def test_annee_sur_serie_mensuelle_le_dernier_mois_dit():
+def test_annee_sur_serie_mensuelle_le_mois_est_propose():  # choix de KBD (08/10) : proposé, pas choisi pour lui
     r = demander("Combien coûtait un kilogramme de riz brisé ordinaire en 2019 ?")
-    assert r.issue == "exacte" and r.resultats[0].periode.valeur == "2019-12"
-    assert "pas un total ni une moyenne" in r.explication
+    assert r.issue == "approchee" and "par mois" in r.reformulation
+    assert [c.requete.periode.valeur for c in r.choix] == ["2019-12", "2019-11", "2019-10"]
 
 
 def test_douze_derniers_mois():

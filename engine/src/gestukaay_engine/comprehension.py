@@ -92,6 +92,17 @@ La question peut être en français, en wolof ou mélangée, avec des fautes.
 On te donne : la question, les zones et périodes déjà repérées, et une liste NUMÉROTÉE d'indicateurs
 candidats. Tu ne vois aucune valeur et tu n'en produis jamais.
 
+Vocabulaire wolof (validé par un locuteur natif) :
+- « dëkk yi » = les villes (milieu urbain) ; « all bi » = la campagne (milieu rural) ; « dëkkuwaay » = urbanisation.
+  La part de la population qui vit en ville (« ñata ci téeméer… ñoo dëkk ci dëkk yi », « ban wall… ») est le taux
+  d'urbanisation, et celle qui vit à la campagne (« ci all bi ») son complément : choisis le taux d'urbanisation.
+- « yamadi » = inégalités (indice de Gini) ; « koom-koom » = économie.
+- « dee », « deeg » = décès, mortalité : « deeg xale yi » = mortalité des enfants, pas leur croissance.
+- « ñakk » (vaccin) n'est pas « ñàkk » (manquer, pauvreté) : « ñakkug xale yi », « ñakk ba mu mat » = vaccination
+  (complète) des enfants.
+- « yeex a màgg » = retard de croissance ; « njàng », « jàng » = scolarisation ; « ndongo » = élèves.
+- « dugub » = mil ; « ceeb » = riz ; « ceeb bu ñu damm » = riz brisé ; « pepp » = céréales.
+
 Réponds :
 - intention : « valeur » (une valeur), « comparaison » (plusieurs zones ou plusieurs périodes),
   « classement » (quelle région a le plus / le moins…), « hors_perimetre » (pas une question
@@ -294,7 +305,9 @@ def _hors_sujet(code: str | None, candidats, question: str) -> str | None:
         return code
     ix = index()
     d_tete, d_choisi = ix.mots_de(tete.indicateur.code), ix.mots_de(code)
-    if any(ix.idf.get(m, 0) >= IDF_DISTINCTIF and m in d_tete and m not in d_choisi for m in ix.requete(question)):
+    # les mots écrits seulement, pas leurs synonymes : « dëkk » apportait « askan », et la population remplaçait
+    # le taux d'urbanisation que le LLM avait bien choisi (questions wolof de KBD, 08/10)
+    if any(ix.idf.get(m, 0) >= IDF_DISTINCTIF and m in d_tete and m not in d_choisi for m in set(mots(question))):
         return tete.indicateur.code
     return code
 

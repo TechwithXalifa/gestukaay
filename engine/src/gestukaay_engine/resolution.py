@@ -307,6 +307,9 @@ def portee_par_indicateur(ind: Indicateur, valeur: str) -> bool:
     """« riz » pour « Prix du riz brisé », « moins de 5 » pour « … enfants de moins de 5 ans » :
     la précision est déjà dans l'indicateur, ce n'est pas une dimension à chercher."""
     texte = f" {normaliser(f'{ind.libelle_fr} {ind.valeur_portail} {ind.jeu}')} "
+    # « urbain » pour « Taux d'urbanisation » : la part urbaine, par définition (« ñoo dëkk ci dëkk yi », KBD 08/10)
+    if normaliser(valeur) == "urbain" and "urbanisation " in texte:  # « d'urbanisation » -> « durbanisation »
+        return True
     # « rural » pour « Taux d'électrification rurale » (#116) : accord en genre et en nombre
     return all(re.search(rf" {re.escape(m)}(e|s|es)? ", texte) for m in normaliser(valeur).split())
 
@@ -343,7 +346,8 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
                 question: str = "", annee: str = "fin") -> tuple[Resultat, dict] | Introuvable:
     """Une valeur : indicateur × zone × période × désagrégation.
     annee : pour une année demandée sur une série mensuelle ou trimestrielle (« le riz en 2019 »), le dernier
-    mois de l'année (« fin ») ou le premier (« debut », pour « depuis 2020 ») ; le mois est dit dans la réponse."""
+    mois de l'année (« fin ») ou le premier (« debut », pour « depuis 2020 ») ; le mois est dit dans la réponse.
+    « choix » (valeur simple) : aucun mois n'est servi, les derniers de l'année sont proposés (approchée)."""
     lignes = socle.observations(ind.code)
     if not lignes:
         return Introuvable("indicateur_inconnu", f"{ind.code} : aucune valeur dans le socle")
@@ -368,6 +372,8 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
     if p is None:
         p, defauts["periode"] = periode_par_defaut(lignes)
     if p not in periodes and re.fullmatch(r"\d{4}", p or "") and (dans := [x for x in periodes if x.startswith(p + "-")]):
+        if annee == "choix":  # valeur simple : le mois est proposé, pas choisi à la place de l'utilisateur (KBD, 08/10)
+            return Introuvable("periode_absente", f"{p} publié par mois ou par trimestre", disponibles=dans)
         p = dans[0] if annee == "debut" else dans[-1]  # recette du 08/10 : « n'existe pas » pour le riz en 2019
     if p not in periodes:
         return Introuvable("periode_absente", f"{p} non publié", disponibles=periodes)
@@ -572,7 +578,7 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
     periode = None if requete.periode.type == "derniere" else requete.periode.valeur
     resultats, defauts = [], {}
     for z in requete.zones or [None]:
-        r = resoudre_un(socle, ind, z, periode, demande, langue, question)
+        r = resoudre_un(socle, ind, z, periode, demande, langue, question, annee="choix")
         if isinstance(r, Introuvable):
             return r
         resultats.append(r[0])

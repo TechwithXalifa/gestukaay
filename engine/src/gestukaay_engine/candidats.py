@@ -52,6 +52,7 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "chomeurs": ("chomage",), "liggeey": ("chomage",), "ligeey": ("chomage",), "amul": ("chomage",),
     "pauvre": ("pauvrete",), "pauvres": ("pauvrete",),
     "coute": ("prix",), "cout": ("prix",), "njeg": ("prix",), "diar": ("prix",), "jar": ("prix",),
+    "coutait": ("prix",), "coutent": ("prix",), "coutaient": ("prix",),
     "ceeb": ("riz",), "thieb": ("riz",), "dugub": ("mil",),
     "inflation": ("indice", "prix", "consommation"), "ihpc": ("indice", "prix", "consommation"),
     # l'école n'est pas le taux de scolarisation : « Combien d'écoles ? » donnait 84,7 % (KBD, 08/10) ; étudier = jàng
@@ -84,14 +85,24 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "tolluwaayu": ("taux",), "toluwaay": ("taux",), "toluwaayu": ("taux",),
     "mbej": ("eclairage", "electricite"), "kurang": ("eclairage", "electricite"),
     "njang": ("scolarisation",), "jang": ("scolarisation", "njang"),  # jàng = étudier (KBD, 07/10, remarque SAN)
-    "dee": ("mortalite",), "ndaw": ("population", "age"),
+    "dee": ("mortalite",), "deeg": ("mortalite",), "yamadi": ("gini",),  # formes de KBD, 08/10
+    "nakkug": ("vaccines",),  # ñakkug xale yi : la vaccination des enfants (KBD, 08/10) "ndaw": ("population", "age"),
     "goor": ("population", "masculin"), "tej": ("emprisonnees",), "napp": ("captures", "peche"),
     "ndab": ("vehicule",), "vootuur": ("vehicule",),
     "ker": ("menages",), "keur": ("menages",),  # kër = ménage (KBD, 06/10), graphie WhatsApp « keur »
 }
 
 _MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, "juillet": 7,
-         "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11, "decembre": 12}
+         "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11, "decembre": 12,
+         # mois en wolof, formes de KBD (questions du 08/10) : seulement celles qu'il a écrites
+         "samwiye": 1, "fewriye": 2, "suweng": 6, "sulet": 7, "desambar": 12}
+# « weeru mars atum 2026 », « ñaareelu ñetti weer yi ci atum 2023 » (KBD, 08/10) : ramenés à « mars 2026 », « t2 2023 » ;
+# « ñetti » peut déjà être devenu « 3 » (nombres en lettres convertis avant la compréhension, #153)
+_DATES_WO = ((re.compile(r"\bweeru "), ""),
+             (re.compile(r"\b(" + "|".join(_MOIS) + r") (?:ci )?atum (?=(?:19|20)\d\d\b)"), r"\1 "),
+             (re.compile(r"\b(?:netti|3) weer yu njekk (?:yu |yi |ci |atum )*(?=(?:19|20)\d\d\b)"), "t1 "),
+             (re.compile(r"\bnaareelu (?:netti|3) weer (?:yu |yi |ci |atum )*(?=(?:19|20)\d\d\b)"), "t2 "),
+             (re.compile(r"\b(?:netti|3) weer yu mujj (?:yu |yi |ci |atum )*(?=(?:19|20)\d\d\b)"), "t4 "))
 
 
 def texte_normalise(texte: str) -> str:
@@ -236,7 +247,7 @@ _RANG = {"premier": 1, "1er": 1, "1ere": 1, "deuxieme": 2, "second": 2, "seconde
          "troisieme": 3, "3e": 3, "3eme": 3, "quatrieme": 4, "4e": 4, "4eme": 4, "dernier": 4}
 _TRIMESTRE = re.compile(r"\b(?P<r1>" + "|".join(_RANG) + r")(?: (?:et|au|a) (?:le |du )?(?P<r2>" + "|".join(_RANG)
                         + r"))? trimestres? (?:de |du |en )?(?P<an>(?:19|20)\d\d)\b")
-_DEUX_MOIS = re.compile(r"\b(?P<m1>" + "|".join(_MOIS) + r") (?:et|a|au) (?:le |la |l )?(?P<m2>" + "|".join(_MOIS)
+_DEUX_MOIS = re.compile(r"\b(?P<m1>" + "|".join(_MOIS) + r") (?:et|a|au|ak) (?:le |la |l )?(?P<m2>" + "|".join(_MOIS)
                         + r") (?P<an>(?:19|20)\d\d)\b")
 
 
@@ -247,6 +258,8 @@ def periodes_citees(question: str) -> list[str]:
     from .resolution import ANNEE_EN_COURS
 
     t = texte_normalise(question)
+    for motif, par in _DATES_WO:  # mois et trimestres en wolof (KBD) ramenés aux formes lues ci-dessous
+        t = motif.sub(par, t)
     trouves: list[tuple[int, str]] = []
     pris: list[tuple[int, int]] = []  # zones du texte déjà lues, pour ne pas relire « 2026 » seul
 
@@ -331,9 +344,10 @@ def est_evolution(question: str) -> bool:
 
 def milieu_cite(texte: str) -> str | None:
     """« rural » ou « urbain » si le texte (normalisé) cite un milieu."""
-    if re.search(r"\b(ruraux|rurales?|rural|goxaan)\b", texte):  # « gox-goxaan yi » = le milieu rural (KBD)
+    # « gox-goxaan yi », « all bi » = le milieu rural ; « dëkk yi » = les villes (KBD, 06/10 et 08/10)
+    if re.search(r"\b(ruraux|rurales?|rural|goxaan|all bi)\b", texte):
         return "rural"
-    if re.search(r"\b(urbains?|urbaines?)\b", texte):
+    if re.search(r"\b(urbains?|urbaines?|dekk yi)\b", texte):
         return "urbain"
     return None
 
