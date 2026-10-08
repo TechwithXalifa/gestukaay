@@ -51,7 +51,8 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "coute": ("prix",), "cout": ("prix",), "njeg": ("prix",), "diar": ("prix",), "jar": ("prix",),
     "ceeb": ("riz",), "thieb": ("riz",), "dugub": ("mil",),
     "inflation": ("indice", "prix", "consommation"), "ihpc": ("indice", "prix", "consommation"),
-    "lekool": ("scolarisation",), "ecole": ("scolarisation",), "primaire": ("elementaire",),
+    # l'école n'est pas le taux de scolarisation : « Combien d'écoles ? » donnait 84,7 % (KBD, 08/10) ; étudier = jàng
+    "lekool": ("ecole",), "ekool": ("ecole",), "primaire": ("elementaire",),
     "vaccin": ("vaccines",), "vaccins": ("vaccines",), "vaccination": ("vaccines",),
     "electricite": ("eclairage", "electricite"), "courant": ("eclairage", "electricite"),
     "kouran": ("eclairage", "electricite"),
