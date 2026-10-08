@@ -130,10 +130,21 @@ def defauts_desagregation() -> dict[str, dict[str, str]]:
     return out
 
 
+# Une modalité dite en wolof (formes de KBD) : « nappkat yu ndaw yi » = les petits pêcheurs (WO-009, 08/10)
+# « yàpp géej » = les poissons (WO-009, son équivalent français dit « poisson »)
+_MODALITES_WO = {"peche artisanale": ("nappkat yu ndaw",), "poisson": ("yapp geej",)}
+
+
+def _sing(texte: str) -> str:
+    """Pluriel simple retiré, mot à mot : « POISSONS » est cité par « tonnes de poisson »."""
+    return " ".join(m[:-1] if len(m) > 3 and m.endswith("s") else m for m in texte.split())
+
+
 def citee(modalite: str, question: str) -> bool:
     """La modalité est-elle nommée dans la question (« Pêche artisanale », « Français ») ?"""
-    m, q = normaliser(modalite).split(), f" {normaliser(question)} "
-    return bool(m) and len("".join(m)) >= 3 and f" {' '.join(m)} " in q
+    m, q = normaliser(modalite).split(), f" {_sing(normaliser(question))} "
+    nom = _sing(" ".join(m))
+    return bool(m) and len("".join(m)) >= 3 and (f" {nom} " in q or any(f" {f} " in q for f in _MODALITES_WO.get(nom, ())))
 
 
 def imposer(lignes: list[Observation], demande: dict[str, str]) -> tuple[list[Observation], Introuvable | None]:

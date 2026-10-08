@@ -45,7 +45,7 @@ def test_question_coherente(q):
         # EF-06 : aucune valeur avant confirmation
         assert q["zones_attendues"] and not q["valeurs_attendues"]
     else:
-        assert q["motif"] in ("hors_socle", "projection", "incomprehension", "conversation")
+        assert set(q["motif"].split("|")) <= {"hors_socle", "projection", "incomprehension", "conversation"}
         assert not q["valeurs_attendues"]
     # WO : écrite par un locuteur, et son type d'écriture indiqué (score séparé)
     if q["langue"] == "wo":

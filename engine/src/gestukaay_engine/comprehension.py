@@ -395,6 +395,21 @@ _COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)
                           r"|\b(yokk|yokku|wanniku|suufe|diggante)\b")  # wolof (KBD) : augmenter, baisser, entre
 
 
+EGALITE_REGLES = 0.95
+
+
+def _plus_recent_a_egalite(meilleur: Candidat, candidats: list[Candidat]) -> Candidat:
+    """Sans année (0035) : deux indicateurs vérifiés presque à égalité de mots (« Enfants souffrant d'un retard
+    de croissance », EDS jusqu'en 2019, et « Prévalence du retard de croissance », EDS jusqu'en 2023) : la série
+    qui va le plus loin dans le temps, jamais une projection (FR-020, 08/10)."""
+    if meilleur.indicateur.verification != "verifie":
+        return meilleur
+    proches = [c for c in candidats if c is not meilleur and c.indicateur.verification == "verifie"
+               and c.score >= EGALITE_REGLES * meilleur.score and projection(c.indicateur.dataset_id) is None
+               and c.indicateur.periode_fin[:4] > meilleur.indicateur.periode_fin[:4]]
+    return max(proches, key=lambda c: c.indicateur.periode_fin, default=meilleur)
+
+
 def regles(question: str, candidats: list[Candidat], zones: list[str], periodes: list[str],
            precedente: RequeteStructuree | None) -> RequeteStructuree:
     if aucun_mot_connu(question):
@@ -402,6 +417,8 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
     t = texte_normalise(question)  # « ŋ » et ponctuation collée, comme les candidats
     meilleur = max(candidats, key=lambda c: c.score, default=None)  # le tri par couverture ne compte pas ici
     meilleur = meilleur if meilleur and meilleur.score >= SEUIL_REGLES else None
+    if meilleur and not periodes:
+        meilleur = _plus_recent_a_egalite(meilleur, candidats)
     code = meilleur.indicateur.code if meilleur else None
     if precedente and precedente.indicateur and _suivi(question):
         code = code if code and not zones else precedente.indicateur

@@ -448,7 +448,7 @@ def verifier_refus_reponse(
         return False, f"issue attendue aucune, obtenu {r_body.issue}"
 
     motif_attendu = q.get("motif", "").strip()
-    if r_body.motif != motif_attendu:
+    if r_body.motif not in motif_attendu.split("|"):  # « incomprehension|conversation » : l'un ou l'autre (WO-028)
         return False, f"motif attendu '{motif_attendu}', obtenu '{r_body.motif}'"
 
     # Vérifications spécifiques par motif

@@ -142,3 +142,10 @@ def test_candidat_sans_unite_signale_au_llm():
     message = Comprehension._message("électricité", [], [], candidats, None)
     assert "(unité non précisée)" in message or all(c.indicateur.unite or c.indicateur.unite_affichee for c in candidats)
     assert "dont l'unité est indiquée" in SYSTEME
+
+
+def test_sans_annee_le_plus_recent_a_egalite_en_regles():  # FR-020 (08/10) : EDS 2023 plutôt que 2019
+    r = Comprehension(None).comprendre("Quel pourcentage d'enfants souffrent d'un retard de croissance au Sénégal ?")
+    assert r.requete.indicateur == "pagfmnc.prevalence-du-retard-de-croissance"
+    r = Comprehension(None).comprendre("Retard de croissance des enfants en 2019")
+    assert r.requete.indicateur == "xsitdae.enfants-souffrant-dun-retard-de-croissance"  # année citée : inchangé

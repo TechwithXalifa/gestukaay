@@ -183,3 +183,11 @@ def test_socle_incoherent_refuse():
     verifier(SOCLE)  # tous connus
     with pytest.raises(SocleIncoherent, match="code-disparu"):
         verifier(Socle([obs("code-disparu", "SN", "2023", 1)], SOURCES, "2026.10.0"))
+
+
+def test_modalite_citee_au_singulier_ou_en_wolof():  # WO-009 (KBD, 08/10)
+    from gestukaay_engine.resolution import citee
+    assert citee("POISSONS", "Combien de tonnes de poisson en 2024 ?")
+    assert citee("Pêche artisanale", "Ban natt la nappkat yu ndaw yi indi ?")
+    assert citee("POISSONS", "Ban natt ci yàpp géej ?")
+    assert not citee("Français", "Combien de touristes ?")
