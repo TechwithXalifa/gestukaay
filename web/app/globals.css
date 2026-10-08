@@ -601,7 +601,9 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-nav a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: var(--radius-full); color: var(--sur-sombre-doux); text-decoration: none; font-size: 14px; font-weight: 600; }
 .admin-nav a:hover { background: var(--sombre-2); color: var(--sur-sombre); }
 .admin-nav a[aria-current="page"] { color: var(--or-clair); }
-.admin-actions { margin-left: auto; }
+.admin-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+/* identifiant connecté (#163) : texte secondaire SUR SOMBRE (6,9:1), pas --encre-douce du fond clair (2,9:1, axe) */
+.admin-entete .note { margin: 0; color: var(--sur-sombre-doux); }
 .admin-entete .secondaire { background: transparent; border-color: var(--ligne-sombre); color: var(--sur-sombre); }
 .site main.admin-main { max-width: 1280px; padding: 28px 24px 48px; gap: 16px; }
 .admin-titre { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
