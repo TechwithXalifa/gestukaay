@@ -144,3 +144,7 @@ def test_garde_fou_ne_compte_que_les_mots_ecrits():  # « dëkk » apportait « 
     )
     q = "Ñata senegale ñoo dëkk ba tay ci all bi ?"
     assert _hors_sujet("rfegvpb.taux-durbanisation", index().chercher(q, 15), q) == "rfegvpb.taux-durbanisation"
+
+
+def test_ndaw_garde_son_synonyme():  # perdu dans un commentaire avec « nakkug » (#168)
+    assert SYNONYMES["ndaw"] == ("population", "age") and SYNONYMES["nakkug"] == ("vaccines",)
