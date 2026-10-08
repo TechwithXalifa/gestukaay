@@ -38,6 +38,8 @@ from .candidats import (
     Candidat,
     aucun_mot_connu,
     desagregation_citee,
+    est_evolution,
+    extremum,
     forme,
     index,
     lieux_inconnus,
@@ -414,12 +416,14 @@ def _intention_de_la_question(req: RequeteStructuree, question: str, zones: list
     if not req.indicateur:
         return req
     t = normaliser(question)
+    if extremum(question) and len(req.zones) <= 1:
+        return req.model_copy(update={"intention": "valeur"})  # « quel mois le plus… » : une période, pas des régions
     if _TOUTES_REGIONS.search(t) and req.intention != "classement" and set(req.zones) <= {"SN"}:
         return req.model_copy(update={"intention": "classement", "zones": []})
     if req.intention == "classement" and not _CLASSEMENT.search(t) and zones == ["SN"]:
         return req.model_copy(update={"intention": "valeur", "zones": ["SN"]})
-    if req.intention == "valeur" and re.search(r"\bevolution\b", t) and len(req.zones) <= 1:
-        return req.model_copy(update={"intention": "comparaison"})  # « Évolution de l'espérance de vie »
+    if req.intention == "valeur" and est_evolution(question) and len(req.zones) <= 1:
+        return req.model_copy(update={"intention": "comparaison"})  # « a-t-elle diminué ? », « depuis 2016 »
     return req
 
 
@@ -457,6 +461,18 @@ _CADRE = {  # mots de la question qui ne disent pas QUOI mesurer
     "diwaan", "diiwaan", "neew", "tuuti", "gena", "geuna", "rey", "nakk", "ngi",
     # unités, quantités et repères de comparaison
     "kilo", "kg", "litre", "tonne", "quantite", "produit", "nationale", "national", "comparee", "compares",
+    # évolution et discours (410 questions du 08/10 sur les 27 indicateurs vérifiés)
+    "evolue", "evoluer", "tendance", "cour", "diminue", "diminuer", "periode", "observer", "observe",
+    "observee", "progresse", "progresser", "generale", "general", "variation", "autre", "enregistre", "premier",
+    "deuxieme", "troisieme", "quatrieme", "annuelle", "annuel", "degage", "situation", "connu", "connait",
+    "connaissent", "forte", "fort", "rapidement", "long", "terme", "importante", "important", "pandemie", "covid",
+    "ensemble", "change", "changer", "pourrait", "projetee", "projete", "projection", "comparent", "realise", "chez",
+    "permettent", "permet", "pendant", "etaient", "cinq", "deux", "trois", "dix", "douze", "vingt",
+    "trente", "quarante", "encore", "amelioration", "ameliore", "davantage", "mesure", "meme", "rythme", "etudiee",
+    "revelent", "revele", "matiere", "contre", "point", "devenue", "devenu", "ceux", "celle", "celui", "coutait",
+    "coute", "cout", "serie", "fluctuation", "rapport", "partir", "atteint", "recense", "recensement", "kilogramme",
+    "precedent", "decennie", "plutot", "estimation", "augmenter", "augmentent", "existe", "cher", "chere",
+    "disponibles", "donnees", "statistiques", "debut", "fin",
     # modalités publiées dans les jeux (type de pêche, qualité du riz…) : précisent, ne changent pas le sujet
     "artisanale", "industrielle", "continentale", "maritime", "ordinaire", "brise", "detail", "gro",
 }
@@ -604,9 +620,11 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
     if code is None:
         return RequeteStructuree(intention="hors_perimetre", zones=zones, confiance=0.3)
     suivi = bool(precedente) and _suivi(question)
-    if _CLASSEMENT.search(t):
+    if extremum(question) and len(zones) <= 1:
+        intention = "valeur"  # la période du plus haut niveau : la résolution la cherche dans la série
+    elif _CLASSEMENT.search(t):
         intention = "classement"
-    elif (len(zones) > 1 and not suivi) or len(periodes) > 1 or _COMPARAISON.search(t):
+    elif (len(zones) > 1 and not suivi) or len(periodes) > 1 or _COMPARAISON.search(t) or est_evolution(question):
         intention = "comparaison"
     else:
         intention = "valeur"

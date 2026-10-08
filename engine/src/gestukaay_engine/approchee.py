@@ -389,7 +389,21 @@ def proposer_approchee(
             if z.niveau == "academie" and z.parent == z_demandee
         ] if est_academique else []
 
-        if academies_couvrantes:
+        # 4c. Le Sénégal pour un indicateur publié seulement par région (« prix des céréales locales au Sénégal »,
+        # recette du 08/10 : 13 refus sur 15) -> le classement des régions, par catégorie s'il le faut
+        par_region = z_demandee == "SN" and not academies_couvrantes and {
+            o.zone for o in socle.observations(code_ind)} and "SN" not in {o.zone for o in socle.observations(code_ind)}
+        if par_region:
+            dims = {k for o in socle.observations(code_ind) for k, _ in o.desagregation}
+            mods = sorted({o.dims().get(d) for o in socle.observations(code_ind) for d in dims} - {None}) if len(dims) == 1 else []
+            for m in (mods[:3] or [None]):
+                desag = {"produit": normaliser(m)} if m else requete.desagregation
+                req_c = requete.model_copy(update={"zones": [], "intention": "classement", "desagregation": desag})
+                lib = f"{_nom_indicateur(code_ind, langue)}{f' ({m})' if m else ''} - classement des régions"
+                candidats_choix.append((req_c, lib))
+            reformulation = ("Ce chiffre n'est pas publié pour l'ensemble du Sénégal, seulement par région ; voici le "
+                             "classement des régions. Est-ce ce que vous cherchez ?")
+        elif academies_couvrantes:
             academies_couvrantes.sort(key=lambda a: a.code)
             for a in academies_couvrantes:
                 req_c = requete.model_copy(update={"zones": [a.code]})
