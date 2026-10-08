@@ -36,8 +36,9 @@ export function CarteRegions({ r, onRegion, occupe }: { r: SituateResponse; onRe
               style={{ gridRow: pos.ligne, gridColumn: pos.colonne }}
               aria-pressed={m.zone.code === ici}
               aria-label={t("situer.carte.tuile", { region: m.zone.libelle, valeur: m.valeur_affichee })}
-              disabled={occupe}
-              onClick={() => m.zone.code !== ici && onRegion(m.zone.code)}
+              // aria-disabled plutôt que disabled : la tuile garde le focus clavier pendant le calcul (revue de SAN)
+              aria-disabled={occupe}
+              onClick={() => !occupe && m.zone.code !== ici && onRegion(m.zone.code)}
             >
               <span className="tuile-nom">{m.zone.libelle}</span>
               <span className="tuile-valeur">{chiffres(m.valeur_affichee)}</span>

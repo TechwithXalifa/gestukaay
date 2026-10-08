@@ -107,6 +107,10 @@ export default function Situer() {
   }
 
   function recommencer() {
+    // ni appel en attente, ni réponse en vol qui reviendrait après la remise à zéro (revue de SAN sur #173)
+    if (attente.current) clearTimeout(attente.current);
+    appel.current++;
+    setOccupe(false);
     setRegion(null);
     setMilieu(undefined);
     setTaille(5);

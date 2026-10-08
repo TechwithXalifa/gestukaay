@@ -97,7 +97,8 @@
   --data-evidence: #5fc79e; --data-neutre: #4a3b2b;
   --data-1: #8cc2bc; --data-2: #e2a646; --data-3: #5fc79e; --data-4: #e08a6a; --data-5: #8fb4d4; --data-6: #c79bd8;
   /* sur fond sombre, la valeur haute est la plus claire ; texte clair sur seq-1 et 2, sombre sur 3 à 5 */
-  --seq-1: #1f3534; --seq-2: #2e5552; --seq-3: #4b7f7a; --seq-4: #6fa9a3; --seq-5: #9fd0ca;
+  /* seq-3 éclaircie : 4,76:1 avec le texte foncé des tuiles (#4b7f7a : 4,1:1, revue de SAN sur #173) */
+  --seq-1: #1f3534; --seq-2: #2e5552; --seq-3: #528a85; --seq-4: #6fa9a3; --seq-5: #9fd0ca;
   --sur-seq-clair: #f3ebdb; --sur-seq-fonce: #17110b;
   --ombre-carte: 0 1px 0 rgba(0, 0, 0, .3), 0 18px 40px -26px rgba(0, 0, 0, .8);
   --ombre-question: 0 24px 60px -28px rgba(0, 0, 0, .9);

@@ -496,7 +496,7 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .pastille { display: inline-block; width: 14px; height: 14px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
 .carte-regions { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: minmax(64px, auto); gap: 4px; margin-top: 14px; }
 .tuile { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 64px; padding: 6px; border: 0; border-radius: var(--radius-sm); text-align: left; cursor: pointer; }
-.tuile:disabled { cursor: progress; }
+.tuile[aria-disabled="true"] { cursor: progress; }
 .tuile-nom { font: 650 12.5px/15px var(--font-sans); hyphens: auto; overflow-wrap: normal; }
 .tuile-valeur { font: 700 12px/15px var(--font-mono); font-variant-numeric: tabular-nums; }
 .tuile.ici { outline: 3px solid var(--or); outline-offset: 2px; }
