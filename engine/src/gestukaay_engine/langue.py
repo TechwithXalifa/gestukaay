@@ -31,7 +31,11 @@ _WO = {
 }
 # Mots qui suffisent : interrogatifs et marqueurs wolof (formes sans accent, ñ -> n)
 _WO_FORTS = {"naata", "nata", "niata", "gnata", "gnaata", "nyata", "nyaata", "ndax", "ban", "lan", "naka", "noo",
-             "nio", "nioy", "nooy", "mooy", "moy"}
+             "nio", "nioy", "nooy", "mooy", "moy",
+             # formules de canaux/salutations.csv et remerciements : sans elles, « Nanga def » ou « Jërëjëf »
+             # (aucun mot connu) partaient en français depuis le français par défaut de #156 (recette du 08/10)
+             "nanga", "nangeen", "nangen", "nakala", "nakaleu", "nakamu", "nakamou", "bees", "bess", "jamm",
+             "djam", "jerejef", "jerrejef", "dieuredieuf", "jerejeff", "suba", "souba", "ngoon", "ngone"}
 
 
 def _mots(texte: str) -> list[str]:

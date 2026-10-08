@@ -20,7 +20,10 @@ class Maillon:
     modele: str = ""
     cle: str = ""
     url: str = ""  # vide : URL officielle du fournisseur
-    delai_s: float = 2.0  # cahier 10.4
+    delai_s: float = 2.0  # cahier 10.4 : échéance réelle, le maillon est abandonné au-delà
+    # Relais (recette du 08/10) : au bout de relais_s sans réponse, le maillon SUIVANT part en parallèle ;
+    # la réponse de celui-ci reste préférée s'il répond avant son délai. None : pas de relais (séquentiel).
+    relais_s: float | None = None
     temperature: float | None = 0.0  # None : ne pas l'envoyer (certains modèles la refusent)
     mode_json: ModeJson | None = None  # None : le meilleur mode connu du fournisseur
     prix_entree: float | None = None  # $ par million de jetons, si le fournisseur ne donne pas le coût
@@ -51,7 +54,8 @@ class Tentative:
     maillon: str
     fournisseur: str
     modele: str
-    statut: Literal["ok", "delai", "reseau", "http", "refus", "json", "schema", "indisponible"]
+    # abandon : un maillon préféré a répondu pendant qu'il travaillait encore (relais)
+    statut: Literal["ok", "delai", "reseau", "http", "refus", "json", "schema", "indisponible", "abandon"]
     latence_ms: int
     detail: str = ""
 
@@ -64,7 +68,7 @@ class Appel:
     maillon: str = ""
     fournisseur: str = ""
     modele: str = ""
-    latence_ms: int = 0  # cumul de toutes les tentatives
+    latence_ms: int = 0  # durée réelle de l'appel (les maillons en relais se chevauchent)
     jetons_entree: int | None = None
     jetons_sortie: int | None = None
     cout_usd: float | None = None

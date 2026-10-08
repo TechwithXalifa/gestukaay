@@ -58,8 +58,27 @@ def formater(valeur: float, unite: str = "") -> tuple[str, bool]:
     return texte, _decimales(valeur) > d
 
 
+# Unités du portail écrites telles quelles dans la phrase (recette du 08/10) : « 1 398 En millions (U) »,
+# « 445 313 Individu », « 26 990 tonne ». Ce qui est un simple compte n'a pas d'unité à dire.
+_COMPTES = {"nombre", "nombres", "individu", "individus", "unite", "unites", "u"}
+_UNITES_LISIBLES = {"en millions u": "millions", "en millions": "millions", "en milliers": "milliers",
+                    "en millions fcfa": "millions de FCFA", "en millions de francs cfa": "millions de FCFA"}
+_AU_PLURIEL = {"tonne", "hectare", "baril", "litre", "membre", "declaration", "titre minier", "kilometre"}
+
+
+def unite_lisible(nombre: str, unite: str) -> str:
+    u = normaliser(unite)
+    if u in _COMPTES:
+        return ""
+    if u in _UNITES_LISIBLES:
+        return _UNITES_LISIBLES[u]
+    pluriel = nombre not in ("0", "1") and not nombre.startswith(("0,", "1,", "-"))
+    return f"{unite}s" if pluriel and u in _AU_PLURIEL and unite == unite.lower() else unite
+
+
 def avec_unite(nombre: str, unite: str) -> str:
-    if not unite or normaliser(unite) in ("nombre", "nombres"):  # « 307 Nombre » : un compte n'a pas d'unité à dire
+    unite = unite_lisible(nombre, unite) if unite else unite
+    if not unite:  # « 307 Nombre » : un compte n'a pas d'unité à dire
         return nombre
     if unite in ("%", "‰"):
         return f"{nombre}{FINE}{unite}"
@@ -142,6 +161,14 @@ def precisions(r: Resultat, sauf: set[str] = frozenset()) -> str:
     return f" ({' ; '.join(valeurs)})" if valeurs else ""
 
 
+def libelle_court(ind: Indicateur) -> str:
+    """« Taux de chômage — Indicateurs du marché du travail : emploi, chômage, salaires/gain » -> « Taux de
+    chômage » dans les phrases (recette du 08/10). Le nom du jeu reste quand la tête seule ne dit rien
+    (« Recettes — Bulletin touristique ») ; le libellé complet reste dans la fiche et la source."""
+    tete, _, jeu = ind.libelle_fr.partition(" — ")
+    return tete if jeu and len(re.findall(r"\w{3,}", tete)) >= 3 else ind.libelle_fr
+
+
 def phrase_principale(r: Resultat, ind: Indicateur, derniere: bool) -> tuple[str, bool]:
     nombre, arrondi = formater(r.valeur, r.unite)
     z = zone_en_lettres(r.zone.code)
@@ -149,7 +176,7 @@ def phrase_principale(r: Resultat, ind: Indicateur, derniere: bool) -> tuple[str
     phrase = gabarit(ind).phrase
     nommees = set(re.findall(r"\{d\[([^\]]+)\]\}", phrase))  # {d[prix-pib]} : modalité citée par le gabarit
     texte = phrase.format(
-        valeur=avec_unite(nombre, r.unite), nombre=nombre, libelle=ind.libelle_fr,
+        valeur=avec_unite(nombre, r.unite), nombre=nombre, libelle=libelle_court(ind),
         precisions=precisions(r, nommees), d=_Modalites(r.desagregation or {}),
         zone_dans=z["dans"], zone_sujet=z["sujet"], zone_de=z["de"], periode=periode)
     return texte[0].upper() + texte[1:], arrondi
@@ -258,7 +285,7 @@ def comparaison(resultats: list[Resultat], ind: Indicateur) -> str:
         p1 = periode_en_lettres(r1.periode.valeur)
         p2 = periode_en_lettres(r2.periode.valeur)
         z = zone_en_lettres(r1.zone.code)
-        tete = ind.libelle_fr + precisions(r1)
+        tete = libelle_court(ind) + precisions(r1)
         tendance = "en hausse" if r2.valeur > r1.valeur else "en baisse" if r2.valeur < r1.valeur else "stable"
         phrase = f"{tete} {z['dans']} : {v1} {p1} et {v2} {p2}, soit une évolution {tendance}."
         phrase = phrase[0].upper() + phrase[1:]
@@ -275,7 +302,7 @@ def comparaison(resultats: list[Resultat], ind: Indicateur) -> str:
         arrondi |= a
         morceau = f"{avec_unite(nombre, r.unite)} {zone_en_lettres(r.zone.code)['dans']}"
         morceaux.append(morceau if memes_periodes else f"{morceau} {periode_en_lettres(r.periode.valeur)}")
-    tete = ind.libelle_fr + precisions(resultats[0])
+    tete = libelle_court(ind) + precisions(resultats[0])
     if memes_periodes:
         tete += " " + periode_en_lettres(resultats[0].periode.valeur)
     phrases = [f"{tete} : {', '.join(morceaux[:-1])} et {morceaux[-1]}."]
@@ -299,13 +326,21 @@ def _notes_de_jeux() -> dict[str, str]:
                 if r["zone"] != "SN" and r["note"]}
 
 
+NOTE_MENAGES_AGRICOLES = "Mesuré parmi les ménages agricoles (enquête agricole annuelle), pas toute la population."
+
+
 def note_perimetre(r: Resultat) -> str | None:
     ind = indicateurs()[r.indicateur.code]
     if note := _notes_de_jeux().get(ind.dataset_id):
         return note.split(" (")[0] + "."
-    return {"region": "Région administrative, pas la ville.",
+    zone = {"region": "Région administrative, pas la ville.",
             "departement": "Département, pas la commune.",
             "academie": "Inspection d'académie, pas la région administrative."}.get(r.zone.niveau)
+    # « Taux d'alphabétisation au Sénégal » : 45,3 %, mesuré parmi les membres des ménages agricoles (DAPSA),
+    # servi comme un taux national (recette du 08/10). Le libellé ne le dit pas, la note le dit.
+    if "menages agricoles" in normaliser(ind.jeu) and "agricole" not in normaliser(ind.libelle_fr):
+        return f"{NOTE_MENAGES_AGRICOLES} {zone}" if zone else NOTE_MENAGES_AGRICOLES
+    return zone
 
 
 def citation(r: Resultat, consulte_le: date, url: str) -> str:

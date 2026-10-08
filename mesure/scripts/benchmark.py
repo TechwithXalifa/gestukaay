@@ -261,6 +261,10 @@ def verifier_invariant_reponse(
             if ind_o:
                 for n in re.findall(r"\d+", ind_o.libelle_fr):
                     whitelist_nombres.add(n)
+                # « pour 100 000 habitants » : le nombre entier aussi, pas seulement « 100 » et « 000 » (recette 08/10)
+                for n in extraire_nombres(ind_o.libelle_fr):
+                    whitelist_textes.add(n)
+                    whitelist_nombres.add(n.replace(" ", ""))
                 if ind_o.unite_affichee:
                     for n in extraire_nombres(ind_o.unite_affichee):
                         whitelist_nombres.add(n)

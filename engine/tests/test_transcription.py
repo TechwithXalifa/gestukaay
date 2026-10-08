@@ -114,6 +114,8 @@ def test_deux_nombres_relies_restent_deux(dit, attendu):
     ("Limu askanu Ndakaaru ak Kaolack", "wo"), ("Kaolack nak?", "wo"),
     ("Gnata habitants Thiès ?", "wo"), ("Nyaata habitants Thiès ?", "wo"),  # graphies WhatsApp de ñaata (#22)
     ("asdkjh qwe", "fr"),  # aucun mot connu : français par défaut (SAN, #156)
+    ("POPULATION ZIGUINCHOR", "fr"), ("taux chomage dakar 2024", "fr"), ("chômage", "fr"),  # recette 08/10
+    ("Nanga def", "wo"), ("Jërëjëf", "wo"), ("Naka suba si ?", "wo"),  # formules wolof sans mot connu
 ])
 def test_langue_detectee(texte, langue):
     assert detecter(texte) == langue
