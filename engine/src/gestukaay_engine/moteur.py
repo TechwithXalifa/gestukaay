@@ -143,6 +143,10 @@ class MoteurReel:
             return self._exacte(r, requete, question)
         if r.raison == "non_traite":
             return self._non_disponible(requete, question)
+        if r.raison == "desagregation_ambigue":  # choix confirmé, catégorie encore à préciser : on la demande
+            a = proposer_approchee(self.socle, requete, r, question, LANGUE)
+            if isinstance(a, Approchee):
+                return self._approchee(a, requete, question, None)
         return self._aucune(refuser(self.socle, Comprise(requete, [], "regles"), question, LANGUE), question)
 
     def transcrire(self, audio: bytes, format_audio: str, langue: str = "auto") -> TranscriptionResponse:

@@ -59,7 +59,7 @@ def formater(valeur: float, unite: str = "") -> tuple[str, bool]:
 
 
 def avec_unite(nombre: str, unite: str) -> str:
-    if not unite:
+    if not unite or normaliser(unite) in ("nombre", "nombres"):  # « 307 Nombre » : un compte n'a pas d'unité à dire
         return nombre
     if unite in ("%", "‰"):
         return f"{nombre}{FINE}{unite}"

@@ -288,3 +288,26 @@ def test_approchee_reformulation_fr_seulement():
     res = proposer_approchee(SOCLE, req, None, "Ñata voitures nio nek ziguinchor ?", "wo")
     assert isinstance(res, Approchee)
     assert res.reformulation.endswith("Est-ce ce que vous cherchez ?")
+
+
+def test_academie_puis_cycle_en_deux_temps():
+    """« Combien d'écoles à Kolda ? » (KBD, 08/10) : publié par académie ET par cycle. L'académie est proposée
+    même s'il reste un cycle à choisir ; le cycle est demandé après le choix, puis le chiffre."""
+    from gestukaay_engine.comprehension import Comprehension
+    from gestukaay_engine.moteur import MoteurReel
+
+    ecoles = "joelgdb.nombre-total-decoles"
+    socle = Socle([obs(ecoles, "SN-IA-KOLDA", p, v, cycle=c) for p, c, v in (
+        ("2025", "Elémentaire", 307), ("2025", "Préscolaire", 120), ("2024", "Elémentaire", 300),
+        ("2024", "Préscolaire", 110))], {"joelgdb": SOURCES["pvswjnd"]})
+    req = RequeteStructuree(intention="valeur", indicateur=ecoles, zones=["SN-KD"], periode=Periode(type="derniere"),
+                            confiance=1.0)
+    q = "Combien d'écoles à Kolda ?"
+    res = proposer_approchee(socle, req, resoudre(socle, req), q, "fr")
+    assert isinstance(res, Approchee) and res.choix[0].requete.zones == ["SN-IA-KOLDA"]
+    moteur = MoteurReel(socle, Comprehension(None))
+    cycles = moteur.executer(res.choix[0].requete, q, "fr").reponse
+    assert cycles.issue == "approchee" and [c.libelle.split(" (")[0] for c in cycles.choix] == ["Elémentaire",
+                                                                                                "Préscolaire"]
+    fin = moteur.executer(cycles.choix[0].requete, q, "fr").reponse
+    assert fin.issue == "exacte" and fin.resultats[0].valeur == 307 and "307 Nombre" not in fin.explication

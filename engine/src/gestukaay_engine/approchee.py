@@ -165,7 +165,10 @@ def _est_le_terme(valeur: str, terme_cle: str) -> bool:
 def _verifier_choix(socle: Socle, req: RequeteStructuree, libelle: str,
                     choix_id: str) -> Choix | None:
     res = resoudre(socle, req)
-    if isinstance(res, Resolution) and res.resultats:
+    # publié, mais une catégorie reste à choisir (le cycle pour une académie) : valable, le cycle se demande
+    # après le choix, en deux temps (KBD, 08/10 : « Combien d'écoles à Kolda ? » finissait en refus)
+    ambigu = isinstance(res, Introuvable) and res.raison == "desagregation_ambigue"
+    if ambigu or (isinstance(res, Resolution) and res.resultats):
         req_validee = req.model_copy(update={"confiance": 1.0})
         return Choix(id=choix_id, libelle=libelle, requete=req_validee)
     return None
