@@ -70,8 +70,12 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
     # hors sujet SÛR seulement (le reste : LLM) ; « njiitu réew » : question WO-025 de KBD
     # pas « recette », « foot », « match », « président » seuls : « recette touristique », « terrains de foot »
     # sont des questions de statistique (revue de SAN sur #147)
+    # questions de KBD du 08/10 : une personne (maire, vainqueur), une capitale, les points cardinaux
     ("hors_sujet", re.compile(r" (meteo|temps fera t il|quel temps fera|qui est le president|njiitu reew\w*|"
-                              r"poeme|blague) ")),
+                              r"poeme|blague|qui est le maire|qui a (remporte|gagne)|capitale (de|du|des)|"
+                              r"points? cardinaux|"
+                              # mêmes questions en wolof (KBD, 08/10) : maire, vainqueur, capitale, points cardinaux
+                              r"meeru|kan moo jel|peyum|jubluwaay\w*|campiyong\w*) ")),
 )
 
 

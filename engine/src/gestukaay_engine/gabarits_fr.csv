@@ -24,6 +24,7 @@ iocwzud;Le taux de criminalité est de {valeur} {zone_dans} {periode}.;non
 ioxbglg.nombre-de-personnes-emprisonnees;On compte {valeur} emprisonnées{precisions} {zone_dans} {periode}.;non
 wrqfsxb.quantite;Les captures de poisson{precisions} atteignent {valeur} {zone_dans} {periode}.;non
 ovothxc.production;La production{precisions} atteint {valeur} {zone_dans} {periode}.;non
+dwehszb.production-hivernale-nette-en-cereales-entieres;La production{precisions} atteint {valeur} {zone_dans} {periode}.;non
 rgohtcc;Le produit intérieur brut (PIB) {zone_de} est de {valeur} {periode} ({d[prix-pib]}, {d[base-pib]}).;non
 whkisxc;{zone_sujet} a enregistré {valeur} de visiteurs non-résidents{precisions} {periode}.;non
 qbvttzc;Le parc compte {valeur}{precisions} {zone_dans} {periode}.;non

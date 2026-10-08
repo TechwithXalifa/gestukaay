@@ -137,6 +137,10 @@ def test_forme_sure_prime_sur_un_llm_qui_ne_comprend_pas():
 @pytest.mark.parametrize("message", [
     "Qui est le président du Sénégal ?", "Quel temps fera-t-il demain à Dakar ?", "Écris-moi un poème sur la Casamance",
     "Kan mooy njiitu réewum Senegaal ?", "Naka météo bi di mel euleuk ?", "Raconte-moi une blague",
+    "quels sont les 4 point cardinaux", "Quelle est la capitale de la zambie", "qui est le maire saint louis",
+    "Qui a remporté le championnat du sénégal de football en 2022",  # questions de KBD, 08/10
+    "Kan mooy meeru Ndar ?", "Ban dëkk mooy péyum Sambi ?", "Ñan ñoo di ñeenti jubluwaay yi ?",
+    "Kan moo jël càmpiyoŋaab futbal bu Senegaal ci atum 2022 ?",
 ])
 def test_hors_sujet_evident_par_regles(message):  # jeu de test : FR-059, FR-060, FR-063, WO-025, WO-026
     assert regles(message) == "hors_sujet"

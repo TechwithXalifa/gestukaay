@@ -7,3 +7,4 @@ lieu;tuubaa;SN-DB-MBACKE|SN-DB;Touba en wolof (KBD) : commune du département de
 lieu;ville de kolda;SN-KD-KOLDA|SN-KD;Commune chef-lieu du département et de la région de Kolda
 lieu;richard toll;SN-SL-DAGANA|SN-SL;Commune du département de Dagana, région de Saint-Louis
 lieu;risaar tol;SN-SL-DAGANA|SN-SL;Richard-Toll en wolof (KBD) : commune du département de Dagana, région de Saint-Louis
+indicateur;medecins;hfhored.medecin-generaliste|hfhored.gynecologue-obstetricien|hfhored.pediatre|hfhored.chirurgien-generaliste;MSAS (établissements de santé) : médecins publiés par spécialité, sans total (KBD, 08/10 : « niata medecin ci region louga » donnait les seuls généralistes)

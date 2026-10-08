@@ -15,19 +15,21 @@ PAR_ID = {q["id"]: q for q in QUESTIONS}
 
 # Répartition validée (cahier 12.1 : 70 FR / 30 WO), portée à 103 en #3 pour garder 20 refus,
 # puis à 104 avec FR-073 (nombre de chômeurs, décision 0024)
+# puis à 113 le 08/10 : les hors-sujet deviennent le type « conversation » (0033), mesuré à part des refus, et
+# KBD ajoute 5 vrais refus « donnée absente » et 4 hors-sujet
 REPARTITION = {
     ("fr", "simple"): 30, ("fr", "comparative"): 11, ("fr", "classement"): 7,
-    ("fr", "approchee"): 8, ("fr", "refus"): 14, ("fr", "suivi"): 3,
+    ("fr", "approchee"): 8, ("fr", "refus"): 12, ("fr", "conversation"): 7, ("fr", "suivi"): 3,
     ("wo", "simple"): 13, ("wo", "comparative"): 4, ("wo", "classement"): 3,
-    ("wo", "approchee"): 3, ("wo", "refus"): 6, ("wo", "suivi"): 2,
+    ("wo", "approchee"): 3, ("wo", "refus"): 7, ("wo", "conversation"): 3, ("wo", "suivi"): 2,
 }
 ISSUE_PAR_TYPE = {"simple": "exacte", "comparative": "exacte", "classement": "exacte",
-                  "suivi": "exacte", "approchee": "approchee", "refus": "aucune"}
+                  "suivi": "exacte", "approchee": "approchee", "refus": "aucune", "conversation": "aucune"}
 
 
 def test_questions_reparties_comme_convenu():
-    assert len(QUESTIONS) == 104
-    assert len(PAR_ID) == 104, "identifiants en double"
+    assert len(QUESTIONS) == 113
+    assert len(PAR_ID) == 113, "identifiants en double"
     assert Counter((q["langue"], q["type"]) for q in QUESTIONS) == REPARTITION
 
 

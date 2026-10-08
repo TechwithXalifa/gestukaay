@@ -166,6 +166,27 @@ def _lieu_cite(lieu: str) -> str:
     return lieu
 
 
+def _forme(mot: str) -> str:
+    return mot[:-1] if len(mot) > 3 and mot.endswith("s") else mot
+
+
+def indicateur_ambigu(requete: RequeteStructuree, question: str) -> Rattachement | None:
+    """« Combien de médecins à Louga ? » : la notion est publiée en plusieurs indicateurs (une spécialité chacun)
+    et sans total (rattachements.csv, type « indicateur »). Si la question ne nomme aucune des spécialités, on
+    propose le choix au lieu de servir la première comme si c'était l'ensemble ; None sinon."""
+    if not requete.indicateur:
+        return None
+    mots_q = {_forme(m) for m in normaliser(question).split()}
+    for terme, rat in rattachements().items():
+        if rat.type != "indicateur" or _forme(terme) not in mots_q or requete.indicateur not in rat.propositions:
+            continue
+        noms = [normaliser(_nom_indicateur(c)).split() for c in rat.propositions]
+        if any(any(_forme(m) in mots_q for m in nom if _forme(m) != _forme(terme)) for nom in noms):
+            return None  # spécialité nommée (« généraliste », « pédiatre ») : pas de choix à proposer
+        return rat
+    return None
+
+
 def modalite_citee(requete: RequeteStructuree, question: str) -> Rattachement | None:
     """Modalité ambiguë de rattachements.csv citée dans la question (« voitures »), pour l'indicateur compris.
 
@@ -256,6 +277,16 @@ def proposer_approchee(
     candidats_choix: list[tuple[RequeteStructuree, str]] = []
     reformulation = ""
     nom_lieu_concerne = ""
+
+    # -----------------------------------------------------------------------
+    # Cas 0 : notion publiée en plusieurs indicateurs, sans total (ex. « médecins » par spécialité)
+    # -----------------------------------------------------------------------
+    if (rat_ind := indicateur_ambigu(requete, question)) is not None:
+        for code in rat_ind.propositions:
+            req_c = requete.model_copy(update={"indicateur": code})
+            candidats_choix.append((req_c, f"{_nom_indicateur(code, langue)}{_portee(requete, langue)}"))
+        reformulation = ("Ce chiffre est publié par catégorie, sans total. "
+                         "Laquelle cherchez-vous ?")
 
     # -----------------------------------------------------------------------
     # Cas 1 : Modalité ambiguë déclarée dans rattachements.csv (ex. « voitures »)
@@ -434,7 +465,7 @@ def proposer_approchee(
     # Vérification stricte de chaque choix par resolution.resoudre
     # -----------------------------------------------------------------------
     choix_valides: list[Choix] = []
-    vus: set[tuple[str, str, str]] = set()
+    vus: set[tuple[str | None, str, str, str]] = set()  # l'indicateur aussi : « médecins » propose plusieurs indicateurs
 
     for req_cand, libelle in candidats_choix:
         ch = _verifier_choix(socle, req_cand, libelle, str(len(choix_valides) + 1))
@@ -442,8 +473,8 @@ def proposer_approchee(
             z_cle = ch.requete.zones[0] if ch.requete.zones else "SN"
             p_cle = ch.requete.periode.valeur or "derniere"
             d_cle = str(ch.requete.desagregation)
-            if (z_cle, p_cle, d_cle) not in vus:
-                vus.add((z_cle, p_cle, d_cle))
+            if (ch.requete.indicateur, z_cle, p_cle, d_cle) not in vus:
+                vus.add((ch.requete.indicateur, z_cle, p_cle, d_cle))
                 choix_valides.append(ch)
         if len(choix_valides) == 3:
             break
