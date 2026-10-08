@@ -13,6 +13,14 @@ Rien n'est conservé de ce qui est saisi (EF-40) : le moteur est sans état.
      quintile le plus bas, ménages éclairés à l'électricité. L'accès à l'eau n'est publié qu'au niveau
      national : pas de repère (0022).
 Le niveau d'instruction du chef de ménage est accepté mais ignoré : aucune donnée publiée ne le croise.
+
+v1.6.0 (décision 0039), tout lu dans le socle, jamais calculé :
+  5. milieu déclaré (facultatif) : consommation moyenne par tête des ménages urbains ou ruraux du Sénégal
+     (le milieu n'est publié qu'au niveau national) ;
+  6. seuil de pauvreté officiel (EHCVM, #59), même règle de position ;
+  7. répartition de la population de la région entre les cinq groupes de bien-être (`sfxudug`) : le
+     ménage n'y est pas placé, les seuils des groupes ne sont pas publiés ;
+  8. consommation moyenne des 14 régions, même période que celle de la région (carte du site).
 """
 
 from __future__ import annotations
@@ -43,6 +51,13 @@ TRANCHES: dict[str, tuple[int, int | None]] = {
 }
 
 MOYENNE = "jcvcajc.total"
+MILIEU = "milieu-de-résidence"
+SEUIL = "ahjjzgc.seuil-de-pauvrete"
+BIEN_ETRE, GROUPE = "sfxudug", "quintile"
+# Groupes de bien-être, du plus bas au plus élevé, avec le libellé affiché (le site n'affiche pas la désagrégation)
+GROUPES = {"Le plus bas": "Groupe de bien-être le plus bas", "Second": "Deuxième groupe de bien-être",
+           "Moyen": "Troisième groupe de bien-être", "Quatrième": "Quatrième groupe de bien-être",
+           "Le plus élevé": "Groupe de bien-être le plus élevé"}
 PAUVRETE, TAILLE = "jcvcajc.taux-de-pauvrete", "taille-du-ménage"
 # Repères régionaux : code -> libellé affiché (celui de l'exemple du contrat, plus clair que le référentiel)
 REPERES_REGION = {"qjyrtof.le-plus-bas": "Population dans le quintile de bien-être le plus bas",
@@ -88,11 +103,54 @@ def situer(socle: Socle, req: SituateRequest) -> SituateResponse:
         raise NonDisponible(f"consommation moyenne par tête non publiée pour {req.region}")
     iv = intervalle(req.depenses_mensuelles, req.taille_menage)
     pos_r, pos_p = position(iv, region.valeur), position(iv, pays.valeur)
+    milieu = _lire(socle, MOYENNE, "SN", {MILIEU: req.milieu.capitalize()}) if req.milieu else None
+    milieu = _libelle(milieu, f"Consommation moyenne par tête des ménages {_MILIEUX[req.milieu]}") if milieu else None
+    seuil = _lire(socle, SEUIL, "SN")
+    pos_m = position(iv, milieu.valeur) if milieu else None
+    pos_s = position(iv, seuil.valeur) if seuil else None
+    texte = explication(iv, region, pays, pos_r, pos_p)
+    ajouts = [f"Par rapport aux ménages {_MILIEUX[req.milieu]} du Sénégal ({_fcfa(milieu.valeur)}), c'est "
+              f"{_RELATIF[pos_m]} leur consommation moyenne." if milieu else "",
+              f"Le seuil de pauvreté officiel est de {_fcfa(seuil.valeur)} par personne et par an "
+              f"(enquête de {seuil.periode.valeur}) : votre estimation est {_RELATIF_SEUIL[pos_s]}." if seuil else ""]
+    texte = _avant_precautions(texte, " ".join(a for a in ajouts if a))
     return SituateResponse(
         depense_par_personne_an=iv, moyenne_region=region, moyenne_pays=pays,
         position_region=pos_r, position_pays=pos_p,
         contexte=reperes(socle, req.region, req.taille_menage),
-        explication=explication(iv, region, pays, pos_r, pos_p))
+        explication=texte,
+        moyenne_milieu=milieu, position_milieu=pos_m, seuil_pauvrete=seuil, position_seuil=pos_s,
+        repartition_bien_etre=repartition(socle, req.region),
+        moyennes_regions=moyennes_regions(socle, region.periode.valeur))
+
+
+_MILIEUX = {"urbain": "urbains", "rural": "ruraux"}
+_RELATIF_SEUIL = {"en_dessous": "en dessous de ce seuil", "au_dessus": "au-dessus de ce seuil", "autour": "autour de ce seuil"}
+
+
+def _avant_precautions(texte: str, ajout: str) -> str:
+    """Les phrases nouvelles viennent après la comparaison, avant l'encadré et les précautions."""
+    if not ajout:
+        return texte
+    return texte.replace(EXPLICATION_MOYENNE, f"{ajout} {EXPLICATION_MOYENNE}", 1)
+
+
+def repartition(socle: Socle, region: str) -> list[Resultat]:
+    """Part de la population de la région dans chaque groupe de bien-être, même période pour les cinq."""
+    lus = {g: _lire(socle, BIEN_ETRE, region, {MILIEU: "Total", GROUPE: g}) for g in GROUPES}
+    if any(r is None for r in lus.values()) or len({r.periode.valeur for r in lus.values()}) != 1:
+        return []  # cinq groupes de la même enquête, ou rien : une répartition incomplète tromperait
+    return [_libelle(lus[g], libelle) for g, libelle in GROUPES.items()]
+
+
+def moyennes_regions(socle: Socle, periode: str) -> list[Resultat]:
+    """Consommation moyenne par tête des 14 régions pour la période de la région du ménage."""
+    out = []
+    for z in sorted(z.code for z in zones().values() if z.niveau == "region"):
+        r = _lire(socle, MOYENNE, z)
+        if r and r.periode.valeur == periode:
+            out.append(r)
+    return out
 
 
 def reperes(socle: Socle, region: str, taille: int) -> list[Resultat]:
