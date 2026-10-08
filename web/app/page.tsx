@@ -8,9 +8,9 @@ import { Compteur } from "@/components/Compteur";
 import { Ecoute } from "@/components/Ecoute";
 import { Bouclier, Donnees, Fleche, Livre, Micro, Question, Repere } from "@/components/icones";
 import { DOMAINES_PRINCIPAUX } from "@/lib/domaines";
-import { MESURE } from "@/lib/mesure";
+import { MESURE, TAUX_BONNES } from "@/lib/mesure";
 import { SOCLE } from "@/lib/socle";
-import { insecables } from "@/lib/typo";
+import { insecables, nombre } from "@/lib/typo";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { HorsLigne } from "@/components/HorsLigne";
@@ -26,9 +26,6 @@ const EXEMPLES = [
   { texte: "Ñaata nit ñoo dëkk Tiés ?", wo: true },
   { texte: "Population de la ville de Thiès en 2023" },
 ];
-
-const nombre = new Intl.NumberFormat("fr-FR");
-const pourcent = new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 1 });
 
 /** « Recevez le chiffre *officiel*. » : le mot entre astérisques passe en or (un seul, design system). */
 function avecMot(texte: string) {
@@ -58,15 +55,16 @@ export default function Accueil() {
   }
 
   const horsLigne = !enLigne || (erreur instanceof ErreurApi && erreur.horsLigne);
+  const etat = horsLigne || microRefuse || !!erreur || question !== null;
   const m = MESURE;
 
   return (
     <div className="site">
       <Entete />
       <main id="contenu" tabIndex={-1} className="accueil">
-        {/* Hors ligne, le héros ne prend plus tout l'écran : le message et les dernières réponses
-            viennent juste sous le champ grisé, au lieu de rester sous le pli (revue de la PR #155) */}
-        <section className={horsLigne ? "heros sombre" : "heros sombre ecran"}>
+        {/* Dès qu'il y a un état à montrer (chargement, erreur, micro refusé, hors ligne), le héros ne
+            prend plus tout l'écran : l'état vient juste sous le champ, pas sous le pli (revue de la #155) */}
+        <section className={etat ? "heros sombre" : "heros sombre ecran"}>
           <div className="heros-int">
             <h1 className="titre-accueil monte monte-1">{t("accueil.titre1")}<br />{avecMot(t("accueil.titre2"))}</h1>
             <p className="chapeau monte monte-2">{t("accueil.chapeau")}</p>
@@ -107,7 +105,7 @@ export default function Accueil() {
           <div className="frise defile" aria-hidden="true" />
         </section>
 
-        {(horsLigne || microRefuse || erreur || question) && (
+        {etat && (
           <div className="section-accueil">
             <div className="section-int zone-etat">
               {horsLigne ? (
@@ -133,8 +131,8 @@ export default function Accueil() {
                   </div>
                 </div>
                 <ul className="stats">
-                  <li><strong><Compteur texte={nombre.format(SOCLE.valeurs)} /></strong><span>{t("accueil.socle.valeurs")}</span></li>
-                  <li><strong><Compteur texte={nombre.format(SOCLE.indicateurs)} /></strong><span>{t("accueil.socle.indicateurs")}</span></li>
+                  <li><strong><Compteur texte={nombre(SOCLE.valeurs)} /></strong><span>{t("accueil.socle.valeurs")}</span></li>
+                  <li><strong><Compteur texte={nombre(SOCLE.indicateurs)} /></strong><span>{t("accueil.socle.indicateurs")}</span></li>
                   <li><strong><Compteur texte={String(SOCLE.producteurs)} /></strong><span>{t("accueil.socle.producteurs")}</span></li>
                   <li><strong><Compteur texte={String(SOCLE.regions)} /></strong><span>{t("accueil.socle.zones", { departements: String(SOCLE.departements) })}</span></li>
                 </ul>
@@ -208,7 +206,7 @@ export default function Accueil() {
                   <Link href="/methode" className="lien">{t("accueil.confiance.lien")} <Fleche taille={16} /></Link>
                 </div>
                 <p className="confiance-chiffre">
-                  <strong><Compteur texte={pourcent.format(m.bonne.reussies / m.bonne.sur)} /></strong>
+                  <strong><Compteur texte={TAUX_BONNES} /></strong>
                   <span>{t("accueil.confiance.bonne")}</span>
                 </p>
               </div>

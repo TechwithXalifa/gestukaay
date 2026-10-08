@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import type { ReponseExacte } from "@contracts/ask_response";
 import { useLangue } from "@/i18n/langue";
+import { nombre } from "@/lib/typo";
 import { Baobab } from "./icones";
 
 type G = NonNullable<ReponseExacte["graphique"]>;
@@ -10,7 +11,6 @@ type G = NonNullable<ReponseExacte["graphique"]>;
 /** Barres affichées avant de basculer sur le tableau (maquette Reponse : 8 barres). */
 const MAX_BARRES = 8;
 
-const nombre = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
 /**
  * Graphique de la réponse [EF-20, EF-26], dessiné côté client à partir des
@@ -60,7 +60,7 @@ function Barres({ points }: { points: G["series"][number]["points"] }) {
           <span className="barre-libelle">{p.x}</span>
           <span className="barre-piste">
             <span className="barre-trait" style={{ width: `${Math.max((p.y / max) * 100, 0.5)}%` }} />
-            <span className="barre-valeur">{nombre.format(p.y)}</span>
+            <span className="barre-valeur">{nombre(p.y, 1)}</span>
           </span>
         </div>
       ))}
@@ -100,7 +100,7 @@ function Courbe({ g }: { g: G }) {
         const dernier = g.series[0]?.points.at(-1);
         return dernier ? (
           <text x={px(dernier.x)} y={py(dernier.y) - 10} textAnchor="end" className="etiquette">
-            {nombre.format(dernier.y)}
+            {nombre(dernier.y, 1)}
           </text>
         ) : null;
       })()}
@@ -128,7 +128,7 @@ function Tableau({ g }: { g: G }) {
               <tr key={`${s.nom}-${p.x}`} className={p.mise_en_evidence ? "en-evidence" : undefined}>
                 {plusieurs && <td>{s.nom}</td>}
                 <th scope="row">{p.x}</th>
-                <td className="nombre">{nombre.format(p.y)}</td>
+                <td className="nombre">{nombre(p.y, 1)}</td>
               </tr>
             )),
           )}

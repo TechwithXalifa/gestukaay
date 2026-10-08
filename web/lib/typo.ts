@@ -20,9 +20,25 @@ export function chiffres(texte: string): string {
   return texte.replace(/(\d)\u202f(?=\d)/g, "$1\u00a0");
 }
 
-const entiers = new Intl.NumberFormat("fr-FR");
+// Tout nombre que le site formate lui-même passe par ici, une seule fois (revue de KBD sur la #155).
+const formats = new Map<string, Intl.NumberFormat>();
+function format(style: "decimal" | "percent", decimales: number): Intl.NumberFormat {
+  const cle = `${style}-${decimales}`;
+  let f = formats.get(cle);
+  if (!f) formats.set(cle, (f = new Intl.NumberFormat("fr-FR", { style, maximumFractionDigits: decimales })));
+  return f;
+}
 
-/** Nombre entier formaté par le site (catalogue, back-office), milliers lisibles comme ci-dessus. */
-export function nombre(n: number): string {
-  return chiffres(entiers.format(n));
+/** Nombre formaté par le site (catalogue, graphiques, back-office), milliers lisibles comme ci-dessus. */
+export function nombre(n: number, decimales = 0): string {
+  return chiffres(format("decimal", decimales).format(n));
+}
+
+/**
+ * « 89,2 % ». L'espace avant % est toujours une insécable ordinaire : selon leur version, Node et
+ * les navigateurs mettent une fine ou une ordinaire, et le texte rendu par le serveur doit être
+ * celui du navigateur.
+ */
+export function pourcentage(x: number, decimales = 1): string {
+  return chiffres(format("percent", decimales).format(x)).replace(/\s%$/, `${String.fromCharCode(0xa0)}%`);
 }

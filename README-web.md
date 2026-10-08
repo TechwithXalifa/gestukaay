@@ -190,7 +190,7 @@ Lien « Aller au contenu », titre propre à chaque page (la question pour une r
 ## 5. Tests et CI
 
 - **Backend** (`backend/tests/`) : API, exports, sécurité, situer (la saisie n'apparaît ni en base ni dans les journaux), stockage (persistance après redémarrage, hachage, filtres, accès admin), transcription.
-- **Site** (`web/e2e/`, Playwright + axe-core, sur bureau et sur l'appareil de référence 360 × 640) : exacte, approchée, refus, projection, comparaison, exports, adresse `/r/…`, vote, signalement, Où je me situe, domaines, hors ligne, bascule FR/WO, journal, audio, en-têtes et CSP, accessibilité WCAG 2.1 A et AA sur chaque écran, mode sombre compris. 51 tests verts.
+- **Site** (`web/e2e/`, Playwright + axe-core, sur bureau et sur l'appareil de référence 360 × 640) : exacte, approchée, refus, projection, comparaison, exports, adresse `/r/…`, vote, signalement, Où je me situe, domaines, hors ligne, bascule FR/WO, journal, audio, en-têtes et CSP, accessibilité WCAG 2.1 A et AA sur chaque écran (le mode sombre, prévu en V1.1 par le cahier §9.10, n'est pas activé). 81 tests verts, 5 ignorés exprès (propres au bureau ou au mobile).
 - **CI** (`.github/workflows/ci.yml`) : job `web` (types TypeScript, build de production, budget JavaScript, tests de bout en bout) et job `docker` (les deux images démarrent, une question renvoie une réponse exacte).
 
 ```bash

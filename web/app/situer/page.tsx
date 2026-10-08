@@ -34,7 +34,6 @@ export default function Situer() {
   const [depenses, setDepenses] = useState<Tranche | null>(null);
   const [resultat, setResultat] = useState<SituateResponse | null>(null);
   const [erreur, setErreur] = useState<unknown>(null);
-  const premierAffichage = useRef(true);
   const continuer = useRef<HTMLButtonElement>(null);
 
   // Une option touchée ou cliquée amène « Continuer » à l'écran : sur téléphone, il était sous les
@@ -47,11 +46,13 @@ export default function Situer() {
 
   // Chaque étape s'ouvre en haut, le focus sur sa question (WCAG 2.4.3) : la page restait défilée
   // comme à l'étape précédente, titre coupé et barre de progression hors de l'écran (revue UI).
+  // On compare avec l'état précédent plutôt qu'un drapeau « premier affichage » : en développement,
+  // StrictMode lance l'effet deux fois au montage (revue de KBD sur la #155).
+  const precedent = useRef({ etape, resultat, erreur });
   useEffect(() => {
-    if (premierAffichage.current) {
-      premierAffichage.current = false;
-      return;
-    }
+    const p = precedent.current;
+    if (p.etape === etape && p.resultat === resultat && p.erreur === erreur) return;
+    precedent.current = { etape, resultat, erreur };
     window.scrollTo({ top: 0 });
     const titre = document.querySelector<HTMLElement>("main#contenu h1");
     if (titre) {

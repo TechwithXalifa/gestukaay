@@ -382,7 +382,6 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 /* ---- Lecteur audio ------------------------------------------------------ */
 .lecteur-audio { width: 100%; max-width: 440px; margin-top: 14px; display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 8px; border-radius: var(--radius-full); background: var(--or-50); }
 .lecteur-bouton { flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: var(--radius-full); background: linear-gradient(150deg, var(--or-clair), var(--or)); color: var(--sur-or); cursor: pointer; }
-.lecteur-bouton svg { width: 16px; height: 16px; fill: currentColor; }
 .lecteur-texte { min-width: 0; display: flex; flex-direction: column; }
 .lecteur-texte strong { font: 650 14.5px/22px var(--font-sans); color: var(--encre); }
 .lecteur-texte span { font: 400 12px/16px var(--font-mono); color: var(--encre-douce); }

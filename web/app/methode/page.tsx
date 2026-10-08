@@ -3,10 +3,9 @@
 import { PageTexte, Section } from "@/components/PageTexte";
 import type { Cle } from "@/i18n/fr";
 import { useLangue } from "@/i18n/langue";
-import { MESURE } from "@/lib/mesure";
+import { MESURE, TAUX_BONNES } from "@/lib/mesure";
 
 const ETAPES = [1, 2, 3, 4, 5] as const;
-const pourcent = new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 1 });
 
 /** Méthode et transparence (maquette Methode, cahier 12.1). Le résultat vient de lib/mesure.ts,
  *  recopié du rapport du benchmark : aucun chiffre de qualité n'est écrit à la main dans la page.
@@ -25,7 +24,7 @@ export default function Methode() {
         <ul className="mesures-resultats">
           <li>
             <span className="mesure-titre">{t("methode.m.bonne")}</span>
-            <strong>{pourcent.format(m.bonne.reussies / m.bonne.sur)}</strong>
+            <strong>{TAUX_BONNES}</strong>
             <span>{t("methode.m.bonneDetail", { reussies: String(m.bonne.reussies), sur: String(m.bonne.sur) })}</span>
           </li>
         </ul>

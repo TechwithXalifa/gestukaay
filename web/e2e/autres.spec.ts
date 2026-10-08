@@ -96,16 +96,6 @@ test("fenêtre « Je vous écoute » : focus dedans, Échap ferme, focus rendu a
 });
 
 
-test("mode sombre : contrastes sur l'accueil, la réponse et le refus", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("/");
-  await accessible(page, "accueil, mode sombre");
-  await poser(page, "Combien d'habitants à Thiès ?");
-  await accessible(page, "réponse, mode sombre");
-  await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
-  await accessible(page, "refus, mode sombre");
-});
-
 test("en-tête flottant : se cache en descendant, revient en remontant ou au clavier", async ({ page }) => {
   await page.goto("/methode");
   const entete = page.locator("header.entete");

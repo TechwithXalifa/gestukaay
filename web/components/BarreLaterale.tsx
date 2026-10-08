@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useLangue } from "@/i18n/langue";
-import type { Actif } from "./Entete";
+import { type Actif, ENTREE_DONNEES } from "./Entete";
 import { Baobab, Croix } from "./icones";
 
 /**
@@ -65,7 +65,7 @@ export function BarreLaterale({ actif, onFermer }: { actif: Actif; onFermer: () 
 
         <nav aria-label={t("nav.principale")} className="barre-laterale-nav">
           <Link href="/" aria-current={actif === "question" ? "page" : undefined} onClick={onFermer}>{t("nav.demander")}</Link>
-          <Link href="/indicateurs" aria-current={actif === "donnees" ? "page" : undefined} onClick={onFermer}>{t("nav.donnees")}</Link>
+          <Link href={ENTREE_DONNEES} aria-current={actif === "donnees" ? "page" : undefined} onClick={onFermer}>{t("nav.donnees")}</Link>
           <Link href="/situer" aria-current={actif === "situer" ? "page" : undefined} onClick={onFermer}>{t("nav.situer")}</Link>
           <Link href="/methode" aria-current={actif === "methode" ? "page" : undefined} onClick={onFermer}>{t("nav.methode")}</Link>
         </nav>

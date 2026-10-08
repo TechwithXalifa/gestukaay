@@ -17,6 +17,12 @@ import { Baobab, Donnees, Points, Question, Repere } from "./icones";
 export type Actif = "question" | "donnees" | "explorer" | "situer" | "indicateurs" | "methode" | null;
 
 /** Explorer, Indicateurs et Domaines forment l'espace Données. */
+
+/**
+ * Entrée de l'espace Données : Domaines, la seule page qui marche sans le moteur réel, tant que
+ * catalogue, fiche et séries n'y sont pas écrits (#156, revue de KBD sur la #155).
+ */
+export const ENTREE_DONNEES = "/domaines";
 const espace = (actif: Actif) => (actif === "explorer" || actif === "indicateurs" ? "donnees" : actif);
 
 export function Entete({ actif = "question" }: { actif?: Actif }) {
@@ -69,7 +75,7 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
           </Link>
           <nav aria-label={t("nav.principale")} className="nav">
             <Link href="/" aria-current={courant("question")}>{t("nav.demander")}</Link>
-            <Link href="/indicateurs" aria-current={courant("donnees")}>{t("nav.donnees")}</Link>
+            <Link href={ENTREE_DONNEES} aria-current={courant("donnees")}>{t("nav.donnees")}</Link>
             <Link href="/situer" aria-current={courant("situer")}>{t("nav.situer")}</Link>
             <Link href="/methode" aria-current={courant("methode")}>{t("nav.methode")}</Link>
           </nav>
@@ -86,7 +92,7 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
       </header>
       <nav aria-label={t("nav.onglets")} className="barre-onglets">
         <Link href="/" aria-current={courant("question")}><Question taille={22} />{t("nav.demander")}</Link>
-        <Link href="/indicateurs" aria-current={courant("donnees")}><Donnees taille={22} />{t("nav.donnees")}</Link>
+        <Link href={ENTREE_DONNEES} aria-current={courant("donnees")}><Donnees taille={22} />{t("nav.donnees")}</Link>
         <Link href="/situer" aria-current={courant("situer")}><Repere taille={22} />{t("nav.meSituer")}</Link>
         <button type="button" aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)}>
           <Points taille={22} />{t("nav.plus")}

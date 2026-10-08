@@ -32,7 +32,8 @@ export function Compteur({ texte }: { texte: string }) {
       el.classList.add("anime");
       const debut = performance.now();
       const pas = (t: number) => {
-        const p = Math.min(1, (t - debut) / 1100);
+        // La première image peut porter une heure antérieure à `debut` : borné à 0 (revue de KBD)
+        const p = Math.min(1, Math.max(0, (t - debut) / 1100));
         if (p === 1) return fin();
         copie.textContent = chiffres(format.format(nombre.valeur * (1 - (1 - p) ** 4))) + nombre.suffixe;
         image = requestAnimationFrame(pas);

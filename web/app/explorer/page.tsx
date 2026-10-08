@@ -14,6 +14,7 @@ import { Croix, Externe, Livre, Telecharger } from "@/components/icones";
 import { useLangue } from "@/i18n/langue";
 import { catalogue, fiche, series, seriesCsvUrl } from "@/lib/api";
 import { REGIONS } from "@/lib/regions";
+import { chiffres } from "@/lib/typo";
 
 const ZONES_MAX = 6; // US-18
 const ZONES = [{ code: "SN", libelle: "Sénégal" }, ...REGIONS];
@@ -206,7 +207,7 @@ function Explorer() {
                             <tr key={x.zone.code}>
                               <th scope="row">{x.zone.libelle}</th>
                               {lignes.map((p) => (
-                                <td key={p} className="nombre">{x.points.find((pt) => pt.periode === p)?.valeur_affichee ?? "–"}</td>
+                                <td key={p} className="nombre">{chiffres(x.points.find((pt) => pt.periode === p)?.valeur_affichee ?? "–")}</td>
                               ))}
                             </tr>
                           ))}
