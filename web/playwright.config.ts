@@ -37,8 +37,13 @@ export default defineConfig({
   ],
   webServer: [
     {
+      // Tout passe par Python : la même commande marche sous Linux (CI) et sous Windows, où
+      // Playwright lance cmd.exe, qui ne connaît ni rm ni « $MOT_DE_PASSE » (le compte e2e
+      // recevait ce texte pour mot de passe, et les tests du back-office échouaient).
       command:
-        "rm -f .base-e2e.db && printf '%s\\n' \"$MOT_DE_PASSE\" | uv run python -m gestukaay_backend.comptes creer e2e" +
+        "uv run python -c \"import pathlib; pathlib.Path('.base-e2e.db').unlink(missing_ok=True)\"" +
+        " && uv run python -c \"import os, sys; sys.stdout.write(os.environ['MOT_DE_PASSE'])\"" +
+        " | uv run python -m gestukaay_backend.comptes creer e2e" +
         " && uv run python -m uvicorn gestukaay_backend.app:app --port 8000",
       cwd: "..",
       url: "http://localhost:8000/health",

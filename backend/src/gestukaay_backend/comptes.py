@@ -84,8 +84,9 @@ def identifier(st: Stockage, jeton: str | None, maintenant: datetime | None = No
 
 
 def _lire_mot_de_passe() -> str:
-    if not sys.stdin.isatty():  # tests de bout en bout : printf … | python -m …
-        return sys.stdin.readline().rstrip("\n")
+    if not sys.stdin.isatty():  # tests de bout en bout : … | python -m …
+        # Sous Windows, un tube finit la ligne par \r\n : le \r ne fait pas partie du mot de passe
+        return sys.stdin.readline().rstrip("\r\n")
     mdp = getpass.getpass("Mot de passe : ")
     if getpass.getpass("Le même, encore une fois : ") != mdp:
         sys.exit("Les deux saisies diffèrent.")
