@@ -83,8 +83,10 @@ class MoteurFactice:
         return None  # pas de voix dans le faux moteur : le texte part seul
 
     def situer(self, req: SituateRequest) -> SituateResponse:
-        # Toujours l'exemple de Kolda, quelle que soit la saisie (faux moteur)
-        return SituateResponse.model_validate_json((EXEMPLES / "situer.json").read_text(encoding="utf-8"))
+        # Toujours l'exemple de Kolda, quelle que soit la saisie (faux moteur) ; contrat 1.6.0 : seuil, groupes de
+        # bien-être et moyennes des régions toujours, la comparaison au milieu seulement s'il est déclaré (0039)
+        r = SituateResponse.model_validate_json((EXEMPLES / "situer_milieu.json").read_text(encoding="utf-8"))
+        return r if req.milieu else r.model_copy(update={"moyenne_milieu": None, "position_milieu": None})
 
     # ------------------------------------------------------------------
     # v1.4.0 (décision 0023) : catalogue, fiche et séries, sur les exemples du contrat.
