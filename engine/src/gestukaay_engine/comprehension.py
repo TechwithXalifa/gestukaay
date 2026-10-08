@@ -51,7 +51,7 @@ from .candidats import (
 )
 from .conversation import Categorie
 from .conversation import regles as conversation_regles
-from .langue import _FR, _WO, _WO_FORTS
+from .langue import _FR, _WO, _WO_FORTS, detecter
 from .llm import Appel, ClientLLM, EchecLLM
 
 K = 15  # candidats proposés au LLM
@@ -323,6 +323,13 @@ class Comprehension:
                                                                               candidats, precedente), SortieLLM)
                 req = _intention_de_la_question(self._requete(sortie, candidats, zones, periodes, precedente, question),
                                                 question, zones)
+                if (req.indicateur and not suivi and detecter(question) == "fr"
+                        and (ind := indicateurs().get(req.indicateur)) and ind.verification != "verifie"
+                        and not sujet_dans_la_question(req.indicateur, question, precisions=True)):
+                    # 410 questions du 08/10 : « l'ensemble de la période » -> « Ensemble garçon » (un vêtement), « les
+                    # prix » -> « Titres autres qu'actions ». Un indicateur non vérifié dont le sujet n'est pas dans la
+                    # question n'est pas servi (le wolof est épargné : le lexique ne le couvre pas encore assez)
+                    req = req.model_copy(update={"indicateur": None, "intention": "hors_perimetre"})
                 if suivi:
                     req = heriter(req, precedente, question, periodes)
                 proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
@@ -481,6 +488,9 @@ _GENTILE = re.compile(r"(ais|aise|ien|ienne|ain|aine)s?$")  # « touristes fran�
 _OUTILS = (_FR | _WO | _WO_FORTS) - {"habitants", "menages", "personnes", "nombre"}
 # Mots trop généraux pour dire le sujet d'un indicateur (« Dépenses PUBLIQUES d'éducation » n'est pas la dette
 # publique, « INDICE de Gini » se demande aussi « les inégalités »)
+_PRECISIONS = {"femme", "homme", "fille", "garcon", "jeune", "age", "rural", "urbain", "rurale", "urbaine", "milieu",
+               "elementaire", "primaire", "secondaire", "cycle", "jigeen", "goor", "xale", "personne", "individu"}
+# les précisions ne bloquent pas la question (b), mais elles peuvent être le sujet d'un indicateur (« Ensemble garçon »)
 _PAS_UN_SUJET = _CADRE | {"indice", "publique", "public", "general", "generale", "national", "nationale", "effectif"}
 
 
@@ -494,14 +504,21 @@ def _proche(mot: str, vocab) -> bool:
     return len(mot) >= 6 and any(len(v) >= 6 and v[:6] == mot[:6] for v in vocab)
 
 
+def sujet_dans_la_question(code: str, question: str, precisions: bool = False) -> bool:
+    """(a) Le sujet de l'indicateur (deux premiers mots porteurs de son libellé) est dans la question.
+    precisions : « garçon », « femmes »… comptent comme sujet (contrôle du choix du LLM : « Ensemble garçon »)."""
+    ind = indicateurs().get(code)
+    exclus = _PAS_UN_SUJET - _PRECISIONS if precisions else _PAS_UN_SUJET
+    sujet = [m for m in mots(ind.libelle_fr.split(" — ")[0])
+             if m not in exclus and not m.isdigit() and len(m) > 2][:2] if ind else []
+    return not sujet or any(_proche(m, set(index().requete(question))) for m in sujet)
+
+
 def couvert(code: str, question: str) -> bool:
     """Garde-fou du secours (a) + (b), voir _CADRE."""
     ix = index()
     doc = set(ix.mots_de(code))
-    elargie = set(ix.requete(question))  # mots de la question + synonymes
-    ind = indicateurs().get(code)
-    sujet = [m for m in mots(ind.libelle_fr.split(" — ")[0]) if m not in _PAS_UN_SUJET and not m.isdigit()][:2] if ind else []
-    if sujet and not any(_proche(m, elargie) for m in sujet):
+    if not sujet_dans_la_question(code, question):
         return False  # (a) « dépenses d'éducation » pour « la dette publique »
     noms_de_zones = {w for z in zones_citees(question) if (zr := zones_ref().get(z))
                      for nom in (zr.libelle_fr, zr.libelle_wo, *zr.variantes) for w in texte_normalise(nom).split()}

@@ -131,3 +131,25 @@ def test_cereales_locales_du_senegal_classement_des_regions():
     r = demander("Quel est le prix moyen des céréales locales au Sénégal ?")
     assert r.issue == "approchee"
     assert all(c.requete.intention == "classement" for c in r.choix)
+
+
+def test_le_llm_ne_sert_pas_un_indicateur_non_verifie_hors_sujet():
+    """« l'ensemble de la période » -> « Ensemble garçon » (un vêtement) : refusé, pas servi."""
+    import json
+
+    import httpx
+    from gestukaay_engine.candidats import index
+    from gestukaay_engine.llm import ClientLLM, Maillon
+
+    q = "Quelle évolution des prix peut-on observer sur l'ensemble de la période 2015–2023 ?"
+    cands = index().chercher(q, 60)
+    n = next(i for i, c in enumerate(cands[:15], 1) if c.indicateur.code == "feujxob.ensemble-garcon") \
+        if any(c.indicateur.code == "feujxob.ensemble-garcon" for c in cands[:15]) else None
+    if n is None:
+        pytest.skip("candidat absent de la liste")
+    sortie = {"intention": "comparaison", "candidat": n, "periode_type": "derniere", "periode_valeur": None,
+              "confiance": 0.9}
+    client = ClientLLM([Maillon(nom="p", fournisseur="openai_compatible", modele="x", cle="k")],
+                       transport=httpx.MockTransport(lambda r: httpx.Response(200, json={
+                           "choices": [{"message": {"content": json.dumps(sortie)}, "finish_reason": "stop"}]})))
+    assert Comprehension(client).comprendre(q).requete.indicateur is None
