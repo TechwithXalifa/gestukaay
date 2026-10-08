@@ -193,6 +193,23 @@ def position_relative(r: Resultat, national: Resultat | None) -> str | None:
             f"{periode_en_lettres(national.periode.valeur)}).")
 
 
+# Libellés qui ne comptent pas des choses : un nombre nu y reste ambigu (« 70,3 » : %, taux, indice ?).
+# À garder identique à web/lib/unites.ts.
+_PAS_UN_COMPTE = re.compile(r"\b(taux|part|proportion|pourcentage|indice|ratio|moyenne?|densite|rendement|prix|cout"
+                            r"|montant|valeur|depense|budget|recette|salaire|revenu|esperance|duree|superficie"
+                            r"|production|quantite|poids|volume)\b")
+
+
+def unite_ambigue(r: Resultat) -> bool:
+    """« Unité non précisée par la source » (0031) seulement quand le nombre nu peut se lire de travers. Un compte
+    évident (entier d'au moins 100, libellé sans taux, part, prix… : « 21 426 accidents ») n'en a pas besoin
+    (KBD, 08/10)."""
+    if (r.unite or "").strip():
+        return False
+    compte = r.valeur == int(r.valeur) and r.valeur >= 100 and not _PAS_UN_COMPTE.search(normaliser(r.indicateur.libelle))
+    return not compte
+
+
 def notes(r: Resultat, arrondi: bool) -> str | None:
     morceaux = []
     if r.nature == "projection":
@@ -202,7 +219,7 @@ def notes(r: Resultat, arrondi: bool) -> str | None:
         morceaux.append("il s'agit d'une estimation" + (f" ({r.base_projection})" if r.base_projection else ""))
     if arrondi:
         morceaux.append("valeur arrondie à l'affichage, la valeur exacte figure dans les exports")
-    if not (r.unite or "").strip():  # #132 : jamais un nombre nu sans le dire (le portail ne la donne pas)
+    if unite_ambigue(r):  # #132 : jamais un nombre nu ambigu sans le dire (le portail ne donne pas l'unité)
         morceaux.append("unité non précisée par la source")
     if not morceaux:
         return None
