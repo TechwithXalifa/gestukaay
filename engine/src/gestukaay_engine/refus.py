@@ -39,10 +39,9 @@ from gestukaay_socle.zones import normaliser, zones
 from .approchee import rattachements
 from .candidats import periodes_citees
 from .comprehension import Comprise
-from .resolution import Resolution, resoudre
+from .resolution import ANNEE_EN_COURS, Resolution, resoudre
 from .socle import Socle
 
-ANNEE_EN_COURS = 2026
 SEUIL_SUGGESTIONS = 6.0
 INDICATEURS_PHARES_P1 = ("pvswjnd", "dwibrlf", "jcvcajc.taux-de-pauvrete")
 

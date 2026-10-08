@@ -42,7 +42,7 @@ peut manquer) ; `socle` (pour couvrir les domaines) ; `piège` (problèmes connu
 | `zones_attendues` | codes du référentiel (`SN-TH`, `SN-IA-KOLDA`…) ; approchée : les choix à proposer |
 | `periode` | `2023`, `2026-03`, `2023-T2` ; plusieurs périodes séparées par `\|` |
 | `valeurs_attendues` | `SN-TH=2463677` ; comparaison de périodes : `SN@2011=46.7\|SN@2022=37.5` ; classement : dans l'ordre attendu |
-| `periode_par_defaut` | `oui` si la question ne donne pas de période : la réponse doit dire « dernière donnée publiée » (US-06) |
+| `periode_par_defaut` | `oui` si la question ne donne pas de période : la réponse doit dire « dernière donnée publiée » (US-06) ; `non` pour une série de projection servie pour l'année en cours (0035) |
 | `note` | piège, périmètre, point à vérifier (en français : destinée à l'équipe) |
 | `ecriture` | WO seulement : `officielle` (orthographe de référence) ou `usage` (comme on tape sur WhatsApp : gnata, thieb, deukk…). Le benchmark donne un score par type |
 

@@ -31,7 +31,7 @@ from gestukaay_socle.zones import zones
 
 from .gabarits import formater, zone_en_lettres
 from .interface import NonDisponible, SaisieInvalide
-from .resolution import est_total, resultat
+from .resolution import est_total, periode_par_defaut, resultat
 from .socle import Observation, Socle
 
 # Bornes mensuelles (FCFA) de chaque tranche du contrat 1.3.0 ; None : tranche ouverte
@@ -138,7 +138,8 @@ def _lire(socle: Socle, code: str, zone: str, fixe: dict[str, str] | None = None
     retenues = [o for o in lignes if o.zone == zone and _convient(o, fixe, uniques)]
     if not retenues:
         return None
-    o = max(retenues, key=lambda o: o.periode)
+    p, _ = periode_par_defaut(retenues)  # dernière valeur observée (#116)
+    o = next(o for o in retenues if o.periode == p)
     return resultat(socle, o, indicateurs()[code], "fr", uniques)
 
 
