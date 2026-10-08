@@ -434,6 +434,28 @@ def proposer_approchee(
             )
 
     # -----------------------------------------------------------------------
+    # Cas 4 bis : année demandée, série mensuelle ou trimestrielle (« le riz en 2019 ») : l'année est bien
+    # publiée, mais par mois. On propose les 3 derniers mois (ou trimestres) de l'année, jamais une moyenne
+    # calculée (KBD, 08/10 : la réponse disait « non publié pour 2019 », alors que les 12 mois existent)
+    # -----------------------------------------------------------------------
+    if not candidats_choix and introuvable and introuvable.raison == "periode_absente" and re.fullmatch(
+            r"\d{4}", requete.periode.valeur or ""):
+        annee = requete.periode.valeur
+        publiees = {o.zone for o in socle.observations(code_ind)}
+        # même zone par défaut que la résolution : le Sénégal, sinon la seule publiée (le riz : Dakar)
+        z_code = requete.zones[0] if requete.zones else ("SN" if "SN" in publiees or len(publiees) != 1
+                                                         else next(iter(publiees)))
+        dans_l_annee = sorted({o.periode for o in socle.observations(code_ind)
+                               if o.zone == z_code and len(o.periode) > 4 and o.periode.startswith(annee)}, reverse=True)
+        for p in dans_l_annee[:3]:
+            req_c = requete.model_copy(update={"periode": Periode(type="trimestre" if "T" in p else "mois", valeur=p)})
+            lib = f"{_nom_indicateur(code_ind, langue)} - {_nom_zone(z_code, langue)} en {libelle_periode(p)}"
+            candidats_choix.append((req_c, lib))
+        if candidats_choix:
+            unite = "trimestre" if "T" in dans_l_annee[0] else "mois"
+            reformulation = f"Ce chiffre est publié par {unite} : lequel cherchez-vous en {annee} ?"
+
+    # -----------------------------------------------------------------------
     # Cas 5 : Période absente (ex. 2023 pour jcvcajc, 2026 pour dwibrlf)
     # -----------------------------------------------------------------------
     if not candidats_choix and introuvable and introuvable.raison == "periode_absente":
