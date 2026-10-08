@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from functools import cache
+from urllib.parse import quote
 
 from gestukaay_contracts.models import (
     CatalogueResponse,
@@ -32,7 +33,15 @@ from gestukaay_socle.zones import normaliser, zones
 from .gabarits import citation, note_perimetre
 from .graphique import pied_graphique
 from .interface import IndicateurInconnu
-from .resolution import Introuvable, producteur_et_operation, ref_zone, resoudre_un, resultat
+from .resolution import (
+    ANNEE_EN_COURS,
+    Introuvable,
+    academie_equivalente,
+    producteur_et_operation,
+    ref_zone,
+    resoudre_un,
+    resultat,
+)
 from .socle import Socle
 
 NIVEAUX = ("pays", "region", "departement", "academie")  # ceux du contrat (NiveauZone), dans cet ordre
@@ -45,11 +54,17 @@ URL_FICHE = "https://app.gestukaay.test/indicateurs/{code}"
 class _Ligne:
     resume: IndicateurResume
     texte: str  # libellé, opération, producteur et domaine normalisés : la recherche « q »
+    domaine: str  # domaine normalisé, une fois pour toutes (filtre « domaine »)
 
 
 def _niveaux(codes_zone: set[str]) -> list[str]:
     connus = {zones()[z].niveau for z in codes_zone if z in zones()}
     return [n for n in NIVEAUX if n in connus]
+
+
+def _unite(ind: Indicateur, lignes) -> str:
+    """La même unité partout (catalogue, fiche, Explorer), comme la résolution : référentiel, puis observation."""
+    return ind.unite_affichee or ind.unite or (lignes[0].unite if lignes else "")
 
 
 def _resume(socle: Socle, ind: Indicateur) -> IndicateurResume | None:
@@ -59,7 +74,7 @@ def _resume(socle: Socle, ind: Indicateur) -> IndicateurResume | None:
     periodes = sorted({o.periode for o in lignes})
     producteur, operation = producteur_et_operation(lignes[0].source_id, socle.sources.get(lignes[0].source_id), ind)
     return IndicateurResume(
-        code=ind.code, libelle=ind.libelle_fr, domaine=ind.domaine, unite=ind.unite_affichee or ind.unite,
+        code=ind.code, libelle=ind.libelle_fr, domaine=ind.domaine, unite=_unite(ind, lignes),
         producteur=producteur, operation=operation, niveaux=_niveaux({o.zone for o in lignes}),
         periode_debut=periodes[0], periode_fin=periodes[-1], verifie=ind.verification == "verifie",
     )
@@ -71,15 +86,17 @@ def _catalogue(socle: Socle) -> tuple[_Ligne, ...]:
     lignes = []
     for ind in indicateurs().values():
         if r := _resume(socle, ind):
-            lignes.append(_Ligne(r, normaliser(f"{r.libelle} {r.operation} {r.producteur} {r.domaine}")))
+            lignes.append(_Ligne(r, normaliser(f"{r.libelle} {r.operation} {r.producteur} {r.domaine}"),
+                                 normaliser(r.domaine)))
     return tuple(sorted(lignes, key=lambda x: (not x.resume.verifie, normaliser(x.resume.libelle), x.resume.code)))
 
 
 def catalogue(socle: Socle, domaine: str | None = None, q: str | None = None, niveau: str | None = None,
               limite: int = 50, decalage: int = 0) -> CatalogueResponse:
     mots = normaliser(q).split() if q else []
+    dom = normaliser(domaine) if domaine else None
     garder = [x.resume for x in _catalogue(socle)
-              if (not domaine or normaliser(x.resume.domaine) == normaliser(domaine))
+              if (not dom or x.domaine == dom)
               and all(m in x.texte for m in mots)
               and (not niveau or niveau in x.resume.niveaux)]
     return CatalogueResponse(version_socle=socle.version, total=len(garder),
@@ -97,7 +114,8 @@ def _lies(socle: Socle, ind: Indicateur) -> list[RefIndicateur]:
     """Jusqu'à 6 indicateurs proches : ceux du même jeu, puis les vérifiés du même domaine."""
     autres = [x.resume for x in _catalogue(socle) if x.resume.code != ind.code]
     meme_jeu = [r for r in autres if indicateurs()[r.code].dataset_id == ind.dataset_id]
-    meme_domaine = [r for r in autres if r.verifie and r.domaine == ind.domaine and r not in meme_jeu]
+    deja = {r.code for r in meme_jeu}
+    meme_domaine = [r for r in autres if r.verifie and r.domaine == ind.domaine and r.code not in deja]
     return [RefIndicateur(code=r.code, libelle=r.libelle) for r in [*meme_jeu, *meme_domaine][:LIES_MAX]]
 
 
@@ -113,14 +131,17 @@ def fiche(socle: Socle, code: str, consulte_le: date | None = None) -> FicheIndi
                                          periodes=sorted({o.periode for o in ici})))
     # La valeur que servirait une question sans zone ni période : elle porte la source, la note et la citation
     servie = resoudre_un(socle, ind, None, None, {})
-    r = servie[0] if not isinstance(servie, Introuvable) else resultat(socle, max(lignes, key=lambda o: o.periode), ind)
+    if isinstance(servie, Introuvable):  # pas de valeur nationale sûre : le Sénégal s'il est publié, jamais une projection future
+        passees = [o for o in lignes if o.periode[:4] <= str(ANNEE_EN_COURS)] or lignes
+        repli = max(passees, key=lambda o: (o.zone == "SN", o.periode))
+    r = servie[0] if not isinstance(servie, Introuvable) else resultat(socle, repli, ind)
     return FicheIndicateur(
         version_socle=socle.version, indicateur=_catalogue_par_code(socle)[code],
         # Citée du portail, jamais rédigée ; None s'il n'en publie pas (0005)
         definition=ind.definition or (jeu.definition if jeu else "") or None,
         methode=(jeu.methode if jeu else "") or None,
         desagregations=list(ind.desagregations), couverture=couverture, note_perimetre=note_perimetre(r),
-        source=r.source, citation=citation(r, consulte_le or datetime.now(UTC).date(), URL_FICHE.format(code=code)),
+        source=r.source, citation=citation(r, consulte_le or datetime.now(UTC).date(), URL_FICHE.format(code=quote(code, safe=""))),
         indicateurs_lies=_lies(socle, ind),
     )
 
@@ -130,35 +151,56 @@ def _catalogue_par_code(socle: Socle) -> dict[str, IndicateurResume]:
     return {x.resume.code: x.resume for x in _catalogue(socle)}
 
 
+def _dans(p: str, debut: str | None, fin: str | None) -> bool:
+    """Bornes comparées sur le début de la période : « fin=2022 » garde 2022-03 et 2022-T4 (comme la résolution)."""
+    return (not debut or p[:len(debut)] >= debut) and (not fin or p[:len(fin)] <= fin)
+
+
+def _reference(socle: Socle, ind: Indicateur, z: str, periodes: list[str]):
+    """La valeur que servirait « indicateur, zone » : sans période, sinon à la plus récente qui en a une sûre (une
+    académie dont la dernière année est ambiguë reste servie par ses années précédentes)."""
+    for p in [None, *sorted(periodes, reverse=True)[:12]]:
+        r = resoudre_un(socle, ind, z, p, {})
+        if not isinstance(r, Introuvable):
+            return r[0]
+    return None
+
+
 def series(socle: Socle, code: str, codes_zone: list[str], debut: str | None = None,
            fin: str | None = None) -> SeriesResponse:
+    """Une courbe par zone, dans UNE seule catégorie : celle de la valeur de référence (total par défaut, défauts
+    déclarés). Une période qui ne la publie pas est absente : jamais « Ensemble » 2011, « Urbain » 2019 et
+    « Ensemble » 2022 sur la même ligne. Les observations sont lues une fois par zone, pas une fois par point."""
     ind = _indicateur(socle, code)
     lignes = socle.observations(code)
-    unite = ind.unite_affichee or ind.unite or lignes[0].unite
+    unite = _unite(ind, lignes)
+    publiees = sorted({o.zone for o in lignes})
+    uniques = frozenset(k for k in {k for o in lignes for k, _ in o.desagregation}
+                        if len({o.dims().get(k) for o in lignes} - {None}) == 1)
+    par_id = {o.id: o for o in lignes}
     retenues: list[Serie] = []
     absents: list[str] = []
     desagregation = None
     for z in codes_zone:
-        periodes = sorted({o.periode for o in lignes if o.zone == z}) if z in zones() else []
-        if not periodes and z in zones():  # région servie par son académie (Kolda, Sédhiou…), comme la résolution
-            servie = resoudre_un(socle, ind, z, None, {})
-            if not isinstance(servie, Introuvable):
-                periodes = sorted({o.periode for o in lignes if o.zone == servie[0].zone.code})
-        periodes = [p for p in periodes if (not debut or p >= debut) and (not fin or p <= fin)]
-        points, derniere = [], None
-        for p in periodes:
-            servie = resoudre_un(socle, ind, z, p, {})
-            if isinstance(servie, Introuvable):  # aucune valeur sûre cette période-là (pas de total) : absente
-                continue
-            derniere = servie[0]
-            desagregation = desagregation or derniere.desagregation
-            points.append(PointSerie(periode=p, libelle=derniere.periode.libelle, valeur=derniere.valeur,
-                                     valeur_affichee=derniere.valeur_affichee, observation_id=derniere.observation_id,
-                                     nature=derniere.nature, base_projection=derniere.base_projection))
-        if derniere is None:
+        lue = z if z in publiees else academie_equivalente(z, publiees) if z in zones() else None
+        ref = _reference(socle, ind, z, sorted({o.periode for o in lignes if o.zone == lue})) if lue else None
+        if ref is None:
+            absents.append(z)
+            continue
+        o_ref = par_id[ref.observation_id]
+        desagregation = desagregation or ref.desagregation
+        meme = sorted((o for o in lignes if o.zone == o_ref.zone and o.desagregation == o_ref.desagregation
+                       and _dans(o.periode, debut, fin)), key=lambda o: o.periode)
+        points = []
+        for o in meme:
+            x = resultat(socle, o, ind, "fr", uniques)
+            points.append(PointSerie(periode=o.periode, libelle=x.periode.libelle, valeur=x.valeur,
+                                     valeur_affichee=x.valeur_affichee, observation_id=x.observation_id,
+                                     nature=x.nature, base_projection=x.base_projection))
+        if not points:
             absents.append(z)
         else:
-            retenues.append(Serie(zone=ref_zone(derniere.zone.code), points=points, source=derniere.source))
+            retenues.append(Serie(zone=ref_zone(o_ref.zone), points=points, source=ref.source))
     return SeriesResponse(
         version_socle=socle.version, indicateur=RefIndicateur(code=ind.code, libelle=ind.libelle_fr), unite=unite,
         desagregation=desagregation, series=retenues, absents=absents,

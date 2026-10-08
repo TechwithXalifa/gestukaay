@@ -144,3 +144,28 @@ def test_moteur_reel_ne_repond_plus_503():
     assert m.catalogue().total == 3
     assert m.fiche(PAUVRETE).indicateur.code == PAUVRETE
     assert m.series(PAUVRETE, ["SN"]).series[0].points[-1].valeur_affichee == "37,5"
+
+
+# --------------------------------------------------------------------------------------------- revue de KBD (#170)
+
+def test_serie_une_seule_categorie_jamais_melangee():
+    # Dakar : « Ensemble » en 2011 et 2022, seulement « Urbain » en 2019 -> 2019 absente, pas un faux point
+    melange = Socle([pauvrete("SN-DK", "2011", 30.0), pauvrete("SN-DK", "2019", 12.0, milieu="Urbain"),
+                     pauvrete("SN-DK", "2022", 25.0), pauvrete("SN-DK", "2022", 10.0, milieu="Urbain")], SOURCES, "t")
+    r = series(melange, PAUVRETE, ["SN-DK"])
+    assert [(p.periode, p.valeur) for p in r.series[0].points] == [("2011", 30.0), ("2022", 25.0)]
+
+
+def test_serie_mensuelle_la_borne_de_fin_garde_l_annee():
+    riz = "feujxob.riz-brise-ordinaire-au-detail"
+    mois = Socle([obs(riz, "SN-DK", f"{a}-{m:02d}", 300.0 + m) for a in (2021, 2022) for m in (1, 6, 12)],
+                 {"feujxob": SOURCES["pvswjnd"]}, "t")
+    r = series(mois, riz, ["SN-DK"], fin="2021")
+    assert [p.periode for p in r.series[0].points] == ["2021-01", "2021-06", "2021-12"]  # pas vide
+    assert [p.periode for p in series(mois, riz, ["SN-DK"], debut="2022", fin="2022").series[0].points] == [
+        "2022-01", "2022-06", "2022-12"]
+
+
+def test_citation_code_encode():
+    assert "%25" in fiche(Socle([obs("bdubwzf.effectif~%", "SN", "2014", 5.0)], {"bdubwzf": SOURCES["pvswjnd"]},
+                                "t"), "bdubwzf.effectif~%").citation
