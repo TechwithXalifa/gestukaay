@@ -12,11 +12,11 @@ Fichier de synthèse de mes tâches. Le détail de chaque tâche (critère de fi
 | 1 · Socle | 8 | 8 | Préparation |
 | 2 · Moteur | 11 | 11 | Préparation |
 | 3 · Jeu de test et mesure | 3 | 4 | Préparation |
-| 4 · Wolof | 3 | 5 | Préparation |
+| 4 · Wolof | 4 | 5 | Préparation |
 | 5 · Voix | 4 | 4 | Hackathon |
 | 6 · WhatsApp et Telegram | 4 | 6 | Préparation |
 | 7 · Intégration et démo | 1 | 5 | Hackathon |
-| **Total** | **38** | **47** | |
+| **Total** | **39** | **47** | |
 
 ## Comment je mets à jour ce fichier
 
@@ -82,7 +82,7 @@ Légende : ⚖️ décision à trancher ensemble avant de coder · ⏳ jalon Hac
 
 ## 4 · Wolof
 
-- [ ] **4.1** Table de normalisation wolof — [#22](https://github.com/TechwithXalifa/gestukaay/issues/22) · échéance 05/10 · après 1.2
+- [x] **4.1** Table de normalisation wolof — [#22](https://github.com/TechwithXalifa/gestukaay/issues/22) · échéance 05/10 · après 1.2
 - [ ] **4.2** Lexique métier bilingue — [#23](https://github.com/TechwithXalifa/gestukaay/issues/23) · échéance 05/10 · après 1.3
 - [x] **4.3** Détection automatique de la langue — [#24](https://github.com/TechwithXalifa/gestukaay/issues/24) · échéance 05/10
 - [x] **4.4** Gabarits de réponse en wolof — [#25](https://github.com/TechwithXalifa/gestukaay/issues/25) · échéance 06/10 · après 2.8
