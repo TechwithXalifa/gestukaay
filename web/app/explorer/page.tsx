@@ -1,5 +1,6 @@
 "use client";
 
+import { OngletsDonnees } from "@/components/OngletsDonnees";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -90,7 +91,7 @@ function Explorer() {
     <div className="site">
       <Entete actif="explorer" />
       <main id="contenu" tabIndex={-1} className="explorer">
-        <p className="eyebrow">{t("explorer.eyebrow")}</p>
+        <OngletsDonnees actif="explorer" />
         <h1 className="titre-situer">{f?.indicateur.libelle ?? t("explorer.titre")}</h1>
 
         {!indicateur ? (
@@ -178,7 +179,6 @@ function Explorer() {
               ) : (
                 <>
                   <div className="explorer-entete">
-                    <p className="eyebrow">{f?.indicateur.domaine}</p>
                     <a className="secondaire" href={seriesCsvUrl({ indicateur, zones, debut, fin })} download>
                       <Telecharger />{t("explorer.csv")}
                     </a>

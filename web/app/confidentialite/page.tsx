@@ -7,7 +7,7 @@ import { useLangue } from "@/i18n/langue";
 export default function Confidentialite() {
   const { t } = useLangue();
   return (
-    <PageTexte eyebrow="confid.eyebrow" titre="confid.titre">
+    <PageTexte titre="confid.titre">
       <p className="explication">{t("confid.intro")}</p>
       <Section titre="confid.questions" textes={["confid.questions.texte", "confid.ia", "confid.whatsapp"]} />
       <Section titre="confid.voix" textes={["confid.voix.texte", "confid.voix.repli"]} />

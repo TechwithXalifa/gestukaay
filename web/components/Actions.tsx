@@ -38,7 +38,11 @@ export function Actions({ id, citation, url }: { id: string; citation: string; u
 
   return (
     <div className="actions">
-      <a className="primaire" href={exportUrl(id, "pdf")} download>
+      {/* Partager en premier et en or : la réponse se transfère d'abord sur WhatsApp (P1, US-14) */}
+      <button type="button" className="primaire" onClick={partager}>
+        <Partager />{t("actions.partager")}
+      </button>
+      <a className="secondaire" href={exportUrl(id, "pdf")} download>
         <Telecharger />{t("actions.pdf")}
       </a>
       <a className="secondaire" href={exportUrl(id, "csv")} download>
@@ -46,9 +50,6 @@ export function Actions({ id, citation, url }: { id: string; citation: string; u
       </a>
       <button type="button" className="secondaire" onClick={() => copier(citation, t("actions.citationCopiee"))}>
         <Copier />{t("actions.citer")}
-      </button>
-      <button type="button" className="secondaire" onClick={partager}>
-        <Partager />{t("actions.partager")}
       </button>
       <p role="status" aria-live="polite" className={toast ? "toast visible" : "toast"}>{toast}</p>
     </div>

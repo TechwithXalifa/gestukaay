@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLangue } from "@/i18n/langue";
+import { Lecture, Pause } from "./icones";
 
 /**
  * Réponse lue à voix haute (EF-16, maquette M-Reponse). Seules les métadonnées sont chargées
@@ -43,9 +44,9 @@ export function LecteurAudio({ url, langue }: { url: string; langue: string }) {
         onClick={basculer}
       >
         {etat === "lecture" ? (
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg>
+          <Pause taille={18} />
         ) : (
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.8l-12-7.5A1 1 0 0 0 7 4.5z" /></svg>
+          <Lecture taille={18} />
         )}
       </button>
       <span className="lecteur-texte">

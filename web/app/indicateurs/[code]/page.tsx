@@ -84,7 +84,6 @@ export default function Fiche() {
         ) : (
           <div className="fiche-corps">
             <div className="fiche-principal">
-              <p className="eyebrow">{t("fiche.eyebrow", { domaine: i.domaine })}</p>
               <h1 className="titre-situer">{i.libelle}</h1>
               <p className="explication">{f.definition ?? t("fiche.sansDefinition")}</p>
 

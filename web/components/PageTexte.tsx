@@ -1,17 +1,16 @@
 "use client";
 
-import { Entete, PiedDePage } from "@/components/Entete";
+import { type Actif, Entete, PiedDePage } from "@/components/Entete";
 import { useLangue } from "@/i18n/langue";
 import type { Cle } from "@/i18n/fr";
 
 /** Pages d'information du pied de page : même cadre, textes dans i18n. */
-export function PageTexte({ eyebrow, titre, children }: { eyebrow: Cle; titre: Cle; children: React.ReactNode }) {
+export function PageTexte({ titre, actif = null, children }: { titre: Cle; actif?: Actif; children: React.ReactNode }) {
   const { t } = useLangue();
   return (
     <div className="site">
-      <Entete actif={null} />
+      <Entete actif={actif} />
       <main id="contenu" tabIndex={-1} className="page-texte">
-        <p className="eyebrow">{t(eyebrow)}</p>
         <h1 className="titre-situer">{t(titre)}</h1>
         {children}
       </main>

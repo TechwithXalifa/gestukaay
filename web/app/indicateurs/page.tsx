@@ -1,5 +1,6 @@
 "use client";
 
+import { OngletsDonnees } from "@/components/OngletsDonnees";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -80,7 +81,7 @@ function Catalogue() {
     <div className="site">
       <Entete actif="indicateurs" />
       <main id="contenu" tabIndex={-1} className="catalogue">
-        <p className="eyebrow">{t("catalogue.eyebrow")}</p>
+        <OngletsDonnees actif="indicateurs" />
         <h1 className="titre-situer">{t("catalogue.titre")}</h1>
         {total !== null && !q && !domaine && (
           <p className="explication">{t("catalogue.intro", { n: total.toLocaleString("fr-FR") })}</p>

@@ -99,7 +99,7 @@ Les erreurs suivent la RFC 9457 (`application/problem+json`) : 404 réponse intr
 
 ## 4. Site (`web/`, Next.js + TypeScript)
 
-Les types viennent directement de `contracts/generated/` : si le contrat change sans régénération, la CI casse. Les couleurs, tailles et rayons viennent de `web/app/tokens.css`, copié des maquettes (design system §9).
+Les types viennent directement de `contracts/generated/` : si le contrat change sans régénération, la CI casse. Les couleurs, tailles, rayons et durées viennent de `web/app/tokens.css`, design system v2 « Terre et baobab » (décision 0036).
 
 ### 4.1 Pages
 
@@ -171,7 +171,7 @@ Filtres canal, langue, issue et recherche ; tableau paginé par 50 ; une requêt
 ### 4.10 Sécurité et performance du site
 
 - CSP en production (nos scripts, notre API, l'audio, rien d'autre), `Permissions-Policy` (micro pour le site seulement), pas d'en-tête `X-Powered-By`.
-- Polices Poppins et Lora auto-hébergées, sous-ensemble latin, `font-display: swap`. Plus aucune requête vers un tiers.
+- Polices Unbounded, Bricolage Grotesque et Space Mono auto-hébergées (next/font), sous-ensemble latin, `font-display: swap`. Plus aucune requête vers un tiers. Le PDF garde pour l'instant Poppins et Lora (décision 0036).
 - Mesures Lighthouse en 3G rapide simulée, processeur ralenti ×4, écran 360 × 640 (`docs/performance.md`) :
 
 | | Cible | Accueil | Réponse | Où je me situe |

@@ -141,7 +141,7 @@ test("tableau de bord : indicateurs, issues et questions non résolues (US-28)",
 test("barre latérale mobile : ouverture, navigation, fermeture (M-Menu)", async ({ page, isMobile }) => {
   test.skip(!isMobile, "la barre latérale remplace la navigation sous 768 px");
   await page.goto("/");
-  const bouton = page.getByRole("button", { name: "Ouvrir le menu" });
+  const bouton = page.getByRole("button", { name: "Plus", exact: true }); // onglet « Plus » de la barre mobile
   await bouton.click();
   const menu = page.getByRole("dialog", { name: "Menu" });
   await expect(menu).toBeVisible();

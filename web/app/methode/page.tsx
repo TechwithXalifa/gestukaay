@@ -57,7 +57,7 @@ export default function Methode() {
   ];
 
   return (
-    <PageTexte eyebrow="methode.eyebrow" titre="methode.titre">
+    <PageTexte titre="methode.titre" actif="methode">
       <p className="explication">{t("methode.intro")}</p>
 
       <section aria-labelledby="titre-mesure">

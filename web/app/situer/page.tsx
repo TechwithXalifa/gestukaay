@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SituateRequest } from "@contracts/situate_request";
 import type { SituateResponse } from "@contracts/situate_response";
 import { Entete, PiedDePage } from "@/components/Entete";
@@ -34,6 +34,30 @@ export default function Situer() {
   const [depenses, setDepenses] = useState<Tranche | null>(null);
   const [resultat, setResultat] = useState<SituateResponse | null>(null);
   const [erreur, setErreur] = useState<unknown>(null);
+  const premierAffichage = useRef(true);
+  const continuer = useRef<HTMLButtonElement>(null);
+
+  // Une option choisie amène « Continuer » à l'écran : sur téléphone, il était sous les 14 régions.
+  // Un bouton collé en bas aurait recouvert des options (revue UI du 08/10).
+  function montrerContinuer() {
+    const doux = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    requestAnimationFrame(() => continuer.current?.scrollIntoView({ block: "nearest", behavior: doux ? "smooth" : "auto" }));
+  }
+
+  // Chaque étape s'ouvre en haut, le focus sur sa question (WCAG 2.4.3) : la page restait défilée
+  // comme à l'étape précédente, titre coupé et barre de progression hors de l'écran (revue UI).
+  useEffect(() => {
+    if (premierAffichage.current) {
+      premierAffichage.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0 });
+    const titre = document.querySelector<HTMLElement>("main#contenu h1");
+    if (titre) {
+      titre.tabIndex = -1;
+      titre.focus({ preventScroll: true });
+    }
+  }, [etape, resultat]);
 
   async function calculer() {
     if (!region || !depenses) return;
@@ -61,7 +85,6 @@ export default function Situer() {
       <main id="contenu" tabIndex={-1} className="situer">
         {etape === 0 && (
           <section className="carte">
-            <p className="eyebrow">{t("situer.eyebrow")}</p>
             <h1 className="titre-situer">{t("situer.titre")}</h1>
             <p className="explication">{t("situer.intro")}</p>
             <p className="garantie"><Cadenas taille={16} />{t("situer.garantie")}</p>
@@ -95,7 +118,7 @@ export default function Situer() {
                 <div className="options grille">
                   {REGIONS.map((r) => (
                     <label key={r.code} className={region === r.code ? "option choisie" : "option"}>
-                      <input type="radio" name="region" className="sr-only" checked={region === r.code} onChange={() => setRegion(r.code)} />
+                      <input type="radio" name="region" className="sr-only" checked={region === r.code} onChange={() => { setRegion(r.code); montrerContinuer(); }} />
                       {r.libelle}
                       {region === r.code && <Coche />}
                     </label>
@@ -134,7 +157,7 @@ export default function Situer() {
                 <div className="options">
                   {TRANCHES.map((d) => (
                     <label key={d} className={depenses === d ? "option choisie" : "option"}>
-                      <input type="radio" name="depenses" className="sr-only" checked={depenses === d} onChange={() => setDepenses(d)} />
+                      <input type="radio" name="depenses" className="sr-only" checked={depenses === d} onChange={() => { setDepenses(d); montrerContinuer(); }} />
                       {t(`situer.d.${d}`)}
                       {depenses === d && <Coche />}
                     </label>
@@ -145,6 +168,7 @@ export default function Situer() {
 
             <p className="garantie"><Cadenas taille={16} />{t("situer.garantie")}</p>
             <button
+              ref={continuer}
               type="submit"
               className="primaire continuer"
               disabled={(etape === 1 && !region) || (etape === 3 && !depenses)}

@@ -3,6 +3,20 @@ import { expect, type Page } from "@playwright/test";
 
 /** Aucune violation WCAG 2.1 A et AA détectable automatiquement (cahier, accessibilité). */
 export async function accessible(page: Page, ecran: string) {
+  // Les contrastes se mesurent sur l'état final : on attend la fin des apparitions et des
+  // transitions (design system v2). Les animations sans fin (frise, micro) et celles liées au
+  // défilement sont écartées, elles ne finissent jamais.
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.timeline === document.timeline && a.effect?.getComputedTiming().iterations !== Infinity)
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+      new Promise((fin) => setTimeout(fin, 3000)),
+    ]),
+  );
   const { violations } = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();

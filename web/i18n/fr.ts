@@ -21,10 +21,9 @@ export const fr = {
   "pied.nav": "Pied de page",
 
   // Accueil
-  "accueil.eyebrow": "Données officielles du Sénégal",
   "accueil.titre1": "Posez votre question.",
-  "accueil.titre2": "Recevez le chiffre officiel.",
-  "accueil.chapeau": "En français ou en wolof. Parlez ou écrivez.",
+  "accueil.titre2": "Recevez le chiffre *officiel*.",
+  "accueil.chapeau": "En français ou en wolof, par écrit ou à voix haute. Chaque chiffre vient d'une publication officielle, avec sa source et sa date.",
   "accueil.parler": "Appuyez pour parler",
   "accueil.garanties": "Nos garanties",
   "accueil.garantie1": "Aucun chiffre inventé",
@@ -115,8 +114,6 @@ export const fr = {
   "etat.pageIntrouvable": "Cette page n'existe pas.",
   "etat.pageIntrouvableAide": "L'adresse est peut-être incomplète. Posez votre question depuis l'accueil ou parcourez les domaines.",
   "etat.domaines": "Parcourir les domaines",
-  "etat.erreur404": "Page introuvable",
-  "etat.erreurEyebrow": "Incident",
   "etat.erreurAide": "Un problème est survenu en affichant cette page. Réessayez dans un instant.",
   "horsligne.titre": "Vous êtes hors ligne.",
   "horsligne.texte": "Vos dernières réponses restent lisibles. Les nouvelles questions demandent une connexion.",
@@ -151,7 +148,6 @@ export const fr = {
 
   // Où je me situe (EF-37 à EF-40, décision 0004 §2)
   "nav.situer": "Où je me situe",
-  "situer.eyebrow": "Où je me situe",
   "situer.titre": "Comparez votre ménage aux moyennes officielles",
   "situer.intro": "Trois questions, une par écran. Vous verrez comment les dépenses de votre ménage se comparent à celles publiées pour votre région et pour le pays.",
   "situer.garantie": "Rien n'est enregistré : vos réponses servent au calcul, puis disparaissent.",
@@ -195,12 +191,10 @@ export const fr = {
   // Domaines (décision 0005)
   "domaines.accueil": "Parcourir par domaine",
   "domaines.tous": "Tous les domaines",
-  "domaines.eyebrow": "Domaines",
   "domaines.titre": "{n} domaines de données officielles",
   "domaines.intro": "Posez votre question sur l'un de ces sujets, en français ou en wolof. Le catalogue détaillé des indicateurs arrive bientôt.",
 
   // Méthode et transparence (maquette Methode)
-  "methode.eyebrow": "Méthode et transparence",
   "methode.titre": "Comment Gëstukaay trouve vos chiffres",
   "methode.intro": "Gëstukaay ne fabrique jamais un chiffre. Il retrouve un chiffre publié par l'ANSD, le met en forme et vous dit toujours d'où il vient.",
   "methode.etapes": "Comment ça marche, en cinq étapes",
@@ -249,7 +243,6 @@ export const fr = {
   "methode.signaler": "Un chiffre vous semble faux ? Utilisez « Signaler une erreur » sous la réponse : chaque signalement est lu par l'équipe.",
 
   // À propos
-  "apropos.eyebrow": "À propos",
   "apropos.titre": "Le chiffre officiel, avec sa source et sa date",
   "apropos.texte1": "Gëstukaay (« vérifier », en wolof) répond aux questions sur les statistiques du Sénégal, en français et en wolof, à l'écrit ou à la voix.",
   "apropos.texte2": "Il s'adresse à tout le monde : élèves, journalistes, agents publics, entrepreneurs, curieux. Chaque réponse peut être exportée, citée et partagée.",
@@ -257,7 +250,6 @@ export const fr = {
   "apropos.contact": "Pour nous écrire, le plus simple est « Signaler une erreur » sous une réponse.",
 
   // Confidentialité
-  "confid.eyebrow": "Confidentialité",
   "confid.titre": "Ce que Gëstukaay garde, et ce qu'il ne garde pas",
   "confid.intro": "Pas de compte, pas de nom, pas de publicité, aucun traceur publicitaire.",
   "confid.questions": "Vos questions",
@@ -282,7 +274,6 @@ export const fr = {
   "nav.indicateurs": "Indicateurs",
 
   // Catalogue des indicateurs (maquette Catalogue)
-  "catalogue.eyebrow": "Indicateurs",
   "catalogue.titre": "Catalogue des indicateurs",
   "catalogue.intro": "{n} indicateurs officiels, rangés par domaine. Chaque fiche dit ce que mesure l'indicateur, d'où il vient et quand il a été mis à jour.",
   "catalogue.recherche": "Rechercher un indicateur",
@@ -301,7 +292,6 @@ export const fr = {
   "niveau.academie": "Académie",
 
   // Fiche indicateur (maquette Fiche, US-19)
-  "fiche.eyebrow": "Fiche indicateur · {domaine}",
   "fiche.sansDefinition": "Le portail de l'ANSD ne publie pas de définition pour cet indicateur.",
   "fiche.poser": "Poser une question sur cet indicateur",
   "fiche.explorer": "Explorer et comparer",
@@ -350,6 +340,43 @@ export const fr = {
   "explorer.sources": "Sources",
   "explorer.fiche": "Définition complète dans la fiche indicateur",
   "explorer.lien": "Cette page a une adresse stable : copiez-la pour partager exactement cette vue.",
+
+  // Design system v2 : navigation en trois espaces, accueil, pied de page
+  "nav.demander": "Demander",
+  "nav.donnees": "Données",
+  "nav.methode": "Méthode",
+  "nav.meSituer": "Me situer",
+  "nav.plus": "Plus",
+  "nav.onglets": "Navigation rapide",
+  "nav.domaines": "Domaines",
+  "donnees.onglets": "Espace Données",
+  "pied.promesse": "Le chiffre officiel du Sénégal, avec sa source et sa date. Sur le web, WhatsApp et Telegram.",
+  "pied.titreDonnees": "Données",
+  "pied.navDonnees": "Données, pied de page",
+  "pied.titreConfiance": "Confiance",
+  "pied.donnees": "Données : ANSD et producteurs officiels du portail Open Data.",
+  "accueil.socle.titre": "Des chiffres publiés, rien d'autre.",
+  "accueil.socle.valeurs": "valeurs officielles",
+  "accueil.socle.indicateurs": "indicateurs",
+  "accueil.socle.producteurs": "producteurs de données",
+  "accueil.socle.zones": "régions et {departements} départements",
+  "accueil.facons.titre": "Trois façons d'obtenir un chiffre",
+  "accueil.facons.demander": "Demander",
+  "accueil.facons.demanderTexte": "Écrivez ou dites votre question, en français ou en wolof. La réponse arrive avec sa source et sa date.",
+  "accueil.facons.demanderLien": "Poser une question",
+  "accueil.facons.explorer": "Explorer et comparer",
+  "accueil.facons.explorerTexte": "Choisissez un indicateur et jusqu'à six zones : graphique, tableau et export CSV.",
+  "accueil.facons.explorerLien": "Ouvrir l'explorateur",
+  "accueil.facons.situer": "Où je me situe",
+  "accueil.facons.situerTexte": "Comparez votre ménage aux moyennes publiées par l'ANSD. Rien de ce que vous saisissez n'est conservé.",
+  "accueil.facons.situerLien": "Me situer",
+  "accueil.confiance.titre": "Nous publions nos erreurs avec nos réussites.",
+  "accueil.confiance.texte": "Le moteur est mesuré sur {n} questions de référence, en français et en wolof. Dernière mesure : {date}.",
+  "accueil.confiance.bonne": "réponses justes et sourcées",
+  "accueil.confiance.refus": "refus pertinents",
+  "accueil.confiance.temps": "temps de réponse médian",
+  "accueil.confiance.invente": "chiffre inventé",
+  "accueil.confiance.lien": "Lire la méthode",
 } as const;
 
 export type Cle = keyof typeof fr;

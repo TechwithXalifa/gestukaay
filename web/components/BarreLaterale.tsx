@@ -7,8 +7,8 @@ import type { Actif } from "./Entete";
 import { Baobab, Croix } from "./icones";
 
 /**
- * Barre latérale de la version mobile (maquette M-Menu, cahier 7.2) : elle s'ouvre depuis le bouton
- * menu de l'en-tête et regroupe la navigation, la langue et les liens du pied de page. Se ferme par
+ * Barre latérale de la version mobile (maquette M-Menu, cahier 7.2) : elle s'ouvre depuis l'onglet
+ * « Plus » de la barre d'onglets et regroupe la navigation, la langue et les liens du pied de page. Se ferme par
  * la croix, un toucher hors du panneau ou Échap. Fenêtre modale (WCAG 2.4.3) : le focus y entre,
  * Tab tourne dedans, et il revient sur le bouton menu à la fermeture.
  */
@@ -64,10 +64,10 @@ export function BarreLaterale({ actif, onFermer }: { actif: Actif; onFermer: () 
         </div>
 
         <nav aria-label={t("nav.principale")} className="barre-laterale-nav">
-          <Link href="/" aria-current={actif === "question" ? "page" : undefined} onClick={onFermer}>{t("nav.poser")}</Link>
-          <Link href="/explorer" aria-current={actif === "explorer" ? "page" : undefined} onClick={onFermer}>{t("nav.explorer")}</Link>
+          <Link href="/" aria-current={actif === "question" ? "page" : undefined} onClick={onFermer}>{t("nav.demander")}</Link>
+          <Link href="/indicateurs" aria-current={actif === "donnees" ? "page" : undefined} onClick={onFermer}>{t("nav.donnees")}</Link>
           <Link href="/situer" aria-current={actif === "situer" ? "page" : undefined} onClick={onFermer}>{t("nav.situer")}</Link>
-          <Link href="/indicateurs" aria-current={actif === "indicateurs" ? "page" : undefined} onClick={onFermer}>{t("nav.indicateurs")}</Link>
+          <Link href="/methode" aria-current={actif === "methode" ? "page" : undefined} onClick={onFermer}>{t("nav.methode")}</Link>
         </nav>
 
         <div className="barre-laterale-langue">
