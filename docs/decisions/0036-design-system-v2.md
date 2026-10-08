@@ -31,6 +31,9 @@ courts), sans toucher aux fonctionnalités ni aux adresses.
    Indicateurs, Domaines et Explorer réunis par des onglets ; sur mobile, une barre d'onglets en
    bas (Demander, Données, Me situer, Plus) remplace le bouton menu, « Plus » ouvre la barre
    latérale. Toutes les adresses sont inchangées (`/r/…`, tests, liens WhatsApp).
+   L'en-tête flotte en pilule arrondie au-dessus de la page (inspiré d'adafrik.com) : il glisse
+   hors de l'écran quand on descend et revient dès qu'on remonte, ou quand le focus clavier y
+   entre ; il reste en place si moins d'animations est demandé.
 6. **Icônes** : Phosphor Icons, graisse duotone (licence MIT), choisies le 08/10 parmi Phosphor,
    Hugeicons, Tabler et Solar ; tracés recopiés dans `web/components/icones.tsx`, sans dépendance.
    Pas de sur-titre à point au-dessus des titres, ni de numéro de version du socle dans les pages
@@ -54,7 +57,8 @@ courts), sans toucher aux fonctionnalités ni aux adresses.
 - Tests de bout en bout : le bouton du menu mobile s'appelle « Plus » ; `e2e/outils.ts` attend la
   fin des animations (sauf celles sans fin) avant axe, pour mesurer les contrastes sur l'état final ;
   le test de la page Méthode suit le point 8 ; un test mobile vérifie que « Continuer » (Où je me
-  situe) n'est jamais recouvert par la barre d'onglets.
+  situe) n'est jamais recouvert par la barre d'onglets ; un autre, que l'en-tête se cache en
+  descendant et revient en remontant ou au clavier.
 - **Reste à faire** : le PDF exporté garde Poppins, Lora et l'ancienne palette (polices TTF à
   embarquer dans `backend/src/gestukaay_backend/polices`) ; les maquettes du cahier (§9) sont à
   mettre à jour pour la v1.2 du document.

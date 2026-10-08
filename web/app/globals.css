@@ -18,22 +18,25 @@ a { color: var(--baobab); text-underline-offset: 3px; }
 .bb { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---- Gabarit ---------------------------------------------------------- */
-/* Écran utile = la fenêtre moins l'en-tête collant (68 px + filet) et, sur mobile, la barre
-   d'onglets. Chaque section de l'accueil et le contenu de chaque page le remplissent au moins :
-   la section suivante et le pied de page n'apparaissent qu'au défilement. */
-:root { --hauteur-entete: 69px; --hauteur-onglets: 0px; --hauteur-bandeau: 0px; } /* bandeau : mesuré par Entete.tsx */
+/* L'en-tête flotte au-dessus de la page (voir « En-tête et navigation ») : il ne prend pas de place
+   dans le flux. --hauteur-entete = la marge du haut + la pilule (+ le bandeau wolof), mesurée par
+   Entete.tsx ; le contenu des pages commence dessous, le héros de l'accueil passe dessous.
+   Chaque section de l'accueil et le contenu de chaque page remplissent au moins l'écran, barre
+   d'onglets mobile retirée : la section suivante et le pied de page n'apparaissent qu'au défilement. */
+:root { --entete-marge: 12px; --hauteur-pilule: 60px; --hauteur-entete: calc(var(--entete-marge) + var(--hauteur-pilule)); --hauteur-onglets: 0px; }
 /* Ce que le navigateur amène à l'écran (scrollIntoView, focus clavier, ancre) s'arrête sous
-   l'en-tête collant et au-dessus de la barre d'onglets mobile, jamais derrière (WCAG 2.4.11) */
+   l'en-tête et au-dessus de la barre d'onglets mobile, jamais derrière (WCAG 2.4.11) */
 html { scroll-padding-top: var(--hauteur-entete); scroll-padding-bottom: var(--hauteur-onglets); }
 .site { min-height: 100vh; display: flex; flex-direction: column; }
-.site main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 40px 16px 72px; display: flex; flex-direction: column; gap: 24px;
-  min-height: calc(100vh - var(--hauteur-entete) - var(--hauteur-bandeau) - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-entete) - var(--hauteur-bandeau) - var(--hauteur-onglets)); }
-.ecran { min-height: calc(100vh - var(--hauteur-entete) - var(--hauteur-bandeau) - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-entete) - var(--hauteur-bandeau) - var(--hauteur-onglets));
+.site main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: calc(var(--hauteur-entete) + 40px) 16px 72px; display: flex; flex-direction: column; gap: 24px;
+  min-height: calc(100vh - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-onglets)); }
+.ecran { min-height: calc(100vh - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-onglets));
   display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
 .ecran > .section-int, .ecran > .heros-int { width: 100%; }
 .heros.ecran .heros-int { flex: 1; justify-content: center; }
-/* Sur ordinateur, le défilement se cale doucement sur le haut de chaque section de l'accueil */
-@media (min-width: 768px) { html:has(main.accueil) { scroll-snap-type: y proximity; } }
+/* Sur ordinateur, le défilement se cale doucement sur le haut de chaque section de l'accueil.
+   Les sections font tout l'écran et l'en-tête se cache en descendant : pas de marge en haut. */
+@media (min-width: 768px) { html:has(main.accueil) { scroll-snap-type: y proximity; scroll-padding-top: 0; } }
 main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .evitement { position: absolute; left: 16px; top: -56px; z-index: 100; padding: 10px 16px; border-radius: var(--radius-md); background: var(--or-clair); color: var(--sur-or); font-weight: 700; text-decoration: none; }
 .evitement:focus { top: 10px; }
@@ -112,9 +115,18 @@ main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .sombre .marqueur-wo { background: transparent; box-shadow: inset 0 0 0 1px var(--or-clair); color: var(--or-clair); }
 
 /* ---- En-tête et navigation --------------------------------------------- */
-.entete { position: sticky; top: 0; z-index: 40; background: var(--sombre); color: var(--sur-sombre); border-bottom: 1px solid var(--ligne-sombre); }
-@supports (backdrop-filter: blur(1px)) { .entete { background: color-mix(in srgb, var(--sombre) 92%, transparent); backdrop-filter: blur(12px); } }
-.entete-int { max-width: 1200px; margin: 0 auto; min-height: 68px; padding: 0 24px; display: flex; align-items: center; gap: 24px; }
+/* En-tête flottant (inspiré d'adafrik.com) : une pilule brun-noir translucide, centrée, posée à
+   12 px du haut. En descendant, elle remonte, rétrécit et s'efface ; elle revient dès qu'on
+   remonte (classe .cache posée par Entete.tsx). Le bandeau wolof se range sous la pilule. */
+.entete { position: fixed; top: var(--entete-marge); left: 0; right: 0; z-index: 40; width: min(1120px, calc(100% - 32px)); margin: 0 auto; color: var(--sur-sombre);
+  transform-origin: 50% 0; transition: transform var(--duree-lente) var(--ease-ressort), opacity var(--duree-moyenne) var(--ease-sortie); }
+.entete.cache { transform: translateY(calc(-100% - var(--entete-marge) - 12px)) scale(.92); opacity: 0; pointer-events: none;
+  transition: transform var(--duree-moyenne) var(--ease-sortie), opacity var(--duree-moyenne) var(--ease-sortie); }
+.entete.cache:focus-within { transform: none; opacity: 1; pointer-events: auto; } /* Tab y revient : il réapparaît */
+.entete-int { min-height: var(--hauteur-pilule); padding: 0 8px 0 22px; display: flex; align-items: center; gap: 20px; border: 1px solid var(--ligne-sombre); border-radius: var(--radius-full);
+  background: var(--sombre-2); box-shadow: 0 18px 40px -20px rgba(23, 17, 11, .6), inset 0 1px 0 rgba(246, 240, 227, .06); }
+/* 90 % d'opacité : les liens gardent 5,6:1 au moins, même sur une carte blanche (WCAG 1.4.3) */
+@supports (backdrop-filter: blur(1px)) { .entete-int { background: color-mix(in srgb, var(--sombre-2) 90%, transparent); backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2); } }
 .logo { display: flex; align-items: center; gap: 10px; min-height: 44px; color: inherit; text-decoration: none; font: 600 20px/26px var(--font-display); letter-spacing: -.01em; }
 .logo .baobab { color: currentColor; }
 .nav { display: flex; gap: 2px; margin-left: auto; }
@@ -134,7 +146,7 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 /* Un seul bouton or plein par écran (design system) : dans l'en-tête, il reste en contour */
 .entete .bouton-poser { background: transparent; border: 1px solid var(--or-clair); color: var(--or-clair); box-shadow: none; }
 .entete .bouton-poser:hover { background: var(--or-clair); color: var(--sur-or); box-shadow: none; }
-.bandeau-langue { margin: 0; padding: 8px 16px; background: var(--or-50); color: var(--encre); font-size: 13px; line-height: 18px; text-align: center; }
+.bandeau-langue { margin: 8px 0 0; padding: 8px 16px; border-radius: var(--radius-md); background: var(--or-50); color: var(--encre); font-size: 13px; line-height: 18px; text-align: center; box-shadow: var(--ombre-carte); }
 
 /* Barre d'onglets mobile (< 768 px) : Demander, Données, Me situer, Plus */
 .barre-onglets { position: fixed; inset: auto 0 0 0; z-index: 40; display: none; grid-template-columns: repeat(4, 1fr); gap: 4px;
@@ -179,7 +191,7 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .heros::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(var(--ligne-sombre) 1px, transparent 1px), linear-gradient(90deg, var(--ligne-sombre) 1px, transparent 1px);
   background-size: 56px 56px; -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 20%, transparent 75%); mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 20%, transparent 75%); opacity: .8; }
 .heros::after { content: ""; position: absolute; left: 50%; bottom: -220px; width: 760px; height: 420px; margin-left: -380px; border-radius: 50%; background: radial-gradient(closest-side, rgba(217, 149, 46, .26), transparent); pointer-events: none; }
-.heros-int { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; padding: 80px 24px 56px; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+.heros-int { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; padding: calc(var(--hauteur-entete) + 56px) 24px 56px; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
 .titre-accueil { margin: 0; max-width: 820px; font: 700 56px/60px var(--font-display); letter-spacing: -.02em; color: var(--sur-sombre); }
 .titre-accueil em { font-style: normal; color: var(--or-clair); }
 .heros .chapeau { color: var(--sur-sombre-doux); }
@@ -578,17 +590,18 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 /* ---- Mobile (< 768 px) -------------------------------------------------- */
 @media (max-width: 767px) {
   /* Barre d'onglets : 54 px d'onglet + 2 × 6 px de marge + 1 px de filet = 67 px */
-  :root { --hauteur-entete: 61px; --hauteur-onglets: calc(67px + env(safe-area-inset-bottom, 0px)); }
+  :root { --entete-marge: 8px; --hauteur-pilule: 56px; --hauteur-onglets: calc(67px + env(safe-area-inset-bottom, 0px)); }
   .site.admin main { min-height: 0; }
   .site { padding-bottom: var(--hauteur-onglets); }
   .site.admin { padding-bottom: 0; }
-  .entete-int { min-height: 60px; padding: 0 16px; gap: 12px; }
+  .entete { width: calc(100% - 16px); }
+  .entete-int { padding: 0 4px 0 14px; gap: 12px; }
   .nav, .bouton-poser { display: none; }
   .bascule { margin-left: auto; }
   .logo { font-size: 18px; }
   .barre-onglets { display: grid; }
-  .site main { padding: 20px 16px 32px; gap: 14px; }
-  .heros-int { padding: 36px 16px 32px; gap: 16px; }
+  .site main { padding: calc(var(--hauteur-entete) + 20px) 16px 32px; gap: 14px; }
+  .heros-int { padding: calc(var(--hauteur-entete) + 28px) 16px 32px; gap: 16px; }
   .titre-accueil { font-size: 32px; line-height: 37px; }
   .chapeau { font-size: 16px; line-height: 25px; }
   .champ, .champ.grand { padding: 0 4px 0 16px; min-height: 58px; }
@@ -658,6 +671,7 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .entete, .entete.cache { transform: none; opacity: 1; pointer-events: auto; transition: none; } /* reste en place */
   .spin { animation: none; }
   .onde span { transition: none; }
   .barre-laterale { animation: none; }

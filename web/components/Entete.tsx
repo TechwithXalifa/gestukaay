@@ -10,6 +10,9 @@ import { Baobab, Donnees, Points, Question, Repere } from "./icones";
  * En-tête commun (design system v2) : logo, trois espaces et la Méthode, bascule FR/WO toujours
  * visible (9.7). Sous 768 px, la navigation passe dans une barre d'onglets en bas de l'écran ;
  * « Plus » ouvre la barre latérale (maquette M-Menu).
+ * L'en-tête flotte en pilule au-dessus de la page (inspiré d'adafrik.com) : il glisse hors de
+ * l'écran quand on descend et revient dès qu'on remonte. Il reste visible en haut de page, menu
+ * ouvert, quand le focus clavier y entre, et toujours si moins d'animations est demandé (CSS).
  */
 export type Actif = "question" | "donnees" | "explorer" | "situer" | "indicateurs" | "methode" | null;
 
@@ -21,26 +24,45 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
   const [menu, setMenu] = useState(false);
   const ici = espace(actif);
   const courant = (e: Actif) => (ici === e ? "page" : undefined);
-  const bandeau = useRef<HTMLParagraphElement>(null);
+  const entete = useRef<HTMLElement>(null);
+  const [cache, setCache] = useState(false);
 
-  // Le bandeau « wolof en cours » tient sur 1 à 3 lignes selon la largeur : sa hauteur est mesurée
-  // pour que les sections plein écran (.ecran) la retirent et ne débordent pas (revue de la PR #155)
+  // Place prise en haut de page par l'en-tête flottant, bandeau « wolof en cours » compris (1 à 3
+  // lignes selon la largeur) : le contenu et les sections plein écran commencent dessous.
   useEffect(() => {
-    const el = bandeau.current;
+    const el = entete.current;
     if (!el || !("ResizeObserver" in window)) return;
     const racine = document.documentElement.style;
-    const mesure = new ResizeObserver(() => racine.setProperty("--hauteur-bandeau", `${el.offsetHeight}px`));
+    const mesure = new ResizeObserver(() => racine.setProperty("--hauteur-entete", `${el.offsetTop + el.offsetHeight}px`));
     mesure.observe(el);
     return () => {
       mesure.disconnect();
-      racine.removeProperty("--hauteur-bandeau");
+      racine.removeProperty("--hauteur-entete");
     };
-  }, [incomplet]);
+  }, []);
+
+  // Descendre cache l'en-tête, remonter le fait revenir ; un petit seuil ignore les tremblements.
+  // Le navigateur envoie au plus un « scroll » par image, et React ignore un état inchangé.
+  useEffect(() => {
+    let dernier = window.scrollY;
+    const defiler = () => {
+      const y = window.scrollY;
+      if (y < 80) {
+        setCache(false);
+        dernier = y;
+      } else if (Math.abs(y - dernier) > 8) {
+        setCache(y > dernier);
+        dernier = y;
+      }
+    };
+    window.addEventListener("scroll", defiler, { passive: true });
+    return () => window.removeEventListener("scroll", defiler);
+  }, []);
 
   return (
     <>
       <a href="#contenu" className="evitement">{t("nav.evitement")}</a>
-      <header className="entete">
+      <header ref={entete} className={cache && !menu ? "entete cache" : "entete"}>
         <div className="entete-int">
           <Link href="/" className="logo">
             <Baobab /> <span>Gëstukaay</span>
@@ -60,6 +82,7 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
           </div>
           {ici !== "question" && <Link href="/" className="primaire bouton-poser">{t("nav.poser")}</Link>}
         </div>
+        {incomplet && <p className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
       </header>
       <nav aria-label={t("nav.onglets")} className="barre-onglets">
         <Link href="/" aria-current={courant("question")}><Question taille={22} />{t("nav.demander")}</Link>
@@ -70,7 +93,6 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
         </button>
       </nav>
       {menu && <BarreLaterale actif={ici} onFermer={() => setMenu(false)} />}
-      {incomplet && <p ref={bandeau} className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
     </>
   );
 }

@@ -106,6 +106,23 @@ test("mode sombre : contrastes sur l'accueil, la réponse et le refus", async ({
   await accessible(page, "refus, mode sombre");
 });
 
+test("en-tête flottant : se cache en descendant, revient en remontant ou au clavier", async ({ page }) => {
+  await page.goto("/methode");
+  const entete = page.locator("header.entete");
+  await expect(entete).not.toHaveClass(/cache/);
+  await page.evaluate(() => window.scrollTo(0, 700));
+  await expect(entete).toHaveClass(/cache/);
+  await expect(entete).toHaveCSS("opacity", "0");
+  await page.evaluate(() => window.scrollTo(0, 500));
+  await expect(entete).not.toHaveClass(/cache/);
+  await expect(entete).toHaveCSS("opacity", "1");
+  // Caché, il revient dès que le focus clavier y entre (WCAG 2.4.7 et 2.4.11)
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await expect(entete).toHaveClass(/cache/);
+  await entete.getByRole("link", { name: "Gëstukaay" }).focus();
+  await expect(entete).toHaveCSS("opacity", "1");
+});
+
 test("pied de page : Méthode, À propos et Confidentialité", async ({ page }) => {
   for (const [lien, titre, h1] of [
     ["Méthode et transparence", "Méthode et transparence · Gëstukaay", "Comment Gëstukaay trouve vos chiffres"],
