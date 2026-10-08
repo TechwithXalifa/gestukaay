@@ -62,6 +62,8 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
                           r"quelles? langues?) ")),
     ("aide", re.compile(r"^ (aide moi|je peux (te )?demander quoi|que (sais|peux) tu faire|tu fais quoi|"
                         r"que puis je (te )?demander) ")),
+    # « Lou gestukay meune def », « … lane leu gestukaay meune def » : formes de KBD (essai Telegram, 08/10)
+    ("aide", re.compile(r" (lu|lou|lan|lane) (la |leu |le )?ge?stu?kaa?y (meune?|mene?|mun) def ")),
     ("definition", re.compile(r"^ (c est quoi|qu est ce que?|que veut dire|ca veut dire quoi|definition( de| du)?|"
                               r"definis?) ")),
     ("pourquoi", re.compile(r"^ (pourquoi|que pensez vous|qu en penses tu|tu penses que) ")),

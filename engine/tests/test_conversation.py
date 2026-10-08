@@ -23,7 +23,8 @@ from test_moteur import MOTEUR
     ("merci", "remerciement"), ("Merci beaucoup !", "remerciement"), ("Au revoir", "au_revoir"),
     ("Ba beneen yoon", "au_revoir"), ("Jërëjëf", "remerciement"),
     ("qui es-tu ?", "a_propos"), ("d'où viennent tes chiffres ?", "a_propos"), ("Tu parles wolof ?", "langue"),
-    ("Que sais-tu faire ?", "aide"), ("c'est quoi le taux de pauvreté ?", "definition"),
+    ("Que sais-tu faire ?", "aide"), ("Lou gestukay meune def", "aide"),  # formes de KBD, essai Telegram du 08/10
+    ("Dedet dama beug kham lane leu gestukaay meune def", "aide"), ("c'est quoi le taux de pauvreté ?", "definition"),
     ("Pourquoi le chômage augmente ?", "pourquoi"), ("Que pensez-vous du chômage ?", "pourquoi"),
 ])
 def test_categories_par_regles(message, categorie):
