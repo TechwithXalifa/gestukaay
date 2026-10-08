@@ -100,3 +100,9 @@ def test_nit_dekk_population_et_kaso_prison(question, indicateur):
 
 def test_jang_scolarisation():  # KBD, 07/10 (remarque de SAN sur #138) : jàng = étudier, pas le retard de croissance
     assert _comprise("Ñaata xale ñoo jàng ci Kolda ?").indicateur == "ervtjfc.taux-brut-de-scolarisation"
+
+
+@pytest.mark.parametrize("question", ["Combien d'écoles au Sénégal ?", "ñaata ekool ñoo nekk ci senegaal",
+                                      "ñaata lekool ñoo nekk ci senegaal"])
+def test_ecole_n_est_pas_le_taux_de_scolarisation(question):  # ekool : KBD, 08/10 ; donnait 84,7 %
+    assert "nombre" in _comprise(question).indicateur and "ecoles" in _comprise(question).indicateur
