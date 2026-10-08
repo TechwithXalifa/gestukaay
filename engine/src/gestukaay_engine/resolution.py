@@ -35,7 +35,15 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.indicateurs import REFERENTIELS, Indicateur, indicateurs
 from gestukaay_socle.zones import normaliser, zones
 
-from .candidats import ORDRE_ASC, periodes_citees, texte_normalise
+from .candidats import (
+    ORDRE_ASC,
+    est_evolution,
+    extremum,
+    fenetre_annees,
+    fenetre_periodes,
+    periodes_citees,
+    texte_normalise,
+)
 from .gabarits import formater
 from .graphique import (
     graphique_classement,
@@ -322,10 +330,20 @@ def academie_equivalente(zone: str, publiees: list[str]) -> str | None:
     return equiv[0] if len(equiv) == 1 and equiv[0] in publiees else None
 
 
+def zone_de_la_serie(socle: Socle, code: str, zone: str | None) -> str | None:
+    """La zone demandée, sinon celle que resoudre_un prendra : le Sénégal, ou la seule zone publiée (riz : Dakar)."""
+    if zone:
+        return zone
+    publiees = {o.zone for o in socle.observations(code)}
+    return "SN" if "SN" in publiees else next(iter(publiees)) if len(publiees) == 1 else None
+
+
 def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | None,
                 demande: dict[str, str], langue: str = "fr",
-                question: str = "") -> tuple[Resultat, dict] | Introuvable:
-    """Une valeur : indicateur × zone × période × désagrégation."""
+                question: str = "", annee: str = "fin") -> tuple[Resultat, dict] | Introuvable:
+    """Une valeur : indicateur × zone × période × désagrégation.
+    annee : pour une année demandée sur une série mensuelle ou trimestrielle (« le riz en 2019 »), le dernier
+    mois de l'année (« fin ») ou le premier (« debut », pour « depuis 2020 ») ; le mois est dit dans la réponse."""
     lignes = socle.observations(ind.code)
     if not lignes:
         return Introuvable("indicateur_inconnu", f"{ind.code} : aucune valeur dans le socle")
@@ -349,12 +367,16 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
     p = periode
     if p is None:
         p, defauts["periode"] = periode_par_defaut(lignes)
+    if p not in periodes and re.fullmatch(r"\d{4}", p or "") and (dans := [x for x in periodes if x.startswith(p + "-")]):
+        p = dans[0] if annee == "debut" else dans[-1]  # recette du 08/10 : « n'existe pas » pour le riz en 2019
     if p not in periodes:
         return Introuvable("periode_absente", f"{p} non publié", disponibles=periodes)
     retenues, erreur = completer([o for o in lignes if o.periode == p], question,
                                  defauts_desagregation().get(ind.dataset_id))
     if erreur:
         return erreur
+    if not retenues:  # modalités retenues une à une sans ligne commune (410 questions du 08/10 : IndexError)
+        return Introuvable("desagregation_ambigue", "aucune ligne pour cette combinaison de modalités")
     if len({o.desagregation for o in retenues}) > 1:  # ne devrait pas arriver après choisir()
         return Introuvable("desagregation_ambigue", "plusieurs lignes pour la même clé")
     toutes = socle.observations(ind.code)
@@ -397,6 +419,28 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
         return Introuvable("indicateur_inconnu", f"{requete.indicateur} : code inconnu du référentiel")
 
     demande = dict(requete.desagregation or {})
+
+    # -----------------------------------------------------------------------
+    # Période du plus haut / plus bas niveau d'une série (recette du 08/10) : chaque période est résolue comme
+    # une valeur ; on garde la plus haute ou la plus basse. Aucun calcul, une valeur publiée.
+    # -----------------------------------------------------------------------
+    if (sens := extremum(question)) and len(requete.zones or []) <= 1:
+        z = requete.zones[0] if requete.zones else None
+        citees = periodes_citees(question)
+        debut = requete.periode.valeur if requete.periode.type != "derniere" else (citees[0] if citees else None)
+        fin_ = requete.periode.fin or (citees[1] if len(citees) > 1 else None)
+        ouvert = bool(re.search(r"\b(depuis|apres)\b", normaliser(question)))
+        serie = sorted({o.periode for o in socle.observations(ind.code) if o.zone == zone_de_la_serie(socle, ind.code, z)})
+        serie = [x for x in serie if x[:4] <= str(ANNEE_EN_COURS)
+                 and (not debut or x[:len(debut)] >= debut) and (not fin_ or x[:len(fin_)] <= fin_)
+                 and (not debut or fin_ or ouvert or x.startswith(debut))]  # « en 2018 » : l'année seule
+        trouves = [r for x in serie if not isinstance(r := resoudre_un(socle, ind, z, x, demande, langue, question),
+                                                       Introuvable) and r[0].periode.valeur == x]
+        if len(trouves) >= 2:
+            choisi = (min if sens == "min" else max)(trouves, key=lambda r: r[0].valeur)
+            choisi[0].mise_en_evidence = True
+            return Resolution([choisi[0]], {**choisi[1], "extremum": sens, "debut": trouves[0][0].periode.libelle,
+                                             "fin": trouves[-1][0].periode.libelle}, None)
 
     # -----------------------------------------------------------------------
     # Classement (#14) : 14 régions ou 16 académies
@@ -458,29 +502,49 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
     if requete.intention == "comparaison":
         fin = getattr(requete.periode, "fin", None)
         citees = periodes_citees(question) if not fin else []
-        # « Évolution du chômage depuis 2015 » : de 2015 à la dernière période (avant : 2015 seul, recette du 08/10)
-        depuis = bool(re.search(r"\bdepuis\b", normaliser(question))) and requete.periode.type != "derniere"
-        # « Évolution de l'espérance de vie » sans année : de la première période publiée à la dernière (recette 08/10)
-        evolution = (bool(re.search(r"\bevolution\b", normaliser(question))) and requete.periode.type == "derniere"
-                     and not citees)
-        if (len(requete.zones or []) <= 1) and (fin or len(citees) >= 2 or depuis or evolution):
-            # Comparaison temporelle
+        q = normaliser(question)
+        evolutif = est_evolution(question)
+        if (len(requete.zones or []) <= 1) and (fin or len(citees) >= 2 or evolutif):
+            # Comparaison temporelle. Recette du 08/10 : « a-t-il diminué ? », « après 2019 », « sur les dix dernières
+            # années », « l'évolution des arrivées en 2017 » ne donnaient qu'une valeur.
             z = requete.zones[0] if (requete.zones and len(requete.zones) == 1) else None
-            p_debut = requete.periode.valeur if requete.periode.valeur else (citees[0] if citees else None)
-            if evolution:
-                z_serie = z or "SN"
-                serie = sorted({o.periode for o in socle.observations(ind.code) if o.zone == z_serie})
-                p_debut = serie[0] if len(serie) > 1 else None
-            p_fin = fin or (citees[1] if len(citees) >= 2 else None)
+            serie = sorted({o.periode for o in socle.observations(ind.code) if o.zone == zone_de_la_serie(socle, ind.code, z)})
+            passees = [x for x in serie if x[:4] <= str(ANNEE_EN_COURS)] or serie
+            mode_debut = "fin"
+            if fin or len(citees) >= 2:
+                p_debut = requete.periode.valeur if requete.periode.valeur else citees[0]
+                p_fin = fin or citees[1]
+            else:
+                p_cite = requete.periode.valeur or (citees[0] if citees else None)
+                p_fin = None
+                if p_cite and re.fullmatch(r"\d{4}", p_cite) and p_cite not in serie \
+                        and not re.search(r"\b(depuis|apres)\b", q):
+                    dans = [x for x in serie if x.startswith(p_cite + "-")]  # au fil de l'année, mois par mois
+                    p_debut, p_fin = (dans[0], dans[-1]) if len(dans) > 1 else (p_cite, None)
+                elif p_cite:
+                    p_debut, mode_debut = p_cite, "debut"  # depuis / après : jusqu'à la dernière période
+                elif (n := fenetre_periodes(question)) and len(passees) > n:
+                    p_debut, p_fin = passees[-1 - n], passees[-1]  # « les douze derniers mois disponibles »
+                elif (n := fenetre_annees(question)) and passees:
+                    cible = int(passees[-1][:4]) - n
+                    p_debut = next((x for x in passees if int(x[:4]) >= cible), passees[0])
+                else:
+                    p_debut = passees[0] if passees else None
+            # une évolution part de l'année publiée la plus proche (« qu'il y a vingt ans » : 2005 si 2006 manque)
+            annuelles = [x for x in serie if re.fullmatch(r"\d{4}", x)]
+            if evolutif and p_debut and re.fullmatch(r"\d{4}", p_debut) and p_debut not in serie and annuelles:
+                p_debut = min(annuelles, key=lambda x: (abs(int(x) - int(p_debut)), x))
             if p_debut and p_fin and p_debut > p_fin:
                 p_debut, p_fin = p_fin, p_debut
 
-            r_deb = resoudre_un(socle, ind, z, p_debut, demande, langue, question)
+            r_deb = resoudre_un(socle, ind, z, p_debut, demande, langue, question, annee=mode_debut)
             if isinstance(r_deb, Introuvable):
                 return r_deb
             r_fin = resoudre_un(socle, ind, z, p_fin, demande, langue, question)
             if isinstance(r_fin, Introuvable):
                 return r_fin
+            if r_deb[0].periode.valeur == r_fin[0].periode.valeur:  # une seule période publiée : une seule valeur
+                return Resolution([r_fin[0]], r_fin[1], None)
 
             r_deb[0].mise_en_evidence = True
             r_fin[0].mise_en_evidence = True

@@ -66,7 +66,14 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
     ("aide", re.compile(r" (lu|lou|lan|lane) (la |leu |le )?ge?stu?kaa?y (meune?|mene?|mun) def ")),
     ("definition", re.compile(r"^ (c est quoi|qu est ce que?|que veut dire|ca veut dire quoi|definition( de| du)?|"
                               r"definis?) ")),
+    # « Quelle est la différence entre le taux brut et le taux net ? », « Que signifie un Gini de 0,35 ? », « Comment
+    # mesure-t-on les inégalités ? » : une explication de concept, sans zone ni période (recette du 08/10)
+    ("definition", re.compile(r"^ (quelle est la difference entre|quelle difference (y a t il|existe t il) entre|"
+                              r"que signifie|comment (mesure t on|mesurer|calculer|se calcule|on mesure)) ")),
     ("pourquoi", re.compile(r"^ (pourquoi|que pensez vous|qu en penses tu|tu penses que) ")),
+    # « Comment expliquer… », « Quelles sont les conséquences de… », « … peut-elle expliquer… » : une analyse
+    ("pourquoi", re.compile(r"^ (comment expliquer|quelles sont les (consequences|causes)|quels sont les (effets|facteurs))"
+                            r" | peut (elle|il) expliquer | pourrai(t|ent) (elle|il|ils|elles)? ?(influencer|contribuer) ")),
     # hors sujet SÛR seulement (le reste : LLM) ; « njiitu réew » : question WO-025 de KBD
     # pas « recette », « foot », « match », « président » seuls : « recette touristique », « terrains de foot »
     # sont des questions de statistique (revue de SAN sur #147)
@@ -93,6 +100,8 @@ def regles(question: str) -> str | None:
     cle = next((cle for cle, motif in _REGLES if motif.search(t)), None)
     if cle == "salutation" and t.split()[0] == "naka" and naka_sujet(question):
         return None
+    if cle == "definition" and t.startswith((" quelle", " comment")) and (zones_citees(question) or periodes_citees(question)):
+        return None  # « la différence entre Dakar et Thiès en 2023 » : une comparaison de chiffres
     return cle
 
 
