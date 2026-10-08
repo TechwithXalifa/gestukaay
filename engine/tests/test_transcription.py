@@ -113,6 +113,7 @@ def test_deux_nombres_relies_restent_deux(dit, attendu):
     ("Ndax prix thieb detail bi yok na entre mars 2025 ak mars 2026 ?", "wo"),
     ("Limu askanu Ndakaaru ak Kaolack", "wo"), ("Kaolack nak?", "wo"),
     ("Gnata habitants Thiès ?", "wo"), ("Nyaata habitants Thiès ?", "wo"),  # graphies WhatsApp de ñaata (#22)
+    ("asdkjh qwe", "fr"),  # aucun mot connu : français par défaut (SAN, #156)
 ])
 def test_langue_detectee(texte, langue):
     assert detecter(texte) == langue

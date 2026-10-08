@@ -250,10 +250,15 @@ class Index:
         self.inds = list(inds.values())
         self.docs = [Counter(mots(f"{x.libelle_fr} {x.libelle_wo} {nom_du_jeu(x.jeu)}")) for x in self.inds]
         self.milieux = [milieu_cite(normaliser(x.libelle_fr)) for x in self.inds]
+        self._par_code = {x.code: d for x, d in zip(self.inds, self.docs, strict=True)}
         self.moyenne = sum(sum(d.values()) for d in self.docs) / max(len(self.docs), 1)
         n = len(self.docs)
         freq = Counter(m for d in self.docs for m in d)
         self.idf = {m: math.log(1 + (n - f + 0.5) / (f + 0.5)) for m, f in freq.items()}
+
+    def mots_de(self, code: str) -> Counter:
+        """Mots indexés d'un indicateur (libellés FR / WO et nom du jeu)."""
+        return self._par_code.get(code, Counter())
 
     def requete(self, question: str) -> list[str]:
         """Mots de la question, sans les noms de zones (« Matam » ne doit pas faire remonter
