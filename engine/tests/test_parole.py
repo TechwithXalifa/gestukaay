@@ -314,3 +314,12 @@ def test_voix_d_une_approchee_deja_ecrite_en_wolof():
     assert rep.reponse.issue == "approchee" and rep.reponse.langue == "wo"
     dit = texte_parle(rep, SOCLE)
     assert dit.startswith(rep.reponse.reformulation.split(":")[0].strip()) and "Benn" in dit.replace("benn", "Benn")
+
+
+def test_aucune_epellation_ecrite_a_la_main():  # revue de SAN sur #176 : la voix épelle, les textes gardent le sigle
+    from pathlib import Path
+    racine = Path(__file__).resolve().parents[1] / "src" / "gestukaay_engine"
+    for f in ("parole_wo.csv", "gabarits_wo.csv", "conversation.csv"):
+        lignes = (racine / f).read_text(encoding="utf-8").splitlines()
+        assert not [x for x in lignes if not x.startswith("lettre;")
+                    and re.search(r"\b(?:A|BÉ|CÉ|DE|E|EF|JÉ|ACH|I|EL|EM|EN|PÉ|ER|ES|TÉ|VÉ)(?:-(?:A|BÉ|CÉ|DE|E|EF|JÉ|ACH|I|EL|EM|EN|PÉ|ER|ES|TÉ|VÉ)){1,}\b", x)], f

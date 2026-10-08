@@ -23,16 +23,16 @@ mois;11;Nowàmbar;novembre
 mois;12;Desàmbar;décembre
 source;ANSD;ANSD;
 source;RGPH-5;Recensement bi (RGPH-5);
-source;EHCVM;Enquête E-ACH-CÉ-VÉ-EM;
-source;ENES;Enquête E-EN-E-ES;
-source;EDS;Enquête E-DE-ES;
-source;EDS-Continue;Enquête E-DE-ES Continue;
-source;IHPC;I-ACH-PÉ-CÉ;
+source;EHCVM;Enquête EHCVM;
+source;ENES;Enquête ENES;
+source;EDS;Enquête EDS;
+source;EDS-Continue;Enquête EDS Continue;
+source;IHPC;IHPC;
 source;BADIS;BADIS;
 source;Comptes nationaux;Comptes nationaux yi;
 source;MEN;Recensement lekool yi (MEN);
-source;CSA;CÉ-ES-A;
-source;ARTP;A-ER-TÉ-PÉ;
+source;CSA;CSA;
+source;ARTP;ARTP;
 source;MITTA;MITTA;
 source;Ministère de la Justice;Ministeeru Yoon wi;
 source;Ministère du Tourisme et des Loisirs;Ministeeru Mbiri Turism;
