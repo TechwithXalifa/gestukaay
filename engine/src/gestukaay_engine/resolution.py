@@ -375,6 +375,8 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
                                  defauts_desagregation().get(ind.dataset_id))
     if erreur:
         return erreur
+    if not retenues:  # modalités retenues une à une sans ligne commune (410 questions du 08/10 : IndexError)
+        return Introuvable("desagregation_ambigue", "aucune ligne pour cette combinaison de modalités")
     if len({o.desagregation for o in retenues}) > 1:  # ne devrait pas arriver après choisir()
         return Introuvable("desagregation_ambigue", "plusieurs lignes pour la même clé")
     toutes = socle.observations(ind.code)

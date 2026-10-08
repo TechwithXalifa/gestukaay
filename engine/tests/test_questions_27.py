@@ -153,3 +153,13 @@ def test_le_llm_ne_sert_pas_un_indicateur_non_verifie_hors_sujet():
                        transport=httpx.MockTransport(lambda r: httpx.Response(200, json={
                            "choices": [{"message": {"content": json.dumps(sortie)}, "finish_reason": "stop"}]})))
     assert Comprehension(client).comprendre(q).requete.indicateur is None
+
+
+def test_modalites_sans_ligne_commune_pas_de_plantage():
+    """Deux dimensions fixées une à une sans ligne commune : Introuvable, jamais IndexError (08/10)."""
+    from gestukaay_contracts.models import RequeteStructuree
+    from gestukaay_engine.resolution import Introuvable, resoudre
+    socle = Socle([obs("feujxob.riz-brise-ordinaire-au-detail", "SN", "2020", 1, a="Total", b="x"),
+                   obs("feujxob.riz-brise-ordinaire-au-detail", "SN", "2020", 2, a="y", b="Total")], SOURCES, "t")
+    r = resoudre(socle, RequeteStructuree(intention="valeur", indicateur=RIZ, zones=["SN"], confiance=1), "fr")
+    assert isinstance(r, Introuvable)
