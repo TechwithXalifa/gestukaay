@@ -14,6 +14,13 @@ test("trois étapes puis le résultat", async ({ page }) => {
   await page.getByRole("radio", { name: "Kolda" }).check({ force: true });
   await page.getByRole("button", { name: "Continuer" }).click();
 
+  // Étape facultative (décision 0039) : on peut la passer, on choisit ici la campagne
+  await expect(page.getByRole("heading", { name: /en ville ou à la campagne/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Passer cette question" })).toBeEnabled();
+  await accessible(page, "situer, milieu");
+  await page.getByRole("radio", { name: "À la campagne" }).check({ force: true });
+  await page.getByRole("button", { name: "Continuer" }).click();
+
   await expect(page.getByRole("heading", { name: "Combien de personnes vivent dans votre ménage ?" })).toBeVisible();
   await accessible(page, "situer, taille");
   await page.getByRole("button", { name: "Une personne de plus" }).click();
@@ -26,7 +33,22 @@ test("trois étapes puis le résultat", async ({ page }) => {
 
   await expect(page.getByText("Comparée aux moyennes publiées")).toBeVisible();
   await expect(page.getByText(/ANSD/).first()).toBeVisible(); // aucune valeur sans source
+  // v2 (0039) : seuil, milieu, graphique, groupes de bien-être, carte, « Et si… »
+  await expect(page.getByText(/seuil de pauvreté/).first()).toBeVisible();
+  await expect(page.getByText("Consommation moyenne par tête des ménages ruraux").first()).toBeVisible();
+  await expect(page.getByRole("figure", { name: /Votre ménage et les repères publiés/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Comment se répartit la population/ })).toBeVisible();
+  await expect(page.getByRole("group", { name: /Consommation moyenne par tête dans les 14 régions/ }).getByRole("button")).toHaveCount(14);
+  await expect(page.getByRole("heading", { name: "Et si… ?" })).toBeVisible();
   await accessible(page, "situer, résultat");
+
+  // le tableau remplace le graphique, sans perdre de repère
+  await page.getByRole("button", { name: /valeurs en tableau/ }).click();
+  await expect(page.getByRole("table")).toContainText("Votre ménage");
+
+  // « Et si… » : un changement rappelle l'API, le résultat reste à l'écran
+  await page.getByRole("combobox", { name: "Dépenses par mois" }).selectOption("200k_350k");
+  await expect(page.getByText("Comparée aux moyennes publiées")).toBeVisible();
 
   // Retour en arrière : la saisie est gardée, rien n'est envoyé ailleurs
   await page.getByRole("button", { name: "Recommencer" }).click();
