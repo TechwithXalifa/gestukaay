@@ -8,8 +8,9 @@
   - note vocale : transcription si elle existe (#28), sinon « je ne sais pas encore écouter » ;
   - question : le moteur, par le même chemin que le web (suivi, journal, lien /r/{id}) ;
   - réponse dans le mode de la question (choix de KBD, 07/10, décision 0029) : question écrite (français
-    ou wolof) -> le texte seul ; question vocale -> la note vocale en wolof (EF-20) puis une fiche d'une
-    ligne (chiffre exact et source) et, pour une approchée, les choix ; si la voix manque ou tombe en
+    ou wolof) -> le texte seul ; question vocale en wolof -> la note vocale en wolof (EF-20) puis une fiche d'une
+    ligne (chiffre exact et source) et, pour une approchée, les choix ; question vocale en français -> le texte
+    complet en français (pas de voix française, KBD 08/10) ; si la voix manque ou tombe en
     panne, le texte complet, comme pour une question écrite.
 Une erreur envoie le texte « erreur » puis remonte au backend, qui la journalise sans le numéro ; une
 panne de la voix (calcul ou envoi) est journalisée et le texte complet part à la place.
@@ -108,7 +109,9 @@ def _choisir(dest: str, choix_id: str, services: Services, envoyeur: Envoyeur) -
 
 def _envoyer(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> None:
     s: Sortant = formater(rep, envoyeur.gras)
-    if rep.reponse.transcription is not None and _dire(dest, rep, services, envoyeur):
+    # la voix est en wolof (EF-20, seule voix du projet) : une question vocale en français reçoit le texte complet,
+    # en français (choix de KBD, 08/10 : une note wolof répondait à une question posée en français)
+    if rep.reponse.transcription is not None and rep.reponse.langue == "wo" and _dire(dest, rep, services, envoyeur):
         if f := fiche(rep, envoyeur.gras):  # question vocale : la voix est partie, puis la fiche
             envoyeur.texte(dest, f)
     else:  # question écrite, ou voix indisponible ou en panne : le texte complet
