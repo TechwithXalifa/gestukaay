@@ -58,8 +58,27 @@ def formater(valeur: float, unite: str = "") -> tuple[str, bool]:
     return texte, _decimales(valeur) > d
 
 
+# Unités du portail écrites telles quelles dans la phrase (recette du 08/10) : « 1 398 En millions (U) »,
+# « 445 313 Individu », « 26 990 tonne ». Ce qui est un simple compte n'a pas d'unité à dire.
+_COMPTES = {"nombre", "nombres", "individu", "individus", "unite", "unites", "u"}
+_UNITES_LISIBLES = {"en millions u": "millions", "en millions": "millions", "en milliers": "milliers",
+                    "en millions fcfa": "millions de FCFA", "en millions de francs cfa": "millions de FCFA"}
+_AU_PLURIEL = {"tonne", "hectare", "baril", "litre", "membre", "declaration", "titre minier", "kilometre"}
+
+
+def unite_lisible(nombre: str, unite: str) -> str:
+    u = normaliser(unite)
+    if u in _COMPTES:
+        return ""
+    if u in _UNITES_LISIBLES:
+        return _UNITES_LISIBLES[u]
+    pluriel = nombre not in ("0", "1") and not nombre.startswith(("0,", "1,", "-"))
+    return f"{unite}s" if pluriel and u in _AU_PLURIEL and unite == unite.lower() else unite
+
+
 def avec_unite(nombre: str, unite: str) -> str:
-    if not unite or normaliser(unite) in ("nombre", "nombres"):  # « 307 Nombre » : un compte n'a pas d'unité à dire
+    unite = unite_lisible(nombre, unite) if unite else unite
+    if not unite:  # « 307 Nombre » : un compte n'a pas d'unité à dire
         return nombre
     if unite in ("%", "‰"):
         return f"{nombre}{FINE}{unite}"

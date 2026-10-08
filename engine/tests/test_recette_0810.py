@@ -134,3 +134,22 @@ def test_precision_non_publiee_pour_la_zone_donne_une_approchee():
     assert isinstance(a, Approchee)
     assert [(c.requete.zones, c.requete.desagregation) for c in a.choix] == [(["SN-KA"], None),
                                                                            (["SN"], {"milieu": "rural"})]
+
+
+# --- finitions --------------------------------------------------------------------------------------------
+
+def test_unites_lisibles_dans_la_phrase():
+    from gestukaay_engine.gabarits import avec_unite
+    assert avec_unite("1 398", "En millions (U)") == "1 398 millions"
+    assert avec_unite("445 313", "Individu") == "445 313"  # un simple compte
+    assert avec_unite("26 990", "tonne") == "26 990 tonnes"
+    assert avec_unite("1", "tonne") == "1 tonne"
+    assert avec_unite("20,4", "%").endswith("%")
+
+
+def test_evolution_sans_annee_de_la_premiere_a_la_derniere_periode():
+    socle = Socle([obs("jcvcajc.taux-de-pauvrete", "SN", p, v, **{"milieu-de-résidence": "Ensemble"})
+                   for p, v in (("2011", 46.7), ("2018", 37.8), ("2022", 37.5))], SOURCES, "test")
+    req = RequeteStructuree(intention="comparaison", indicateur="jcvcajc.taux-de-pauvrete", zones=[], confiance=0.9)
+    r = resoudre(socle, req, "fr", "Évolution du taux de pauvreté")
+    assert [x.periode.valeur for x in r.resultats] == ["2011", "2022"]

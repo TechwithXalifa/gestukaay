@@ -418,6 +418,8 @@ def _intention_de_la_question(req: RequeteStructuree, question: str, zones: list
         return req.model_copy(update={"intention": "classement", "zones": []})
     if req.intention == "classement" and not _CLASSEMENT.search(t) and zones == ["SN"]:
         return req.model_copy(update={"intention": "valeur", "zones": ["SN"]})
+    if req.intention == "valeur" and re.search(r"\bevolution\b", t) and len(req.zones) <= 1:
+        return req.model_copy(update={"intention": "comparaison"})  # « Évolution de l'espérance de vie »
     return req
 
 
