@@ -186,28 +186,22 @@ def obtenir_suggestions(
     """
     suggestions: list[Suggestion] = []
     codes_vus: set[str] = set()
+    textes_vus: set[str] = set()  # trois codes du salaire moyen donnaient trois fois la même phrase (recette 08/10)
 
-    # 1. Candidats proches identifiés
-    for cand in comprise.proches:
-        code = cand.indicateur.code
-        if code not in codes_vus:
-            sugg = verifier_suggestion(socle, code, zone)
-            if sugg:
-                codes_vus.add(code)
-                suggestions.append(sugg)
-            if len(suggestions) == 3:
-                return suggestions
+    def ajouter(code: str) -> None:
+        if code in codes_vus:
+            return
+        codes_vus.add(code)
+        sugg = verifier_suggestion(socle, code, zone)
+        if sugg and normaliser(sugg.question_suggeree) not in textes_vus:
+            textes_vus.add(normaliser(sugg.question_suggeree))
+            suggestions.append(sugg)
 
-    # 2. Repli sur les 3 phares P1 si nécessaire
-    for code_p1 in INDICATEURS_PHARES_P1:
-        if code_p1 not in codes_vus:
-            sugg = verifier_suggestion(socle, code_p1, zone)
-            if sugg:
-                codes_vus.add(code_p1)
-                suggestions.append(sugg)
-            if len(suggestions) == 3:
-                break
-
+    # 1. Candidats proches identifiés, 2. repli sur les phares P1
+    for code in [c.indicateur.code for c in comprise.proches] + list(INDICATEURS_PHARES_P1):
+        ajouter(code)
+        if len(suggestions) == 3:
+            break
     return suggestions
 
 

@@ -239,7 +239,19 @@ def projection(dataset_id: str) -> str | None:
     return "toutes" if "toutes" in n else "en_partie" if n else None
 
 
-def _verifie_en_tete(code: str | None, candidats, zones, periodes) -> str | None:
+IDF_NOMME = 5.0  # « condamnées » (7,4), « être » de bien-être (5,7) ; pas « nombre » (2,9) ni « bien » (3,1)
+
+
+def _nomme_par_la_question(choisi, tete, question: str) -> bool:
+    """Recette du 08/10 : le LLM avait raison (« personnes condamnées », « indice de bien-être ») et A2 le
+    remplaçait par la tête vérifiée (« personnes emprisonnées », « indice de Gini »). Un mot rare de la question
+    présent dans le LIBELLÉ du choix et absent de celui de la tête : la question nomme le choix, on le garde."""
+    lib_choisi, lib_tete = set(mots(choisi.libelle_fr)), set(mots(tete.libelle_fr))
+    ix = index()
+    return any(ix.idf.get(m, 0) >= IDF_NOMME and m in lib_choisi and m not in lib_tete for m in ix.requete(question))
+
+
+def _verifie_en_tete(code: str | None, candidats, zones, periodes, question: str = "") -> str | None:
     """A2 (passe du 07/10) : le LLM prend parfois un doublon (projection de 2013 au lieu du RGPH-5, jeu arrêté
     en 2023 au lieu de 2025). S'il choisit un indicateur NON vérifié alors que le premier candidat est un
     indicateur vérifié du même domaine qui couvre la zone et l'année demandées, on prend le vérifié."""
@@ -248,6 +260,8 @@ def _verifie_en_tete(code: str | None, candidats, zones, periodes) -> str | None
     if not (tete and choisi) or tete.code == choisi.code:
         return code
     if choisi.verification == "verifie" or tete.verification != "verifie" or tete.domaine != choisi.domaine:
+        return code
+    if _nomme_par_la_question(choisi, tete, question):
         return code
     niveaux = {zones_ref()[z].niveau for z in zones if z != "SN" and z in zones_ref()}
     if not niveaux <= set(tete.niveaux_zone) and niveaux:
@@ -386,7 +400,7 @@ class Comprehension:
         # règles, vocabulaire validé (« moins de 5 » et non « 0-5 ») ; les autres restent, le moteur les
         # écarte si la question ne les cite pas et que le jeu ne les publie pas (moteur._sans_precision_inventee)
         desag |= {k: v for k, v in desagregation_citee(question).items() if k in desag}
-        code = _hors_sujet(_verifie_en_tete(code, candidats, zones, periodes), candidats, question)
+        code = _hors_sujet(_verifie_en_tete(code, candidats, zones, periodes, question), candidats, question)
         return RequeteStructuree(intention=intention, indicateur=code if intention != "hors_perimetre" else None,
                                  zones=zones, periode=periode, desagregation=desag or None,
                                  ordre=s.ordre, confiance=round(s.confiance, 2))
@@ -432,6 +446,7 @@ _CADRE = {  # mots de la question qui ne disent pas QUOI mesurer
     "sont", "est", "sera", "etait", "ete", "maintenant", "now", "nombreux", "beaucoup",
     "mettre", "compte", "compter", "compten", "vit", "vivent", "dekk", "deuk", "nekk", "nek", "am", "amul",
     "lim", "limu", "laaj", "xam", "bari", "tollu", "mujj", "rural", "urbain", "rurale", "urbaine", "milieu",
+    "personne", "gens", "individu",
     "femme", "homme", "fille", "garcon", "jeune", "age", "elementaire", "primaire", "secondaire", "cycle",
     "jigeen", "goor", "ndaw", "mag", "xale", "atum", "ren", "daaw", "tey", "prochaine", "prochain", "passee",
     "passe", "cette", "seront", "futur", "future", "avenir", "acces", "accede", "dispose", "disposent",
@@ -444,7 +459,8 @@ _CADRE = {  # mots de la question qui ne disent pas QUOI mesurer
     "artisanale", "industrielle", "continentale", "maritime", "ordinaire", "brise", "detail", "gro",
 }
 _GENTILE = re.compile(r"(ais|aise|ien|ienne|ain|aine)s?$")  # « touristes français »
-_OUTILS = _FR | _WO | _WO_FORTS  # petits mots de détection de la langue (français et wolof)
+# petits mots de détection de la langue (français et wolof), sans les mots qui disent quoi mesurer
+_OUTILS = (_FR | _WO | _WO_FORTS) - {"habitants", "menages", "personnes", "nombre"}
 # Mots trop généraux pour dire le sujet d'un indicateur (« Dépenses PUBLIQUES d'éducation » n'est pas la dette
 # publique, « INDICE de Gini » se demande aussi « les inégalités »)
 _PAS_UN_SUJET = _CADRE | {"indice", "publique", "public", "general", "generale", "national", "nationale", "effectif"}

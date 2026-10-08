@@ -55,7 +55,7 @@ def rattachements() -> dict[str, Rattachement]:
     if not f.exists():
         return {}
     with f.open(encoding="utf-8") as fh:
-        return {
+        declares = {
             normaliser(r["terme"]): Rattachement(
                 type=r["type"],
                 terme=r["terme"],
@@ -64,6 +64,25 @@ def rattachements() -> dict[str, Rattachement]:
             )
             for r in csv.DictReader(fh, delimiter=";")
         }
+    return _villes_chefs_lieux() | declares  # une ligne déclarée prime
+
+
+def _villes_chefs_lieux() -> dict[str, Rattachement]:
+    """« la ville de Dakar » : le département du même nom, puis la région (recette du 08/10 : seules Thiès,
+    Kaolack et Kolda étaient déclarées ; « ville de Dakar » finissait en « cette donnée n'existe pas »)."""
+    out: dict[str, Rattachement] = {}
+    for z in zones().values():
+        if z.niveau not in ("region", "departement"):
+            continue
+        region = z if z.niveau == "region" else zones().get(z.parent or "")
+        if region is None or normaliser(z.libelle_fr) != normaliser(region.libelle_fr):
+            continue  # seul le département chef-lieu porte le nom de la ville
+        dep = next((d.code for d in zones().values() if d.niveau == "departement" and d.parent == region.code
+                    and normaliser(d.libelle_fr) == normaliser(region.libelle_fr)), None)
+        cle = f"ville de {normaliser(region.libelle_fr)}"
+        out[cle] = Rattachement("lieu", cle, tuple(c for c in (dep, region.code) if c),
+                                "Commune chef-lieu du département et de la région du même nom (référentiel des zones)")
+    return out
 
 
 @dataclass(frozen=True)
@@ -390,6 +409,24 @@ def proposer_approchee(
             f"Ce chiffre n'a pas été publié pour l'année {p_demandee} ; "
             "voici les années les plus proches pour lesquelles l'ANSD publie ce chiffre. "
             "Est-ce ce que vous cherchez ?"
+        )
+
+    # -----------------------------------------------------------------------
+    # Cas 6 : précision citée non publiée pour cette zone (« pauvreté rurale à Kaffrine », recette du 08/10 :
+    # refus « cette donnée n'existe pas ») -> la zone sans la précision, puis le Sénégal avec la précision
+    # -----------------------------------------------------------------------
+    if not candidats_choix and introuvable and introuvable.raison == "desagregation_absente" and requete.desagregation:
+        z_code = requete.zones[0] if requete.zones else "SN"
+        nom_lieu_concerne = _nom_zone(z_code, langue)
+        precision = ", ".join(requete.desagregation.values())
+        candidats_choix.append((requete.model_copy(update={"desagregation": None}),
+                                f"{_nom_indicateur(code_ind, langue)} - {_nom_zone(z_code, langue)}"))
+        if z_code != "SN":
+            candidats_choix.append((requete.model_copy(update={"zones": ["SN"]}),
+                                    f"{_nom_indicateur(code_ind, langue)} ({precision}) - {_nom_zone('SN', langue)}"))
+        reformulation = (
+            f"Ce chiffre n'est pas publié ({precision}) pour {nom_lieu_concerne} ; "
+            "voici les chiffres les plus proches que l'ANSD publie. Est-ce ce que vous cherchez ?"
         )
 
     # -----------------------------------------------------------------------

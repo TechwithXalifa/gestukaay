@@ -58,6 +58,8 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "kouran": ("eclairage", "electricite"),
     "deces": ("mortalite",), "faatu": ("mortalite",), "mourir": ("mortalite",),
     "enfants": ("enfants",), "xale": ("enfants",), "fecondite": ("fecondite", "synthetique"),
+    "doom": ("enfants",),  # doom = enfant (de quelqu'un) : « ñaata doom la jigéen di am » = l'ISF (recette 08/10)
+    "gaz": ("hydrocarbures", "nm3"), "petrole": ("hydrocarbures", "baril"),
     "inegalites": ("gini",), "pib": ("produit", "interieur", "brut"),
     "telephone": ("telephonie", "mobile"), "portable": ("telephonie", "mobile"), "telefon": ("telephonie", "mobile"),
     "touristes": ("arrivees", "residents"), "prison": ("emprisonnees",), "kaso": ("emprisonnees",),
@@ -152,6 +154,13 @@ _AILLEURS = {"monde", "mondial", "mondiale", "afrique", "africain", "europe", "e
              "internationale", "france", "gambie", "mali", "mauritanie", "guinee", "maroc", "chine", "usa"}
 
 
+def _debut_de_zone(nom: str, question: str) -> bool:
+    """« Sant » dans « à Sant Louis », « St » dans « St-Louis » : le début d'un nom de zone en plusieurs mots."""
+    t, n = texte_normalise(question).split(), texte_normalise(nom).split()
+    return bool(n) and any(t[i] == n[0] and any(resoudre(" ".join(t[i:i + k])) for k in (2, 3, 4))
+                           for i in range(len(t)))
+
+
 def lieux_inconnus(question: str) -> list[str]:
     """Lieux cités mais absents du référentiel : ils ne doivent jamais devenir « le Sénégal ».
     « la ville de Thiès » n'est pas la région de Thiès : signalée aussi (réponse approchée, #12)."""
@@ -159,7 +168,8 @@ def lieux_inconnus(question: str) -> list[str]:
     for m in _LIEU.finditer(question):
         nom = m[1]
         gentile = re.search(r"(ais|aise|ien|ienne|ain|aine)s?$", nom.lower())  # Sénégalais, Kaolackois…
-        if nom.lower() not in _PAS_UN_LIEU and not gentile and not resoudre(nom) and not any(nom in o for o in out):
+        if (nom.lower() not in _PAS_UN_LIEU and not gentile and not resoudre(nom) and not any(nom in o for o in out)
+                and not _debut_de_zone(nom, question)):
             out.append(nom)
     deja = {normaliser(o) for o in out}
     vocab = index().idf
@@ -167,7 +177,7 @@ def lieux_inconnus(question: str) -> list[str]:
         nom = m[1].rstrip("'’-")
         n = normaliser(nom)
         if (n in deja or n in _PAS_UN_LIEU or n in _PAS_UN_LIEU_MAJ or resoudre(nom) or forme(n) in vocab
-                or n in vocab or n in _SYN or n in _MOIS or any(n in d for d in deja)):
+                or n in vocab or n in _SYN or n in _MOIS or any(n in d for d in deja) or _debut_de_zone(nom, question)):
             continue
         out.append(nom)
         deja.add(n)
@@ -245,6 +255,22 @@ def milieu_cite(texte: str) -> str | None:
     return None
 
 
+_RATIO = re.compile(r"\b(pour|par) (1 ?000|10 ?000|100 ?000|mille|cent mille|cent) (habitants?|naissances?|personnes?"
+                    r"|femmes?|enfants?)\b|\bpar (habitant|tete|personne)\b|\bdensite\b")
+_RATIO_PUBLIE = re.compile(r"\b(pour|par)\b|densite|%|pourcentage|taux|proportion")
+
+
+def ratio_non_publie(code: str, question: str) -> bool:
+    """La question demande un ratio (« pour 10 000 habitants », « par habitant », « densité ») que
+    l'indicateur ne publie pas tel quel : le servir serait donner un autre chiffre."""
+    if not _RATIO.search(texte_normalise(question)):
+        return False
+    ind = indicateurs().get(code)
+    if ind is None:
+        return False
+    return not _RATIO_PUBLIE.search(normaliser(f"{ind.libelle_fr} {ind.unite_affichee or ind.unite}"))
+
+
 def deux_sexes(question: str) -> bool:
     """« entre hommes et femmes » : deux catégories à comparer, que la résolution ne sait pas encore servir."""
     t = texte_normalise(question)
@@ -256,7 +282,9 @@ def desagregation_citee(question: str) -> dict[str, str]:
     Prudente : « une femme » (ISF) n'est pas une désagrégation, « les femmes » en est une."""
     t = texte_normalise(question)
     d: dict[str, str] = {}
-    if re.search(r"\b(femmes|filles|jigeen|djiguene)\b", t):
+    # « jigéen ju nekk… » = une femme (ISF : « ñaata doom la jigéen di am »), comme « une femme » en français
+    une_femme = re.search(r"\b(jigeen|djiguene) (ju|bu|bou|jou)\b|\bdoom\b", t)
+    if re.search(r"\b(femmes|filles|jigeen|djiguene)\b", t) and not une_femme:
         d["sexe"] = "femmes"
     elif re.search(r"\b(hommes|garcons|goor)\b", t):
         d["sexe"] = "hommes"

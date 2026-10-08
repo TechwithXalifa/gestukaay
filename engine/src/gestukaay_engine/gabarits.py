@@ -299,13 +299,21 @@ def _notes_de_jeux() -> dict[str, str]:
                 if r["zone"] != "SN" and r["note"]}
 
 
+NOTE_MENAGES_AGRICOLES = "Mesuré parmi les ménages agricoles (enquête agricole annuelle), pas toute la population."
+
+
 def note_perimetre(r: Resultat) -> str | None:
     ind = indicateurs()[r.indicateur.code]
     if note := _notes_de_jeux().get(ind.dataset_id):
         return note.split(" (")[0] + "."
-    return {"region": "Région administrative, pas la ville.",
+    zone = {"region": "Région administrative, pas la ville.",
             "departement": "Département, pas la commune.",
             "academie": "Inspection d'académie, pas la région administrative."}.get(r.zone.niveau)
+    # « Taux d'alphabétisation au Sénégal » : 45,3 %, mesuré parmi les membres des ménages agricoles (DAPSA),
+    # servi comme un taux national (recette du 08/10). Le libellé ne le dit pas, la note le dit.
+    if "menages agricoles" in normaliser(ind.jeu) and "agricole" not in normaliser(ind.libelle_fr):
+        return f"{NOTE_MENAGES_AGRICOLES} {zone}" if zone else NOTE_MENAGES_AGRICOLES
+    return zone
 
 
 def citation(r: Resultat, consulte_le: date, url: str) -> str:
