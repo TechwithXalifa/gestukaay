@@ -194,6 +194,15 @@ def periodes_citees(question: str) -> list[str]:
     return out
 
 
+def milieu_cite(texte: str) -> str | None:
+    """« rural » ou « urbain » si le texte (normalisé) cite un milieu."""
+    if re.search(r"\b(ruraux|rurales?|rural|goxaan)\b", texte):  # « gox-goxaan yi » = le milieu rural (KBD)
+        return "rural"
+    if re.search(r"\b(urbains?|urbaines?)\b", texte):
+        return "urbain"
+    return None
+
+
 def desagregation_citee(question: str) -> dict[str, str]:
     """Désagrégation sans ambiguïté, en vocabulaire fixe (décision 0010), pour les règles locales.
     Prudente : « une femme » (ISF) n'est pas une désagrégation, « les femmes » en est une."""
@@ -203,10 +212,8 @@ def desagregation_citee(question: str) -> dict[str, str]:
         d["sexe"] = "femmes"
     elif re.search(r"\b(hommes|garcons|goor)\b", t):
         d["sexe"] = "hommes"
-    if re.search(r"\b(ruraux|rurales?|rural|goxaan)\b", t):  # « gox-goxaan yi » = le milieu rural (KBD)
-        d["milieu"] = "rural"
-    elif re.search(r"\b(urbains?|urbaines?)\b", t):
-        d["milieu"] = "urbain"
+    if milieu := milieu_cite(t):
+        d["milieu"] = milieu
     if m := re.search(r"\b(\d{1,2})\s*(?:a|ba|-)\s*(\d{1,2})\s*ans\b", t):
         d["age"] = f"{m[1]}-{m[2]}"
     elif m := re.search(r"\bmoins de (\d{1,2}) ans\b", t):
@@ -236,10 +243,12 @@ class Index:
     K1, B = 1.2, 0.75
     BONUS_VERIFIE = 1.5
     BONUS_NIVEAU = 1.5
+    BONUS_MILIEU, MALUS_MILIEU = 1.25, 0.8
 
     def __init__(self, inds: dict[str, Indicateur]):
         self.inds = list(inds.values())
         self.docs = [Counter(mots(f"{x.libelle_fr} {x.libelle_wo} {nom_du_jeu(x.jeu)}")) for x in self.inds]
+        self.milieux = [milieu_cite(normaliser(x.libelle_fr)) for x in self.inds]
         self.moyenne = sum(sum(d.values()) for d in self.docs) / max(len(self.docs), 1)
         n = len(self.docs)
         freq = Counter(m for d in self.docs for m in d)
@@ -258,9 +267,11 @@ class Index:
         """niveaux : niveaux des zones citées (« academie »…). Un indicateur publié à ce niveau
         passe devant celui qui ne l'est pas : le même concept existe souvent dans plusieurs jeux
         (taux brut de scolarisation national dans qzvvpic, par académie dans ervtjfc)."""
-        q = self.requete(question)
+        # le milieu départage sans chercher : « population rurale » n'est pas « électrification rurale » (#116)
+        q = [m for m in self.requete(question) if not milieu_cite(m)]
+        milieu = milieu_cite(texte_normalise(question))
         scores = []
-        for x, d in zip(self.inds, self.docs, strict=True):
+        for x, d, m_ind in zip(self.inds, self.docs, self.milieux, strict=True):
             longueur = sum(d.values())
             s = 0.0
             for m in q:
@@ -272,6 +283,9 @@ class Index:
                 s *= self.BONUS_VERIFIE if x.verification == "verifie" else 1
                 if niveaux:
                     s *= self.BONUS_NIVEAU if niveaux <= set(x.niveaux_zone) else 1
+                # « taux d'électrification » : le national passe devant le rural, à égalité de mots (#116)
+                if m_ind:
+                    s *= self.BONUS_MILIEU if m_ind == milieu else self.MALUS_MILIEU
                 scores.append(Candidat(x, s))
         scores.sort(key=lambda c: (-c.score, c.indicateur.priorite, c.indicateur.code))
         return scores[:k]

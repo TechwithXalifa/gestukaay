@@ -58,6 +58,16 @@ def test_candidats_trouves_sans_llm():
     assert tbs[0].indicateur.code == "ervtjfc.taux-brut-de-scolarisation"
 
 
+def test_milieu_departage_sans_chercher():
+    """#116 : le national sans milieu cité, le rural s'il l'est ; « rurale » seul ne fait pas
+    remonter l'électrification rurale pour « population rurale »."""
+    def tete(q):
+        return index().chercher(q)[0].indicateur.code
+    assert tete("Quel est le taux d'électrification au Sénégal ?") == "vlaobkb"
+    assert tete("Quel est le taux d'électrification rurale ?") == "vcvtdsf"
+    assert "vcvtdsf" not in [c.indicateur.code for c in index().chercher("Population rurale")]
+
+
 # --- avec LLM simulé ----------------------------------------------------------
 
 def test_le_llm_choisit_un_numero_jamais_un_code():

@@ -288,7 +288,8 @@ def portee_par_indicateur(ind: Indicateur, valeur: str) -> bool:
     """« riz » pour « Prix du riz brisé », « moins de 5 » pour « … enfants de moins de 5 ans » :
     la précision est déjà dans l'indicateur, ce n'est pas une dimension à chercher."""
     texte = f" {normaliser(f'{ind.libelle_fr} {ind.valeur_portail} {ind.jeu}')} "
-    return all(f" {m} " in texte for m in normaliser(valeur).split())
+    # « rural » pour « Taux d'électrification rurale » (#116) : accord en genre et en nombre
+    return all(re.search(rf" {re.escape(m)}(e|s|es)? ", texte) for m in normaliser(valeur).split())
 
 
 def periode_par_defaut(lignes: list[Observation]) -> tuple[str, bool]:

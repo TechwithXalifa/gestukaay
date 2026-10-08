@@ -14,7 +14,7 @@ def obs(ind, zone, periode, valeur, nature="observee", base="", **dims):
 
 
 SOURCES = {d: SourceJeu(d, "ANSD", "Agence nationale", f"Jeu {d}", date(2023, 10, 31), "", f"https://x/{d}")
-           for d in ("pvswjnd", "dwibrlf", "rgohtcc", "whkisxc", "feujxob", "pexioke")}
+           for d in ("pvswjnd", "dwibrlf", "rgohtcc", "whkisxc", "feujxob", "pexioke", "vcvtdsf")}
 SOCLE = Socle([
     obs("pvswjnd", "SN", "2023", 18126390, sexe="Total", age="Total"),
     obs("pvswjnd", "SN-TH", "2023", 2463677, sexe="Total", age="Total"),
@@ -30,6 +30,7 @@ SOCLE = Socle([
     obs("whkisxc", "SN", "2018-12", 55538, nationalité="Français"),
     obs("whkisxc", "SN", "2018-12", 9000, nationalité="Algériens"),
     obs("feujxob.riz-brise-ordinaire-au-detail", "SN-DK", "2026-03", 309.026438943514),
+    obs("vcvtdsf", "SN", "2023", 65.6),
     obs("pexioke.esperance-de-vie-a-la-naissance", "SN", "2035", 74.6, nature="projection",
         base="Projections démographiques RGPHAE 2013", sexe="Total"),
 ], SOURCES)
@@ -90,6 +91,9 @@ def test_modalite_nommee_dans_la_question_sinon_choix():
 def test_precision_deja_portee_par_l_indicateur():
     x = une(resoudre(SOCLE, req("feujxob.riz-brise-ordinaire-au-detail", produit="riz")))
     assert (x.zone.code, x.periode.libelle, x.valeur_affichee) == ("SN-DK", "mars 2026", "309")
+    # accord en genre : « rural » est porté par « Taux d'électrification rurale » (#116)
+    x = une(resoudre(SOCLE, req("vcvtdsf", milieu="rural")))
+    assert (x.periode.valeur, x.valeur) == ("2023", 65.6)
 
 
 def test_lieu_hors_referentiel_jamais_national():
