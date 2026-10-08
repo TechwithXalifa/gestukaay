@@ -141,8 +141,8 @@ def test_zones_et_periodes_de_kbd():
 
 
 @pytest.mark.parametrize("sigle, dit", [  # KBD (fiche 3) : épelés comme en français
-    ("ANSD", "A-EN-ES-DE"), ("EHCVM", "E-ACH-CÉ-VÉ-EM"), ("ENES", "E-EN-E-ES"), ("EDS", "E-DE-ES"),
-    ("IHPC", "I-ACH-PÉ-CÉ"), ("CSA", "CÉ-ES-A"), ("ARTP", "A-ER-TÉ-PÉ"), ("RGPH-5", "ER-JÉ-PÉ-ACH cinq"),
+    ("ANSD", "a, èn, ès, dé"), ("EHCVM", "e, ach, cé, vé, èm"), ("ENES", "e, èn, e, ès"), ("EDS", "e, dé, ès"),
+    ("IHPC", "i, ach, pé, cé"), ("CSA", "cé, ès, a"), ("ARTP", "a, èr, té, pé"), ("RGPH-5", "èr, jé, pé, ach, cinq"),
 ])
 def test_sigles_epeles_comme_kbd(sigle, dit):
     assert epeler(sigle) == dit
@@ -198,7 +198,7 @@ def test_taux_regional_compare_au_national_avec_la_source():
     assert t.startswith("Tolluwaayu ñàkk liggéey bi ci diiwaanu Cees mi ngi tollu ci ñaar-fukk ak ñaar "
                         "wirgil juróom-ñaar ci téeméer ci atum deux mille vingt-cinq.")
     assert "Loolu dafa ëpp limu réew mi gépp, di ñaar-fukk wirgil ñeent ci téeméer" in t
-    assert "A-EN-ES-DE" in t and not re.search(r"\d", t)
+    assert "a, èn, ès, dé" in t and not re.search(r"\d", t)
 
 
 def test_comparaison_de_deux_regions():
@@ -227,7 +227,7 @@ def test_classement_population_dit_rey_et_pas_ci_ci():
 
 @pytest.mark.parametrize("question, debut", [
     ("Combien d'habitants à Thiès en 2045 ?", "Gëstukaay du xeyma lu jëm ci ëlëg."),
-    ("Combien d'habitants à Paris ?", "Lim bii amul ci xibaari A-EN-ES-DE yi ñu yor."),
+    ("Combien d'habitants à Paris ?", "Lim bii amul ci xibaari a, èn, ès, dé yi ñu yor."),
     ("azerty qsdf", "Xéyna dégguma la bu baax."),
 ])
 def test_refus(question, debut):
@@ -243,8 +243,8 @@ def test_une_note_ne_depasse_pas_20_s():
 
 def test_majuscules_et_sigles():
     from gestukaay_engine.parole import _nettoyer
-    assert _nettoyer("ci atum. lim bi (PIB), PRODUIT INTERIEUR BRUT, A-EN-ES-DE, MITTA") == \
-        "Ci atum. Lim bi, PÉ-I-BÉ, produit interieur brut, A-EN-ES-DE, MITTA"
+    assert _nettoyer("ci atum. lim bi (PIB), PRODUIT INTERIEUR BRUT, a, èn, ès, dé, MITTA") == \
+        "Ci atum. Lim bi, pé, i, bé, produit interieur brut, a, èn, ès, dé, MITTA"
 
 
 def test_ci_reew_mi_seulement_pour_le_senegal():
@@ -271,11 +271,11 @@ def _avec_nature(nature: str, base: str) -> str | None:
 def test_projection_annoncee_a_l_oral():
     # 0002 : une projection est toujours étiquetée ; pour qui écoute sans lire, l'audio est la seule étiquette
     t = _avec_nature("projection", "Projections démographiques 2023-2073")
-    assert "Lii ab xeyma la ngir ëlëg, bu bawoo ci A-EN-ES-DE, Projections démographiques" in t
+    assert "Lii ab xeyma la ngir ëlëg, bu bawoo ci a, èn, ès, dé, Projections démographiques" in t
 
 
 def test_estimation_annoncee_a_l_oral():
-    assert "Lii ab xeyma la, bu bawoo ci E-ACH-CÉ-VÉ-EM" in _avec_nature("estimation", "EHCVM 2021")
+    assert "Lii ab xeyma la, bu bawoo ci e, ach, cé, vé, èm" in _avec_nature("estimation", "EHCVM 2021")
 
 
 def test_valeur_observee_sans_etiquette():
@@ -302,7 +302,7 @@ def test_reponse_ecrite_en_wolof():
     rep = MOTEUR.repondre(AskRequest(question="Combien d'habitants à Thiès ?"))
     t = texte_ecrit(rep, SOCLE)
     assert "2 463 677 nit" in t and "2023" in t and "Cees" in t
-    assert "deux mille" not in t and "milyoŋ" not in t and "A-EN-ES-DE" not in t
+    assert "deux mille" not in t and "milyoŋ" not in t and "a, èn, ès, dé" not in t
     assert texte_parle(rep, SOCLE) != t  # la voix garde les mots
     r = en_wolof(rep, SOCLE).reponse
     assert r.langue == "wo" and r.explication == t
@@ -314,3 +314,12 @@ def test_voix_d_une_approchee_deja_ecrite_en_wolof():
     assert rep.reponse.issue == "approchee" and rep.reponse.langue == "wo"
     dit = texte_parle(rep, SOCLE)
     assert dit.startswith(rep.reponse.reformulation.split(":")[0].strip()) and "Benn" in dit.replace("benn", "Benn")
+
+
+def test_aucune_epellation_ecrite_a_la_main():  # revue de SAN sur #176 : la voix épelle, les textes gardent le sigle
+    from pathlib import Path
+    racine = Path(__file__).resolve().parents[1] / "src" / "gestukaay_engine"
+    for f in ("parole_wo.csv", "gabarits_wo.csv", "conversation.csv"):
+        lignes = (racine / f).read_text(encoding="utf-8").splitlines()
+        assert not [x for x in lignes if not x.startswith("lettre;")
+                    and re.search(r"\b(?:A|BÉ|CÉ|DE|E|EF|JÉ|ACH|I|EL|EM|EN|PÉ|ER|ES|TÉ|VÉ)(?:-(?:A|BÉ|CÉ|DE|E|EF|JÉ|ACH|I|EL|EM|EN|PÉ|ER|ES|TÉ|VÉ)){1,}\b", x)], f

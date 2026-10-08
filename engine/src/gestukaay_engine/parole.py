@@ -12,7 +12,7 @@ module ne fait que remplir les trous :
   prend -i (« juróom-ñaari nit », « junniy ton ») ;
 - `{periode}` : les années se disent en français (« ci atum deux mille vingt-trois ») ;
 - `{zone}` porte sa préposition (« ci diiwaanu Cees »), `{nom_zone}` non (« diiwaanu Cees ») ;
-- `{source}` : les sigles s'épellent à la française (« A-EN-ES-DE »).
+- `{source}` : les sigles s'épellent à la française, en minuscules (« a, èn, ès, dé », choix de KBD à l'écoute).
 
 Une note fait 20 s au plus (#30) : on prend la variante la plus courte, puis on retire la source
 (elle reste dans le texte écrit), « dernière donnée publiée », enfin la comparaison au national.
@@ -297,10 +297,11 @@ def periode_wo(p: str) -> str:
 
 
 def epeler(sigle: str) -> str:
-    """« ANSD » -> « A-EN-ES-DE », « RGPH-5 » -> « ER-JÉ-PÉ-ACH cinq » (KBD : comme en français)."""
+    """« ANSD » -> « a, èn, ès, dé », « RGPH-5 » -> « èr, jé, pé, ach, cinq » (KBD : comme en français ; en
+    minuscules et séparées par des virgules, Oolel lit chaque lettre, ce qu'il ne faisait pas avec « A-EN-ES-DE »)."""
     lettres, _, chiffres = sigle.partition("-")
-    t = "-".join(_parole()["lettre"][c] for c in lettres.upper() if c in _parole()["lettre"])
-    return f"{t} {fr_entier(int(chiffres))}" if chiffres.isdigit() else t
+    t = ", ".join(_parole()["lettre"][c] for c in lettres.upper() if c in _parole()["lettre"])
+    return f"{t}, {fr_entier(int(chiffres))}" if chiffres.isdigit() else t
 
 
 def _sigles(texte: str) -> str:
@@ -314,7 +315,7 @@ def _sigles(texte: str) -> str:
             return m[0]
         return epeler(m[0]) if base in sigles else m[0].lower()
 
-    # pas un morceau déjà épelé : « EN » dans « A-EN-ES-DE » n'est pas un sigle
+    # un sigle écrit seulement (les épellations sont en minuscules, rien à relire)
     return re.sub(r"(?<![-\w])[A-ZÀ-Ý]{2,}(?:-\d+)?(?![-\w])", un, texte)
 
 
@@ -567,9 +568,10 @@ def _blocs(r, socle: Socle, choix: _Choix, n: int = 3) -> list[tuple[int, str]] 
 
 @cache
 def _formes_ecrites() -> tuple[tuple[str, str], ...]:
-    """Ce que la voix épelle, remis tel qu'écrit : « A-EN-ES-DE » -> « ANSD » (sigles de `parole_wo.csv`)."""
+    """Ce que la voix épelle, remis tel qu'écrit : « a, èn, ès, dé » -> « ANSD » (sigles de `parole_wo.csv`)."""
     formes = {epeler(sigle): sigle for sigle in _parole()["sigle"]}
-    formes["we we we poñ A-EN-ES-DE poñ sn"] = "www.ansd.sn"
+    formes[f"we we we poñ {epeler('ANSD')} poñ sn"] = "www.ansd.sn"  # dit
+    formes["we we we poñ ANSD poñ sn"] = "www.ansd.sn"  # écrit, avant l'épellation
     return tuple(sorted(formes.items(), key=lambda kv: len(kv[0]), reverse=True))
 
 

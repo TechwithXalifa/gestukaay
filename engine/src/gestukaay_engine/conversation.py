@@ -38,8 +38,7 @@ def _textes() -> dict[str, tuple[str, str]]:
 def texte(cle: str, langue: str = "fr", **trous: str) -> str:
     fr, wo = _textes()[cle]
     t = (wo if langue == "wo" and wo.strip() else fr).format(**trous).strip()
-    # à l'écrit, le sigle tel qu'écrit (0032) ; le texte de KBD garde la forme parlée pour la voix
-    return t.replace("A-EN-ES-DE", "ANSD")
+    return t  # sigles écrits (« ANSD ») : la voix les épelle elle-même (parole._sigles)
 
 
 def _t(question: str) -> str:

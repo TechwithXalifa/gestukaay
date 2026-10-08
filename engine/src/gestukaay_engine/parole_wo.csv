@@ -21,24 +21,24 @@ mois;09;Sattàmbar;septembre
 mois;10;Oktobar;octobre
 mois;11;Nowàmbar;novembre
 mois;12;Desàmbar;décembre
-source;ANSD;A-EN-ES-DE;
+source;ANSD;ANSD;
 source;RGPH-5;Recensement bi (RGPH-5);
-source;EHCVM;Enquête E-ACH-CÉ-VÉ-EM;
-source;ENES;Enquête E-EN-E-ES;
-source;EDS;Enquête E-DE-ES;
-source;EDS-Continue;Enquête E-DE-ES Continue;
-source;IHPC;I-ACH-PÉ-CÉ;
+source;EHCVM;Enquête EHCVM;
+source;ENES;Enquête ENES;
+source;EDS;Enquête EDS;
+source;EDS-Continue;Enquête EDS Continue;
+source;IHPC;IHPC;
 source;BADIS;BADIS;
 source;Comptes nationaux;Comptes nationaux yi;
 source;MEN;Recensement lekool yi (MEN);
-source;CSA;CÉ-ES-A;
-source;ARTP;A-ER-TÉ-PÉ;
+source;CSA;CSA;
+source;ARTP;ARTP;
 source;MITTA;MITTA;
 source;Ministère de la Justice;Ministeeru Yoon wi;
 source;Ministère du Tourisme et des Loisirs;Ministeeru Mbiri Turism;
 source;Direction des pêches maritimes;Njiitug nàpp gi ci géej gi;
 source;Administration pénitentiaire;Ñiy saytu kaso yi;
-site;www.ansd.sn;we we we poñ A-EN-ES-DE poñ sn;
+site;www.ansd.sn;we we we poñ ANSD poñ sn;
 precision;Masculin;Góor;
 precision;Homme;Góor;comme Masculin
 precision;Féminin;Jigéen;
@@ -70,32 +70,32 @@ unite;pour_mille;ci junni;
 nombre;virgule;wirgil;
 nombre;dërëm;dërëm;
 nombre;sefaa;sefaa;
-lettre;A;A;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;B;BÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;C;CÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;D;DE;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;E;E;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;F;EF;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;G;JÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;H;ACH;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;I;I;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;J;JI;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;K;KA;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;L;EL;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;M;EM;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;N;EN;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;O;O;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;P;PÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;Q;KU;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;R;ER;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;S;ES;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;T;TÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;U;U;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;V;VÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;W;DOUBLE-VÉ;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;X;IKS;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;Y;I-GREC;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
-lettre;Z;ZÈD;Sigles épelés à la française (KBD 6/10), comme A-EN-ES-DE
+lettre;A;a;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;B;bé;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;C;cé;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;D;dé;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;E;e;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;F;èf;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;G;jé;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;H;ach;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;I;i;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;J;ji;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;K;ka;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;L;èl;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;M;èm;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;N;èn;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;O;o;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;P;pé;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;Q;ku;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;R;èr;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;S;ès;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;T;té;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;U;u;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;V;vé;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;W;double vé;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;X;iks;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;Y;i grec;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
+lettre;Z;zèd;Sigles épelés à la française, en minuscules et séparés par des virgules (KBD à l'écoute d'Oolel, 08/10) : a, èn, ès, dé
 sigle_mot;BADIS;BADIS;Lu tel quel (fiche 3)
 sigle_mot;MITTA;MITTA;Lu tel quel (fiche 3)
 sigle_mot;Gini;Gini;Lu tel quel (fiche 3)
