@@ -220,7 +220,7 @@ def test_delai_tenu_meme_quand_le_fournisseur_se_tait():
 
     t = transport(**{G: _lent(1.5, gemini_ok()), A: anthropic_ok()})
     debut = time.perf_counter()
-    obj, appel = ClientLLM([replace(PRINCIPAL, delai_s=0.3), REPLI], transport=t).structurer("s", "q", Capitale)
+    _, appel = ClientLLM([replace(PRINCIPAL, delai_s=0.3), REPLI], transport=t).structurer("s", "q", Capitale)
     assert time.perf_counter() - debut < 0.8
     assert appel.maillon == "repli" and [x.statut for x in appel.tentatives] == ["delai", "ok"]
     assert appel.tentatives[0].latence_ms < 600

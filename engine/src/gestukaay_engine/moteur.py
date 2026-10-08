@@ -54,7 +54,7 @@ from .approchee import (
     proposer_approchee,
     rattachements,
 )
-from .candidats import desagregation_citee
+from .candidats import desagregation_citee, deux_sexes
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise
 from .conversation import sans_politesse
@@ -126,6 +126,9 @@ class MoteurReel:
             return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
         if c.requete and (dite := categorie_dite(c.requete, question)):
             c = replace(c, requete=dite)  # « véhicules particuliers » : la catégorie est dite, pas de choix
+        if c.requete.indicateur and deux_sexes(question):
+            # « entre hommes et femmes » donnait les femmes seules (recette du 08/10) : pas encore servi, on le dit
+            return self._non_disponible(c.requete, question, transcription)
         if not c.lieux_inconnus and modalite_citee(c.requete, question):
             a = proposer_approchee(self.socle, c.requete, None, question, LANGUE)
             if isinstance(a, Approchee):

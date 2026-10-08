@@ -26,23 +26,30 @@ from typing import Literal
 from gestukaay_contracts.models import Periode, RequeteStructuree
 from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import normaliser
+from gestukaay_socle.zones import resoudre as resoudre_zone
 from gestukaay_socle.zones import zones as zones_ref
 from pydantic import BaseModel, ConfigDict, Field
 
 from .approchee import REFERENTIELS
 from .candidats import (
+    _MOIS,
+    _SYN,
     ORDRE_ASC,
     Candidat,
     aucun_mot_connu,
     desagregation_citee,
+    forme,
     index,
     lieux_inconnus,
+    milieu_cite,
+    mots,
     periodes_citees,
     texte_normalise,
     zones_citees,
 )
 from .conversation import Categorie
 from .conversation import regles as conversation_regles
+from .langue import _FR, _WO, _WO_FORTS
 from .llm import Appel, ClientLLM, EchecLLM
 
 K = 15  # candidats proposés au LLM
@@ -298,7 +305,8 @@ class Comprehension:
             try:
                 sortie, appel = self.client.structurer(SYSTEME, self._message(question, zones, periodes,
                                                                               candidats, precedente), SortieLLM)
-                req = self._requete(sortie, candidats, zones, periodes, precedente, question)
+                req = _intention_de_la_question(self._requete(sortie, candidats, zones, periodes, precedente, question),
+                                                question, zones)
                 if suivi:
                     req = heriter(req, precedente, question, periodes)
                 proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
@@ -384,13 +392,106 @@ class Comprehension:
                                  ordre=s.ordre, confiance=round(s.confiance, 2))
 
 
+def _intention_de_la_question(req: RequeteStructuree, question: str, zones: list[str]) -> RequeteStructuree:
+    """Ce que la question dit sans ambiguïté prime sur l'intention du LLM (recette du 08/10) :
+    - « toutes les régions », « par région » : un classement, pas le total du Sénégal ;
+    - un classement sans aucun mot de classement, pour une question qui ne cite que le Sénégal (« Ñi amul ligéey
+      ci Senegaal ? » donnait les 14 régions, WO-002) : une valeur."""
+    if not req.indicateur:
+        return req
+    t = normaliser(question)
+    if _TOUTES_REGIONS.search(t) and req.intention != "classement" and set(req.zones) <= {"SN"}:
+        return req.model_copy(update={"intention": "classement", "zones": []})
+    if req.intention == "classement" and not _CLASSEMENT.search(t) and zones == ["SN"]:
+        return req.model_copy(update={"intention": "valeur", "zones": ["SN"]})
+    return req
+
+
 # --------------------------------------------------------------------------
 # Règles locales : sans réseau ni modèle (secours, et base de comparaison)
 # --------------------------------------------------------------------------
 
 SEUIL_REGLES = 6.0  # score BM25 minimal pour oser un indicateur sans LLM
+
+# Secours prudent (recette du 08/10) : sans LLM, un mot qui partage ses lettres avec un libellé suffisait. « Salaire
+# du président » donnait le salaire moyen, « dette publique » les dépenses d'éducation (« hors service de la
+# dette »), « voitures électriques » un indice de location de voitures. Un chiffre vrai pour une autre question
+# est pire qu'un refus avec suggestions : sans LLM, on ne sert un indicateur que si (a) son sujet est dans la
+# question et (b) chaque mot porteur de sens de la question se retrouve dans l'indicateur.
+_CADRE = {  # mots de la question qui ne disent pas QUOI mesurer
+    "taux", "nombre", "combien", "part", "proportion", "pourcentage", "niveau", "total", "totale", "valeur",
+    "chiffre", "statistique", "donnee", "indicateur", "pays", "region", "departement", "commune", "ville",
+    "annee", "an", "ans", "mois", "trimestre", "dernier", "derniere", "actuel", "actuelle", "actuellement",
+    "aujourd", "hui", "compare", "comparer", "comparaison", "evolution", "classement", "classe", "difference",
+    "toute", "tou", "tout", "chaque", "depui", "jusqu", "moyen", "moyenne", "quel", "quelle", "svp", "stp",
+    "merci", "bonjour", "salut", "voudrai", "veux", "aimerai", "savoir", "connaitre", "dire", "donner", "donne",
+    "donnez", "plait", "vou", "je", "tu", "nou", "peux", "pouvez", "cherche", "sui", "etre", "avoir", "senegal",
+    "senegaal", "officiel", "officielle", "publie", "selon", "enquete", "disponible", "source", "journaliste",
+    "article", "etudiant", "recent", "recente", "eleve", "elevee", "faible", "bas", "haut", "grand", "petit",
+    "meilleur", "pire", "baisse", "hausse", "augmente", "augmentation", "diminution", "dan", "ya", "il", "elle",
+    "sont", "est", "sera", "etait", "ete", "maintenant", "now", "nombreux", "beaucoup",
+    "mettre", "compte", "compter", "compten", "vit", "vivent", "dekk", "deuk", "nekk", "nek", "am", "amul",
+    "lim", "limu", "laaj", "xam", "bari", "tollu", "mujj", "rural", "urbain", "rurale", "urbaine", "milieu",
+    "femme", "homme", "fille", "garcon", "jeune", "age", "elementaire", "primaire", "secondaire", "cycle",
+    "jigeen", "goor", "ndaw", "mag", "xale", "atum", "ren", "daaw", "tey", "prochaine", "prochain", "passee",
+    "passe", "cette", "seront", "futur", "future", "avenir", "acces", "accede", "dispose", "disposent",
+    "beneficie", "utilise", "utilisent", "concerne", "touche", "parmi",
+    # wolof (vocabulaire de KBD, test_vocabulaire_wolof) : région, le plus / le moins, manquer de
+    "diwaan", "diiwaan", "neew", "tuuti", "gena", "geuna", "rey", "nakk", "ngi",
+    # unités, quantités et repères de comparaison
+    "kilo", "kg", "litre", "tonne", "quantite", "produit", "nationale", "national", "comparee", "compares",
+    # modalités publiées dans les jeux (type de pêche, qualité du riz…) : précisent, ne changent pas le sujet
+    "artisanale", "industrielle", "continentale", "maritime", "ordinaire", "brise", "detail", "gro",
+}
+_GENTILE = re.compile(r"(ais|aise|ien|ienne|ain|aine)s?$")  # « touristes français »
+_OUTILS = _FR | _WO | _WO_FORTS  # petits mots de détection de la langue (français et wolof)
+# Mots trop généraux pour dire le sujet d'un indicateur (« Dépenses PUBLIQUES d'éducation » n'est pas la dette
+# publique, « INDICE de Gini » se demande aussi « les inégalités »)
+_PAS_UN_SUJET = _CADRE | {"indice", "publique", "public", "general", "generale", "national", "nationale", "effectif"}
+
+
+def _proche(mot: str, vocab) -> bool:
+    """Le mot, son pluriel, sa forme collée (« dhabitant ») ou un mot de même racine (5 lettres)."""
+    if mot in vocab or forme(mot) in vocab:
+        return True
+    if len(mot) > 4 and mot[0] in "dl" and _proche(mot[1:], vocab):
+        return True
+    return len(mot) >= 5 and any(len(v) >= 5 and v[:5] == mot[:5] for v in vocab)
+
+
+def couvert(code: str, question: str) -> bool:
+    """Garde-fou du secours (a) + (b), voir _CADRE."""
+    ix = index()
+    doc = set(ix.mots_de(code))
+    elargie = set(ix.requete(question))  # mots de la question + synonymes
+    ind = indicateurs().get(code)
+    sujet = [m for m in mots(ind.libelle_fr.split(" — ")[0]) if m not in _PAS_UN_SUJET and not m.isdigit()][:2] if ind else []
+    if sujet and not any(_proche(m, elargie) for m in sujet):
+        return False  # (a) « dépenses d'éducation » pour « la dette publique »
+    noms_de_zones = {w for z in zones_citees(question) if (zr := zones_ref().get(z))
+                     for nom in (zr.libelle_fr, zr.libelle_wo, *zr.variantes) for w in texte_normalise(nom).split()}
+    noms_de_zones |= {w for lieu in lieux_inconnus(question) for w in texte_normalise(lieu).split()}  # approchée
+    for brut in texte_normalise(question).split():
+        if brut in noms_de_zones or resoudre_zone(brut):
+            continue
+        m = forme(brut)
+        if len(m) > 4 and m[0] in "dl" and m[1:] in _SYN:  # « dhabitant »
+            m = m[1:]
+        if (m in _CADRE or brut in _CADRE or brut in _OUTILS or m.isdigit() or len(m) <= 3 or brut in _MOIS
+                or milieu_cite(brut) or _GENTILE.search(brut)):
+            continue
+        if m not in ix.idf and brut not in ix.idf and m not in _SYN and len(brut) < 6:
+            continue  # mot court inconnu du référentiel : faute de frappe, wolof, sigle (« koi », « dagg »)
+        if _proche(m, doc) or any(_proche(x, doc) for x in _SYN.get(forme(m), ())):
+            continue
+        return False  # (b) « président », « électriques », « habitant » (PIB par habitant)
+    return True
+# « Compare la population de toutes les régions » donnait le seul total du Sénégal (recette du 08/10)
+_TOUTES_REGIONS = re.compile(r"\b(toutes les (regions|academies)|chaque (region|academie)|par (region|academie)"
+                             r"|les 14 regions|(diiwaan|diwaan) (yepp|yeup|yeppa))\b")
 _CLASSEMENT = re.compile(r"\b(le|la|les) (plus|moins)\b|\bquelle region\b|\bclasse(ment)?\b"
-                         r"|\b(diiwaan|diwaan|region)\b.*\b(epp|gena|geuna)\b|\bban (region|diiwaan|diwaan)\b")
+                         r"|\b(diiwaan|diwaan|region)\b.*\b(epp|gena|geuna)\b|\bban (region|diiwaan|diwaan)\b"
+                         r"|" + _TOUTES_REGIONS.pattern)
 _COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)\b"
                           r"|\b(yokk|yokku|wanniku|suufe|diggante)\b")  # wolof (KBD) : augmenter, baisser, entre
 
@@ -410,6 +511,33 @@ def _plus_recent_a_egalite(meilleur: Candidat, candidats: list[Candidat]) -> Can
     return max(proches, key=lambda c: c.indicateur.periode_fin, default=meilleur)
 
 
+# Type de mesure demandé (recette du 08/10) : « Taux de scolarisation des filles » n'est pas « Part des filles
+# parmi les élèves » (WO-005), « Combien de personnes sont au chômage ? » n'est pas le taux (FR-073, 0024).
+_DEMANDE_TAUX = re.compile(r"\b(taux|tolluwaay|tolluwaayu|toluwaay|toluwaayu)\b")
+_DEMANDE_EFFECTIF = re.compile(r"\b(combien de (personnes|gens|chomeurs)|nombre de (personnes|chomeurs)|chomeurs"
+                               r"|ni amul|nu amul)\b")
+PROCHE_DU_MEILLEUR = 0.6  # un candidat aligné sur la mesure demandée passe devant s'il est au moins à 60 %
+
+
+def _est_taux(c: Candidat) -> bool:
+    """Un « taux » au sens du libellé : « Part des filles » est en % sans être le taux de scolarisation."""
+    return "taux" in normaliser(c.indicateur.libelle_fr).split()
+
+
+def _est_effectif(c: Candidat) -> bool:
+    x = c.indicateur
+    return normaliser(x.unite_affichee or x.unite) in ("personnes", "habitants", "nombre") or \
+        normaliser(x.libelle_fr).startswith(("population", "nombre", "effectif"))
+
+
+def _mesure_alignee(meilleur: Candidat, candidats: list[Candidat], t: str) -> Candidat:
+    for demande, est in ((_DEMANDE_EFFECTIF, _est_effectif), (_DEMANDE_TAUX, _est_taux)):
+        if demande.search(t) and not est(meilleur):
+            alignes = [c for c in candidats if est(c) and c.score >= PROCHE_DU_MEILLEUR * meilleur.score]
+            return max(alignes, key=lambda c: c.score, default=meilleur)
+    return meilleur
+
+
 def regles(question: str, candidats: list[Candidat], zones: list[str], periodes: list[str],
            precedente: RequeteStructuree | None) -> RequeteStructuree:
     if aucun_mot_connu(question):
@@ -417,12 +545,21 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
     t = texte_normalise(question)  # « ŋ » et ponctuation collée, comme les candidats
     meilleur = max(candidats, key=lambda c: c.score, default=None)  # le tri par couverture ne compte pas ici
     meilleur = meilleur if meilleur and meilleur.score >= SEUIL_REGLES else None
-    if meilleur and not periodes:
-        meilleur = _plus_recent_a_egalite(meilleur, candidats)
+    if meilleur:
+        meilleur = _mesure_alignee(meilleur, candidats, t)
     code = meilleur.indicateur.code if meilleur else None
     if precedente and precedente.indicateur and _suivi(question):
-        code = code if code and not zones else precedente.indicateur
+        # « Et pour les femmes ? » : une précision seule garde l'indicateur précédent (avant : la proportion de
+        # femmes au gouvernement, recette du 08/10)
+        precision_seule = all(m in _CADRE or m in _SUIVI_EN_TETE | _SUIVI_PARTOUT or resoudre_zone(m)
+                              for m in mots(question))
+        code = code if code and not zones and not precision_seule else precedente.indicateur
         zones = zones or list(precedente.zones)
+    elif code and not couvert(code, question):
+        code = None
+    elif meilleur and code == meilleur.indicateur.code and not periodes:
+        # après le garde-fou : l'équivalent vérifié plus récent, choisi par KBD, peut dire la chose autrement (FR-020)
+        code = _plus_recent_a_egalite(meilleur, candidats).indicateur.code
     if code is None:
         return RequeteStructuree(intention="hors_perimetre", zones=zones, confiance=0.3)
     suivi = bool(precedente) and _suivi(question)

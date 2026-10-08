@@ -81,7 +81,7 @@ SYNONYMES: dict[str, tuple[str, ...]] = {
     "dee": ("mortalite",), "ndaw": ("population", "age"),
     "goor": ("population", "masculin"), "tej": ("emprisonnees",), "napp": ("captures", "peche"),
     "ndab": ("vehicule",), "vootuur": ("vehicule",),
-    "ker": ("menages",),  # kër = ménage (KBD, 06/10)
+    "ker": ("menages",), "keur": ("menages",),  # kër = ménage (KBD, 06/10), graphie WhatsApp « keur »
 }
 
 _MOIS = {"janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, "juillet": 7,
@@ -139,6 +139,17 @@ def zones_citees(question: str) -> list[str]:
 _LIEU = re.compile(r"\b(?:à|a|au|aux|dans|ci|sur|en)\s+(?:la\s+)?(?:ville\s+(?:de\s+)?)?([A-ZÉÈÎ][\w'’-]+)")
 _VILLE = re.compile(r"\bville\s+(?:de\s+)?([A-ZÉÈÎa-zéèî][\w'’-]+)", re.IGNORECASE)
 _PAS_UN_LIEU = {"sénégal", "senegal", "senegaal", "ndakaaru", "la", "le", "les", "l"}
+# Un mot à majuscule au milieu de la phrase, inconnu du référentiel et du vocabulaire des indicateurs, est un
+# lieu (« Population de Paris », « du Fouta ») : en règles, il devenait le Sénégal (recette du 08/10). Pas les
+# sigles (PIB, ANSD, RGPH), ni ces mots que l'on écrit souvent avec une majuscule.
+_MAJUSCULE = re.compile(r"(?<![.?!]\s)(?<!^)\b([A-ZÉÈÎ][a-zéèêëàâîïôöûüç'’-]{2,})")
+_PAS_UN_LIEU_MAJ = {"merci", "svp", "stp", "bonjour", "bonsoir", "salut", "salam", "monsieur", "madame",
+                    "wolof", "francais", "français", "republique", "république", "etat", "état", "gouvernement",
+                    "assemblee", "assemblée", "president", "président", "ministere", "ministère", "banque",
+                    "bceao", "ansd", "nationale", "national", "total", "afrique"}
+# Hors du Sénégal sans nom propre : « dans le monde », « en Afrique »
+_AILLEURS = {"monde", "mondial", "mondiale", "afrique", "africain", "europe", "etranger", "international",
+             "internationale", "france", "gambie", "mali", "mauritanie", "guinee", "maroc", "chine", "usa"}
 
 
 def lieux_inconnus(question: str) -> list[str]:
@@ -150,6 +161,20 @@ def lieux_inconnus(question: str) -> list[str]:
         gentile = re.search(r"(ais|aise|ien|ienne|ain|aine)s?$", nom.lower())  # Sénégalais, Kaolackois…
         if nom.lower() not in _PAS_UN_LIEU and not gentile and not resoudre(nom) and not any(nom in o for o in out):
             out.append(nom)
+    deja = {normaliser(o) for o in out}
+    vocab = index().idf
+    for m in _MAJUSCULE.finditer(question):
+        nom = m[1].rstrip("'’-")
+        n = normaliser(nom)
+        if (n in deja or n in _PAS_UN_LIEU or n in _PAS_UN_LIEU_MAJ or resoudre(nom) or forme(n) in vocab
+                or n in vocab or n in _SYN or n in _MOIS or any(n in d for d in deja)):
+            continue
+        out.append(nom)
+        deja.add(n)
+    for mot in texte_normalise(question).split():
+        if mot in _AILLEURS and mot not in deja:
+            out.append(mot)
+            deja.add(mot)
     # Lieux déclarés dans rattachements.csv, où qu'ils soient : « Ñaata nit ñoo dëkk Tuubaa ? » n'a pas de
     # préposition française, mais Touba ne doit jamais devenir le Sénégal.
     t = f" {texte_normalise(question)} "
@@ -180,10 +205,26 @@ ORDRE_ASC = re.compile(r"\b(le|la|les) (moins|plus bas(se)?|plus faible(s)?)\b|\
                        r"|\bgena nakk (kurang|kuran|kouran|courant|mbej)\b")
 
 
+# Années dites sans chiffre (recette du 08/10) : « l'année dernière » donnait le T1 2026, « l'année prochaine »
+# la dernière valeur publiée au lieu d'un refus de projection. Référence : l'année en cours (resolution.py).
+_RELATIVES = [
+    (re.compile(r"\b(l )?(annee|an) (derniere|dernier|passee|passe)\b"), -1),
+    (re.compile(r"\b(l )?(annee|an) (prochaine|prochain)\b"), 1),
+    (re.compile(r"\bcette annee\b|\bcette annee ci\b"), 0),
+]
+_IL_Y_A = re.compile(r"\bil y a (\d{1,2}) ans?\b")
+_DANS = re.compile(r"\bdans (\d{1,2}) ans?\b")
+
+
 def periodes_citees(question: str) -> list[str]:
-    """« mars 2025 » -> 2025-03 ; « 2023 » -> 2023 ; « T2 2024 » -> 2024-T2. Dans l'ordre."""
+    """« mars 2025 » -> 2025-03 ; « 2023 » -> 2023 ; « T2 2024 » -> 2024-T2. Dans l'ordre.
+    « l'année dernière », « il y a 5 ans », « l'an prochain » : l'année correspondante."""
+    from .resolution import ANNEE_EN_COURS
+
     t = texte_normalise(question)
-    out = []
+    out = [str(ANNEE_EN_COURS + d) for motif, d in _RELATIVES if motif.search(t)]
+    out += [str(ANNEE_EN_COURS - int(m[1])) for m in _IL_Y_A.finditer(t)]
+    out += [str(ANNEE_EN_COURS + int(m[1])) for m in _DANS.finditer(t)]
     for m in re.finditer(r"\b(?:(?P<mois>" + "|".join(_MOIS) + r")\s+)?(?:(?P<t>t[1-4])\s+)?"
                          r"(?P<an>(?:19|20)\d\d)\b", t):
         if m["mois"]:
@@ -202,6 +243,12 @@ def milieu_cite(texte: str) -> str | None:
     if re.search(r"\b(urbains?|urbaines?)\b", texte):
         return "urbain"
     return None
+
+
+def deux_sexes(question: str) -> bool:
+    """« entre hommes et femmes » : deux catégories à comparer, que la résolution ne sait pas encore servir."""
+    t = texte_normalise(question)
+    return bool(re.search(r"\b(femmes|filles|jigeen|djiguene)\b", t) and re.search(r"\b(hommes|garcons|goor)\b", t))
 
 
 def desagregation_citee(question: str) -> dict[str, str]:
@@ -264,6 +311,9 @@ class Index:
         """Mots de la question, sans les noms de zones (« Matam » ne doit pas faire remonter
         « femmes écrouées à Matam »), élargis par le vocabulaire FR / WO."""
         q = [m for m in mots(question) if not resoudre(m) and not m.isdigit()]  # ni zones ni années
+        # apostrophe oubliée : « dhabitant », « lindice » (recette du 08/10)
+        q = [m[1:] if m not in self.idf and len(m) > 4 and m[0] in "dl" and (m[1:] in self.idf or m[1:] in _SYN)
+             else m for m in q]
         # « ñàkk » suivi d'une chose connue (« ñàkk kuraŋ », « ñàkk liggéey ») = manquer de cette chose,
         # pas la pauvreté (KBD, 06/10) : seule la chose apporte ses mots
         manque = {i for i, m in enumerate(q[:-1]) if m == "nakk" and q[i + 1] in _SYN}

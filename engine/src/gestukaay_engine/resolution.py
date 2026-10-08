@@ -458,7 +458,9 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
     if requete.intention == "comparaison":
         fin = getattr(requete.periode, "fin", None)
         citees = periodes_citees(question) if not fin else []
-        if (len(requete.zones or []) <= 1) and (fin or len(citees) >= 2):
+        # « Évolution du chômage depuis 2015 » : de 2015 à la dernière période (avant : 2015 seul, recette du 08/10)
+        depuis = bool(re.search(r"\bdepuis\b", normaliser(question))) and requete.periode.type != "derniere"
+        if (len(requete.zones or []) <= 1) and (fin or len(citees) >= 2 or depuis):
             # Comparaison temporelle
             z = requete.zones[0] if (requete.zones and len(requete.zones) == 1) else None
             p_debut = requete.periode.valeur if requete.periode.valeur else (citees[0] if citees else None)
