@@ -188,3 +188,6 @@ def test_faux_moteur_v16():
     avec = f.situer(SituateRequest(region="SN-KD", taille_menage=7, depenses_mensuelles="100k_200k", milieu="rural"))
     sans = f.situer(SituateRequest(region="SN-KD", taille_menage=7, depenses_mensuelles="100k_200k"))
     assert avec.moyenne_milieu and sans.moyenne_milieu is None and sans.seuil_pauvrete and sans.moyennes_regions
+    # revue de SAN : sans milieu, ni la valeur ni la phrase qui la cite (402 240 FCFA sans sa source)
+    assert "ménages ruraux du Sénégal" in avec.explication and "ménages ruraux" not in sans.explication
+    assert "Le seuil de pauvreté officiel" in sans.explication  # le reste de l'explication est gardé

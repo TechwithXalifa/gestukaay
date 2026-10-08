@@ -56,7 +56,7 @@ SEUIL = "ahjjzgc.seuil-de-pauvrete"
 BIEN_ETRE, GROUPE = "sfxudug", "quintile"
 # Groupes de bien-être, du plus bas au plus élevé, avec le libellé affiché (le site n'affiche pas la désagrégation)
 GROUPES = {"Le plus bas": "Groupe de bien-être le plus bas", "Second": "Deuxième groupe de bien-être",
-           "Moyen": "Groupe de bien-être du milieu", "Quatrième": "Quatrième groupe de bien-être",
+           "Moyen": "Troisième groupe de bien-être", "Quatrième": "Quatrième groupe de bien-être",
            "Le plus élevé": "Groupe de bien-être le plus élevé"}
 PAUVRETE, TAILLE = "jcvcajc.taux-de-pauvrete", "taille-du-ménage"
 # Repères régionaux : code -> libellé affiché (celui de l'exemple du contrat, plus clair que le référentiel)
