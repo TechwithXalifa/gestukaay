@@ -248,6 +248,16 @@ class MoteurReel:
         intention = requete.intention if requete.intention in ("comparaison", "classement") else "valeur"
         texte = explication(res, r.defauts.get("periode", False), nationaux, intention,
                             ordre_effectif(requete, question))
+        an = requete.periode.valeur if requete.periode.type == "annee" else None
+        if sens := r.defauts.get("extremum"):
+            niveau = "le plus bas" if sens == "min" else "le plus élevé"
+            texte = (f"C'est le niveau {niveau} publié entre {r.defauts['debut']} et {r.defauts['fin']}. "
+                     + texte.replace(", dernière donnée publiée", ""))
+        elif an and len(res) == 1 and res[0].periode.valeur.startswith(an + "-"):
+            # « le riz en 2019 », « les visiteurs en 2018 » sur une série mensuelle : le mois servi est dit, et qu'aucun
+            # total ni moyenne de l'année n'est calculé (zéro chiffre fabriqué)
+            texte = (f"{texte} L'ANSD publie cette série par {'trimestre' if '-T' in res[0].periode.valeur else 'mois'}"
+                     f" : voici la dernière période publiée de {an}, pas un total ni une moyenne de l'année.")
         if intention == "valeur" and len(res) == 1 and (c := compagnon(self.socle, res[0], LANGUE)):
             res = [*res, c[0]]  # le taux après le nombre, au même point (0024)
             texte = f"{texte} {c[1]}"
@@ -256,7 +266,7 @@ class MoteurReel:
             intention=intention,
             resultats=res,
             explication=texte,
-            periode_par_defaut=r.defauts.get("periode", False),
+            periode_par_defaut=bool(r.defauts.get("periode", False)) and not r.defauts.get("extremum"),
             note_perimetre=note_perimetre(res[0]),
             graphique=r.graphique,
             citation=citation(res[0], datetime.now(UTC).date(), URL_PROVISOIRE.format(id=ident)),

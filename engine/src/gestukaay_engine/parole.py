@@ -41,7 +41,7 @@ from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import zones
 
 from .compagnons import compagnons
-from .gabarits import avec_unite, formater
+from .gabarits import avec_unite, formater, unite_ambigue
 from .gabarits import gabarit as gabarit_fr
 from .resolution import national
 from .socle import Socle
@@ -586,7 +586,7 @@ def _notes_fr(r: Resultat) -> str:
     morceaux = []
     if formater(r.valeur, r.unite)[1]:
         morceaux.append("Valeur arrondie à l'affichage, la valeur exacte figure dans les exports.")
-    if not (r.unite or "").strip():
+    if unite_ambigue(r):
         morceaux.append("Unité non précisée par la source.")
     return " ".join(morceaux)
 

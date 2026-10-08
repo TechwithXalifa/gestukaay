@@ -78,6 +78,15 @@ def test_gemini_direct_et_cout_calcule_depuis_les_prix():
     assert corps["generationConfig"] == {"responseMimeType": "application/json", "temperature": 0.0}
 
 
+@pytest.mark.parametrize("raisonnement, attendu", [("non", {"thinkingBudget": 0}), (None, None)])
+def test_gemini_reflexion_coupee_seulement_si_demande(raisonnement, attendu):  # revue de SAN sur #166
+    # Gemini 2.5 Flash réfléchit par défaut (3 à 7 s par question) ; « non » la coupe, rien sinon
+    m = replace(PRINCIPAL, raisonnement=raisonnement)
+    t = transport(**{G: gemini_ok()})
+    ClientLLM([m], transport=t).structurer("sys", "q", Capitale)
+    assert json.loads(t.recues[0].content)["generationConfig"].get("thinkingConfig") == attendu
+
+
 def test_anthropic_direct_avec_sortie_structuree_native():
     t = transport(**{A: anthropic_ok()})
     obj, appel = ClientLLM([REPLI], transport=t).structurer("sys", "q", Capitale)

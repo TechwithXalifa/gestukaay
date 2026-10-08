@@ -345,3 +345,13 @@ def test_medecins_par_specialite_sans_total():  # « niata medecin ci region lou
     assert isinstance(res, Approchee)
     assert [c.requete.indicateur for c in res.choix] == ["hfhored.medecin-generaliste", "hfhored.gynecologue-obstetricien",
                                                          "hfhored.pediatre"]
+
+
+def test_annee_sur_serie_mensuelle_propose_les_mois():  # « le riz en 2019 » (KBD, 08/10) : « non publié » à tort
+    riz = "feujxob.riz-brise-ordinaire-au-detail"
+    socle = Socle([obs(riz, "SN-DK", f"2019-{m:02d}", 290 + m) for m in range(1, 13)], {"feujxob": SOURCES["pvswjnd"]})
+    req = RequeteStructuree(intention="valeur", indicateur=riz, zones=[], periode=Periode(type="annee", valeur="2019"),
+                            confiance=1.0)
+    res = proposer_approchee(socle, req, resoudre(socle, req), "Combien coûtait le riz en 2019 ?", "fr")
+    assert isinstance(res, Approchee) and "par mois" in res.reformulation
+    assert [c.requete.periode.valeur for c in res.choix] == ["2019-12", "2019-11", "2019-10"]
