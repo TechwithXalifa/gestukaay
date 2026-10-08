@@ -88,3 +88,11 @@ Essai Telegram : une question dite en français recevait une note vocale en wolo
 (Oolel, et ADIA en secours, ne parlent que wolof). Désormais, sur WhatsApp et Telegram, une question vocale
 **en français** reçoit le **texte complet en français**, comme une question écrite. La note vocale wolof reste
 pour les questions vocales en wolof (EF-20). Une voix française pourra être ajoutée après la démonstration.
+
+## Épellation des sigles avec Oolel (KBD, 08/10)
+
+« A-EN-ES-DE » (lettres en majuscules reliées par des tirets) était mal lu par Oolel. Cinq écritures ont été
+écoutées (`voix_test/sigles/`). KBD retient les **lettres en minuscules, prononcées à la française et séparées
+par des virgules** : « a, èn, ès, dé », « èr, jé, pé, ach, cinq » (RGPH-5). La table `lettre` de
+`parole_wo.csv` est la seule à changer. Les textes de KBD gardent le sigle écrit (« ANSD »), que la voix épelle
+au moment de parler ; à l'écrit, le sigle reste tel quel (« ANSD », « www.ansd.sn »).

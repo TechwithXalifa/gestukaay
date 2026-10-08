@@ -17,8 +17,8 @@ classement.plus-bas;;avec_unite;selon_unite;{periode}, lim bi moo gën a suufe {
 national.plus;;avec_unite;au_choix;Loolu dafa ëpp limu réew mi gépp, di {chiffre} {periode}.;C'est plus que la valeur nationale (20,4 % en 2025).
 national.moins;;avec_unite;selon_unite;Loolu dafa gën a suufe limu réew mi gépp, di {chiffre} {periode}.|Loolu dafa gën a néew limu réew mi gépp, di {chiffre} {periode}.;C'est moins que la valeur nationale (20,4 % en 2025).
 national.autant;;avec_unite;au_choix;Loolu dafa yam ak limu réew mi gépp, di {chiffre} {periode}.;C'est autant que la valeur nationale (20,4 % en 2025).
-refus.hors-socle;;;au_choix;Lim bii amul ci xibaari A-EN-ES-DE yi ñu yor.;Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons.
-refus.prevision;;;au_choix;Gëstukaay du xeyma lu jëm ci ëlëg. Lim yi ñu natt ngir ëlëg, A-EN-ES-DE mi ngi koy génne ci dalum webam bi di we we we poñ A-EN-ES-DE poñ sn.;Gëstukaay ne fait pas de prévisions. Les projections officielles sont publiées par l'ANSD sur www.ansd.sn.
+refus.hors-socle;;;au_choix;Lim bii amul ci xibaari ANSD yi ñu yor.;Cette donnée n'existe pas dans les publications de l'ANSD que nous couvrons.
+refus.prevision;;;au_choix;Gëstukaay du xeyma lu jëm ci ëlëg. Lim yi ñu natt ngir ëlëg, ANSD mi ngi koy génne ci dalum webam bi di we we we poñ ANSD poñ sn.;Gëstukaay ne fait pas de prévisions. Les projections officielles sont publiées par l'ANSD sur www.ansd.sn.
 refus.incomprehension;;;au_choix;Xéyna dégguma la bu baax. Mën nga jéem laaj bii, niki : « Ñaata nit ñoo dëkk Cees ? »;Je n'ai pas bien compris. Essayez par exemple : « Combien d'habitants à Thiès ? »
 approchee.lieu;;;au_choix;Lim bii, génneewuñu ko ngir {lieu}. Lii mooy li am :;Ce chiffre n'est pas publié pour la ville de Thiès. Voici ce qui existe :
 approchee.annee;;;au_choix;Lim bii, génneewuñu ko {periode}. Lii mooy at yi ci gën a jege :;Ce chiffre n'a pas été publié pour l'année 2019. Voici les années les plus proches :
