@@ -293,16 +293,15 @@ def portee_par_indicateur(ind: Indicateur, valeur: str) -> bool:
 
 
 def periode_par_defaut(lignes: list[Observation]) -> tuple[str, bool]:
-    """Période servie quand la question n'en cite pas (#116), et si c'est la « dernière donnée publiée ».
-    La dernière période OBSERVÉE ; une série sans valeur observée (projection, estimation) donne l'année en
-    cours, sinon la plus récente avant : jamais 2035 pour « l'espérance de vie »."""
-    observees = sorted({o.periode for o in lignes if o.nature == "observee"})
-    if observees:
-        return observees[-1], True
+    """Période servie quand la question n'en cite pas (#116, 0035), et si c'est la « dernière donnée publiée ».
+    La dernière période jusqu'à l'année en cours, quelle que soit sa nature (l'ISF 2025 des projections
+    2023-2073, badge projection) ; jamais une année future : « l'espérance de vie » donne 2026, pas 2035.
+    Une série qui ne commence qu'après l'année en cours donne sa première période."""
     periodes = sorted({o.periode for o in lignes})
     passees = [p for p in periodes if p[:4] <= str(ANNEE_EN_COURS)]
     p = passees[-1] if passees else periodes[0]
-    return p, p == periodes[-1]
+    # « dernière donnée publiée » : la fin de la série, ou une valeur observée suivie seulement de projections
+    return p, p == periodes[-1] or any(o.nature == "observee" for o in lignes if o.periode == p)
 
 
 def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | None,
