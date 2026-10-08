@@ -149,3 +149,6 @@ def test_sans_annee_le_plus_recent_a_egalite_en_regles():  # FR-020 (08/10) : ED
     assert r.requete.indicateur == "pagfmnc.prevalence-du-retard-de-croissance"
     r = Comprehension(None).comprendre("Retard de croissance des enfants en 2019")
     assert r.requete.indicateur == "xsitdae.enfants-souffrant-dun-retard-de-croissance"  # année citée : inchangé
+    # même notion seulement : pas le prix du riz (2026) pour sa production (2023), FR-018
+    r = Comprehension(None).comprendre("Quelle est la production de riz du Sénégal ?")
+    assert r.requete.indicateur == "dwehszb.production-hivernale-nette-en-cereales-entieres"

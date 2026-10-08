@@ -50,6 +50,7 @@ from .approchee import (
     Approchee,
     RepliAucune,
     categorie_dite,
+    indicateur_ambigu,
     modalite_citee,
     proposer_approchee,
     rattachements,
@@ -136,7 +137,7 @@ class MoteurReel:
         if c.requete.indicateur and deux_sexes(question):
             # « entre hommes et femmes » donnait les femmes seules (recette du 08/10) : pas encore servi, on le dit
             return self._non_disponible(c.requete, question, transcription)
-        if not c.lieux_inconnus and modalite_citee(c.requete, question):
+        if not c.lieux_inconnus and (modalite_citee(c.requete, question) or indicateur_ambigu(c.requete, question)):
             a = proposer_approchee(self.socle, c.requete, None, question, LANGUE)
             if isinstance(a, Approchee):
                 return self._approchee(a, c.requete, question, transcription)

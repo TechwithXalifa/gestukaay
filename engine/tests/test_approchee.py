@@ -79,7 +79,7 @@ def test_rattachements_declares_avec_preuve():
     assert "voitures" in rats
     for r in rats.values():
         assert r.preuve, f"preuve manquante pour {r.terme}"
-        assert r.type in ("lieu", "modalite")
+        assert r.type in ("lieu", "modalite", "indicateur")
 
 
 def test_approchee_lieu_rattache_complete_par_le_niveau_au_dessus():
@@ -330,3 +330,18 @@ def test_phrase_avec_article():  # « pour Département de Pikine » (KBD, petit
     from gestukaay_engine.approchee import _dans_la_phrase
     assert _dans_la_phrase("Département de Pikine") == "le département de Pikine"
     assert _dans_la_phrase("Région de Kolda") == "la région de Kolda" and _dans_la_phrase("Touba") == "Touba"
+
+
+def test_medecins_par_specialite_sans_total():  # « niata medecin ci region louga » (KBD, 08/10) donnait 27 généralistes
+    from gestukaay_engine.approchee import indicateur_ambigu
+    req = RequeteStructuree(intention="valeur", indicateur="hfhored.medecin-generaliste", zones=["SN-LG"],
+                            periode=Periode(type="derniere"), confiance=1.0)
+    assert indicateur_ambigu(req, "Combien de médecins dans la région de Louga ?").terme == "medecins"
+    assert indicateur_ambigu(req, "niata medecin ci region louga") is not None
+    assert indicateur_ambigu(req, "Combien de médecins généralistes à Louga ?") is None  # spécialité nommée
+    medecins = Socle([obs(c, "SN-LG", "2022", v) for c, v in (("hfhored.medecin-generaliste", 27),
+                     ("hfhored.gynecologue-obstetricien", 4), ("hfhored.pediatre", 3))], {"hfhored": SOURCES["pvswjnd"]})
+    res = proposer_approchee(medecins, req, None, "Combien de médecins dans la région de Louga ?", "fr")
+    assert isinstance(res, Approchee)
+    assert [c.requete.indicateur for c in res.choix] == ["hfhored.medecin-generaliste", "hfhored.gynecologue-obstetricien",
+                                                         "hfhored.pediatre"]

@@ -518,6 +518,14 @@ _COMPARAISON = re.compile(r"\bcompar|\bentre\b|\bevolution\b|\b(augmente|baisse)
 EGALITE_REGLES = 0.95
 
 
+def _meme_notion(a, b) -> bool:
+    """Deux libellés qui partagent un mot porteur (« retard de croissance ») ; « Production de céréales » et
+    « Riz brisé au détail » n'en partagent aucun (08/10 : le prix du riz servi pour sa production)."""
+    def porteurs(ind):
+        return {m for m in mots(ind.libelle_fr.split(" — ")[0]) if m not in _PAS_UN_SUJET and not m.isdigit()}
+    return bool(porteurs(a) & porteurs(b))
+
+
 def _plus_recent_a_egalite(meilleur: Candidat, candidats: list[Candidat]) -> Candidat:
     """Sans année (0035) : deux indicateurs vérifiés presque à égalité de mots (« Enfants souffrant d'un retard
     de croissance », EDS jusqu'en 2019, et « Prévalence du retard de croissance », EDS jusqu'en 2023) : la série
@@ -526,7 +534,8 @@ def _plus_recent_a_egalite(meilleur: Candidat, candidats: list[Candidat]) -> Can
         return meilleur
     proches = [c for c in candidats if c is not meilleur and c.indicateur.verification == "verifie"
                and c.score >= EGALITE_REGLES * meilleur.score and projection(c.indicateur.dataset_id) is None
-               and c.indicateur.periode_fin[:4] > meilleur.indicateur.periode_fin[:4]]
+               and c.indicateur.periode_fin[:4] > meilleur.indicateur.periode_fin[:4]
+               and _meme_notion(meilleur.indicateur, c.indicateur)]  # pas le prix du riz pour sa production
     return max(proches, key=lambda c: c.indicateur.periode_fin, default=meilleur)
 
 

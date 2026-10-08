@@ -3,7 +3,8 @@
 Mesure les performances de MoteurReel sur le jeu de test officiel (103 questions) :
   - Exactitude (cahier §12.1) : calculée sur les 83 questions appelant une réponse
     (72 exactes + 11 approchées). Réponse correcte ET correctement sourcée.
-  - Refus pertinent : calculé sur les 20 questions de refus, avec motif attendu.
+  - Refus pertinent : calculé sur les vrais refus (donnée absente, prévision, incompréhension), avec motif
+    attendu ; les hors-sujet (type « conversation », 0033) sont mesurés à part.
   - Latence : médiane et P95 mesurées autour de repondre(), hors chargement du socle.
   - Invariant « zéro chiffre inventé » (tolérance zéro) :
       (a) chaque Resultat : observation_id existe dans le socle et valeur est égale ;
@@ -496,6 +497,9 @@ class RapportBenchmark:
     defauts_moteur: list[str]
     # Attendus changés ou questions ajoutées après une mesure (jeu_de_test/changements.csv)
     changements_jeu: list[dict[str, str]] = field(default_factory=list)
+    # Hors-sujet (type « conversation », 0033) : pas des refus de donnée, mesurés à part (KBD, 08/10)
+    nb_conversation: int = 0
+    nb_conversation_succes: int = 0
 
 
 def executer_benchmark(
@@ -622,7 +626,8 @@ def executer_benchmark(
     score_exactitude = nb_exactitude_succes / len(evals_reponse) if evals_reponse else 0.0
 
     # Refus pertinent (sur les 20 refus)
-    evals_refus = [ev for ev in evaluations if ev.issue_attendue == "aucune"]
+    evals_refus = [ev for ev in evaluations if ev.issue_attendue == "aucune" and ev.type_question != "conversation"]
+    evals_conversation = [ev for ev in evaluations if ev.type_question == "conversation"]
     nb_refus_succes = sum(1 for ev in evals_refus if ev.reponse_correcte)
     score_refus = nb_refus_succes / len(evals_refus) if evals_refus else 0.0
 
@@ -657,6 +662,8 @@ def executer_benchmark(
         nb_exactitude_succes=nb_exactitude_succes,
         score_exactitude=score_exactitude,
         nb_refus_attendus=len(evals_refus),
+        nb_conversation=len(evals_conversation),
+        nb_conversation_succes=sum(1 for ev in evals_conversation if ev.reponse_correcte),
         nb_refus_succes=nb_refus_succes,
         score_refus=score_refus,
         nb_chiffres_faux_affiches=nb_chiffres_faux,
@@ -724,6 +731,11 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
         f"**{rapport.score_refus * 100:.1f} %** "
         f"({rapport.nb_refus_succes}/{rapport.nb_refus_attendus}) | {statut_refus} |"
     )
+    if rapport.nb_conversation:
+        ligne_refus += (
+            f"\n| Hors sujet : réponse de conversation (0033) | — | "
+            f"**{rapport.nb_conversation_succes}/{rapport.nb_conversation}** | indicatif |"
+        )
     ligne_inv = (
         f"| **Invariant « zéro chiffre inventé »** | Tolérance 0 | "
         f"**{rapport.nb_violations_invariant} violation(s)** | **{statut_invariant}** |"
@@ -765,6 +777,7 @@ def generer_rapport_markdown(rapport: RapportBenchmark) -> str:
         "suivi": "Suivi contextuel (suite_de)",
         "approchee": "Correspondance approchée (choix vivants)",
         "refus": "Refus officiel (hors socle, projection, inintelligible)",
+        "conversation": "Hors sujet (réponse de conversation, 0033)",
     }
 
     for t_code, (succes, tot) in rapport.sous_scores_type.items():
@@ -979,6 +992,9 @@ def main() -> int:
         f"Refus pertinent ({rapport.nb_refus_attendus} q)   : {rapport.nb_refus_succes}/{rapport.nb_refus_attendus} "
         f"({rapport.score_refus * 100:.1f} %) [cible: ≥ 95 %]"
     )
+    if rapport.nb_conversation:
+        print(f"Hors sujet ({rapport.nb_conversation} q)        : {rapport.nb_conversation_succes}/{rapport.nb_conversation} "
+              "(réponse de conversation, 0033)")
     print(f"Invariant « 0 inventé »  : {rapport.nb_violations_invariant} violation(s) [cible: 0]")
     print(
         f"Latence médiane / P95    : {rapport.latence_mediane_ms:.1f} ms / {rapport.latence_p95_ms:.1f} ms"

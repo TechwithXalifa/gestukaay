@@ -8,11 +8,12 @@ indicateurs du socle (#3).
 
 | Type | Ce qu'on teste | FR | WO |
 |---|---|---|---|
-| simple | une valeur | 29 | 13 |
+| simple | une valeur | 30 | 13 |
 | comparative | 2 zones ou 2 périodes | 11 | 4 |
 | classement | « quelle région… le plus… » | 7 | 3 |
 | approchee | ville → département, « Dakar » → 3 académies, période voisine, catégorie non publiée | 8 | 3 |
-| refus | donnée absente, prévision non publiée, hors statistique, inintelligible | 14 | 6 |
+| refus | une demande de chiffre sans réponse officielle : donnée absente, prévision non publiée, inintelligible | 12 | 7 |
+| conversation | un message qui ne demande pas de chiffre (président, maire, météo, poème) : réponse de conversation (0033), mesurée à part | 7 | 3 |
 | suivi | « et pour Kaolack ? » (colonne `suite_de`) | 3 | 2 |
 
 Le cahier (12.1) prévoit 100 questions, 70 FR / 30 WO. En #3, trois refus se sont révélés couverts
