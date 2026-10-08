@@ -469,12 +469,13 @@ _PAS_UN_SUJET = _CADRE | {"indice", "publique", "public", "general", "generale",
 
 
 def _proche(mot: str, vocab) -> bool:
-    """Le mot, son pluriel, sa forme collée (« dhabitant ») ou un mot de même racine (5 lettres)."""
+    """Le mot, son pluriel, sa forme collée (« dhabitant ») ou un mot de même racine (6 lettres : « production »
+    n'est pas « produits »)."""
     if mot in vocab or forme(mot) in vocab:
         return True
     if len(mot) > 4 and mot[0] in "dl" and _proche(mot[1:], vocab):
         return True
-    return len(mot) >= 5 and any(len(v) >= 5 and v[:5] == mot[:5] for v in vocab)
+    return len(mot) >= 6 and any(len(v) >= 6 and v[:6] == mot[:6] for v in vocab)
 
 
 def couvert(code: str, question: str) -> bool:
@@ -574,7 +575,11 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
         code = code if code and not zones and not precision_seule else precedente.indicateur
         zones = zones or list(precedente.zones)
     elif code and not couvert(code, question):
-        code = None
+        # le meilleur ne couvre pas la question : le suivant qui la couvre (« personnes condamnées » après
+        # « personnes emprisonnées », « indice de bien-être » après « indice de Gini »), sinon aucun
+        suivants = sorted((c for c in candidats if c.score >= SEUIL_REGLES and c.indicateur.code != code),
+                          key=lambda c: -c.score)
+        code = next((c.indicateur.code for c in suivants if couvert(c.indicateur.code, question)), None)
     elif meilleur and code == meilleur.indicateur.code and not periodes:
         # après le garde-fou : l'équivalent vérifié plus récent, choisi par KBD, peut dire la chose autrement (FR-020)
         code = _plus_recent_a_egalite(meilleur, candidats).indicateur.code
