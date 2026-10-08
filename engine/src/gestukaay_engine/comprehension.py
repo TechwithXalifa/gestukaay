@@ -208,7 +208,7 @@ def heriter(req: RequeteStructuree, precedente: RequeteStructuree, question: str
 # Une demande de chiffre n'est jamais du hors sujet (passe Gemini du 07/10, FR-071) : si le socle ne l'a pas,
 # c'est un refus « donnée absente », avec « Suggérer cet indicateur à l'équipe ».
 _DEMANDE_DE_CHIFFRE = re.compile(r"^(combien|quel est le (nombre|taux|pourcentage|prix|montant)|quelle est la "
-                                 r"(part|proportion|population)|naata|nata|niata|ban tolluwaay)\b")
+                                 r"(part|proportion|population)|naata|nata|niata|gnaa?ta|nyaa?ta|ban tolluwaay)\b")
 
 
 @cache

@@ -112,6 +112,7 @@ def test_deux_nombres_relies_restent_deux(dit, attendu):
     ("Ñata xale moins de 5 ans nioy de senegal (sur 1000) ?", "wo"),  # interrogatif wolof : tranche
     ("Ndax prix thieb detail bi yok na entre mars 2025 ak mars 2026 ?", "wo"),
     ("Limu askanu Ndakaaru ak Kaolack", "wo"), ("Kaolack nak?", "wo"),
+    ("Gnata habitants Thiès ?", "wo"), ("Nyaata habitants Thiès ?", "wo"),  # graphies WhatsApp de ñaata (#22)
 ])
 def test_langue_detectee(texte, langue):
     assert detecter(texte) == langue

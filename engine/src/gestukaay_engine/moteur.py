@@ -55,6 +55,7 @@ from .conversation import texte as conversation_texte
 from .gabarits import citation, explication, note_perimetre
 from .interface import NonDisponible, NoteVocale
 from .langue import detecter
+from .nombres import en_chiffres
 from .parole import en_wolof, texte_parle
 from .refus import Refus, construire_reponse_aucune, est_projection, refuser, verifier_suggestion
 from .resolution import Introuvable, Resolution, national, ordre_effectif, resoudre
@@ -97,8 +98,9 @@ class MoteurReel:
         # langue de la réponse (#24, 0032) : celle choisie par l'utilisateur, sinon celle de la question
         langue = req.langue if req.langue in ("fr", "wo") else detecter(req.question)
         # « Bonjour, combien d'habitants à Thiès ? » : la politesse de tête est retirée avant la compréhension
-        # (0033, revue de SAN) ; la réponse garde la question telle que posée
-        reste = sans_politesse(req.question)
+        # (0033, revue de SAN) ; la réponse garde la question telle que posée. Les nombres en lettres deviennent
+        # des chiffres, comme pour une note vocale (0027) : « ci ñaari junni ak ñaar-fukk ak ñett » = 2023 (#22)
+        reste = en_chiffres(sans_politesse(req.question))
         rep = self._repondre(req.model_copy(update={"question": reste}) if reste != req.question else req, contexte)
         if reste != req.question:
             rep = rep.model_copy(update={"reponse": rep.reponse.model_copy(update={"question": req.question})})
