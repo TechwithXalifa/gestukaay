@@ -20,6 +20,7 @@ from pydantic import ValidationError
 DOSSIER = Path(__file__).parents[1] / "examples"
 # Exemples qui ne sont pas des AskResponse (routes v1.1.0)
 AUTRES = {"transcription.json": TranscriptionResponse, "situer.json": SituateResponse,
+          "situer_milieu.json": SituateResponse,
           # v1.4.0 (décision 0023) : catalogue, fiche indicateur, séries d'Explorer
           "catalogue.json": CatalogueResponse, "fiche_indicateur.json": FicheIndicateur,
           "series.json": SeriesResponse}
@@ -118,3 +119,33 @@ def test_fiche_cite_sa_source():
     rep = FicheIndicateur.model_validate_json((DOSSIER / "fiche_indicateur.json").read_text(encoding="utf-8"))
     assert rep.source.libelle and rep.citation.startswith("Source : ")
     assert rep.couverture and all(c.zones > 0 and c.periodes for c in rep.couverture)
+
+
+def test_situer_v16_chaque_valeur_ajoutee_a_sa_source():
+    """1.6.0 (décision 0039) : milieu, seuil, répartition et moyennes des régions sont des lignes publiées."""
+    rep = SituateResponse.model_validate_json((DOSSIER / "situer_milieu.json").read_text(encoding="utf-8"))
+    ajoutees = [rep.moyenne_milieu, rep.seuil_pauvrete, *rep.repartition_bien_etre, *rep.moyennes_regions]
+    assert rep.moyenne_milieu and rep.seuil_pauvrete and len(rep.repartition_bien_etre) == 5
+    assert len(rep.moyennes_regions) == 14
+    for r in ajoutees:
+        assert r.source.libelle and r.source.date_publication and r.source.url
+    assert rep.position_milieu and rep.position_seuil
+
+
+def test_situer_v16_additif():
+    """Un client 1.5.0 continue de fonctionner : tous les champs ajoutés sont facultatifs."""
+    for champ in ("moyenne_milieu", "position_milieu", "seuil_pauvrete", "position_seuil",
+                  "repartition_bien_etre", "moyennes_regions"):
+        assert not SituateResponse.model_fields[champ].is_required()
+    assert not SituateRequest.model_fields["milieu"].is_required()
+
+
+def test_situer_position_jamais_sans_sa_valeur():  # revue de SAN sur #174 : aucune valeur sans source
+    exemple = SituateResponse.model_validate_json((DOSSIER / "situer_milieu.json").read_text(encoding="utf-8"))
+    for valeur, position in (("moyenne_milieu", "position_milieu"), ("seuil_pauvrete", "position_seuil")):
+        donnees = exemple.model_dump()
+        donnees[valeur] = None  # la position seule
+        with pytest.raises(ValueError, match=position):
+            SituateResponse.model_validate(donnees)
+        donnees[position] = None  # ni l'une ni l'autre : accepté (client 1.5.0)
+        SituateResponse.model_validate(donnees)

@@ -286,7 +286,7 @@
   "description": "GET /v1/series?indicateur=&zones=SN-DK,SN-TH&debut=&fin= [5.5 « Explorer », US-18].\n\nAu plus 6 zones (422 au-delà), indicateur inconnu : 404. Une zone sans aucune valeur publiée sur\nla période figure dans `absents` : signalée, jamais interpolée (maquette Explorer).",
   "properties": {
     "version_contrat": {
-      "default": "1.5.0",
+      "default": "1.6.0",
       "type": "string"
     },
     "version_socle": {

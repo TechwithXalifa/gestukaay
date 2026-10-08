@@ -258,7 +258,7 @@
   "description": "Le ménage comparé aux moyennes PUBLIÉES. Aucune tranche (décile,\nquintile) : le portail n'en publie pas les seuils (décision 0004 §2).",
   "properties": {
     "version_contrat": {
-      "default": "1.5.0",
+      "default": "1.6.0",
       "type": "string"
     },
     "depense_par_personne_an": {
@@ -295,6 +295,74 @@
     },
     "explication": {
       "type": "string"
+    },
+    "moyenne_milieu": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Resultat"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "position_milieu": {
+      "anyOf": [
+        {
+          "enum": [
+            "en_dessous",
+            "autour",
+            "au_dessus"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "seuil_pauvrete": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Resultat"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "position_seuil": {
+      "anyOf": [
+        {
+          "enum": [
+            "en_dessous",
+            "autour",
+            "au_dessus"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "repartition_bien_etre": {
+      "items": {
+        "$ref": "#/$defs/Resultat"
+      },
+      "maxItems": 5,
+      "type": "array"
+    },
+    "moyennes_regions": {
+      "items": {
+        "$ref": "#/$defs/Resultat"
+      },
+      "maxItems": 14,
+      "type": "array"
     }
   },
   "required": [
@@ -305,7 +373,13 @@
     "position_region",
     "position_pays",
     "contexte",
-    "explication"
+    "explication",
+    "moyenne_milieu",
+    "position_milieu",
+    "seuil_pauvrete",
+    "position_seuil",
+    "repartition_bien_etre",
+    "moyennes_regions"
   ],
   "title": "SituateResponse",
   "type": "object"
