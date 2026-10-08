@@ -389,7 +389,21 @@ def proposer_approchee(
             if z.niveau == "academie" and z.parent == z_demandee
         ] if est_academique else []
 
-        if academies_couvrantes:
+        # 4c. Le Sénégal pour un indicateur publié seulement par région (« prix des céréales locales au Sénégal »,
+        # recette du 08/10 : 13 refus sur 15) -> le classement des régions, par catégorie s'il le faut
+        par_region = z_demandee == "SN" and not academies_couvrantes and {
+            o.zone for o in socle.observations(code_ind)} and "SN" not in {o.zone for o in socle.observations(code_ind)}
+        if par_region:
+            dims = {k for o in socle.observations(code_ind) for k, _ in o.desagregation}
+            mods = sorted({o.dims().get(d) for o in socle.observations(code_ind) for d in dims} - {None}) if len(dims) == 1 else []
+            for m in (mods[:3] or [None]):
+                desag = {"produit": normaliser(m)} if m else requete.desagregation
+                req_c = requete.model_copy(update={"zones": [], "intention": "classement", "desagregation": desag})
+                lib = f"{_nom_indicateur(code_ind, langue)}{f' ({m})' if m else ''} - classement des régions"
+                candidats_choix.append((req_c, lib))
+            reformulation = ("Ce chiffre n'est pas publié pour l'ensemble du Sénégal, seulement par région ; voici le "
+                             "classement des régions. Est-ce ce que vous cherchez ?")
+        elif academies_couvrantes:
             academies_couvrantes.sort(key=lambda a: a.code)
             for a in academies_couvrantes:
                 req_c = requete.model_copy(update={"zones": [a.code]})
@@ -418,6 +432,28 @@ def proposer_approchee(
                 f"Ce chiffre n'est pas publié pour {_dans_la_phrase(_nom_zone(z_demandee, langue))} ; "
                 "voici les zones pour lesquelles l'ANSD publie ce chiffre. Est-ce ce que vous cherchez ?"
             )
+
+    # -----------------------------------------------------------------------
+    # Cas 4 bis : année demandée, série mensuelle ou trimestrielle (« le riz en 2019 ») : l'année est bien
+    # publiée, mais par mois. On propose les 3 derniers mois (ou trimestres) de l'année, jamais une moyenne
+    # calculée (KBD, 08/10 : la réponse disait « non publié pour 2019 », alors que les 12 mois existent)
+    # -----------------------------------------------------------------------
+    if not candidats_choix and introuvable and introuvable.raison == "periode_absente" and re.fullmatch(
+            r"\d{4}", requete.periode.valeur or ""):
+        annee = requete.periode.valeur
+        publiees = {o.zone for o in socle.observations(code_ind)}
+        # même zone par défaut que la résolution : le Sénégal, sinon la seule publiée (le riz : Dakar)
+        z_code = requete.zones[0] if requete.zones else ("SN" if "SN" in publiees or len(publiees) != 1
+                                                         else next(iter(publiees)))
+        dans_l_annee = sorted({o.periode for o in socle.observations(code_ind)
+                               if o.zone == z_code and len(o.periode) > 4 and o.periode.startswith(annee)}, reverse=True)
+        for p in dans_l_annee[:3]:
+            req_c = requete.model_copy(update={"periode": Periode(type="trimestre" if "T" in p else "mois", valeur=p)})
+            lib = f"{_nom_indicateur(code_ind, langue)} - {_nom_zone(z_code, langue)} en {libelle_periode(p)}"
+            candidats_choix.append((req_c, lib))
+        if candidats_choix:
+            unite = "trimestre" if "T" in dans_l_annee[0] else "mois"
+            reformulation = f"Ce chiffre est publié par {unite} : lequel cherchez-vous en {annee} ?"
 
     # -----------------------------------------------------------------------
     # Cas 5 : Période absente (ex. 2023 pour jcvcajc, 2026 pour dwibrlf)

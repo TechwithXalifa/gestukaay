@@ -57,3 +57,11 @@ est noté.
   Sénégal, Dakar et Kolda en 2011, 2019 et 2022), avec leur `observation_id`.
 - Le site peut avancer sur le faux moteur dès la fusion, sans attendre l'implémentation réelle.
 - Hors V1.0 : sélection fine des désagrégations dans Explorer (sexe, milieu…), export PNG (EF-36).
+
+## Mise en œuvre (08/10)
+
+Écrite par SAN à la demande de KBD (#156), à relire par KBD : `engine/src/gestukaay_engine/donnees.py`. Les
+valeurs d'Explorer passent par `resoudre_un()` : total par défaut, défauts déclarés du jeu, académie
+équivalente, comme une question ; une période sans valeur sûre est absente, jamais interpolée. Le catalogue
+(4 247 indicateurs avec des valeurs dans le socle 2026.10.0) est calculé une fois, en 0,7 s ; la recherche
+porte sur le libellé, l'opération, le producteur et le domaine. Les trois routes ne répondent plus 503.

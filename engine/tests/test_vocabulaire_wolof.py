@@ -106,3 +106,41 @@ def test_jang_scolarisation():  # KBD, 07/10 (remarque de SAN sur #138) : jàng 
                                       "ñaata lekool ñoo nekk ci senegaal"])
 def test_ecole_n_est_pas_le_taux_de_scolarisation(question):  # ekool : KBD, 08/10 ; donnait 84,7 %
     assert "nombre" in _comprise(question).indicateur and "ecoles" in _comprise(question).indicateur
+
+
+@pytest.mark.parametrize("question, periodes", [  # formes de KBD, questions du 08/10
+    ("Ñaata la kiloy ceeb doon jar ci weeru mars atum 2026 ?", ["2026-03"]),
+    ("Naka la njëg yi soppikoo la ko dale weeru samwiye atum 2000 ?", ["2000-01"]),
+    ("IPC ci weeru sulet atum 2026", ["2026-07"]),
+    ("ci ñaareelu ñetti weer yi ci atum 2023", ["2023-T2"]),
+    ("diggante ñetti weer yu mujj yu 2025 ak ñetti weer yu njëkk yu 2026", ["2025-T4", "2026-T1"]),
+])
+def test_mois_et_trimestres_en_wolof(question, periodes):
+    from gestukaay_engine.candidats import periodes_citees
+    from gestukaay_engine.nombres import en_chiffres
+    assert periodes_citees(question) == periodes
+    assert periodes_citees(en_chiffres(question)) == periodes  # « ñetti » converti en « 3 » avant (#153)
+
+
+def test_glossaire_wolof_dans_la_consigne():
+    from gestukaay_engine.comprehension import SYSTEME
+    assert "yamadi" in SYSTEME and "deeg xale yi" in SYSTEME and "ñakkug xale yi" in SYSTEME
+    assert SYNONYMES["yamadi"] == ("gini",) and SYNONYMES["deeg"] == ("mortalite",)
+
+
+def test_dekk_yi_all_bi_milieux_et_urbanisation():  # « ñoo dëkk ci dëkk yi » / « ci all bi » (KBD, 08/10)
+    from gestukaay_engine.resolution import portee_par_indicateur
+    from gestukaay_socle.indicateurs import indicateurs
+    assert desagregation_citee("Ñata senegale ñoo dëkk ba tay ci all bi ?") == {"milieu": "rural"}
+    assert desagregation_citee("Ñata ci téeméer ci askanu Senegaal ñoo dëkk ci dëkk yi ?") == {"milieu": "urbain"}
+    assert desagregation_citee("Ñata nit ñoo dëkk Ndakaaru ?") == {}
+    urb = indicateurs()["rfegvpb.taux-durbanisation"]
+    assert portee_par_indicateur(urb, "urbain") and not portee_par_indicateur(urb, "rural")  # jamais 100 - x
+
+
+def test_garde_fou_ne_compte_que_les_mots_ecrits():  # « dëkk » apportait « askan » : la population remplaçait
+    from gestukaay_engine.comprehension import (
+        _hors_sujet,  # l'urbanisation choisie par le LLM (08/10)
+    )
+    q = "Ñata senegale ñoo dëkk ba tay ci all bi ?"
+    assert _hors_sujet("rfegvpb.taux-durbanisation", index().chercher(q, 15), q) == "rfegvpb.taux-durbanisation"

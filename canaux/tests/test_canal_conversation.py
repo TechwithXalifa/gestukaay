@@ -173,10 +173,10 @@ def test_salutation_puis_question_part_au_moteur():
 # --- Voix de réponse (EF-20, décision 0029) ------------------------------------
 
 
-def avec_question(question: str, transcription: str | None = None) -> AskResponse:
+def avec_question(question: str, transcription: str | None = None, langue: str = "wo") -> AskResponse:
     r = rep("exacte_valeur")
     return r.model_copy(update={"reponse": r.reponse.model_copy(
-        update={"question": question, "transcription": transcription})})
+        update={"question": question, "transcription": transcription, "langue": langue})})
 
 
 def test_question_vocale_la_voix_puis_une_fiche():
@@ -190,6 +190,16 @@ def test_question_vocale_la_voix_puis_une_fiche():
     ligne, lien, mention = e.textes()[-1].split("\n")  # revue de SAN : se suffit si on la transfère
     assert "2\u202f463\u202f677" in ligne and "Source" in ligne and " · " in ligne
     assert lien.startswith("http") and mention == "— gestukaay"
+
+
+def test_question_vocale_en_francais_le_texte_complet_en_francais():
+    # KBD, 08/10 : une question dite en français recevait une note en wolof (seule voix du projet)
+    tr = TranscriptionResponse(transcription="Combien d'habitants à Thiès ?", langue="fr", duree_s=3.0)
+    e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=tr,
+                                      demander=lambda q: avec_question(q, transcription=q, langue="fr"))
+    traiter(entrant(type="audio", media="300000000000001"), s, e)
+    assert [k for k, _ in e.envois] == ["accuse", "texte"]  # ni « enregistre un audio… » ni note wolof
+    assert "2\u202f463\u202f677" in e.textes()[-1]
 
 
 def test_question_ecrite_en_wolof_texte_seul():
@@ -230,7 +240,7 @@ def test_pas_de_voix_le_texte_complet_part():
 def test_approchee_vocale_la_voix_puis_les_choix():
     e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=_vocale(),
                                       demander=lambda q: rep("approchee").model_copy(update={"reponse": rep(
-                                          "approchee").reponse.model_copy(update={"transcription": q})}))
+                                          "approchee").reponse.model_copy(update={"transcription": q, "langue": "wo"})}))
     traiter(entrant(type="audio", media="300000000000001"), s, e)
     assert [k for k, _ in e.envois] == ["accuse", "preparer_vocal", "vocal", "choix"]
 

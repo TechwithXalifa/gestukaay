@@ -104,3 +104,12 @@ def test_ligne_de_commande(tmp_path, monkeypatch, capsys):
         comptes.main(["creer", "SAN"])
     with pytest.raises(SystemExit, match="Identifiant"):
         comptes.main(["creer", "S A N"])
+
+
+def test_mot_de_passe_sans_terminal(monkeypatch):  # e2e : variable d'environnement, sinon une ligne par tube
+    import io
+    monkeypatch.setenv("GESTUKAAY_MOT_DE_PASSE", "un mot de passe long")
+    assert comptes._lire_mot_de_passe() == "un mot de passe long"
+    monkeypatch.delenv("GESTUKAAY_MOT_DE_PASSE")
+    monkeypatch.setattr("sys.stdin", io.StringIO("avec espace final \r\n"))
+    assert comptes._lire_mot_de_passe() == "avec espace final "  # le \r\n part, l'espace reste

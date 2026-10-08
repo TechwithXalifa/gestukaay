@@ -38,6 +38,8 @@ from .candidats import (
     Candidat,
     aucun_mot_connu,
     desagregation_citee,
+    est_evolution,
+    extremum,
     forme,
     index,
     lieux_inconnus,
@@ -49,7 +51,7 @@ from .candidats import (
 )
 from .conversation import Categorie
 from .conversation import regles as conversation_regles
-from .langue import _FR, _WO, _WO_FORTS
+from .langue import _FR, _WO, _WO_FORTS, detecter
 from .llm import Appel, ClientLLM, EchecLLM
 
 K = 15  # candidats proposés au LLM
@@ -89,6 +91,17 @@ La question peut être en français, en wolof ou mélangée, avec des fautes.
 
 On te donne : la question, les zones et périodes déjà repérées, et une liste NUMÉROTÉE d'indicateurs
 candidats. Tu ne vois aucune valeur et tu n'en produis jamais.
+
+Vocabulaire wolof (validé par un locuteur natif) :
+- « dëkk yi » = les villes (milieu urbain) ; « all bi » = la campagne (milieu rural) ; « dëkkuwaay » = urbanisation.
+  La part de la population qui vit en ville (« ñata ci téeméer… ñoo dëkk ci dëkk yi », « ban wall… ») est le taux
+  d'urbanisation, et celle qui vit à la campagne (« ci all bi ») son complément : choisis le taux d'urbanisation.
+- « yamadi » = inégalités (indice de Gini) ; « koom-koom » = économie.
+- « dee », « deeg » = décès, mortalité : « deeg xale yi » = mortalité des enfants, pas leur croissance.
+- « ñakk » (vaccin) n'est pas « ñàkk » (manquer, pauvreté) : « ñakkug xale yi », « ñakk ba mu mat » = vaccination
+  (complète) des enfants.
+- « yeex a màgg » = retard de croissance ; « njàng », « jàng » = scolarisation ; « ndongo » = élèves.
+- « dugub » = mil ; « ceeb » = riz ; « ceeb bu ñu damm » = riz brisé ; « pepp » = céréales.
 
 Réponds :
 - intention : « valeur » (une valeur), « comparaison » (plusieurs zones ou plusieurs périodes),
@@ -292,7 +305,9 @@ def _hors_sujet(code: str | None, candidats, question: str) -> str | None:
         return code
     ix = index()
     d_tete, d_choisi = ix.mots_de(tete.indicateur.code), ix.mots_de(code)
-    if any(ix.idf.get(m, 0) >= IDF_DISTINCTIF and m in d_tete and m not in d_choisi for m in ix.requete(question)):
+    # les mots écrits seulement, pas leurs synonymes : « dëkk » apportait « askan », et la population remplaçait
+    # le taux d'urbanisation que le LLM avait bien choisi (questions wolof de KBD, 08/10)
+    if any(ix.idf.get(m, 0) >= IDF_DISTINCTIF and m in d_tete and m not in d_choisi for m in set(mots(question))):
         return tete.indicateur.code
     return code
 
@@ -321,6 +336,13 @@ class Comprehension:
                                                                               candidats, precedente), SortieLLM)
                 req = _intention_de_la_question(self._requete(sortie, candidats, zones, periodes, precedente, question),
                                                 question, zones)
+                if (req.indicateur and not suivi and detecter(question) == "fr"
+                        and (ind := indicateurs().get(req.indicateur)) and ind.verification != "verifie"
+                        and not sujet_dans_la_question(req.indicateur, question, precisions=True)):
+                    # 410 questions du 08/10 : « l'ensemble de la période » -> « Ensemble garçon » (un vêtement), « les
+                    # prix » -> « Titres autres qu'actions ». Un indicateur non vérifié dont le sujet n'est pas dans la
+                    # question n'est pas servi (le wolof est épargné : le lexique ne le couvre pas encore assez)
+                    req = req.model_copy(update={"indicateur": None, "intention": "hors_perimetre"})
                 if suivi:
                     req = heriter(req, precedente, question, periodes)
                 proches = [candidats[i - 1] for i in sortie.proches if 1 <= i <= len(candidats)][:3]
@@ -414,12 +436,14 @@ def _intention_de_la_question(req: RequeteStructuree, question: str, zones: list
     if not req.indicateur:
         return req
     t = normaliser(question)
+    if extremum(question) and len(req.zones) <= 1:
+        return req.model_copy(update={"intention": "valeur"})  # « quel mois le plus… » : une période, pas des régions
     if _TOUTES_REGIONS.search(t) and req.intention != "classement" and set(req.zones) <= {"SN"}:
         return req.model_copy(update={"intention": "classement", "zones": []})
     if req.intention == "classement" and not _CLASSEMENT.search(t) and zones == ["SN"]:
         return req.model_copy(update={"intention": "valeur", "zones": ["SN"]})
-    if req.intention == "valeur" and re.search(r"\bevolution\b", t) and len(req.zones) <= 1:
-        return req.model_copy(update={"intention": "comparaison"})  # « Évolution de l'espérance de vie »
+    if req.intention == "valeur" and est_evolution(question) and len(req.zones) <= 1:
+        return req.model_copy(update={"intention": "comparaison"})  # « a-t-elle diminué ? », « depuis 2016 »
     return req
 
 
@@ -457,6 +481,18 @@ _CADRE = {  # mots de la question qui ne disent pas QUOI mesurer
     "diwaan", "diiwaan", "neew", "tuuti", "gena", "geuna", "rey", "nakk", "ngi",
     # unités, quantités et repères de comparaison
     "kilo", "kg", "litre", "tonne", "quantite", "produit", "nationale", "national", "comparee", "compares",
+    # évolution et discours (410 questions du 08/10 sur les 27 indicateurs vérifiés)
+    "evolue", "evoluer", "tendance", "cour", "diminue", "diminuer", "periode", "observer", "observe",
+    "observee", "progresse", "progresser", "generale", "general", "variation", "autre", "enregistre", "premier",
+    "deuxieme", "troisieme", "quatrieme", "annuelle", "annuel", "degage", "situation", "connu", "connait",
+    "connaissent", "forte", "fort", "rapidement", "long", "terme", "importante", "important", "pandemie", "covid",
+    "ensemble", "change", "changer", "pourrait", "projetee", "projete", "projection", "comparent", "realise", "chez",
+    "permettent", "permet", "pendant", "etaient", "cinq", "deux", "trois", "dix", "douze", "vingt",
+    "trente", "quarante", "encore", "amelioration", "ameliore", "davantage", "mesure", "meme", "rythme", "etudiee",
+    "revelent", "revele", "matiere", "contre", "point", "devenue", "devenu", "ceux", "celle", "celui", "coutait",
+    "coute", "cout", "serie", "fluctuation", "rapport", "partir", "atteint", "recense", "recensement", "kilogramme",
+    "precedent", "decennie", "plutot", "estimation", "augmenter", "augmentent", "existe", "cher", "chere",
+    "disponibles", "donnees", "statistiques", "debut", "fin",
     # modalités publiées dans les jeux (type de pêche, qualité du riz…) : précisent, ne changent pas le sujet
     "artisanale", "industrielle", "continentale", "maritime", "ordinaire", "brise", "detail", "gro",
 }
@@ -465,6 +501,9 @@ _GENTILE = re.compile(r"(ais|aise|ien|ienne|ain|aine)s?$")  # « touristes fran�
 _OUTILS = (_FR | _WO | _WO_FORTS) - {"habitants", "menages", "personnes", "nombre"}
 # Mots trop généraux pour dire le sujet d'un indicateur (« Dépenses PUBLIQUES d'éducation » n'est pas la dette
 # publique, « INDICE de Gini » se demande aussi « les inégalités »)
+_PRECISIONS = {"femme", "homme", "fille", "garcon", "jeune", "age", "rural", "urbain", "rurale", "urbaine", "milieu",
+               "elementaire", "primaire", "secondaire", "cycle", "jigeen", "goor", "xale", "personne", "individu"}
+# les précisions ne bloquent pas la question (b), mais elles peuvent être le sujet d'un indicateur (« Ensemble garçon »)
 _PAS_UN_SUJET = _CADRE | {"indice", "publique", "public", "general", "generale", "national", "nationale", "effectif"}
 
 
@@ -478,14 +517,21 @@ def _proche(mot: str, vocab) -> bool:
     return len(mot) >= 6 and any(len(v) >= 6 and v[:6] == mot[:6] for v in vocab)
 
 
+def sujet_dans_la_question(code: str, question: str, precisions: bool = False) -> bool:
+    """(a) Le sujet de l'indicateur (deux premiers mots porteurs de son libellé) est dans la question.
+    precisions : « garçon », « femmes »… comptent comme sujet (contrôle du choix du LLM : « Ensemble garçon »)."""
+    ind = indicateurs().get(code)
+    exclus = _PAS_UN_SUJET - _PRECISIONS if precisions else _PAS_UN_SUJET
+    sujet = [m for m in mots(ind.libelle_fr.split(" — ")[0])
+             if m not in exclus and not m.isdigit() and len(m) > 2][:2] if ind else []
+    return not sujet or any(_proche(m, set(index().requete(question))) for m in sujet)
+
+
 def couvert(code: str, question: str) -> bool:
     """Garde-fou du secours (a) + (b), voir _CADRE."""
     ix = index()
     doc = set(ix.mots_de(code))
-    elargie = set(ix.requete(question))  # mots de la question + synonymes
-    ind = indicateurs().get(code)
-    sujet = [m for m in mots(ind.libelle_fr.split(" — ")[0]) if m not in _PAS_UN_SUJET and not m.isdigit()][:2] if ind else []
-    if sujet and not any(_proche(m, elargie) for m in sujet):
+    if not sujet_dans_la_question(code, question):
         return False  # (a) « dépenses d'éducation » pour « la dette publique »
     noms_de_zones = {w for z in zones_citees(question) if (zr := zones_ref().get(z))
                      for nom in (zr.libelle_fr, zr.libelle_wo, *zr.variantes) for w in texte_normalise(nom).split()}
@@ -604,9 +650,11 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
     if code is None:
         return RequeteStructuree(intention="hors_perimetre", zones=zones, confiance=0.3)
     suivi = bool(precedente) and _suivi(question)
-    if _CLASSEMENT.search(t):
+    if extremum(question) and len(zones) <= 1:
+        intention = "valeur"  # la période du plus haut niveau : la résolution la cherche dans la série
+    elif _CLASSEMENT.search(t):
         intention = "classement"
-    elif (len(zones) > 1 and not suivi) or len(periodes) > 1 or _COMPARAISON.search(t):
+    elif (len(zones) > 1 and not suivi) or len(periodes) > 1 or _COMPARAISON.search(t) or est_evolution(question):
         intention = "comparaison"
     else:
         intention = "valeur"
