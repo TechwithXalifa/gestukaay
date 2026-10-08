@@ -155,8 +155,10 @@ Le portail ne publie **aucun seuil** de décile ni de quintile : on compare le m
   - entrée `milieu` (`urbain` / `rural`) : le portail ne publie le milieu qu'au **niveau national** ;
     le ménage est comparé **en plus** aux ménages urbains ou ruraux du Sénégal (`moyenne_milieu`,
     `position_milieu`) ;
-  - `seuil_pauvrete`, `position_seuil` : seuil de pauvreté officiel (EHCVM 2018, FCFA par personne
-    et par an), même règle de position (#59) ;
+  - `seuil_pauvrete`, `position_seuil` : seuil de pauvreté officiel (FCFA par personne et par an, année 2018),
+    tel que publié dans le jeu `ahjjzgc` (« Indicateurs genre à partir des données des enquêtes EDS »), qui est
+    la source citée ; même règle de position (#59). Les deux vont ensemble, comme `moyenne_milieu` et
+    `position_milieu` (le contrat refuse l'un sans l'autre) ;
   - `repartition_bien_etre` : part de la population de la région dans chacun des cinq groupes de
     bien-être, du plus bas au plus élevé. **Le ménage n'y est pas placé** : les seuils des groupes ne
     sont pas publiés ;

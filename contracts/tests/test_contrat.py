@@ -138,3 +138,14 @@ def test_situer_v16_additif():
                   "repartition_bien_etre", "moyennes_regions"):
         assert not SituateResponse.model_fields[champ].is_required()
     assert not SituateRequest.model_fields["milieu"].is_required()
+
+
+def test_situer_position_jamais_sans_sa_valeur():  # revue de SAN sur #174 : aucune valeur sans source
+    exemple = SituateResponse.model_validate_json((DOSSIER / "situer_milieu.json").read_text(encoding="utf-8"))
+    for valeur, position in (("moyenne_milieu", "position_milieu"), ("seuil_pauvrete", "position_seuil")):
+        donnees = exemple.model_dump()
+        donnees[valeur] = None  # la position seule
+        with pytest.raises(ValueError, match=position):
+            SituateResponse.model_validate(donnees)
+        donnees[position] = None  # ni l'une ni l'autre : accepté (client 1.5.0)
+        SituateResponse.model_validate(donnees)
