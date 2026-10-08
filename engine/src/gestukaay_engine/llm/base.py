@@ -32,7 +32,7 @@ class Maillon:
     # et tri des autres (« latency », « throughput », « price »).
     hebergeurs: tuple[str, ...] = ()
     tri: str | None = None
-    # OpenRouter seulement : raisonnement des modèles qui « réfléchissent » avant de
+    # OpenRouter et Gemini direct : raisonnement des modèles qui « réfléchissent » avant de
     # répondre (gpt-oss, DeepSeek, Qwen3…). « non » le désactive ; sinon minimal,
     # low, medium, high. None : réglage par défaut du modèle (souvent lent).
     raisonnement: str | None = None
