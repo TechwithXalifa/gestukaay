@@ -147,3 +147,19 @@ def test_hommes_et_femmes_pas_encore_disponible_plutot_que_les_femmes_seules():
 
 def test_index_charge():
     assert index().idf  # le garde-fou s'appuie sur le vocabulaire du référentiel
+
+
+def test_ratio_un_par_de_ventilation_n_est_pas_un_ratio_publie():  # revue de SAN sur #162
+    from gestukaay_engine.candidats import ratio_non_publie
+    # « … lits par Hôpitaux, … par région » : le nombre de lits n'est pas un ratio pour 10 000 habitants
+    assert ratio_non_publie("mksvmnc.hopitaux", "Combien de lits d'hôpital pour 10 000 habitants ?")
+    assert ratio_non_publie("uzptmtd", "Quelle est la densité de population de Dakar ?")  # « par région, age et sexe »
+    assert not ratio_non_publie("smcofug.quotient-de-mortalite-infanto-juvenile",
+                                "Mortalité des moins de 5 ans pour 1 000 naissances")  # ratio publié
+
+
+def test_suivi_nouvel_indicateur_passe_le_garde_fou():  # revue de SAN sur #162
+    precedente = RequeteStructuree(intention="valeur", indicateur="dwibrlf", zones=["SN"],
+                                   periode={"type": "derniere"}, confiance=0.9)
+    r = comprise("Et le salaire du président ?", [precedente]).requete
+    assert r.indicateur is None and r.intention == "hors_perimetre"  # ni le chômage ni le salaire moyen (muhgux)

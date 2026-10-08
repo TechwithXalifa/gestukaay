@@ -557,6 +557,16 @@ def _mesure_alignee(meilleur: Candidat, candidats: list[Candidat], t: str) -> Ca
     return meilleur
 
 
+def _couvrant(code: str, candidats: list[Candidat], question: str) -> str | None:
+    """Le choix s'il couvre la question ; sinon le suivant qui la couvre (« personnes condamnées » après
+    « personnes emprisonnées », « indice de bien-être » après « indice de Gini »), sinon aucun."""
+    if couvert(code, question):
+        return code
+    suivants = sorted((c for c in candidats if c.score >= SEUIL_REGLES and c.indicateur.code != code),
+                      key=lambda c: -c.score)
+    return next((c.indicateur.code for c in suivants if couvert(c.indicateur.code, question)), None)
+
+
 def regles(question: str, candidats: list[Candidat], zones: list[str], periodes: list[str],
            precedente: RequeteStructuree | None) -> RequeteStructuree:
     if aucun_mot_connu(question):
@@ -572,14 +582,13 @@ def regles(question: str, candidats: list[Candidat], zones: list[str], periodes:
         # femmes au gouvernement, recette du 08/10)
         precision_seule = all(m in _CADRE or m in _SUIVI_EN_TETE | _SUIVI_PARTOUT or resoudre_zone(m)
                               for m in mots(question))
-        code = code if code and not zones and not precision_seule else precedente.indicateur
+        nouveau = bool(code) and not zones and not precision_seule
+        # un nouvel indicateur dans un suivi passe aussi le garde-fou : « Et le salaire du président ? » après le
+        # chômage donnait le salaire moyen (revue de SAN sur #162)
+        code = (_couvrant(code, candidats, question) if nouveau else precedente.indicateur)
         zones = zones or list(precedente.zones)
     elif code and not couvert(code, question):
-        # le meilleur ne couvre pas la question : le suivant qui la couvre (« personnes condamnées » après
-        # « personnes emprisonnées », « indice de bien-être » après « indice de Gini »), sinon aucun
-        suivants = sorted((c for c in candidats if c.score >= SEUIL_REGLES and c.indicateur.code != code),
-                          key=lambda c: -c.score)
-        code = next((c.indicateur.code for c in suivants if couvert(c.indicateur.code, question)), None)
+        code = _couvrant(code, candidats, question)
     elif meilleur and code == meilleur.indicateur.code and not periodes:
         # après le garde-fou : l'équivalent vérifié plus récent, choisi par KBD, peut dire la chose autrement (FR-020)
         code = _plus_recent_a_egalite(meilleur, candidats).indicateur.code

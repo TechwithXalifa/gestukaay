@@ -257,7 +257,9 @@ def milieu_cite(texte: str) -> str | None:
 
 _RATIO = re.compile(r"\b(pour|par) (1 ?000|10 ?000|100 ?000|mille|cent mille|cent) (habitants?|naissances?|personnes?"
                     r"|femmes?|enfants?)\b|\bpar (habitant|tete|personne)\b|\bdensite\b")
-_RATIO_PUBLIE = re.compile(r"\b(pour|par)\b|densite|%|pourcentage|taux|proportion")
+# les formes de ratio elles-mêmes, pas un « par » de ventilation (« par région », « par sexe » : revue de SAN sur #162)
+_RATIO_PUBLIE = re.compile(r"\b(pour|par) (1 ?000|10 ?000|100 ?000|mille|cent mille|cent|habitants?|tete|personnes?"
+                           r"|naissances?|femmes?|enfants?)\b|%|\b(hbt|densite|pourcentage|taux|proportion|ratio)\b")  # pas « hôpitaux »
 
 
 def ratio_non_publie(code: str, question: str) -> bool:
