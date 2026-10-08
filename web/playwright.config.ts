@@ -37,13 +37,12 @@ export default defineConfig({
   ],
   webServer: [
     {
-      // Tout passe par Python : la même commande marche sous Linux (CI) et sous Windows, où
-      // Playwright lance cmd.exe, qui ne connaît ni rm ni « $MOT_DE_PASSE » (le compte e2e
-      // recevait ce texte pour mot de passe, et les tests du back-office échouaient).
+      // Même commande sous Linux (CI) et sous Windows (cmd.exe ne connaît ni rm ni « $VAR ») : la base est
+      // effacée en Python, et le mot de passe du compte e2e est lu dans GESTUKAAY_MOT_DE_PASSE (env ci-dessous),
+      // sans tube entre deux processus.
       command:
         "uv run python -c \"import pathlib; pathlib.Path('.base-e2e.db').unlink(missing_ok=True)\"" +
-        " && uv run python -c \"import os, sys; sys.stdout.write(os.environ['MOT_DE_PASSE'])\"" +
-        " | uv run python -m gestukaay_backend.comptes creer e2e" +
+        " && uv run python -m gestukaay_backend.comptes creer e2e" +
         " && uv run python -m uvicorn gestukaay_backend.app:app --port 8000",
       cwd: "..",
       url: "http://localhost:8000/health",
@@ -51,7 +50,7 @@ export default defineConfig({
       env: {
         GESTUKAAY_MOTEUR: "fake",
         GESTUKAAY_BASE: "sqlite:///.base-e2e.db",
-        MOT_DE_PASSE: COMPTE_ADMIN.motDePasse,
+        GESTUKAAY_MOT_DE_PASSE: COMPTE_ADMIN.motDePasse,
         GESTUKAAY_LIMITES: "off",
         PYTHONUTF8: "1",
       },

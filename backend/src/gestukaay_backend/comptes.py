@@ -9,8 +9,8 @@ en ligne de commande seulement, sur la machine qui porte la base (GESTUKAAY_BASE
     uv run python -m gestukaay_backend.comptes desactiver KBD
     uv run python -m gestukaay_backend.comptes lister
 
-Le mot de passe est demandé au clavier (ou lu sur l'entrée standard, pour les tests de bout
-en bout) ; il n'apparaît jamais dans la commande. Mots de passe hachés par scrypt (bibliothèque
+Le mot de passe est demandé au clavier ; sans terminal (tests de bout en bout), il est lu dans
+GESTUKAAY_MOT_DE_PASSE, sinon sur l'entrée standard. Il n'apparaît jamais dans la commande. Mots de passe hachés par scrypt (bibliothèque
 standard), sel propre à chaque compte ; la base ne garde que le hachage des jetons de session.
 """
 
@@ -20,6 +20,7 @@ import argparse
 import getpass
 import hashlib
 import hmac
+import os
 import re
 import secrets
 import sys
@@ -84,8 +85,12 @@ def identifier(st: Stockage, jeton: str | None, maintenant: datetime | None = No
 
 
 def _lire_mot_de_passe() -> str:
-    if not sys.stdin.isatty():  # tests de bout en bout : … | python -m …
-        # Sous Windows, un tube finit la ligne par \r\n : le \r ne fait pas partie du mot de passe
+    # Sans terminal (tests de bout en bout, scripts) : la variable d'environnement, même commande sous Linux et
+    # sous Windows, sans tube ni « $VAR » propre à un shell
+    if mdp := os.environ.get("GESTUKAAY_MOT_DE_PASSE"):
+        return mdp
+    if not sys.stdin.isatty():  # « … | python -m … »
+        # un fichier en CRLF passé par un tube sous Linux ou macOS : le \r ne fait pas partie du mot de passe
         return sys.stdin.readline().rstrip("\r\n")
     mdp = getpass.getpass("Mot de passe : ")
     if getpass.getpass("Le même, encore une fois : ") != mdp:
