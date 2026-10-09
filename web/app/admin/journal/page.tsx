@@ -49,7 +49,7 @@ function secondes(ms: number | null): string {
 
 export default function Journal() {
   const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
-  const [filtres, setFiltres] = useState({ canal: "", langue: "", issue: "", q: "" });
+  const [filtres, setFiltres] = useState({ canal: "", issue: "", q: "" });
   const [recherche, setRecherche] = useState("");
   const [page, setPage] = useState(0);
   const [donnees, setDonnees] = useState<{ total: number; lignes: Ligne[] } | null>(null);
@@ -138,7 +138,6 @@ export default function Journal() {
         <label className="sr-only" htmlFor="recherche">Rechercher dans le journal</label>
         <input id="recherche" type="search" placeholder="Rechercher une question" value={recherche} onChange={(e) => setRecherche(e.target.value)} />
         <Choix libelle="Canal" valeur={filtres.canal} onChange={(v) => filtrer("canal", v)} options={CANAUX} tous="tous" />
-        <Choix libelle="Langue" valeur={filtres.langue} onChange={(v) => filtrer("langue", v)} options={{ fr: "FR", wo: "WO" }} tous="toutes" />
         <Choix libelle="Issue" valeur={filtres.issue} onChange={(v) => filtrer("issue", v)} options={ISSUES} tous="toutes" />
       </form>
 
