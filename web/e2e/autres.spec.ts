@@ -22,12 +22,13 @@ test("hors ligne : l'état s'affiche et la question est bloquée", async ({ page
   await context.setOffline(false);
 });
 
-test("bascule FR/WO : l'état est annoncé et le bandeau prévient", async ({ page }) => {
+test("bascule FR/WO : l'état est annoncé, sans bandeau d'avertissement", async ({ page }) => {
   await page.goto("/");
   const wo = page.getByRole("button", { name: "WO", exact: true });
   await wo.click();
   await expect(wo).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("status").filter({ hasText: "wolof" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "wo");
+  await expect(page.getByText(/en cours de validation/)).toHaveCount(0); // retiré le 09/10 : traduction faite
   await accessible(page, "accueil en wolof");
 });
 

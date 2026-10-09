@@ -4,8 +4,8 @@ import type { Cle } from "./fr";
  * Textes de l'interface en wolof.
  *
  * Seuls les textes écrits ou relus par un locuteur natif sont ici (décision 0009, tâche #26) :
- * 148 textes des parcours de la démo, relus par KBD. Une clé absente s'affiche en français,
- * avec la mention « wo.enCours ». La couverture se lit avec : npm run traductions
+ * 148 textes des parcours de la démo, relus par KBD. Une clé absente s'affiche en français
+ * (sans bandeau d'avertissement depuis le 09/10, choix de SAN). La couverture se lit avec : npm run traductions
  */
 export const wo: Partial<Record<Cle, string>> = {
   "nav.poser": "Laajal sa laaj",

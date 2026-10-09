@@ -7,7 +7,7 @@ import { wo } from "./wo";
 
 export type Langue = "fr" | "wo";
 type T = (cle: Cle, vars?: Record<string, string>) => string;
-type Ctx = { langue: Langue; setLangue: (l: Langue) => void; t: T; incomplet: boolean };
+type Ctx = { langue: Langue; setLangue: (l: Langue) => void; t: T };
 
 const CLE = "gestukaay.langue";
 const LangueCtx = createContext<Ctx | null>(null);
@@ -47,8 +47,7 @@ export function LangueProvider({ children }: { children: React.ReactNode }) {
     [langue],
   );
 
-  const incomplet = langue === "wo" && Object.keys(wo).length < Object.keys(fr).length;
-  return <LangueCtx.Provider value={{ langue, setLangue, t, incomplet }}>{children}</LangueCtx.Provider>;
+  return <LangueCtx.Provider value={{ langue, setLangue, t }}>{children}</LangueCtx.Provider>;
 }
 
 export function useLangue(): Ctx {
