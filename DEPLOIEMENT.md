@@ -144,5 +144,5 @@ Les deux canaux reçoivent les messages par webhook : il faut une adresse publiq
   téléchargement si l'étape 4 n'a pas été faite (`docker compose logs transcription`).
 - **Le LLM ne répond pas toujours exactement pareil** : une même question peut recevoir la valeur, ou une réponse
   approchée à confirmer. Aucun chiffre faux ne passe : chaque valeur affichée est contrôlée dans le socle.
-- **Interface en wolof** : les parcours principaux sont traduits ; les autres pages restent en français, avec un
-  bandeau qui le signale.
+- **Interface en wolof** : les parcours principaux sont traduits ; les autres pages
+  restent en français.
