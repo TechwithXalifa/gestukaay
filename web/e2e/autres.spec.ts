@@ -52,7 +52,7 @@ test("journal des requêtes : connexion, filtres et détail", async ({ page }) =
   await page.goto("/admin/journal");
   await accessible(page, "journal, connexion");
   await seConnecter(page);
-  await page.getByRole("button", { name: "Ouvrir le journal" }).click();
+  await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page.getByRole("heading", { name: "Journal des requêtes" })).toBeVisible();
 
   await page.getByLabel("Issue :").selectOption("aucune");
@@ -144,6 +144,11 @@ test("/admin mène à la connexion du back-office", async ({ page }) => {
   await page.waitForURL(/\/admin\/tableau$/);
   await expect(page.getByLabel("Identifiant")).toBeVisible();
   await expect(page.getByLabel("Mot de passe")).toBeVisible();
+  // Sans connexion, rien ne dit ce que contient le back-office
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Connexion au back-office");
+  await expect(page.getByRole("navigation", { name: "Back-office" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Journal des requêtes" })).toHaveCount(0);
+  await accessible(page, "connexion au back-office");
 });
 
 test("tableau de bord : indicateurs, issues et questions non résolues (US-28)", async ({ page }) => {
@@ -151,7 +156,7 @@ test("tableau de bord : indicateurs, issues et questions non résolues (US-28)",
   await page.goto("/admin/tableau");
   await accessible(page, "tableau de bord, connexion");
   await seConnecter(page);
-  await page.getByRole("button", { name: "Ouvrir le tableau de bord" }).click();
+  await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
   await expect(page.getByText("Questions traitées")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Issues du moteur" })).toBeVisible();
@@ -198,7 +203,7 @@ test("méthode : le taux de bonnes réponses aux tests est publié, et lui seul 
 test("jeu de test : écran du back-office, benchmark réservé au moteur réel (5.10)", async ({ page }) => {
   await page.goto("/admin/jeu-de-test");
   await seConnecter(page);
-  await page.getByRole("button", { name: "Ouvrir le jeu de test" }).click();
+  await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page.getByRole("heading", { name: "Jeu de test" })).toBeVisible();
   await expect(page.getByText(/\d+ questions de référence/)).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "faux moteur" })).toBeVisible();

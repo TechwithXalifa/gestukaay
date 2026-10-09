@@ -631,9 +631,20 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-detail dd { margin: 0; overflow-wrap: anywhere; }
 .admin-pages { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .admin-pages .note { margin: 0 auto 0 0; }
-.admin-connexion { max-width: 420px; display: flex; flex-direction: column; gap: 8px; }
+/* Connexion : carte centrée dans l'écran, sous l'en-tête du back-office */
+.admin-connexion { width: 100%; max-width: 420px; margin: clamp(24px, 10vh, 96px) auto 0; padding: 36px 32px 28px; display: flex; flex-direction: column; align-items: stretch; gap: 16px; background: var(--carte); border: 1px solid var(--ligne); border-radius: var(--radius-lg); box-shadow: var(--ombre-carte); text-align: center; }
+.admin-connexion-icone { align-self: center; display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--radius-full); background: var(--baobab-50); color: var(--baobab); }
+.admin-connexion .titre-etat { margin: 0; }
+.admin-connexion-sous-titre { margin: -8px 0 8px; color: var(--encre-douce); font-size: 15px; line-height: 22px; }
+.admin-champ { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.admin-champ label { font-size: 14px; font-weight: 600; color: var(--encre); }
 .admin-connexion input { min-height: 48px; padding: 0 14px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; }
-.admin-connexion .primaire { align-self: flex-start; margin-top: 8px; }
+.admin-connexion input:focus-visible { outline: 3px solid var(--or-clair); outline-offset: 1px; border-color: var(--baobab); }
+.admin-connexion .primaire { width: 100%; justify-content: center; margin-top: 4px; }
+.admin-connexion .erreur-admin { margin: 0; }
+.admin-connexion-note { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 0; }
+.admin-verification { margin: clamp(24px, 10vh, 96px) auto 0; text-align: center; }
+@media (max-width: 480px) { .admin-connexion { padding: 28px 20px 22px; } }
 .erreur-admin { margin: 0; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--approchee-50); color: var(--approchee); font-size: 14px; }
 .admin-periode { border-color: var(--ligne); background: var(--fond-2); }
 .admin-periode button { min-width: 52px; color: var(--encre-douce); }

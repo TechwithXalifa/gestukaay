@@ -104,7 +104,7 @@ export default function Journal() {
   if (!identifiant) {
     return (
       <Cadre actif="journal">
-        <Connexion titre="Journal des requêtes" bouton="Ouvrir le journal" erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
+        <Connexion erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
       </Cadre>
     );
   }
