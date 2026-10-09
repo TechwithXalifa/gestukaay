@@ -51,6 +51,11 @@ function Explorer() {
   const [erreur, setErreur] = useState<unknown>(null);
   const [essai, setEssai] = useState(0);
 
+  // Adresse stable de cette vue, affichée dans le pied comme sur une réponse (audit du 09/10 : la mention
+  // était dans la carte ici, dans le pied là-bas). Lue après le rendu, puis à chaque changement de vue.
+  const [adresse, setAdresse] = useState<string | undefined>(undefined);
+  useEffect(() => setAdresse(window.location.href), [indicateur, zones.join(","), debut, fin, vue]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function changer(nouveau: Record<string, string>) {
     const p = new URLSearchParams({ indicateur, zones: zones.join(","), debut, fin, vue, ...nouveau });
     for (const [k, v] of [...p.entries()]) if (!v || (k === "vue" && v === "graphique")) p.delete(k);
@@ -229,14 +234,13 @@ function Explorer() {
                       {t("explorer.fiche")} <Externe taille={16} />
                     </Link>
                   </aside>
-                  <p className="note">{t("explorer.lien")}</p>
                 </>
               )}
             </section>
           </div>
         )}
       </main>
-      <PiedDePage />
+      <PiedDePage adresse={adresse} />
     </div>
   );
 }

@@ -349,7 +349,6 @@ export const fr = {
   "explorer.zone": "Zone",
   "explorer.sources": "Sources",
   "explorer.fiche": "Définition complète dans la fiche indicateur",
-  "explorer.lien": "Cette page a une adresse stable : copiez-la pour partager exactement cette vue.",
 
   // Design system v2 : navigation en trois espaces, accueil, pied de page
   "nav.demander": "Demander",
