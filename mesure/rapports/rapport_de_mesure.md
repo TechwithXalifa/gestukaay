@@ -64,7 +64,8 @@ test, et la passe a été refaite sur le code corrigé. Les deux passes sont pub
 | Français | 78/78 (100 %) |
 | Wolof | 34/35 (97,1 %) |
 
-Rapport brut : `benchmark_llm-gemini-2.5-flash.md`. Coût : environ 0,07 $ par passe.
+Rapports bruts : `benchmark_llm-gemini-2.5-flash.md` (code corrigé) et
+`benchmark_llm-gemini-2.5-flash_avant_correction_0910.md` (première passe). Coût : environ 0,07 $ par passe.
 
 ## 4. Analyse des écarts
 
