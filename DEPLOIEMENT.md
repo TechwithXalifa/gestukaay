@@ -17,6 +17,10 @@ Durée : environ 30 minutes, dont 20 de téléchargement au premier lancement (i
 
 Le GPU sert à la voix en wolof. Les deux modèles tournent chez vous : aucun enregistrement ne part chez un tiers.
 
+Mesuré sur un NVIDIA T4 de 16 Go (09/10, les deux serveurs tels quels, `deploiement/test_voix_gpu_kaggle.ipynb`) :
+chargement d'environ 1 minute par modèle ; une note vocale de 10 s transcrite en 1,9 s ; une réponse vocale de
+10 s d'audio calculée en 8,7 s. Une carte plus récente (L4, A10) répond plus vite.
+
 ## 2. Logiciels
 
 1. Git.
