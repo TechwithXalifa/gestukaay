@@ -576,6 +576,21 @@ canaux: dict[str, Canal] = charger_canaux()
 _log_webhooks = logging.getLogger("gestukaay.webhooks")
 
 
+class MasquerJetons(logging.Filter):
+    """Le journal d'accès d'uvicorn écrit l'adresse complète : la vérification du webhook WhatsApp y portait
+    `hub.verify_token` en clair (vu le 09/10). La valeur est masquée, le reste de la ligne est gardé."""
+
+    _JETON = re.compile(r"((?:hub[._])?verify_token=)[^&\s\"]+")
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if isinstance(record.args, tuple):
+            record.args = tuple(self._JETON.sub(r"\1***", a) if isinstance(a, str) else a for a in record.args)
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(MasquerJetons())
+
+
 def _services(nom: str, expediteur: str) -> Services:
     """Les services d'une conversation : même chemin que le web, numéro haché par le stockage."""
     conversation = f"{nom}:{expediteur}"

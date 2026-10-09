@@ -29,7 +29,7 @@ class Envoyeur:
     def texte(self, destinataire, message):
         self.envois.append(("texte", message))
 
-    def choix(self, destinataire, choix):
+    def choix(self, destinataire, choix, message):
         self.envois.append(("choix", [c.id for c in choix]))
 
     def media(self, contenu):
@@ -111,10 +111,26 @@ def test_choix_sans_approchee_en_attente():
     assert e.textes() == [texte("choix_invalide")] and appels == []
 
 
-def test_approchee_envoie_le_texte_puis_la_liste():
+def test_approchee_le_texte_et_la_liste_en_un_message():
+    # #213 : le texte des choix, puis la liste avec les mêmes choix, faisaient croire à une réponse envoyée deux fois
     e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"))
     traiter(entrant(type="texte", texte="Population de la ville de Thiès"), s, e)
+    assert [k for k, _ in e.envois] == ["accuse", "choix"]
     assert e.envois[-1] == ("choix", [c.id for c in rep("approchee").reponse.choix])
+
+
+def test_liste_de_choix_refusee_le_texte_numerote_part(caplog):
+    # revue de SAN sur #223 : si la liste (WhatsApp) ou les boutons (Telegram) sont refusés, l'usager doit
+    # quand même voir les choix numérotés, pas « erreur »
+    class SansListe(Envoyeur):
+        def choix(self, destinataire, choix, message):
+            raise RuntimeError("liste interactive refusée")
+
+    e, (s, _) = SansListe(), services(derniere=rep("exacte_valeur"))
+    with caplog.at_level("ERROR"):
+        traiter(entrant(type="texte", texte="Population de la ville de Thiès"), s, e)  # ne remonte pas
+    assert texte("erreur") not in e.textes() and "1\ufe0f\u20e3" in e.textes()[-1]
+    assert "liste n'a pas pu être envoyée" in caplog.text
 
 
 def test_vocal_avant_la_transcription():

@@ -71,9 +71,11 @@ def test_graph_lu_et_en_train_d_ecrire_puis_texte(graph):
 def test_graph_liste_de_choix_dans_les_limites_de_meta(graph):
     client, requetes = graph
     r = AskResponse.model_validate_json((EXEMPLES / "approchee.json").read_text(encoding="utf-8"))
-    client.choix("221700000001", r.reponse.choix)
+    client.choix("221700000001", r.reponse.choix, "Voici les choix :")  # #213 : le texte et la liste, un message
     i = json.loads(requetes[0].content)["interactive"]
-    assert len(i["action"]["button"]) <= 20 and len(i["body"]["text"]) <= 1024
+    assert len(i["action"]["button"]) <= 20 and i["body"]["text"] == "Voici les choix :"
+    client.choix("221700000001", r.reponse.choix, "x" * 1500)  # au-delà de 1 024 : le texte d'abord, seul
+    assert json.loads(requetes[1].content)["type"] == "text" and len(json.loads(requetes[2].content)["interactive"]["body"]["text"]) <= 1024
     for ligne, c in zip(i["action"]["sections"][0]["rows"], r.reponse.choix, strict=True):
         assert ligne["id"] == f"choix-{c.id}" and len(ligne["title"]) <= 24 and len(ligne["description"]) <= 72
 

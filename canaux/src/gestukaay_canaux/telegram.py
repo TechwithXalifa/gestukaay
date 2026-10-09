@@ -15,7 +15,6 @@ from gestukaay_contracts.models import Choix
 
 from .conversation import Contenu, traiter
 from .media import telecharger
-from .textes import texte
 
 DELAI_S = 10
 
@@ -73,9 +72,11 @@ class ClientTelegram:
         self._appel("sendMessage", {"chat_id": destinataire, "text": message[:4096],
                                     "link_preview_options": {"is_disabled": True}})
 
-    def choix(self, destinataire: str, choix: list[Choix]) -> None:
+    def choix(self, destinataire: str, choix: list[Choix], message: str) -> None:
+        """Le texte de la réponse et ses boutons dans le même message (#213)."""
         boutons = [[{"text": f"{c.id}. {c.libelle}"[:60], "callback_data": f"choix-{c.id}"}] for c in choix]
-        self._appel("sendMessage", {"chat_id": destinataire, "text": texte("choisir"),
+        self._appel("sendMessage", {"chat_id": destinataire, "text": message[:4096],
+                                    "link_preview_options": {"is_disabled": True},
                                     "reply_markup": {"inline_keyboard": boutons}})
 
     def preparer_vocal(self, destinataire: str) -> None:
