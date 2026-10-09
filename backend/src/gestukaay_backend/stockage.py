@@ -86,6 +86,11 @@ _TABLES = [
         bloque_jusqu_a TEXT
     )""",
     # Sessions : seul le hachage du jeton est gardé (une base copiée n'ouvre aucune session)
+    # Réglages de la base : le sel du hachage des conversations, s'il n'est pas donné par GESTUKAAY_SEL
+    """CREATE TABLE IF NOT EXISTS parametres (
+        cle TEXT PRIMARY KEY,
+        valeur TEXT NOT NULL
+    )""",
     """CREATE TABLE IF NOT EXISTS sessions_admin (
         jeton TEXT PRIMARY KEY,
         identifiant TEXT NOT NULL,
@@ -127,9 +132,6 @@ class FiltreJournal:
 class Stockage:
     def __init__(self, url: str | None = None):
         url = url if url is not None else os.environ.get("GESTUKAAY_BASE", "")
-        # Sel du hachage des conversations : fixe en préprod pour suivre une conversation
-        # d'un redémarrage à l'autre ; tiré au hasard sinon.
-        self._sel = os.environ.get("GESTUKAAY_SEL") or secrets.token_hex(16)
         self._verrou = threading.Lock()
         if url.startswith(("postgresql://", "postgres://")):
             import psycopg
@@ -144,6 +146,10 @@ class Stockage:
         with self._curseur() as c:
             for sql in _TABLES:
                 c.execute(sql)
+        # Sel du hachage des conversations (audit du 09/10) : GESTUKAAY_SEL s'il est donné, sinon un sel tiré
+        # une fois et gardé dans la base. Avant, un sel neuf à chaque démarrage : « et pour Kaolack ? » et le
+        # « 1 » de WhatsApp perdaient la conversation après un redémarrage.
+        self._sel = os.environ.get("GESTUKAAY_SEL") or self._sel_de_la_base()
 
     @contextmanager
     def _curseur(self) -> Iterator:
@@ -256,6 +262,11 @@ class Stockage:
             "INSERT INTO messages_recus (canal, message_id, recu_le) VALUES (?, ?, ?) "
             "ON CONFLICT DO NOTHING RETURNING message_id",
             (canal, message_id, maintenant.isoformat(timespec="seconds"))))
+
+    def _sel_de_la_base(self) -> str:
+        self._executer("INSERT INTO parametres (cle, valeur) VALUES ('sel', ?) ON CONFLICT DO NOTHING",
+                       (secrets.token_hex(16),))
+        return self._executer("SELECT valeur FROM parametres WHERE cle = 'sel'")[0][0]
 
     def hacher(self, conversation_id: str) -> str:
         return hashlib.sha256(f"{self._sel}:{conversation_id}".encode()).hexdigest()[:16]

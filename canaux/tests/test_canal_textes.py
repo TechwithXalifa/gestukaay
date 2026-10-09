@@ -13,7 +13,7 @@ def test_accueil_bilingue_tel_qu_ecrit_par_kbd():
 def test_texte_fixe_wolof_puis_francais():
     lignes = texte("vocal_pas_encore").split("\n")
     assert lignes == ["Mënuma déglu audios yi ba leegi : bindal sa laaj ci mbind.",
-                      "Je ne sais pas encore écouter les notes vocales : écrivez votre question."]
+                      "Je ne peux pas écouter les notes vocales pour le moment : écrivez votre question."]
 
 
 def test_bouton_de_liste_20_caracteres_au_plus():

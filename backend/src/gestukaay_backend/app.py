@@ -51,6 +51,25 @@ from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockag
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
 ORIGINES = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(",")
+_log_incidents = logging.getLogger("gestukaay.incidents")
+
+
+async def _incident(requete: Request, suite):
+    """Une erreur imprévue devient un Problem 500 avec un code d'incident court (cahier 7.3) : le site l'affiche
+    discrètement, le journal le garde avec la trace. Jamais de trace renvoyée, jamais le corps de la requête
+    journalisé (« Où je me situe », questions). Placé sous CORS : la réponse garde ses en-têtes et le navigateur
+    peut la lire (une erreur levée plus haut arrivait sans eux : « le service ne répond pas »)."""
+    try:
+        return await suite(requete)
+    except Exception:  # noqa: BLE001 — toute erreur imprévue : journalisée avec sa trace, Problem 500 au client
+        code = secrets.token_hex(4)
+        _log_incidents.exception("incident %s : %s %s", code, requete.method, requete.url.path)
+        probleme = Problem(title="Erreur interne", status=500, code_incident=code,
+                           detail="Une erreur inattendue s'est produite. Réessayez dans un instant.")
+        return JSONResponse(probleme.model_dump(), status_code=500, media_type="application/problem+json")
+
+
+app.middleware("http")(_incident)  # avant CORS : ajouté en premier, il s'exécute à l'intérieur
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINES,

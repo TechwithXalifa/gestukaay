@@ -114,3 +114,14 @@ def test_suggestion_d_indicateur_depuis_un_refus():
     s.retour(FeedbackRequest(reponse_id=rep.reponse.id, type="suggestion_indicateur", commentaire=req.question))
     _, (ligne,) = s.journal(FiltreJournal())
     assert ligne["suggestions"] == 1
+
+
+
+def test_sel_garde_d_un_demarrage_a_l_autre(tmp_path, monkeypatch):
+    """Audit du 09/10 : sans GESTUKAAY_SEL, le sel était tiré à chaque démarrage et la conversation (suivi,
+    « 1 » de WhatsApp) était perdue. Il est maintenant gardé dans la base."""
+    monkeypatch.delenv("GESTUKAAY_SEL", raising=False)
+    url = f"sqlite:///{tmp_path / 'g.db'}"
+    assert Stockage(url).hacher("whatsapp:+221770000000") == Stockage(url).hacher("whatsapp:+221770000000")
+    monkeypatch.setenv("GESTUKAAY_SEL", "sel-de-preprod")
+    assert Stockage(url).hacher("x") == Stockage("").hacher("x")  # la variable prime sur la base
