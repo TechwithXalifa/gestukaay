@@ -28,6 +28,10 @@ dans le tableau 1.1), d'autres sont apparues en #4-#6 : Kolda et Kédougou inver
 
 - 7 corrections : 1 618 valeurs exclues (C01-C04), 129 unités affichées corrigées (C05-C07) ;
   644 827 valeurs servies ; les 216 valeurs attendues du jeu de test restent retrouvées.
+- **Socle 2026.10.1 (09/10)** : C08 exclut le jeu BADIS `rfegvpb` pour huit régions (Kolda, Kaolack,
+  Louga, Matam, Saint-Louis, Tambacounda, Thiès, Ziguinchor), dont les lignes sont décalées sur le portail
+  (Thiès porte la population de Sédhiou). Trouvé par la recette de SAN (#203). 2 702 valeurs exclues ;
+  642 125 valeurs servies ; 219/219 valeurs attendues du jeu de test retrouvées.
 - `socle/rapports/controles.md` liste ce qui reste signalé (6 049 ruptures, surtout de petits effectifs
   agricoles ; 2 467 « pourcentages » hors 0-100, dont des effectifs étiquetés « % » par le portail). Ils
   sont à examiner au fil de la vérification ; une nouvelle correction = une ligne de `corrections.csv`.
