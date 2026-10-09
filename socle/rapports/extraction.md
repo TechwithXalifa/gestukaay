@@ -1,22 +1,22 @@
 # Extraction du socle
 
-Socle brut : `socle_opendata_par_themes/observations.csv` · sortie : `2026.10.0/` (hors Git) · schéma du cahier 10.3 (décision #4).
+Socle brut : `socle_opendata_par_themes/observations.csv` · sortie : `2026.10.1/` (hors Git) · schéma du cahier 10.3 (décision #4).
 
 ## Résumé
 
 | | Valeurs |
 |---|---|
 | Valeurs non vides lues | 673240 |
-| → extraites | 644827 |
+| → extraites | 642125 |
 | → doublons identiques fusionnés | 1654 |
-| → rejetées (voir `rejets.csv`) | 26759 |
+| → rejetées (voir `rejets.csv`) | 29461 |
 | Indicateurs représentés | 4247 |
-| Zones : pays / régions / départements / académies | 334315 / 247797 / 25506 / 37209 |
+| Zones : pays / régions / départements / académies | 334315 / 245095 / 25506 / 37209 |
 | Zone présumée (jeu sans colonne géographique → Sénégal) | 274329 valeurs, 218 jeux |
 
 ## Contrôle de bout en bout : jeu de test
 
-218 valeurs attendues (questions exactes) cherchées dans la table extraite : **218 trouvées à l'identique**, 0 échec(s).
+219 valeurs attendues (questions exactes) cherchées dans la table extraite : **219 trouvées à l'identique**, 0 échec(s).
 
 Réponses attendues qui ne sont pas des valeurs observées (le badge doit s'afficher) :
 
@@ -27,7 +27,7 @@ Réponses attendues qui ne sont pas des valeurs observées (le badge doit s'affi
 
 | Nature | Valeurs | Jeux |
 |---|---|---|
-| observee | 550184 | 361 |
+| observee | 547482 | 361 |
 | estimation | 1346 | 3 |
 | projection | 93297 | 15 |
 
@@ -39,6 +39,7 @@ Projections repérées par la règle automatique (année postérieure à la dern
 |---|---|---|---|
 | infra | 14297 | 2 | infra : ARD MBADAKHOUNE, infra : ARD NGUELOU, infra : ARD. KOUMBAL |
 | doublon conflictuel | 10451 | 20 | SN 1980 : 19.6132776013803 / 4.7067671255767, SN 1980 : 24.7587639167721 / 4.71790090867977, SN 1980 : 73.1083585755478  |
+| correction C08 | 2702 | 1 | Lignes régionales décalées par le portail (BADIS 2018) : huit régions portent la ligne d'une autre  |
 | correction C03 | 1440 | 1 | Doublons des séries annuelles 2016-2018 datés « 0016 », « 0017 », « 0018 » (fréquence D) |
 | non_admin | 345 | 5 | non_admin : Centre, non_admin : Diourbel et Fatick, non_admin : Gorom-Lampsar |
 | correction C02 | 118 | 1 | Gini nul impossible : valeurs arrondies au dixième par le portail |
@@ -72,4 +73,4 @@ Même indicateur, zone, période et désagrégation, mais valeurs différentes (
 
 Sans colonne géographique ni code région : rattachés au Sénégal. À confirmer à la vérification des indicateurs ; une exception se déclare dans `socle/referentiels/zones_par_jeu.csv`.
 
-218 jeux ; parmi eux, utilisés par le jeu de test : aucun.
+218 jeux ; parmi eux, utilisés par le jeu de test : `dwehszb`.
