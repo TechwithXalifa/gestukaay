@@ -173,3 +173,68 @@ def test_zone_non_publiee_servie_par_la_meme_notion(monkeypatch):
     monkeypatch.setattr(moteur.comprehension, "comprendre", lambda q, ctx=None: Comprise(choisi, cands, "regles"))
     r = moteur.repondre(AskRequest(question="Combien coûte le riz à Thiès ?")).reponse
     assert r.issue == "exacte" and r.resultats[0].valeur == 391.1
+
+
+# --- recette de SAN du 09/10 (#202 à #212) -------------------------------------------------------------------
+
+def test_saisie_propre_emojis_espaces_balises():  # #204
+    from gestukaay_engine.moteur import saisie_propre
+
+    for q in ("   Combien    d'habitants     à Thiès ?   ", "😀 Combien d'habitants à Thiès ? 🙏✨"):
+        assert saisie_propre(q) == "Combien d'habitants à Thiès ?"
+    assert saisie_propre("<script>alert(1)</script> Ñata nit ?") == "alert(1) Ñata nit ?"
+    assert lieux_inconnus("alert(1) Combien d'habitants à Thiès ?") == []  # « Combien » n'est pas un lieu
+
+
+def test_une_annee_par_zone():  # #212
+    from gestukaay_engine.resolution import periode_par_zone
+
+    q = "Compare le taux de pauvreté de Dakar en 2011 et celui de Thiès en 2022."
+    assert periode_par_zone(["SN-DK", "SN-TH"], q) == {"SN-DK": "2011", "SN-TH": "2022"}
+    assert periode_par_zone(["SN-DK", "SN-TH"], "Taux de chômage de Dakar et de Thiès en 2025") is None
+
+
+def test_les_jeunes_15_24_ans():  # #210
+    from gestukaay_engine.resolution import correspond
+
+    assert desagregation_citee("Et chez les jeunes ?") == {"age": "15-24"}
+    assert correspond("age", "jeunes", "15-24 ans") and not correspond("age", "jeunes", "25-34 ans")
+
+
+def test_negation_et_inflation_jamais_servies_a_l_envers():  # #206, #207
+    from gestukaay_engine.candidats import mesure_inverse
+
+    eau = "ahjjzgc.taux-dacces-des-menages-a-une-source-deau"
+    assert mesure_inverse(eau, "Combien de ménages n'ont pas accès à l'eau ?")
+    assert not mesure_inverse(eau, "Quel est le taux d'accès des ménages à l'eau potable ?")
+    assert mesure_inverse("tsghpfc.indice-global", "Quelle est l'inflation au Sénégal ?")
+    assert not mesure_inverse("tsghpfc.indice-global", "Quel est l'indice des prix à la consommation ?")
+
+
+def test_sans_emploi_c_est_le_chomage():  # #202
+    from gestukaay_engine.candidats import sans_emploi
+
+    assert sans_emploi("Taux de personnes sans emploi à Dakar") == "Taux de personnes au chômage à Dakar"
+    assert sans_emploi("gens sans boulot") == "gens au chômage"
+
+
+def test_commune_comme_ville():  # #205
+    assert lieux_inconnus("Population de la commune de Thiès en 2023") == ["ville de Thiès"]
+
+
+def test_precision_demandee_servie_par_la_meme_notion(monkeypatch):  # #210
+    """« Et chez les jeunes ? » après un chômage sans âge : le chômage par âge est servi, jamais l'ensemble."""
+    i = indicateurs()
+    socle_ch = Socle([
+        obs("muhgux.taux-de-chomage", "SN", "2026-T1", 22.9),
+        obs("dwibrlf", "SN", "2025", 20.4, âge="Total"),
+        obs("dwibrlf", "SN", "2025", 25.7, âge="15-24 ans"),
+    ], {d: SourceJeu(d, "ANSD", "Agence", f"Jeu {d}", date(2023, 10, 31), "", f"https://x/{d}")
+        for d in ("muhgux", "dwibrlf")}, "test")
+    moteur = MoteurReel(socle_ch, Comprehension(None))
+    choisi = RequeteStructuree(intention="valeur", indicateur="muhgux.taux-de-chomage", zones=[],
+                               periode={"type": "derniere"}, desagregation={"age": "jeunes"}, confiance=0.8)
+    cands = [Candidat(i["muhgux.taux-de-chomage"], 9), Candidat(i["dwibrlf"], 8)]
+    monkeypatch.setattr(moteur.comprehension, "comprendre", lambda q, ctx=None: Comprise(choisi, cands, "regles"))
+    r = moteur.repondre(AskRequest(question="Et chez les jeunes ?")).reponse
+    assert r.issue == "exacte" and r.resultats[0].valeur == 25.7

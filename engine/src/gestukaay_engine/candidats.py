@@ -155,7 +155,8 @@ def zones_citees(question: str) -> list[str]:
 
 # « à Touba », « ci Touba », « la ville de Thiès », « sur la Casamance » : un lieu nommé hors du référentiel
 _LIEU = re.compile(r"\b(?:à|a|au|aux|dans|ci|sur|en)\s+(?:la\s+)?(?:ville\s+(?:de\s+)?)?([A-ZÉÈÎ][\w'’-]+)")
-_VILLE = re.compile(r"\bville\s+(?:de\s+)?([A-ZÉÈÎa-zéèî][\w'’-]+)", re.IGNORECASE)
+# « la commune de Thiès » est une ville, pas la région (recette du 09/10, #205 : la région était servie)
+_VILLE = re.compile(r"\b(?:ville|commune)\s+(?:de\s+)?([A-ZÉÈÎa-zéèî][\w'’-]+)", re.IGNORECASE)
 _PAS_UN_LIEU = {"sénégal", "senegal", "senegaal", "ndakaaru", "la", "le", "les", "l"}
 # Un mot à majuscule au milieu de la phrase, inconnu du référentiel et du vocabulaire des indicateurs, est un
 # lieu (« Population de Paris », « du Fouta ») : en règles, il devenait le Sénégal (recette du 08/10). Pas les
@@ -194,7 +195,7 @@ def lieux_inconnus(question: str) -> list[str]:
     for m in _MAJUSCULE.finditer(question):
         nom = m[1].rstrip("'’-")
         n = normaliser(nom)
-        if (n in deja or n in _PAS_UN_LIEU or n in _PAS_UN_LIEU_MAJ or resoudre(nom) or forme(n) in vocab
+        if (n in deja or n in _PAS_UN_LIEU or n in _PAS_UN_LIEU_MAJ or n in _VIDES or resoudre(nom) or forme(n) in vocab
                 or n in vocab or n in _SYN or n in _MOIS or any(n in d for d in deja) or _debut_de_zone(nom, question)):
             continue
         out.append(nom)
@@ -371,6 +372,34 @@ def ratio_non_publie(code: str, question: str) -> bool:
     return not _RATIO_PUBLIE.search(normaliser(f"{ind.libelle_fr} {ind.unite_affichee or ind.unite}"))
 
 
+# Recette du 09/10 : une négation (« n'ont pas accès à l'eau ») ou une variation (« l'inflation ») demande autre chose
+# que ce que l'indicateur publie (la part qui A accès, le niveau d'un indice)
+_NEGATION = re.compile(r"\b(n ont pas|n a pas|ne sont pas|n est pas|ne disposent pas|ne dispose pas|n ont aucun"
+                       r"|sans acces|prives? d|privees? d)\b")
+_INFLATION = re.compile(r"\binflation\b")
+
+
+def mesure_inverse(code: str, question: str) -> bool:
+    """#206, #207 : la question demande l'inverse ou la variation de ce que l'indicateur publie. Le servir
+    donnerait un autre chiffre (85,9 % des ménages qui ONT accès, pour « n'ont pas accès ») ; le calculer
+    (100 − x) fabriquerait un chiffre. Il est proposé en suggestion, comme un ratio non publié."""
+    ind = indicateurs().get(code)
+    if ind is None:
+        return False
+    t, libelle = texte_normalise(question), texte_normalise(ind.libelle_fr)
+    if _INFLATION.search(t) and not re.search(r"\b(inflation|glissement)\b", libelle):
+        return True
+    return bool(_NEGATION.search(t)) and not re.search(r"\b(sans|non|pas|aucun|prives?|privees?)\b", libelle)
+
+
+_SANS_EMPLOI = re.compile(r"\bsans (emploi|travail|boulot|job)\b", re.IGNORECASE)
+
+
+def sans_emploi(question: str) -> str:
+    """#202 : « sans emploi » rapprochait du taux d'EMPLOI (l'inverse). C'est le chômage."""
+    return _SANS_EMPLOI.sub("au chômage", question)
+
+
 def deux_sexes(question: str) -> bool:
     """« entre hommes et femmes » : deux catégories à comparer, que la résolution ne sait pas encore servir."""
     t = texte_normalise(question)
@@ -394,6 +423,8 @@ def desagregation_citee(question: str) -> dict[str, str]:
         d["age"] = f"{m[1]}-{m[2]}"
     elif m := re.search(r"\bmoins de (\d{1,2}) ans\b", t):
         d["age"] = f"moins de {m[1]}"
+    elif re.search(r"\b(jeunes|jeunesse)\b", t):  # « et chez les jeunes ? » : 15-24 ans, jamais perdu (#210)
+        d["age"] = "15-24"
     if re.search(r"\b(elementaire|primaire)\b", t):
         d["cycle"] = "elementaire"
     elif re.search(r"\bsecondaire\b", t):

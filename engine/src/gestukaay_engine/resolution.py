@@ -43,6 +43,7 @@ from .candidats import (
     fenetre_periodes,
     periodes_citees,
     texte_normalise,
+    zones_citees,
 )
 from .gabarits import formater
 from .graphique import (
@@ -108,6 +109,9 @@ def _nombres(texte: str) -> list[int]:
     return [int(n) for n in re.findall(r"\d+", texte)]
 
 
+_JEUNES = {"jeunes", "jeune", "jeunesse", "les jeunes"}
+
+
 def correspond(canonique: str, valeur: str, modalite: str) -> bool:
     """La modalité du jeu correspond-elle à la valeur canonique (« femmes » ~ « Féminin ») ?"""
     m, v = normaliser(modalite), normaliser(valeur)
@@ -117,6 +121,7 @@ def correspond(canonique: str, valeur: str, modalite: str) -> bool:
         if v in groupe:
             return m in groupe or bool(set(m.split()) & groupe)
     if canonique == "age":
+        v = "15-24" if v in _JEUNES else v  # « les jeunes » : la tranche 15-24 ans (recette du 09/10, #210)
         return m == v or (_nombres(v) and _nombres(v) == _nombres(m)) or (v in m)
     return v == m or v in m.split()
 
@@ -391,6 +396,22 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
     return resultat(socle, retenues[0], ind, langue, uniques), defauts
 
 
+def periode_par_zone(zones_cibles: list[str], question: str) -> dict[str, str] | None:
+    """« Le taux de pauvreté de Dakar en 2011 et celui de Thiès en 2022 » : chaque zone a son année (recette du
+    09/10, #212 : Thiès était servie en 2011 sans le dire). Seulement si la question se coupe en deux morceaux,
+    chacun avec une zone et une année ; sinon None (une seule période pour toutes les zones)."""
+    if len(zones_cibles) != 2:
+        return None
+    mots_ = question.split()
+    for k in range(1, len(mots_)):
+        avant, apres = " ".join(mots_[:k]), " ".join(mots_[k:])
+        if zones_citees(avant) == zones_cibles[:1] and zones_citees(apres) == zones_cibles[1:]:
+            p1, p2 = periodes_citees(avant), periodes_citees(apres)
+            if len(p1) == 1 and len(p2) == 1 and p1 != p2:
+                return {zones_cibles[0]: p1[0], zones_cibles[1]: p2[0]}
+    return None
+
+
 def meme_categorie(socle: Socle, ind: Indicateur, resultats: list[Resultat]) -> Introuvable | None:
     """Un classement ou une comparaison de zones compare la même catégorie partout. Chaque zone fixe ses
     dimensions seule (une catégorie unique y est prise d'office) : benchmark LLM du 09/10, WO-009, la pêche
@@ -577,16 +598,26 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
             graph = graphique_evolution(socle, resultats, ind)
             return Resolution(resultats, defauts, graph)
 
-        # Comparaison spatiale (2+ zones, même période)
+        # Comparaison spatiale (2+ zones, même période ; ou une année par zone, #212)
         periode = None if requete.periode.type == "derniere" else requete.periode.valeur
+        par_zone = periode_par_zone(requete.zones or [], question)
+        # deux années citées sans être rattachées chacune à une zone (« à Dakar et Thiès entre 2011 et 2022 ») :
+        # chaque zone aux deux années, jamais une seule année servie en silence (#212)
+        deux_annees = [] if par_zone or len(requete.zones or []) < 2 else periodes_citees(question)
+        couples = ([(z, p) for z in requete.zones for p in deux_annees] if len(deux_annees) == 2
+                   else [(z, par_zone.get(z, periode) if par_zone else periode) for z in requete.zones or [None]])
         resultats, defauts = [], {}
-        for z in requete.zones or [None]:
-            r = resoudre_un(socle, ind, z, periode, demande, langue, question)
+        for z, p in couples:
+            r = resoudre_un(socle, ind, z, p, demande, langue, question)
             if isinstance(r, Introuvable):
                 return r
             r[0].mise_en_evidence = True
             resultats.append(r[0])
             defauts = {k: defauts.get(k, False) or v for k, v in r[1].items()}
+        if len(deux_annees) == 2:  # quatre valeurs datées : le texte les donne, un graphique par zone tromperait
+            if melange := meme_categorie(socle, ind, resultats):
+                return melange
+            return Resolution(resultats, defauts, None)
         if len(resultats) > 1 and (melange := meme_categorie(socle, ind, resultats)):
             return melange
         graph = graphique_comparaison_zones(resultats, ind) if len(resultats) > 1 else None
