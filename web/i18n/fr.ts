@@ -227,7 +227,7 @@ export const fr = {
 
   // Méthode et transparence (maquette Methode)
   "methode.titre": "Comment Gëstukaay trouve vos chiffres",
-  "methode.intro": "Gëstukaay ne fabrique jamais un chiffre. Il retrouve un chiffre publié par l'ANSD, le met en forme et vous dit toujours d'où il vient.",
+  "methode.intro": "Gëstukaay ne fabrique jamais un chiffre. Il retrouve un chiffre officiel publié par l'ANSD ou un autre producteur officiel, le met en forme et vous dit toujours d'où il vient.",
   "methode.etapes": "Comment ça marche, en cinq étapes",
   "methode.e1.titre": "Vous posez votre question",
   "methode.e1.texte": "À l'écrit ou à la voix, en français ou en wolof.",
@@ -240,7 +240,7 @@ export const fr = {
   "methode.e5.titre": "La réponse vous arrive",
   "methode.e5.texte": "Avec la source, la date de publication et une courte explication écrite par des modèles fixes, pas par l'IA.",
   "methode.donnees": "D'où viennent les données",
-  "methode.donnees.texte": "Toutes les valeurs viennent des jeux de données publiés par l'ANSD sur le portail Open Data du Sénégal. Elles sont reprises telles quelles, figées dans une version numérotée, et chaque réponse indique cette version.",
+  "methode.donnees.texte": "Toutes les valeurs viennent des jeux de données publiés sur le portail Open Data du Sénégal, par l'ANSD et les autres producteurs officiels (ministères, directions statistiques). Elles sont reprises telles quelles, figées dans une version numérotée, et chaque réponse indique cette version.",
   "methode.projections": "Les projections et estimations officielles sont toujours signalées par un badge, avec leur base. Gëstukaay ne fait lui-même aucune prévision.",
   "methode.corrections": "Quand une valeur publiée est manifestement fausse, elle n'est pas corrigée : elle est retirée, avec le motif et la preuve. Gëstukaay préfère ne rien répondre plutôt qu'un chiffre douteux.",
   "methode.mesure": "Résultat des tests",

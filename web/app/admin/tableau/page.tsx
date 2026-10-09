@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CANAUX, Cadre, Choix, Connexion, useAdmin } from "@/components/Admin";
+import { MESURE, TAUX_BONNES } from "@/lib/mesure";
 import { nombre } from "@/lib/typo";
 
 /**
@@ -159,6 +160,10 @@ export default function TableauDeBord() {
                   </strong>
                   <span className="note">
                     jeu de test du {dateHeure.format(new Date(t.benchmark.lancee_le))} ({t.benchmark.mode.startsWith("llm") ? "LLM" : "règles"}, {t.benchmark.nb_total} questions) · cibles ≥ 85 % et ≥ 95 %
+                  </span>
+                  {/* Pas le même calcul que le chiffre publié : le rappeler évite de croire à une contradiction */}
+                  <span className="note">
+                    Publié sur le site : {TAUX_BONNES} de bonnes réponses ({MESURE.bonne.reussies} sur {MESURE.bonne.sur}, mesure du {MESURE.date}, page Méthode)
                   </span>
                 </>
               ) : (

@@ -303,14 +303,22 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .barre.en-evidence .barre-trait { background: var(--data-evidence); }
 .courbe { display: block; width: 100%; height: auto; margin-top: 8px; font: 400 12px var(--font-mono); fill: var(--encre-douce); }
 .courbe .axe { stroke: var(--axe); }
-.courbe polyline { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
-.courbe .serie-0 polyline { stroke: var(--data-evidence); } .courbe .serie-0 circle { fill: var(--data-evidence); }
-.courbe .serie-1 polyline { stroke: var(--data-2); } .courbe .serie-1 circle { fill: var(--data-2); }
-.courbe .serie-2 polyline { stroke: var(--data-4); } .courbe .serie-2 circle { fill: var(--data-4); }
-.courbe .serie-3 polyline { stroke: var(--data-5); } .courbe .serie-3 circle { fill: var(--data-5); }
-.courbe .serie-4 polyline { stroke: var(--data-6); } .courbe .serie-4 circle { fill: var(--data-6); }
-.courbe .serie-5 polyline { stroke: var(--data-1); } .courbe .serie-5 circle { fill: var(--data-1); }
+.courbe .grille { stroke: var(--ligne); stroke-dasharray: 2 4; }
+/* Chaque série : sa couleur et son trait (WCAG 1.4.1, pas la couleur seule), courbe et légende */
+.courbe polyline, .courbe-legende line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.serie-0 { --serie: var(--data-evidence); }
+.serie-1 { --serie: var(--data-2); --trait: 8 5; }
+.serie-2 { --serie: var(--data-4); --trait: 1 5; }
+.serie-3 { --serie: var(--data-5); --trait: 12 4 2 4; }
+.serie-4 { --serie: var(--data-6); --trait: 4 4; }
+.serie-5 { --serie: var(--data-1); --trait: 14 6; }
+.courbe .serie polyline, .courbe-legende line { stroke: var(--serie); stroke-dasharray: var(--trait, none); }
+.courbe .serie circle { fill: var(--serie); }
 .courbe .etiquette { font-weight: 700; fill: var(--encre); }
+.courbe .lien-etiquette { stroke: var(--serie); stroke-width: 2; stroke-linecap: round; }
+.courbe-legende { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 13px; line-height: 18px; color: var(--encre); }
+.courbe-legende li { display: inline-flex; align-items: center; gap: 8px; }
+.courbe-legende svg { flex: none; overflow: visible; }
 .tableau-defile { margin-top: 10px; max-height: 360px; overflow: auto; border-radius: var(--radius-sm); }
 .tableau { width: 100%; border-collapse: collapse; font: 400 13px/18px var(--font-mono); }
 .tableau th, .tableau td { padding: 8px 10px; border-bottom: 1px solid var(--ligne); text-align: left; font-weight: 400; }
