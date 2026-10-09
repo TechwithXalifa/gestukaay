@@ -44,10 +44,10 @@ def test_series_zones_controlees():
 def test_export_csv_des_series():
     r = client.get("/v1/series.csv", params={"indicateur": PAUVRETE, "zones": "SN,SN-DK", "decimale": "virgule"})
     assert r.status_code == 200
-    lignes = r.content.decode("utf-8-sig").splitlines()
-    assert lignes[0].startswith("indicateur;zone;code_zone;periode;valeur;unite")
+    lignes = r.content.decode("utf-16").splitlines()
+    assert lignes[0].startswith("indicateur\tzone\tcode_zone\tperiode\tvaleur\tunite")
     assert len(lignes) == 1 + 6  # 2 zones x 3 années publiées
-    assert "SN-DK;2022;9,3;%" in r.text and "/explorer?indicateur=jcvcajc.taux-de-pauvrete&zones=SN%2CSN-DK" in r.text
+    assert "SN-DK\t2022\t9,3\t%" in r.text and "/explorer?indicateur=jcvcajc.taux-de-pauvrete&zones=SN%2CSN-DK" in r.text
     assert r.headers["content-disposition"] == 'attachment; filename="gestukaay-jcvcajc.taux-de-pauvrete.csv"'
 
 

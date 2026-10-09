@@ -16,8 +16,8 @@ def _id(question: str) -> str:
 def test_csv_au_schema_ef34():
     r = client.get(f"/v1/answers/{_id('Population de Dakar et de Thiès en 2023')}/export.csv")
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
-    assert r.content.startswith(b"\xef\xbb\xbf")  # BOM : Excel FR lit l'UTF-8
-    lignes = list(csv.reader(io.StringIO(r.content.decode("utf-8-sig")), delimiter=";"))
+    assert r.content.startswith(b"\xff\xfe")  # BOM UTF-16 : Excel lit les accents et les colonnes
+    lignes = list(csv.reader(io.StringIO(r.content.decode("utf-16")), delimiter="\t"))
     assert lignes[0] == COLONNES
     assert lignes[1][:5] == ["Population totale", "Dakar", "SN-DK", "2023", "4004426"]
     assert lignes[1][7].startswith("ANSD · RGPH-5") and "/r/" in lignes[1][10]
@@ -27,7 +27,7 @@ def test_csv_au_schema_ef34():
 def test_csv_reprend_les_regions_du_graphique():
     """Retour de recette : la page montre les 14 régions autour de Thiès, le CSV n'en donnait qu'une."""
     r = client.get(f"/v1/answers/{_id('Combien d’habitants à Thiès ?')}/export.csv")
-    lignes = list(csv.reader(io.StringIO(r.content.decode("utf-8-sig")), delimiter=";"))[1:]
+    lignes = list(csv.reader(io.StringIO(r.content.decode("utf-16")), delimiter="\t"))[1:]
     assert len(lignes) == 14 and lignes[0][:3] == ["Population totale", "Thiès", "SN-TH"]
     assert lignes[0][9] != NOTE_COMPARAISON  # la valeur demandée garde sa note de périmètre
     autres = lignes[1:]
@@ -63,6 +63,16 @@ def test_csv_virgule_decimale_en_option():
     rid = _id("Combien d'habitants à Thiès ?")
     r = client.get(f"/v1/answers/{rid}/export.csv?decimale=virgule")
     assert r.status_code == 200
+
+
+def test_csv_pour_excel_utf16_tabulations():
+    """Excel l'ouvre en colonnes, accents compris, quelle que soit la langue de Windows (choix du 09/10)."""
+    r = client.get(f"/v1/answers/{_id('Combien d’habitants à Thiès ?')}/export.csv")
+    assert r.headers["content-type"] == "text/csv; charset=utf-16"
+    assert r.content[:2] == b"\xff\xfe"  # BOM UTF-16 petit-boutiste
+    premiere, deuxieme = r.content.decode("utf-16").splitlines()[:2]
+    assert premiere.split("\t")[:3] == ["indicateur", "zone", "code_zone"]
+    assert "\tThiès\tSN-TH\t" in deuxieme and ";" not in premiere
 
 
 def test_pdf_une_page_a4():

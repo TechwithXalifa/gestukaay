@@ -46,7 +46,7 @@ from pydantic import BaseModel, Field
 
 from . import comptes, jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
-from .exports import vers_csv, vers_csv_series, vers_pdf
+from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
 from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
@@ -285,7 +285,7 @@ def audio(rid: str) -> Response:
 def export_csv(rid: str, decimale: Literal["point", "virgule"] = "point") -> Response:
     return Response(
         vers_csv(_exacte(rid), virgule_decimale=decimale == "virgule"),
-        media_type="text/csv; charset=utf-8",
+        media_type=TYPE_CSV,
         headers={"Content-Disposition": f'attachment; filename="gestukaay-{rid}.csv"'},
     )
 
@@ -361,7 +361,7 @@ def series_csv(
     fichier = re.sub(r"[^A-Za-z0-9._-]", "_", indicateur)  # nom de fichier toujours bien formé
     return Response(
         vers_csv_series(rep, url, virgule_decimale=decimale == "virgule"),
-        media_type="text/csv; charset=utf-8",
+        media_type=TYPE_CSV,
         headers={"Content-Disposition": f'attachment; filename="gestukaay-{fichier}.csv"'},
     )
 
@@ -525,12 +525,13 @@ def journal_csv(
     _admin(session)
     _, lignes = stockage.journal(_filtre(issue, canal, langue, q, 100_000, 0))
     sortie = io.StringIO()
-    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], delimiter=";")
+    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], delimiter=SEPARATEUR,
+                       lineterminator="\r\n")
     w.writeheader()
     w.writerows(lignes)
     return Response(
-        "﻿" + sortie.getvalue(),  # BOM : Excel ouvre l'UTF-8 correctement
-        media_type="text/csv; charset=utf-8",
+        encoder_csv(sortie.getvalue()),  # même format Excel que les exports de réponse
+        media_type=TYPE_CSV,
         headers={"Content-Disposition": 'attachment; filename="gestukaay-journal.csv"'},
     )
 
