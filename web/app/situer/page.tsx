@@ -6,7 +6,7 @@ import type { SituateRequest } from "@contracts/situate_request";
 import type { SituateResponse } from "@contracts/situate_response";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
-import { Cadenas, Chevron, Coche } from "@/components/icones";
+import { Cadenas, Chevron, CocheFine } from "@/components/icones";
 import { ResultatSituer } from "@/components/ResultatSituer";
 import { useLangue } from "@/i18n/langue";
 import { situer } from "@/lib/api";
@@ -122,7 +122,7 @@ export default function Situer() {
                     <label key={r.code} className={region === r.code ? "option choisie" : "option"} onPointerUp={montrerContinuer}>
                       <input type="radio" name="region" className="sr-only" checked={region === r.code} onChange={() => setRegion(r.code)} />
                       {r.libelle}
-                      {region === r.code && <Coche />}
+                      {region === r.code && <CocheFine />}
                     </label>
                   ))}
                 </div>
@@ -161,7 +161,7 @@ export default function Situer() {
                     <label key={d} className={depenses === d ? "option choisie" : "option"} onPointerUp={montrerContinuer}>
                       <input type="radio" name="depenses" className="sr-only" checked={depenses === d} onChange={() => setDepenses(d)} />
                       {t(`situer.d.${d}`)}
-                      {depenses === d && <Coche />}
+                      {depenses === d && <CocheFine />}
                     </label>
                   ))}
                 </div>

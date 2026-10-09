@@ -8,7 +8,7 @@ test("accueil : question, exemples et domaines", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Posez votre question.");
   await expect(page.getByRole("textbox", { name: "Votre question" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Parcourir par domaine" })).toBeVisible();
-  await expect(page.locator(".grille-domaines li")).toHaveCount(6);
+  await expect(page.locator(".grille-domaines li")).toHaveCount(8); // deux lignes de quatre
   await accessible(page, "accueil");
 });
 

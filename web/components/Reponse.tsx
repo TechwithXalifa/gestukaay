@@ -10,7 +10,7 @@ import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
 import { Retour } from "./Retour";
 import { chiffres, insecables } from "@/lib/typo";
-import { Base, Coche, Externe, Fleche, Info, Livre, Micro, Tendance } from "./icones";
+import { Base, Certifie, Externe, Fleche, Info, Livre, Micro, Tendance } from "./icones";
 
 type R = AskResponse["reponse"];
 
@@ -153,7 +153,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
   return (
     <article className="carte reponse" aria-labelledby="titre-reponse">
       <div className="ligne-badges">
-        <span className="badge exacte"><Coche taille={16} />{t("reponse.exacte")}</span>
+        <span className="badge exacte"><Certifie taille={16} />{t("reponse.exacte")}</span>
         {nonObservee?.nature && (
           <span className="badge projection"><Tendance taille={16} />{t(nonObservee.nature === "projection" ? "reponse.projection" : "reponse.estimation")}</span>
         )}

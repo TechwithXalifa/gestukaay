@@ -7,7 +7,7 @@ import type { CatalogueResponse } from "@contracts/catalogue_response";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { OngletsDonnees } from "@/components/OngletsDonnees";
 import { Erreur } from "@/components/Etats";
-import { Coche, Fleche } from "@/components/icones";
+import { Certifie, Fleche } from "@/components/icones";
 import type { Cle } from "@/i18n/fr";
 import { useLangue } from "@/i18n/langue";
 import { catalogue } from "@/lib/api";
@@ -129,7 +129,7 @@ function Catalogue() {
                   <Link href={`/indicateurs/${encodeURIComponent(i.code)}`}>
                     <span className="catalogue-tete">
                       <strong>{i.libelle}</strong>
-                      {i.verifie && <span className="badge exacte"><Coche taille={14} />{t("catalogue.verifie")}</span>}
+                      {i.verifie && <span className="badge exacte"><Certifie taille={14} />{t("catalogue.verifie")}</span>}
                     </span>
                     <span className="discret">
                       {i.producteur} · {i.operation} · {i.periode_debut === i.periode_fin ? i.periode_fin : `${i.periode_debut} à ${i.periode_fin}`}
