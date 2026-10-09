@@ -20,7 +20,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-VERSION_CONTRAT = "1.6.0"
+VERSION_CONTRAT = "1.7.0"
 
 
 class _Strict(BaseModel):
@@ -82,7 +82,9 @@ class AskRequest(_Strict):
     # Identifiant opaque de conversation, pour les questions de suivi
     # « et Kaolack ? » [EF-09]. Le backend le hache avant journalisation.
     conversation_id: str | None = None
-    audio_retour: bool = False  # [EF-16] audio wolof en réponse
+    # [EF-16] audio wolof en réponse ; sur le web (1.7.0, décision 0040) : `audio_url` est rempli quand la
+    # réponse est en wolof, et l'audio se calcule à la demande sur GET /v1/answers/{id}/audio.ogg
+    audio_retour: bool = False
     # v1.1.0 — question dictée puis corrigée sur le web (décision 0004 §1) :
     # le web envoie le texte final dans `question`, et ce que /v1/transcrire
     # avait produit dans `transcription_brute`. L'écart sert à mesurer le taux
@@ -236,6 +238,8 @@ class ReponseApprochee(_ReponseBase):
     issue: Literal["approchee"] = "approchee"
     reformulation: str
     choix: list[Choix] = Field(min_length=2, max_length=3)
+    # v1.7.0 (décision 0040) : la reformulation dite en wolof, pour une question posée à la voix
+    audio_url: str | None = None
 
 
 class ReponseAucune(_ReponseBase):
@@ -251,6 +255,8 @@ class ReponseAucune(_ReponseBase):
     motif: Literal["hors_socle", "projection", "incomprehension", "non_disponible", "conversation"]
     message: str
     suggestions: list[Suggestion] = Field(default_factory=list, max_length=3)
+    # v1.7.0 (décision 0040) : le message dit en wolof, pour une question posée à la voix
+    audio_url: str | None = None
 
 
 Reponse = Annotated[
