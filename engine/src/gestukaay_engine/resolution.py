@@ -625,7 +625,8 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
             return Resolution(resultats, defauts, None)
         if len(resultats) > 1 and (melange := meme_categorie(socle, ind, resultats)):
             return melange
-        graph = graphique_comparaison_zones(resultats, ind) if len(resultats) > 1 else None
+        # une année par zone : pas de barres sous un seul titre daté (l'invariant l'a relevé, FR-083) ; le texte suffit
+        graph = graphique_comparaison_zones(resultats, ind) if len(resultats) > 1 and not par_zone else None
         return Resolution(resultats, defauts, graph)
 
     # -----------------------------------------------------------------------

@@ -17,9 +17,10 @@ PAR_ID = {q["id"]: q for q in QUESTIONS}
 # puis à 104 avec FR-073 (nombre de chômeurs, décision 0024)
 # puis à 113 le 08/10 : les hors-sujet deviennent le type « conversation » (0033), mesuré à part des refus, et
 # KBD ajoute 5 vrais refus « donnée absente » et 4 hors-sujet
+# puis à 123 le 09/10 : dix cas de la recette de SAN (FR-079 à FR-089 sauf FR-085, #218), ajoutés après correction
 REPARTITION = {
-    ("fr", "simple"): 30, ("fr", "comparative"): 11, ("fr", "classement"): 7,
-    ("fr", "approchee"): 8, ("fr", "refus"): 12, ("fr", "conversation"): 7, ("fr", "suivi"): 3,
+    ("fr", "simple"): 34, ("fr", "comparative"): 12, ("fr", "classement"): 7,
+    ("fr", "approchee"): 9, ("fr", "refus"): 15, ("fr", "conversation"): 7, ("fr", "suivi"): 4,
     ("wo", "simple"): 13, ("wo", "comparative"): 4, ("wo", "classement"): 3,
     ("wo", "approchee"): 3, ("wo", "refus"): 7, ("wo", "conversation"): 3, ("wo", "suivi"): 2,
 }
@@ -28,8 +29,8 @@ ISSUE_PAR_TYPE = {"simple": "exacte", "comparative": "exacte", "classement": "ex
 
 
 def test_questions_reparties_comme_convenu():
-    assert len(QUESTIONS) == 113
-    assert len(PAR_ID) == 113, "identifiants en double"
+    assert len(QUESTIONS) == 123
+    assert len(PAR_ID) == 123, "identifiants en double"
     assert Counter((q["langue"], q["type"]) for q in QUESTIONS) == REPARTITION
 
 
@@ -65,5 +66,10 @@ def test_variantes_wolof_alignees_sur_les_questions_francaises():
     francaises = [q for q in QUESTIONS if q["langue"] == "fr"]
     assert [v["id"] for v in variantes] == [q["id"] for q in francaises]
     for v, q in zip(variantes, francaises, strict=True):
-        assert v["question_fr"] == q["question"] and v["question_wo"]
-        assert v["ecriture"] in ("officielle", "usage")
+        assert v["question_fr"] == q["question"]
+        if q["id"] in VARIANTES_EN_ATTENTE:  # le wolof est écrit par KBD (0009), jamais par un outil
+            continue
+        assert v["question_wo"] and v["ecriture"] in ("officielle", "usage")
+
+
+VARIANTES_EN_ATTENTE = {f"FR-{n:03d}" for n in range(79, 90)} - {"FR-085"}  # recette du 09/10 (#218) : wolof à écrire par KBD

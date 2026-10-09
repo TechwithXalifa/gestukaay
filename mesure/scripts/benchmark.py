@@ -394,7 +394,10 @@ def verifier_exactitude_reponse(
                     sourcee,
                     f"bornes temporelles: attendu {zp}={v_att}, obtenu {obtenus_dict.get(zp)}",
                 )
-        if not r_body.graphique or r_body.graphique.type != "courbe":
+        # une courbe pour une même zone à deux périodes ; une année par zone (« Dakar en 2011, Thiès en 2022 »,
+        # FR-083) n'a pas de graphique : des barres sous un seul titre daté tromperaient
+        une_zone = len({z for z, _ in attendus_dict}) < len(attendus_dict)
+        if une_zone and (not r_body.graphique or r_body.graphique.type != "courbe"):
             return False, sourcee, "graphique courbe manquant pour comparaison temporelle"
         return True, sourcee, "comparaison temporelle correcte"
 
