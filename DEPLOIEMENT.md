@@ -34,7 +34,7 @@ chargement d'environ 1 minute par modèle ; une note vocale de 10 s transcrite e
    docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
    ```
 
-## 3. Comptes et clés (gratuits)
+## 3. Comptes et clés
 
 - **Hugging Face**, pour télécharger le modèle de transcription.
   1. Créer un compte sur https://huggingface.co.
