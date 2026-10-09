@@ -273,8 +273,7 @@ export const fr = {
   "confid.retours.texte": "Ils sont gardés avec la réponse concernée, sans rien qui vous identifie, pour corriger le service.",
 
   // Interface wolof incomplète
-  "wo.enCours": "L'interface en wolof est en cours de validation par un linguiste : les textes pas encore validés restent en français.",
-
+  
   // Navigation : Explorer et Indicateurs (décision 0023)
   "nav.explorer": "Explorer",
   "nav.indicateurs": "Indicateurs",

@@ -142,7 +142,6 @@ main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 /* Choix WO retenu, avant que React ait relu la préférence (voir layout.tsx) */
 html[data-langue="wo"] .bascule button[lang="fr"] { background: transparent; color: var(--sur-sombre-doux); }
 html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair); color: var(--sur-or); }
-.bandeau-langue { margin: 8px 0 0; padding: 8px 16px; border-radius: var(--radius-md); background: var(--or-50); color: var(--encre); font-size: 13px; line-height: 18px; text-align: center; box-shadow: var(--ombre-carte); }
 
 /* Barre d'onglets mobile (< 768 px) : Demander, Données, Me situer, Plus */
 .barre-onglets { position: fixed; inset: auto 0 0 0; z-index: 40; display: none; grid-template-columns: repeat(4, 1fr); gap: 4px;
@@ -517,7 +516,7 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .compteur.petit button { width: 44px; height: 44px; font-size: 22px; }
 .compteur.petit output { min-width: 40px; text-align: center; font: 700 22px/1 var(--font-display); color: var(--baobab); }
 @media print {
-  .entete, .pied, .barre-onglets, .evitement, .actions-situer, .etsi, .imprimer, .lien-bouton, .bandeau-langue { display: none !important; }
+  .entete, .pied, .barre-onglets, .evitement, .actions-situer, .etsi, .imprimer, .lien-bouton { display: none !important; }
   .site, main { padding: 0 !important; background: #fff !important; }
   .carte { box-shadow: none !important; border: 0 !important; }
   .situer-bloc, .graphique-situer, .comparaisons li { break-inside: avoid; }
