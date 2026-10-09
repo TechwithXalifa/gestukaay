@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLangue } from "@/i18n/langue";
+import { adresseAudio, ecouterMaintenant, ecranTactile } from "@/lib/ecoute";
 import { Lecture, Pause } from "./icones";
 
 /**
  * Réponse lue à voix haute (EF-16, maquette M-Reponse). Seules les métadonnées sont chargées
  * d'avance (durée) : sur un petit forfait, l'audio n'est téléchargé qu'au clic. Si l'audio est
- * introuvable, le lecteur disparaît : le texte reste la réponse.
+ * introuvable, le lecteur disparaît : le texte reste la réponse. Juste après une question posée à la voix,
+ * sur un téléphone, la note démarre seule ; sur un ordinateur, on appuie sur le bouton (décision 0040).
  */
 export function LecteurAudio({ url, langue }: { url: string; langue: string }) {
   const { t } = useLangue();
@@ -16,7 +18,14 @@ export function LecteurAudio({ url, langue }: { url: string; langue: string }) {
   const [duree, setDuree] = useState<number | null>(null);
   const [ecoule, setEcoule] = useState(0);
 
-  useEffect(() => setEtat("pret"), [url]);
+  useEffect(() => {
+    setEtat("pret");
+    if (!ecouterMaintenant(url) || !ecranTactile()) return;
+    // Lecture automatique refusée par le navigateur : pas une panne, le bouton reste
+    audio.current?.play().catch((e: unknown) => {
+      if (!(e instanceof DOMException && e.name === "NotAllowedError")) setEtat("absent");
+    });
+  }, [url]);
   if (etat === "absent") return null;
 
   const enWolof = langue === "wo";
@@ -55,7 +64,7 @@ export function LecteurAudio({ url, langue }: { url: string; langue: string }) {
       </span>
       <audio
         ref={audio}
-        src={url}
+        src={adresseAudio(url)}
         preload="metadata"
         onLoadedMetadata={(e) => Number.isFinite(e.currentTarget.duration) && setDuree(e.currentTarget.duration)}
         onTimeUpdate={(e) => setEcoule(e.currentTarget.currentTime)}

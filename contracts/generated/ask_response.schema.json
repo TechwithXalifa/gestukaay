@@ -288,6 +288,17 @@
           "maxItems": 3,
           "minItems": 2,
           "type": "array"
+        },
+        "audio_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -302,7 +313,8 @@
         "latence_ms",
         "issue",
         "reformulation",
-        "choix"
+        "choix",
+        "audio_url"
       ],
       "title": "ReponseApprochee",
       "type": "object"
@@ -390,6 +402,17 @@
           },
           "maxItems": 3,
           "type": "array"
+        },
+        "audio_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -405,7 +428,8 @@
         "issue",
         "motif",
         "message",
-        "suggestions"
+        "suggestions",
+        "audio_url"
       ],
       "title": "ReponseAucune",
       "type": "object"
@@ -836,7 +860,7 @@
   "description": "Enveloppe HTTP de toutes les routes qui renvoient une réponse.",
   "properties": {
     "version_contrat": {
-      "default": "1.6.0",
+      "default": "1.7.0",
       "type": "string"
     },
     "reponse": {

@@ -134,12 +134,15 @@ URL_PUBLIQUE = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000")
 
 
 def _conserver(rep: AskResponse, debut: float, req: AskRequest | None = None,
-               confirme_depuis: str | None = None) -> AskResponse:
+               confirme_depuis: str | None = None, voix: bool | None = None) -> AskResponse:
+    voix = bool(req and req.audio_retour) if voix is None else voix
     # Les URL relèvent du backend (interface.py) : adresse stable du site [EF-29]
     rep.reponse.url = f"{URL_PUBLIQUE.rstrip('/')}/r/{rep.reponse.id}"
     if isinstance(rep.reponse, ReponseExacte):
         # La citation (EF-35) renvoie à la même adresse stable que la réponse
         rep.reponse.citation = _URL_CITEE.sub(rep.reponse.url, rep.reponse.citation)
+    # Voix sur le web (décision 0040) : wolof seulement, et calculée à la demande par la route audio.ogg
+    rep.reponse.audio_url = f"/v1/answers/{rep.reponse.id}/audio.ogg" if voix and rep.reponse.langue == "wo" else None
     rep.reponse.latence_ms = round((time.perf_counter() - debut) * 1000)
     stockage.enregistrer(rep, req, confirme_depuis)
     return rep
@@ -213,7 +216,9 @@ def confirmer(rid: str, req: ConfirmRequest) -> AskResponse:
     choix = next((c for c in rep.choix if c.id == req.choix_id), None)
     if choix is None:
         raise ErreurApi(422, "Choix inconnu", f"choix_id={req.choix_id!r}")
-    return _conserver(moteur.executer(choix.requete, rep.question, rep.langue), debut, confirme_depuis=rid)
+    # Un choix fait après une question vocale garde la voix (décision 0040)
+    return _conserver(moteur.executer(choix.requete, rep.question, rep.langue), debut, confirme_depuis=rid,
+                      voix=rep.audio_url is not None)
 
 
 @app.get("/v1/answers/{rid}", response_model=AskResponse)
@@ -226,6 +231,54 @@ def _exacte(rid: str) -> ReponseExacte:
     if not isinstance(rep, ReponseExacte):
         raise ErreurApi(409, "Aucune valeur à exporter", "Seule une réponse exacte s'exporte.")
     return rep
+
+
+# Notes déjà dites, gardées en mémoire pour une réécoute (décision 0040) : jamais sur disque ni journalisées
+NOTES_EN_MEMOIRE, NOTES_DUREE_S = 64, 600.0
+_notes: dict[str, tuple[float, bytes]] = {}
+_verrous_notes: dict[str, threading.Lock] = {}
+_verrou_notes = threading.Lock()
+
+
+def _note(rep: AskResponse) -> bytes | None:
+    rid = rep.reponse.id
+    with _verrou_notes:
+        verrou = _verrous_notes.setdefault(rid, threading.Lock())
+    with verrou:  # le navigateur demande souvent deux fois (durée, puis lecture) : une seule synthèse
+        maintenant = time.monotonic()
+        with _verrou_notes:
+            for k in [k for k, (t, _) in _notes.items() if maintenant - t > NOTES_DUREE_S]:
+                del _notes[k]
+            if rid in _notes:
+                return _notes[rid][1]
+        try:
+            note = moteur.parler(rep)
+        finally:
+            with _verrou_notes:
+                _verrous_notes.pop(rid, None)
+        if note is None:
+            return None
+        with _verrou_notes:
+            while len(_notes) >= NOTES_EN_MEMOIRE:
+                del _notes[min(_notes, key=lambda k: _notes[k][0])]
+            _notes[rid] = (maintenant, note.opus)
+        return note.opus
+
+
+@app.get("/v1/answers/{rid}/audio.ogg")
+def audio(rid: str) -> Response:
+    """La réponse dite en wolof (EF-16, décision 0040), si la question a été posée à la voix."""
+    rep = _stockee(rid)
+    if rep.reponse.audio_url is None:
+        raise ErreurApi(404, "Pas de voix pour cette réponse")
+    try:
+        opus = _note(rep)
+    except Exception:  # une panne de la voix ne doit jamais casser la réponse : le texte reste
+        logging.getLogger("gestukaay.voix").exception("voix : note impossible (réponse %s)", rid)
+        opus = None
+    if opus is None:
+        raise ErreurApi(404, "Voix indisponible", "Le texte reste la réponse.")
+    return Response(opus, media_type="audio/ogg", headers={"Cache-Control": "private, max-age=600"})
 
 
 @app.get("/v1/answers/{rid}/export.csv")

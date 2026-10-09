@@ -25,6 +25,7 @@ LIMITES: dict[str, int] = {
     "retour": 20,
     "export": 30,
     "admin": 20,  # protège aussi le jeton contre les essais à la chaîne
+    "ecoute": 30,  # /v1/answers/{id}/audio.ogg : la voix de la réponse, calculée une fois puis gardée (0040)
     "explorer": 60,  # catalogue, fiches et séries : de la navigation, plus fréquente qu'une question
 }
 FENETRE_S = 60.0
@@ -39,6 +40,8 @@ def groupe(chemin: str) -> str | None:
         return "situer"
     if chemin == "/v1/feedback":
         return "retour"
+    if chemin.startswith("/v1/answers/") and chemin.endswith(".ogg"):
+        return "ecoute"
     if chemin.startswith("/v1/answers/") and chemin.endswith((".pdf", ".csv")):
         return "export"
     if chemin.startswith("/admin"):

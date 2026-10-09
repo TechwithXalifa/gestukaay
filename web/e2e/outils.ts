@@ -40,6 +40,19 @@ export async function poser(page: Page, question: string) {
   await page.waitForURL(/\/r\/[\w-]+$/);
 }
 
+/**
+ * Question posée à la voix (décision 0040), sans micro : la question écrite part comme si elle venait de la
+ * transcription (`source: "voix"`, `audio_retour`), ce que fait la fenêtre « Je vous écoute ».
+ */
+export async function poserAVoix(page: Page, question: string) {
+  await page.route("**/v1/ask", async (r) => {
+    const corps = { ...r.request().postDataJSON(), source: "voix", audio_retour: true, transcription_brute: question };
+    await r.continue({ postData: JSON.stringify(corps) });
+  });
+  await poser(page, question);
+  await page.unroute("**/v1/ask");
+}
+
 /** Connexion au back-office avec le compte des tests (créé au lancement de l'API). */
 export async function seConnecter(page: Page) {
   await page.getByLabel("Identifiant").fill(COMPTE_ADMIN.identifiant);

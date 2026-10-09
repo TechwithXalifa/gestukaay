@@ -23,6 +23,7 @@ import { useEnLigne } from "@/hooks/useEnLigne";
 import { useLangue } from "@/i18n/langue";
 import type { AskRequest } from "@contracts/ask_request";
 import { demander, ErreurApi } from "@/lib/api";
+import { aEcouter } from "@/lib/ecoute";
 
 const EXEMPLES = [
   { texte: "Combien d'habitants à Thiès ?" },
@@ -58,6 +59,7 @@ export default function Accueil() {
     setMicroRefuse(false);
     try {
       const r = await demander(voix ? { question: q, source: "voix", audio_retour: true, ...voix } : { question: q });
+      aEcouter(r.reponse.audio_url); // question vocale en wolof : la note pourra démarrer seule (0040)
       router.push(`/r/${r.reponse.id}`);
     } catch (e) {
       setErreur(e);

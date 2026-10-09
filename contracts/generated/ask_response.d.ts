@@ -151,6 +151,7 @@ export interface ReponseApprochee {
    * @maxItems 3
    */
   choix: [Choix, Choix] | [Choix, Choix, Choix];
+  audio_url: string | null;
 }
 /**
  * Option proposée lors d'une correspondance approchée [EF-21, US-13].
@@ -177,6 +178,7 @@ export interface ReponseAucune {
    * @maxItems 3
    */
   suggestions: [] | [Suggestion] | [Suggestion, Suggestion] | [Suggestion, Suggestion, Suggestion];
+  audio_url: string | null;
 }
 /**
  * Indicateur proche proposé lors d'un refus [EF-05, US-02].
