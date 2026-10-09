@@ -423,7 +423,14 @@ def proposer_approchee(
 
             for pz in parents:
                 req_c = requete.model_copy(update={"zones": [pz]})
-                p_txt = _periode_texte(requete.periode)
+                # l'année demandée n'est pas publiée pour la zone parente : sa plus proche (recette du 09/10, #211 :
+                # « département de Thiès en 2023 » ne proposait que le Sénégal, la région n'allant que jusqu'en 2022)
+                annees = sorted({o.periode for o in socle.observations(code_ind) if o.zone == pz
+                                 and re.fullmatch(r"\d{4}", o.periode)})
+                if requete.periode.type == "annee" and requete.periode.valeur not in annees and annees:
+                    proche = min(annees, key=lambda a: (_distance_periode(requete.periode.valeur, a), -int(a)))
+                    req_c = req_c.model_copy(update={"periode": Periode(type="annee", valeur=proche)})
+                p_txt = _periode_texte(req_c.periode)
                 lib = f"{_nom_indicateur(code_ind, langue)} - {_nom_zone(pz, langue)} ({p_txt})"
                 candidats_choix.append((req_c, lib))
 
