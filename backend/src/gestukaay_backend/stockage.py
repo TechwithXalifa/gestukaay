@@ -102,6 +102,15 @@ CONSERVATION_MESSAGES = timedelta(hours=48)
 
 COLONNES_JOURNAL = ["recu_le", "canal", "source", "langue", "question", "transcription_brute", "issue",
                     "indicateur", "latence_ms", "version_socle", "conversation", "confirme_depuis", "reponse_id"]
+# Retours joints à chaque ligne du journal (écran Journal et export CSV)
+COLONNES_RETOURS = ["vote", "signalement", "commentaire", "suggestions", "suggestion"]
+# Filtre « Retour » du journal : condition sur les retours de la réponse
+FILTRES_RETOUR = {
+    "signale": "r.type = 'signalement'",
+    "pas_utile": "r.type = 'vote' AND r.vote = 'pas_utile'",
+    "utile": "r.type = 'vote' AND r.vote = 'utile'",
+    "suggere": "r.type = 'suggestion_indicateur'",
+}
 
 
 @dataclass(frozen=True)
@@ -110,6 +119,7 @@ class FiltreJournal:
     canal: str | None = None
     langue: str | None = None
     texte: str | None = None
+    retour: str | None = None  # clé de FILTRES_RETOUR
     limite: int = 50
     decalage: int = 0
 
@@ -262,8 +272,8 @@ class Stockage:
     # ------------------------------------------------------------------ journal
 
     def journal(self, f: FiltreJournal) -> tuple[int, list[dict]]:
-        """(nombre total filtré, page de lignes, plus récentes d'abord), avec le vote et le
-        signalement éventuels de chaque réponse."""
+        """(nombre total filtré, page de lignes, plus récentes d'abord), avec le vote, le signalement
+        et la suggestion éventuels de chaque réponse, et le commentaire laissé par l'usager."""
         conditions, params = [], []
         for colonne in ("issue", "canal", "langue"):
             if valeur := getattr(f, colonne):
@@ -272,6 +282,9 @@ class Stockage:
         if f.texte:
             conditions.append("LOWER(j.question) LIKE ?")
             params.append(f"%{f.texte.lower()}%")
+        if f.retour in FILTRES_RETOUR:
+            conditions.append("EXISTS (SELECT 1 FROM retours r WHERE r.reponse_id = j.reponse_id"
+                              f" AND {FILTRES_RETOUR[f.retour]})")
         where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
         total = self._executer(f"SELECT COUNT(*) FROM journal j {where}", tuple(params))[0][0]
         lignes = self._executer(
@@ -280,12 +293,17 @@ class Stockage:
                         ORDER BY r.recu_le DESC LIMIT 1),
                        (SELECT r.motif FROM retours r WHERE r.reponse_id = j.reponse_id
                         AND r.type = 'signalement' ORDER BY r.recu_le DESC LIMIT 1),
+                       (SELECT r.commentaire FROM retours r WHERE r.reponse_id = j.reponse_id
+                        AND r.type = 'signalement' AND r.commentaire <> '' ORDER BY r.recu_le DESC LIMIT 1),
                        (SELECT COUNT(*) FROM retours r WHERE r.reponse_id = j.reponse_id
-                        AND r.type = 'suggestion_indicateur')
+                        AND r.type = 'suggestion_indicateur'),
+                       (SELECT r.commentaire FROM retours r WHERE r.reponse_id = j.reponse_id
+                        AND r.type = 'suggestion_indicateur' AND r.commentaire <> ''
+                        ORDER BY r.recu_le DESC LIMIT 1)
                 FROM journal j {where} ORDER BY j.recu_le DESC, j.reponse_id LIMIT ? OFFSET ?""",
             (*params, f.limite, f.decalage),
         )
-        return total, [dict(zip([*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], ligne, strict=True)) for ligne in lignes]
+        return total, [dict(zip([*COLONNES_JOURNAL, *COLONNES_RETOURS], ligne, strict=True)) for ligne in lignes]
 
     # ------------------------------------------------------------------ tableau de bord
 
