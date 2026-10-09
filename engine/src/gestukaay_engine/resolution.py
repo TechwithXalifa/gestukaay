@@ -19,7 +19,7 @@ from __future__ import annotations
 import csv
 import re
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import UTC, date, datetime
 from functools import cache
 from typing import Literal
 
@@ -56,7 +56,9 @@ from .socle import Observation, Socle
 Raison = Literal["indicateur_inconnu", "zone_non_couverte", "periode_absente", "desagregation_absente",
                  "desagregation_ambigue", "non_traite"]
 
-ANNEE_EN_COURS = 2026  # au-delà, une valeur publiée est une prévision (refus, #116)
+# Au-delà, une valeur publiée est une prévision (refus, #116). L'année du jour au démarrage, et non plus 2026 écrit
+# en dur (audit du 09/10) : en 2027, « l'année dernière » aurait donné 2025 et une question sur 2027 une prévision
+ANNEE_EN_COURS = datetime.now(UTC).year
 
 _TOTAUX = {"total", "totale", "totaux", "ensemble", "global", "globale", "tous", "toutes", "all",
            "les deux sexes", "deux sexes", "ensemble du pays", "national"}

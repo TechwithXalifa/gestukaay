@@ -71,3 +71,19 @@ def test_journal_jamais_en_cache(connecter):
     connecte = TestClient(module_app.app)
     connecter(connecte)
     assert connecte.get("/admin/journal").headers["cache-control"] == "no-store"
+
+
+
+def test_erreur_imprevue_problem_avec_code_d_incident(monkeypatch):
+    """Cahier 7.3 : message humain, code d'incident discret, jamais de trace ; lisible par le site (CORS)."""
+    def panne(*a, **k):
+        raise RuntimeError("détail interne à ne jamais montrer")
+
+    monkeypatch.setattr(module_app.moteur, "repondre", panne)
+    origine = module_app.ORIGINES[0]
+    r = client.post("/v1/ask", json={"question": "Combien d'habitants à Thiès ?"}, headers={"Origin": origine})
+    assert r.status_code == 500 and r.headers["content-type"].startswith("application/problem+json")
+    corps = r.json()
+    assert corps["title"] == "Erreur interne" and len(corps["code_incident"]) == 8
+    assert "détail interne" not in r.text
+    assert r.headers["access-control-allow-origin"] == origine  # le navigateur peut lire l'erreur
