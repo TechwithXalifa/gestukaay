@@ -49,6 +49,7 @@ export function pourcentage(x: number, decimales = 1): string {
  * la citation et les exports gardent le titre tel que publié.
  */
 export function titreSource(titre: string): string {
-  const net = titre.replace(/^\s*(?:\d+(?:\.\d+)+(?:-[a-z])?\s*[_\u2013-]|\d+(?:-[a-z])?_)\s*/i, "");
+  // 1 à 3 chiffres : « 2023_Rapport » garde son année
+  const net = titre.replace(/^\s*(?:\d{1,3}(?:\.\d+)+(?:-[a-z])?\s*[_\u2013-]|\d{1,3}(?:-[a-z])?_)\s*/i, "");
   return net ? net.charAt(0).toUpperCase() + net.slice(1) : titre;
 }

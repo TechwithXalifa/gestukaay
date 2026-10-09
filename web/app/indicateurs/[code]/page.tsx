@@ -44,8 +44,12 @@ export default function Fiche() {
     let actif = true;
     series({ indicateur: f.indicateur.code, zones: ["SN"] })
       .then((s) => {
-        const n = s.series[0]?.points.length ?? 0;
-        if (actif && n > 0) setDernier({ s, i: n - 1 });
+        // Jamais une projection future (décision 0035, comme les réponses) : l'espérance de vie donnait 2035
+        const points = s.series[0]?.points ?? [];
+        const an = new Date().getFullYear();
+        let i = points.length - 1;
+        while (i > 0 && Number(points[i].periode.slice(0, 4)) > an) i--;
+        if (actif && points.length > 0) setDernier({ s, i });
       })
       .catch(() => {});
     return () => {
