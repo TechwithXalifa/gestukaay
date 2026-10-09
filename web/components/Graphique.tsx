@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { ReponseExacte } from "@contracts/ask_response";
 import { useLangue } from "@/i18n/langue";
 import { nombre } from "@/lib/typo";
@@ -68,7 +68,7 @@ function Barres({ points }: { points: G["series"][number]["points"] }) {
   );
 }
 
-const L = 600;
+const L_DEFAUT = 600; // largeur avant la première mesure (rendu serveur)
 const H = 240;
 const M = { haut: 16, bas: 28 };
 const ECART_ETIQUETTES = 15; // hauteur d'une étiquette de fin de courbe, pour qu'elles ne se chevauchent pas
@@ -101,6 +101,17 @@ function ecarter(ys: number[]): number[] {
  * WCAG 1.4.1), une légende au-dessus, sa dernière valeur au bout de la courbe, et l'axe est gradué.
  */
 function Courbe({ g }: { g: G }) {
+  // Largeur du dessin = largeur réelle en pixels : une unité vaut un pixel, les textes gardent 12 px
+  // sur un téléphone au lieu de rétrécir avec le graphique (audit du 09/10)
+  const cadre = useRef<HTMLDivElement>(null);
+  const [L, setL] = useState(L_DEFAUT);
+  useEffect(() => {
+    const el = cadre.current;
+    if (!el || !("ResizeObserver" in window)) return;
+    const obs = new ResizeObserver(([e]) => setL(Math.max(280, Math.round(e.contentRect.width))));
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
   const xs = [...new Set(g.series.flatMap((s) => s.points.map((p) => p.x)))];
   const ys = g.series.flatMap((s) => s.points.map((p) => p.y));
   const ticks = graduations(Math.min(0, ...ys), Math.max(...ys) || 1);
@@ -126,6 +137,7 @@ function Courbe({ g }: { g: G }) {
           ))}
         </ul>
       )}
+      <div ref={cadre}>
       <svg className="courbe" viewBox={`0 0 ${L} ${H}`} aria-hidden="true">
         {ticks.map((v) => (
           <g key={v} className="graduation">
@@ -156,6 +168,7 @@ function Courbe({ g }: { g: G }) {
           ) : null,
         )}
       </svg>
+      </div>
     </>
   );
 }

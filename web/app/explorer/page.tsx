@@ -14,7 +14,7 @@ import { Croix, Externe, Livre, Telecharger } from "@/components/icones";
 import { useLangue } from "@/i18n/langue";
 import { catalogue, fiche, series, seriesCsvUrl } from "@/lib/api";
 import { REGIONS } from "@/lib/regions";
-import { chiffres } from "@/lib/typo";
+import { chiffres, titreSource } from "@/lib/typo";
 
 const ZONES_MAX = 6; // US-18
 const ZONES = [{ code: "SN", libelle: "Sénégal" }, ...REGIONS];
@@ -133,7 +133,7 @@ function Explorer() {
                   <div className="explorer-champ">
                     <label htmlFor="explorer-ajouter">{t("explorer.ajouter")}</label>
                     <select id="explorer-ajouter" value="" onChange={(e) => e.target.value && changer({ zones: [...zones, e.target.value].join(",") })}>
-                      <option value="">…</option>
+                      <option value="">{t("explorer.choisirZone")}</option>
                       {ajoutables.map((z) => <option key={z.code} value={z.code}>{z.libelle}</option>)}
                     </select>
                   </div>
@@ -221,7 +221,7 @@ function Explorer() {
                     <p className="bloc-source-titre"><Livre />{t("explorer.sources")}</p>
                     {sources.map((src) => (
                       <div key={src.url}>
-                        <p>{src.titre}</p>
+                        <p>{titreSource(src.titre)}</p>
                         <p className="discret">{src.libelle}</p>
                       </div>
                     ))}

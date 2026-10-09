@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { FicheIndicateur } from "@contracts/fiche_indicateur";
+import type { SeriesResponse } from "@contracts/series_response";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { Copier, Externe, Fleche, Livre } from "@/components/icones";
 import type { Cle } from "@/i18n/fr";
 import { useLangue } from "@/i18n/langue";
-import { demander, ErreurApi, fiche } from "@/lib/api";
+import { demander, ErreurApi, fiche, series } from "@/lib/api";
+import { chiffres, titreSource } from "@/lib/typo";
 
 const dateLongue = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
@@ -22,6 +24,9 @@ export default function Fiche() {
   const [erreur, setErreur] = useState<unknown>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
+  // Dernière valeur nationale (audit du 09/10 : la fiche ne montrait aucun chiffre). Facultative :
+  // sans série nationale ou si l'appel échoue, la fiche reste complète sans elle.
+  const [dernier, setDernier] = useState<{ s: SeriesResponse; i: number } | null>(null);
 
   const charger = () => {
     setErreur(null);
@@ -31,6 +36,21 @@ export default function Fiche() {
 
   useEffect(() => {
     if (f) document.title = `${f.indicateur.libelle} · Gëstukaay`;
+  }, [f]);
+
+  useEffect(() => {
+    setDernier(null);
+    if (!f?.indicateur.niveaux.includes("pays")) return;
+    let actif = true;
+    series({ indicateur: f.indicateur.code, zones: ["SN"] })
+      .then((s) => {
+        const n = s.series[0]?.points.length ?? 0;
+        if (actif && n > 0) setDernier({ s, i: n - 1 });
+      })
+      .catch(() => {});
+    return () => {
+      actif = false;
+    };
   }, [f]);
 
   useEffect(() => {
@@ -86,6 +106,26 @@ export default function Fiche() {
             <div className="fiche-principal">
               <h1 className="titre-situer">{i.libelle}</h1>
               <p className="explication">{f.definition ?? t("fiche.sansDefinition")}</p>
+
+              {dernier && (() => {
+                const serie = dernier.s.series[0];
+                const p = serie?.points[dernier.i];
+                if (!serie || !p) return null;
+                return (
+                  <section className="fiche-derniere" aria-label={t("fiche.derniere")}>
+                    <p className="fiche-derniere-titre">{t("fiche.derniere")}</p>
+                    <p className="valeur">
+                      <span>{chiffres(p.valeur_affichee)}</span>{" "}
+                      {dernier.s.unite && <span className="unite">{dernier.s.unite}</span>}
+                    </p>
+                    <p className="note">
+                      {serie.zone.libelle} · {p.libelle}
+                      {p.nature && p.nature !== "observee" ? ` · ${t(`fiche.nature.${p.nature}` as Cle)}` : ""}
+                      {" · "}{serie.source.libelle}
+                    </p>
+                  </section>
+                );
+              })()}
 
               <div className="fiche-actions">
                 <button type="button" className="primaire" disabled={envoi} onClick={() => poser(i.libelle)}>
@@ -144,7 +184,12 @@ export default function Fiche() {
             <aside className="bloc-source fiche-bref" aria-label={t("fiche.enBref")}>
               <p className="bloc-source-titre"><Livre />{t("fiche.enBref")}</p>
               <dl>
-                <dt>{t("fiche.source")}</dt><dd>{f.source.libelle}<br /><span className="discret">{f.source.titre}</span></dd>
+                <dt>{t("fiche.source")}</dt>
+                <dd>
+                  {f.source.libelle}
+                  {/* Le titre ne revient que s'il apporte quelque chose (souvent déjà dans le libellé) */}
+                  {!f.source.libelle.includes(f.source.titre) && <><br /><span className="discret">{titreSource(f.source.titre)}</span></>}
+                </dd>
                 <dt>{t("fiche.unite")}</dt><dd>{i.unite || "–"}</dd>
                 <dt>{t("fiche.periode")}</dt><dd>{i.periode_debut === i.periode_fin ? i.periode_fin : `${i.periode_debut} à ${i.periode_fin}`}</dd>
                 <dt>{t("fiche.couverture")}</dt>

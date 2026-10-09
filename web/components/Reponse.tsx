@@ -9,7 +9,7 @@ import { Actions } from "./Actions";
 import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
 import { Retour } from "./Retour";
-import { chiffres, insecables } from "@/lib/typo";
+import { chiffres, insecables, titreSource } from "@/lib/typo";
 import { Base, Certifie, Externe, Fleche, Info, Livre, Micro, Tendance } from "./icones";
 
 type R = AskResponse["reponse"];
@@ -201,10 +201,12 @@ function Exacte({ r }: { r: ReponseExacte }) {
         {r.graphique && <Graphique g={r.graphique} />}
         <aside aria-label={t("reponse.source")} className="bloc-source">
           <p className="bloc-source-titre"><Livre />{t("reponse.source")}</p>
+          {/* Le libellé (« ANSD · RGPH-5 · publié le… ») est déjà sous le chiffre : ici seulement s'il faut
+              distinguer plusieurs sources (audit du 09/10, source écrite trois fois) */}
           {sources.map((s) => (
             <div key={s.url}>
-              <p>{s.titre}</p>
-              <p className="discret">{s.libelle}</p>
+              <p>{titreSource(s.titre)}</p>
+              {sources.length > 1 && <p className="discret">{s.libelle}</p>}
             </div>
           ))}
           {r.note_perimetre && <p className="discret">{t("reponse.perimetre", { note: r.note_perimetre })}</p>}

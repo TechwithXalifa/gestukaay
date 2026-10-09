@@ -33,6 +33,10 @@ html { scroll-padding-top: var(--hauteur-entete); scroll-padding-bottom: var(--h
 .ecran { min-height: calc(100vh - var(--hauteur-onglets)); min-height: calc(100svh - var(--hauteur-onglets));
   display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
 .ecran > .section-int, .ecran > .heros-int { width: 100%; }
+/* Seul le haut de page (question) fait tout l'écran. Les sections suivantes prennent la hauteur de
+   leur contenu : en plein écran, « Des chiffres publiés » flottait entre 200 px de vide (audit du 09/10). */
+.section-accueil.ecran { min-height: 0; padding-block: 88px; }
+@media (max-width: 767px) { .section-accueil.ecran { padding-block: 48px; } }
 .heros.ecran .heros-int { flex: 1; justify-content: center; }
 /* Sur ordinateur, le défilement se cale doucement sur le haut de chaque section de l'accueil.
    Les sections font tout l'écran et l'en-tête se cache en descendant : pas de marge en haut. */
@@ -111,7 +115,7 @@ main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .puce:hover { border-color: var(--baobab); transform: translateY(-1px); }
 .sombre .puce { background: var(--sombre-2); border-color: var(--ligne-sombre); color: var(--sur-sombre); }
 .sombre .puce:hover { border-color: var(--or-clair); }
-.marqueur-wo { flex: none; padding: 1px 6px; border-radius: 6px; background: var(--or-50); color: var(--or-texte); font: 700 10.5px/16px var(--font-mono); letter-spacing: .08em; }
+.marqueur-wo { flex: none; padding: 1px 6px; border-radius: 6px; background: var(--or-50); color: var(--or-texte); font: 700 11.5px/16px var(--font-mono); letter-spacing: .08em; }
 .sombre .marqueur-wo { background: transparent; box-shadow: inset 0 0 0 1px var(--or-clair); color: var(--or-clair); }
 
 /* ---- En-tête et navigation --------------------------------------------- */
@@ -278,7 +282,7 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .unite.sans-unite { font-size: 14px; line-height: 20px; font-style: italic; }
 .source-ligne { margin: 10px 0 0; display: flex; align-items: flex-start; gap: 8px; font: 400 12.5px/18px var(--font-mono); color: var(--encre-douce); }
 .source-ligne .ic { margin-top: 1px; color: var(--baobab); }
-.corps { width: 100%; margin-top: 28px; display: flex; flex-wrap: wrap; gap: 24px; }
+.corps { width: 100%; margin-top: 28px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; }
 .bulle-conversation { background: var(--baobab-50); border-color: transparent; border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 6px; }
 .texte-conversation { margin: 0; max-width: 660px; font: 400 18px/28px var(--font-sans); color: var(--encre); }
 .bouton-micro-reessayer { margin-top: 16px; }
@@ -571,8 +575,14 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .fiche-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
 .fiche-citation { padding: 14px 18px; border-radius: var(--radius-md); background: var(--fond-2); font: 400 13px/20px var(--font-mono); }
 .fiche-bref { flex: 0 1 340px; padding-bottom: 16px; }
-.fiche-bref dl { margin: 8px 0; display: grid; grid-template-columns: max-content 1fr; gap: 8px 14px; font-size: 14px; }
-.fiche-bref dt { color: var(--encre-douce); }
+/* Intitulé au-dessus de la valeur : la source ne s'écrase plus sur quinze lignes (audit du 09/10) */
+.fiche-bref dl { margin: 8px 0; display: grid; grid-template-columns: 1fr; gap: 2px; font-size: 14px; }
+.fiche-bref dt { margin-top: 10px; color: var(--encre-douce); font-size: 12.5px; }
+.fiche-bref dt:first-child { margin-top: 0; }
+.fiche-derniere { margin: 12px 0 4px; padding: 18px 22px; border: 1px solid var(--ligne); border-radius: var(--radius-lg); background: var(--carte); }
+.fiche-derniere-titre { margin: 0 0 4px; font-size: 13px; font-weight: 650; color: var(--encre-douce); }
+.fiche-derniere .valeur { margin: 0; }
+.fiche-derniere .note { margin: 6px 0 0; }
 .fiche-bref dd { margin: 0; overflow-wrap: anywhere; }
 .fiche-lies { margin: 4px 0 0; padding: 0; list-style: none; }
 .fiche-lies a { display: flex; align-items: center; min-height: 44px; color: var(--baobab); text-decoration: none; font-weight: 600; }
@@ -588,6 +598,9 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .explorer-periode { display: flex; gap: 12px; }
 .explorer-periode .explorer-champ { flex: 1; }
 .explorer-resultat { flex: 1 1 560px; gap: 16px; align-items: stretch; }
+/* En colonne, flex-basis devenait une hauteur : 280 px de beige vide sous les sources */
+.explorer-resultat .bloc-source { flex: none; }
+.explorer-filtres .lien-bouton { align-self: flex-start; }
 .explorer-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
 .explorer-choisir { align-items: stretch; gap: 16px; }
 
@@ -733,6 +746,7 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
   .pied-int { grid-template-columns: 1fr; padding: 32px 16px 20px; }
   .pied-bas { padding: 14px 16px 20px; }
   .explorer-filtres, .explorer-resultat, .fiche-bref { flex-basis: 100%; }
+  .explorer-resultat { order: -1; } /* le graphique d'abord, les réglages dessous (audit du 09/10) */
   .catalogue-liste { grid-template-columns: 1fr; }
 }
 

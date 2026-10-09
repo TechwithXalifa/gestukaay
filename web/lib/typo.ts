@@ -42,3 +42,13 @@ export function nombre(n: number, decimales = 0): string {
 export function pourcentage(x: number, decimales = 1): string {
   return chiffres(format("percent", decimales).format(x)).replace(/\s%$/, `${String.fromCharCode(0xa0)}%`);
 }
+
+/**
+ * Titre de publication lisible : sans le numéro de tableau que le portail met devant
+ * (« 10.1_Indices de pauvreté », « 18.3-b_Résultats… » → « Indices de pauvreté »). Affichage seulement :
+ * la citation et les exports gardent le titre tel que publié.
+ */
+export function titreSource(titre: string): string {
+  const net = titre.replace(/^\s*(?:\d+(?:\.\d+)+(?:-[a-z])?\s*[_\u2013-]|\d+(?:-[a-z])?_)\s*/i, "");
+  return net ? net.charAt(0).toUpperCase() + net.slice(1) : titre;
+}
