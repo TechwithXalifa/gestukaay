@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useLangue } from "@/i18n/langue";
 import { ErreurApi } from "@/lib/api";
-import { Coche, Tourne } from "./icones";
+import { CocheFine, Tourne } from "./icones";
 
 /** Chargement : étapes visibles et squelettes, jamais un spinner seul (7.3). */
 export function Chargement({ question }: { question?: string }) {
@@ -18,7 +18,7 @@ export function Chargement({ question }: { question?: string }) {
   return (
     <section ref={ref} className="carte" aria-busy="true" aria-live="polite">
       <ol className="etapes">
-        <li className="fait"><Coche />{t("etat.recue")}{question ? ` : « ${question} »` : ""}</li>
+        <li className="fait"><CocheFine />{t("etat.recue")}{question ? ` : « ${question} »` : ""}</li>
         <li className="encours"><Tourne />{t("etat.recherche")}</li>
       </ol>
       <div aria-hidden="true" className="squelettes">

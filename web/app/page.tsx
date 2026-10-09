@@ -6,7 +6,11 @@ import { Fragment, useState } from "react";
 import { ChampQuestion } from "@/components/ChampQuestion";
 import { Compteur } from "@/components/Compteur";
 import { Ecoute } from "@/components/Ecoute";
-import { Bouclier, Donnees, Fleche, Livre, Micro, Question, Repere } from "@/components/icones";
+import {
+  Bouclier, DomDemographie, DomEconomie, DomEducation, DomEmploi, DomEnergie, DomPauvrete, DomPrix, DomSante,
+  Donnees, Fleche, Livre, Micro, Question, Repere,
+} from "@/components/icones";
+import type { IconeDomaine } from "@/lib/domaines";
 import { DOMAINES_PRINCIPAUX } from "@/lib/domaines";
 import { MESURE, TAUX_BONNES } from "@/lib/mesure";
 import { SOCLE } from "@/lib/socle";
@@ -26,6 +30,12 @@ const EXEMPLES = [
   { texte: "Ñaata nit ñoo dëkk Tiés ?", wo: true },
   { texte: "Population de la ville de Thiès en 2023" },
 ];
+
+/** Une icône par domaine de l'accueil, qui dit le sujet de la carte. */
+const ICONES_DOMAINES: Record<IconeDomaine, (p: { taille?: number }) => React.JSX.Element> = {
+  demographie: DomDemographie, emploi: DomEmploi, prix: DomPrix, education: DomEducation,
+  sante: DomSante, pauvrete: DomPauvrete, energie: DomEnergie, economie: DomEconomie,
+};
 
 /** « Recevez le chiffre *officiel*. » : le mot entre astérisques passe en or (un seul, design system). */
 function avecMot(texte: string) {
@@ -150,14 +160,18 @@ export default function Accueil() {
                   </Link>
                 </div>
                 <ul className="grille-domaines">
-                  {DOMAINES_PRINCIPAUX.map((d) => (
+                  {DOMAINES_PRINCIPAUX.map((d) => {
+                    const Icone = ICONES_DOMAINES[d.icone];
+                    return (
                     <li key={d.nom}>
                       <button type="button" onClick={() => poser(d.exemple)}>
+                        <span className="domaine-icone"><Icone taille={24} /></span>
                         <strong>{d.nom}</strong>
                         <span>{insecables(d.exemple)}</span>
                       </button>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               </div>
             </section>
