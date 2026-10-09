@@ -43,8 +43,12 @@ chargement d'environ 1 minute par modèle ; une note vocale de 10 s transcrite e
 - **Google AI Studio**, pour la compréhension des questions : créer une clé Gemini sur
   https://aistudio.google.com/apikey.
 
-  Sans clé Gemini, l'application fonctionne avec ses règles locales. La mesure publiée (98,8 % de bonnes
-  réponses) est faite avec Gemini 2.5 Flash.
+  **Cette clé est obligatoire** : c'est Gemini 2.5 Flash qui comprend les questions telles qu'on les pose
+  vraiment (reformulations, wolof d'usage, suivi d'une conversation), et la mesure publiée (98,8 % de bonnes
+  réponses) est faite avec lui. Pour une évaluation avec beaucoup de questions, activez la facturation sur la
+  clé : une centaine de questions coûte quelques centimes de dollar, et la limite de débit de l'offre gratuite
+  disparaît. Sans réponse de Gemini, le moteur continue avec des règles locales de secours, sans jamais inventer
+  de chiffre, mais il comprend beaucoup moins bien : ce mode n'est pas représentatif de la solution.
 
 ## 4. Installation
 
