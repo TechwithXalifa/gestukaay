@@ -629,6 +629,7 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-detail dl { margin: 8px 0 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; font-size: 13px; line-height: 18px; }
 .admin-detail dt { color: var(--encre-douce); }
 .admin-detail dd { margin: 0; overflow-wrap: anywhere; }
+.admin-detail dd.admin-commentaire { white-space: pre-wrap; padding: 6px 10px; border-left: 3px solid var(--or-clair); background: var(--baobab-50); border-radius: var(--radius-md); }
 .admin-pages { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .admin-pages .note { margin: 0 auto 0 0; }
 .admin-connexion { max-width: 420px; display: flex; flex-direction: column; gap: 8px; }

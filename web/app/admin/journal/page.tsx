@@ -27,11 +27,14 @@ type Ligne = {
   reponse_id: string;
   vote: "utile" | "pas_utile" | null;
   signalement: string | null;
+  commentaire: string | null; // texte libre laissé avec le signalement
   suggestions: number; // EF-51 : indicateur manquant suggéré depuis le refus
+  suggestion: string | null; // texte de la dernière suggestion
 };
 
 const PAR_PAGE = 50;
 const ISSUES = { exacte: "Exacte", approchee: "Approchée", aucune: "Refus" } as const;
+const RETOURS = { signale: "Signalée", pas_utile: "Jugée pas utile", utile: "Jugée utile", suggere: "Indicateur suggéré" } as const;
 const MOTIFS: Record<string, string> = {
   chiffre_faux: "chiffre faux",
   mauvaise_zone: "mauvaise zone",
@@ -49,7 +52,7 @@ function secondes(ms: number | null): string {
 
 export default function Journal() {
   const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
-  const [filtres, setFiltres] = useState({ canal: "", issue: "", q: "" });
+  const [filtres, setFiltres] = useState({ canal: "", issue: "", retour: "", q: "" });
   const [recherche, setRecherche] = useState("");
   const [page, setPage] = useState(0);
   const [donnees, setDonnees] = useState<{ total: number; lignes: Ligne[] } | null>(null);
@@ -139,6 +142,7 @@ export default function Journal() {
         <input id="recherche" type="search" placeholder="Rechercher une question" value={recherche} onChange={(e) => setRecherche(e.target.value)} />
         <Choix libelle="Canal" valeur={filtres.canal} onChange={(v) => filtrer("canal", v)} options={CANAUX} tous="tous" />
         <Choix libelle="Issue" valeur={filtres.issue} onChange={(v) => filtrer("issue", v)} options={ISSUES} tous="toutes" />
+        <Choix libelle="Retour" valeur={filtres.retour} onChange={(v) => filtrer("retour", v)} options={RETOURS} tous="tous" />
       </form>
 
       {erreur && <p className="erreur-admin" role="alert">{erreur}</p>}
@@ -195,6 +199,8 @@ export default function Journal() {
                 {" · "}
                 {choisie.signalement ? `signalement : ${MOTIFS[choisie.signalement] ?? choisie.signalement}` : "aucun signalement"}
               </dd>
+              {choisie.commentaire && (<><dt>Commentaire de l&apos;usager</dt><dd className="admin-commentaire">{choisie.commentaire}</dd></>)}
+              {choisie.suggestion && (<><dt>Indicateur suggéré</dt><dd className="admin-commentaire">{choisie.suggestion}</dd></>)}
             </dl>
             <Link href={`/r/${choisie.reponse_id}`} className="lien" target="_blank">Voir la réponse</Link>
             <button type="button" className="lien-bouton" onClick={() => setChoisie(null)}>Fermer le détail</button>
