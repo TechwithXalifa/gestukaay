@@ -69,7 +69,7 @@ function variation(t: Tableau): string {
 export default function TableauDeBord() {
   const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
   const [jours, setJours] = useState<(typeof PERIODES)[number]>(30);
-  const [filtres, setFiltres] = useState({ canal: "", langue: "" });
+  const [filtres, setFiltres] = useState({ canal: "" });
   const [t, setT] = useState<Tableau | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
@@ -112,7 +112,6 @@ export default function TableauDeBord() {
         </div>
         <div className="admin-filtres">
           <Choix libelle="Canal" valeur={filtres.canal} onChange={(v) => setFiltres((f) => ({ ...f, canal: v }))} options={CANAUX} tous="tous" />
-          <Choix libelle="Langue" valeur={filtres.langue} onChange={(v) => setFiltres((f) => ({ ...f, langue: v }))} options={{ fr: "FR", wo: "WO" }} tous="toutes" />
           <div role="group" aria-label="Période" className="bascule admin-periode">
             {PERIODES.map((p) => (
               <button key={p} type="button" aria-pressed={jours === p} onClick={() => setJours(p)}>{p} j</button>
