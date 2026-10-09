@@ -47,7 +47,7 @@ from pydantic import BaseModel, Field
 from . import comptes, jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
-from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
+from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
 ORIGINES = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(",")
@@ -424,9 +424,16 @@ def moi(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
     return {"identifiant": _admin(session)}
 
 
-def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | None,
+def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | None, retour: str | None,
             limite: int, decalage: int) -> FiltreJournal:
-    return FiltreJournal(issue=issue, canal=canal, langue=langue, texte=q, limite=limite, decalage=decalage)
+    return FiltreJournal(issue=issue, canal=canal, langue=langue, texte=q, retour=retour, limite=limite,
+                         decalage=decalage)
+
+
+def _cellule(valeur):
+    """Export ouvert dans un tableur : un texte saisi par l'usager (question, commentaire, suggestion) qui
+    commence par = + - @ y deviendrait une formule (injection CSV). Une apostrophe le garde en texte."""
+    return f"'{valeur}" if isinstance(valeur, str) and valeur[:1] in ("=", "+", "-", "@", "\t", "\r") else valeur
 
 
 @app.get("/admin/journal")
@@ -436,11 +443,12 @@ def journal(
     canal: str | None = None,
     langue: str | None = None,
     q: str | None = Query(None, max_length=100),
+    retour: Literal["signale", "pas_utile", "utile", "suggere"] | None = None,
     limite: int = Query(50, ge=1, le=500),
     decalage: int = Query(0, ge=0),
 ) -> dict:
     _admin(session)
-    total, lignes = stockage.journal(_filtre(issue, canal, langue, q, limite, decalage))
+    total, lignes = stockage.journal(_filtre(issue, canal, langue, q, retour, limite, decalage))
     return {"total": total, "lignes": lignes}
 
 
@@ -521,14 +529,14 @@ def journal_csv(
     canal: str | None = None,
     langue: str | None = None,
     q: str | None = Query(None, max_length=100),
+    retour: Literal["signale", "pas_utile", "utile", "suggere"] | None = None,
 ) -> Response:
     _admin(session)
-    _, lignes = stockage.journal(_filtre(issue, canal, langue, q, 100_000, 0))
+    _, lignes = stockage.journal(_filtre(issue, canal, langue, q, retour, 100_000, 0))
     sortie = io.StringIO()
-    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], delimiter=SEPARATEUR,
-                       lineterminator="\r\n")
+    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, *COLONNES_RETOURS], delimiter=SEPARATEUR, lineterminator="\r\n")
     w.writeheader()
-    w.writerows(lignes)
+    w.writerows({k: _cellule(v) for k, v in ligne.items()} for ligne in lignes)
     return Response(
         encoder_csv(sortie.getvalue()),  # même format Excel que les exports de réponse
         media_type=TYPE_CSV,
