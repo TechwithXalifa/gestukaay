@@ -285,8 +285,6 @@ export const fr = {
   "catalogue.recherche": "Rechercher un indicateur",
   "catalogue.rechercher": "Rechercher",
   "catalogue.domaines": "Filtrer par domaine",
-  "domaines.lien": "{domaine} : {n} indicateurs",
-  "domaines.lienUn": "{domaine} : 1 indicateur",
   "catalogue.tous": "Tous les domaines",
   "catalogue.resultats": "{n} indicateurs",
   "catalogue.aucun": "Aucun indicateur ne correspond à cette recherche.",
