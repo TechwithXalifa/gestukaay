@@ -195,15 +195,17 @@ def test_statut_non_remis_journalise_sans_numero(caplog):
 
 @pytest.fixture
 def transport_retente(monkeypatch):
-    """Remplace le transport réel de `media.relance` : on voit qu'il est demandé avec une relance et qu'il sert."""
-    for nom in ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "ALL_PROXY", "all_proxy"):
+    """Remplace le transport réel de `media.relance` : on voit comment il est créé et lequel sert."""
+    for nom in ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "ALL_PROXY", "all_proxy", "NO_PROXY",
+                "no_proxy"):
         monkeypatch.delenv(nom, raising=False)
     crees, requetes = [], []
 
     class Retente(httpx.MockTransport):
         def __init__(self, **kw):
             crees.append(kw)
-            super().__init__(lambda r: requetes.append(r) or httpx.Response(200, json={"ok": True, "result": {}}))
+            super().__init__(lambda r: requetes.append((kw.get("proxy"), r.url.host))
+                             or httpx.Response(200, json={"ok": True, "result": {}}))
     monkeypatch.setattr(httpx, "HTTPTransport", Retente)
     return crees, requetes
 
@@ -217,11 +219,11 @@ def test_connexion_retentee_hors_tests_telegram_et_meta(monkeypatch, transport_r
     telegram.ClientTelegram().texte("600000001", "Bonjour")
     whatsapp.ClientGraph().texte("221700000001", "Bonjour")
     assert crees == [{"retries": media.RELANCES}] * 2 and media.RELANCES >= 1
-    assert [r.url.host for r in requetes] == ["api.telegram.org", "graph.facebook.com"]
+    assert requetes == [(None, "api.telegram.org"), (None, "graph.facebook.com")]
 
 
 def test_relance_garde_le_proxy_de_l_environnement(monkeypatch, transport_retente):
-    # un `transport` explicite couperait HTTPS_PROXY : le proxy doit rester prioritaire
+    # un `transport` explicite couperait HTTPS_PROXY : le proxy de l'environnement reste prioritaire (sans relance, #244)
     _, requetes = transport_retente
     monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9")  # port fermé : la connexion au proxy échoue
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", JETON_TG)

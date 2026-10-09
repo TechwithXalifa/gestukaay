@@ -63,8 +63,9 @@ def traiter(entrant: Entrant, services: Services, envoyeur: Envoyeur) -> None:
     try:
         envoyeur.accuser(dest, c)
     except Exception as e:  # noqa: BLE001 — l'accusé n'est qu'un confort : il ne doit jamais empêcher la réponse
-        _log.warning("accusé non envoyé, la réponse suit quand même (%s : %s)", type(e).__name__,
-                     str(e).splitlines()[0] if str(e) else "")
+        # le motif précis est journalisé par le canal (WhatsApp : code et motif de Meta, juste avant) ; ici, ni
+        # l'adresse de l'API ni le numéro
+        _log.warning("accusé non envoyé, la réponse suit quand même (%s)", type(e).__name__)
     try:
         if c.type == "texte" and est_salutation(c.texte):  # « /start », « Salam naka leu » : l'accueil seul
             return envoyeur.texte(dest, texte("accueil"))

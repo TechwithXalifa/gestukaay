@@ -19,7 +19,9 @@ class NoteTropGrosse(Exception):
 def relance(transport: httpx.BaseTransport | None) -> dict | None:
     """`mounts` d'un client httpx : hors tests (transport simulé), la connexion qui échoue (ConnectError,
     ConnectTimeout) est retentée ; rien n'est encore parti, donc pas de message en double. Un `mounts` plutôt
-    qu'un `transport`, qui couperait les proxys de l'environnement (HTTPS_PROXY)."""
+    qu'un `transport`, qui couperait les proxys de l'environnement. Limite connue (#244) : derrière un proxy
+    (HTTPS_PROXY), httpx prend son propre montage `https://`, plus précis, et la connexion n'est pas retentée
+    (un montage `https://` à nous ne le remplace pas : vérifié avec httpx 0.28)."""
     return None if transport else {"all://": httpx.HTTPTransport(retries=RELANCES)}
 
 
