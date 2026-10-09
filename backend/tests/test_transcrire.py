@@ -37,3 +37,13 @@ def test_question_dictee_puis_corrigee():
         "transcription_brute": "Combien d'habitant à Tiès",
     })
     assert r.status_code == 200 and r.json()["reponse"]["issue"] == "exacte"
+
+
+def test_transcription_ne_bloque_pas_l_api():
+    """Audit du 09/10 : la transcription attend un service distant avec un client bloquant ; la route doit
+    être une fonction ordinaire (lancée dans un fil à part), jamais « async » : sinon toute l'API se fige."""
+    import inspect
+
+    from gestukaay_backend import app as module_app
+
+    assert not inspect.iscoroutinefunction(module_app.transcrire)
