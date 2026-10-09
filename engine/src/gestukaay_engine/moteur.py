@@ -23,6 +23,7 @@ répond, NonDisponible (503 côté backend). situer() : « Où je me situe » (#
 from __future__ import annotations
 
 import os
+import re
 import sys
 import uuid
 from dataclasses import replace
@@ -56,7 +57,14 @@ from .approchee import (
     proposer_approchee,
     rattachements,
 )
-from .candidats import desagregation_citee, deux_sexes, ratio_non_publie
+from .candidats import (
+    desagregation_citee,
+    deux_sexes,
+    index,
+    mesure_inverse,
+    ratio_non_publie,
+    sans_emploi,
+)
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise, _meme_notion
 from .conversation import sans_politesse
@@ -109,7 +117,7 @@ class MoteurReel:
         # « Bonjour, combien d'habitants à Thiès ? » : la politesse de tête est retirée avant la compréhension
         # (0033, revue de SAN) ; la réponse garde la question telle que posée. Les nombres en lettres deviennent
         # des chiffres, comme pour une note vocale (0027) : « ci ñaari junni ak ñaar-fukk ak ñett » = 2023 (#22)
-        reste = en_chiffres(sans_politesse(req.question))
+        reste = sans_emploi(en_chiffres(sans_politesse(saisie_propre(req.question))))
         rep = self._repondre(req.model_copy(update={"question": reste}) if reste != req.question else req, contexte)
         if reste != req.question:
             rep = rep.model_copy(update={"reponse": rep.reponse.model_copy(update={"question": req.question})})
@@ -128,7 +136,9 @@ class MoteurReel:
             return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
         if c.requete and (dite := categorie_dite(c.requete, question)):
             c = replace(c, requete=dite)  # « véhicules particuliers » : la catégorie est dite, pas de choix
-        if c.requete.indicateur and ratio_non_publie(c.requete.indicateur, question):
+        if c.requete.indicateur and (ratio_non_publie(c.requete.indicateur, question)
+                                     or (mesure_inverse(c.requete.indicateur, question)  # une prévision d'abord
+                                         and not est_projection(self.socle, c.requete, question)[0])):
             # « médecins pour 10 000 habitants » donnait le nombre de médecins (recette du 08/10) : on ne calcule
             # jamais un ratio, l'indicateur brut est proposé en suggestion
             proches = [x for x in c.candidats if x.indicateur.code == c.requete.indicateur] + c.proches
@@ -162,15 +172,19 @@ class MoteurReel:
         """La zone demandée n'est pas publiée par l'indicateur choisi (« riz brisé » : Dakar seulement) mais un
         autre candidat la publie, sur la même notion et dans la même unité (le prix de détail du riz par région) :
         FR-049 et WO-021 finissaient en « donnée absente » (benchmark LLM du 09/10). Jamais une autre mesure : un
-        taux n'est pas remplacé par un effectif."""
+        taux n'est pas remplacé par un effectif.
+        Même chose pour une précision demandée que l'indicateur choisi ne publie pas (#210 : « et chez les
+        jeunes ? » après le chômage trimestriel, sans âge ; le chômage annuel publie les 15-24 ans)."""
         choisi = indicateurs().get(c.requete.indicateur or "")
-        if r.raison != "zone_non_couverte" or not c.requete.zones or c.lieux_inconnus or choisi is None:
+        zone = r.raison == "zone_non_couverte" and bool(c.requete.zones)
+        precision = r.raison == "desagregation_absente" and r.dimension_absente in desagregation_citee(question)
+        if not (zone or precision) or c.lieux_inconnus or choisi is None:
             return None
-        unite = normaliser(choisi.unite_affichee or choisi.unite or "")
-        for cand in c.candidats[:5]:
+        unite = _unite(choisi)
+        voisins = c.candidats[:5] + (index().chercher(choisi.libelle_fr.split(" — ")[0], 8) if precision else [])
+        for cand in voisins:
             ind = cand.indicateur
-            if (ind.code == choisi.code or not unite or normaliser(ind.unite_affichee or ind.unite or "") != unite
-                    or not _meme_notion(choisi, ind)):
+            if ind.code == choisi.code or not unite or _unite(ind) != unite or not _meme_notion(choisi, ind):
                 continue
             req = c.requete.model_copy(update={"indicateur": ind.code})
             if isinstance(r2 := resoudre(self.socle, req, LANGUE, question), Resolution):
@@ -329,6 +343,23 @@ class MoteurReel:
         return {"id": ident, "url": URL_PROVISOIRE.format(id=ident), "question": question,
                 "langue": LANGUE, "transcription": transcription, "requete": requete,
                 "version_socle": self.socle.version, "cree_le": datetime.now(UTC)}
+
+
+def _unite(ind) -> str:
+    """Unité comparable : « pour cent », « pourcentage » et « % » sont la même (#210)."""
+    u = normaliser(ind.unite_affichee or ind.unite or "")
+    return "%" if u in ("%", "pour cent", "pourcentage", "en %") else u
+
+
+_BALISE = re.compile(r"<[^>]{0,200}>")
+_SYMBOLE = re.compile(r"[^\w\s'’?!.,;:%()«»\"/+-]")
+
+
+def saisie_propre(question: str) -> str:
+    """Recette du 09/10 (#204) : « 😀 Combien d'habitants à Thiès ? 🙏 », des espaces en trop ou une balise
+    HTML faisaient refuser une question comprise (« Combien », qui n'ouvrait plus le texte, passait pour un
+    lieu). Balises, emojis et symboles retirés, espaces réduits ; la réponse garde la question telle que posée."""
+    return re.sub(r"\s+", " ", _SYMBOLE.sub(" ", _BALISE.sub(" ", question))).strip()
 
 
 def _sans_precision_inventee(r: Introuvable, requete: RequeteStructuree, question: str) -> RequeteStructuree | None:
