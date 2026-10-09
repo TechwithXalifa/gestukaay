@@ -31,7 +31,7 @@ Hackathon ANSD 20 ans, Challenge Open Data. Équipe : Khalifa Babacar DIOUF (KBD
 | | |
 |---|---|
 | Socle de données | **642 125** valeurs officielles de **376** jeux du portail Open Data du Sénégal (ANSD et 48 producteurs), version 2026.10.1 |
-| Exactitude mesurée | **98,8 %** (83 sur 84 questions à chiffre), **0 chiffre faux**, **100 %** de refus pertinents |
+| Exactitude mesurée (avec Gemini 2.5 Flash) | **98,8 %** (83 sur 84 questions à chiffre), **0 chiffre faux**, **100 %** de refus pertinents |
 | Temps de réponse | **1,4 s** en médiane (texte) |
 | Voix sur GPU NVIDIA T4 | une note de 10 s transcrite en 1,9 s ; une réponse vocale de 10 s calculée en 8,7 s |
 
@@ -94,7 +94,10 @@ cp .env.example .env     # puis remplir (voir DEPLOIEMENT.md, section 4)
   - `uv run python mesure/scripts/benchmark.py --regles` : gratuit et sans réseau ;
   - `--llm` : la mesure de référence, avec la clé Gemini.
 - **Lancer avec Docker** : suivre [DEPLOIEMENT.md](DEPLOIEMENT.md). Sans `.env`, `docker compose up` démarre le
-  faux moteur (réponses d'exemple du contrat), qui sert à développer le site.
+  faux moteur (réponses d'exemple du contrat), qui sert à développer le site. Sur un poste sans GPU NVIDIA, vider
+  `COMPOSE_PROFILES` dans `.env` : la voix en a besoin.
+- **Le socle hors Docker** : `./scripts/recuperer_socle.sh` le met dans `./socle_gestukaay`, le chemin de
+  `.env.example` (`GESTUKAAY_SOCLE_EXTRAIT`).
 - **Lancer la voix hors Docker** : `uv run transcription/serveur.py` et `uv run synthese/serveur.py`, sur une machine
   avec GPU. L'API les joint à `TRANSCRIPTION_URL` et `SYNTHESE_URL`.
 - **Back-office** : un compte nominatif, créé en ligne de commande (décision 0037). Sans compte, le back-office

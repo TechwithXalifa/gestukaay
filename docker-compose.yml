@@ -10,7 +10,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    ports: ["8000:8000"]
+    ports: ["${GESTUKAAY_ECOUTE:-0.0.0.0}:8000:8000"]  # 127.0.0.1 derrière Caddy (DEPLOIEMENT.md §7)
     environment:
       GESTUKAAY_MOTEUR: ${GESTUKAAY_MOTEUR:-fake}
       GESTUKAAY_URL_PUBLIQUE: ${GESTUKAAY_URL_PUBLIQUE:-http://localhost:3000}
@@ -48,7 +48,7 @@ services:
       dockerfile: web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-    ports: ["3000:3000"]
+    ports: ["${GESTUKAAY_ECOUTE:-0.0.0.0}:3000:3000"]
     environment:
       # Rendu serveur de la page réponse : le serveur web joint l'API par le réseau interne
       API_INTERNE: http://api:8000

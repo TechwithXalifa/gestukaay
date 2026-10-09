@@ -33,6 +33,8 @@ chargement d'environ 1 minute par modèle ; une note vocale de 10 s transcrite e
    ```bash
    docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
    ```
+4. `python3` et `curl` sur la machine, pour les scripts `recuperer_socle.sh` et `verifier_deploiement.sh` (déjà
+   présents sur Ubuntu).
 
 ## 3. Comptes et clés
 
@@ -68,6 +70,7 @@ HF_TOKEN=<votre jeton Hugging Face>
 LLM_PRINCIPAL_CLE=<votre clé Gemini>
 LLM_REPLI_CLE=<la même clé Gemini>
 GESTUKAAY_SEL=<une chaîne aléatoire, par exemple la sortie de : openssl rand -hex 16>
+VOIX_CLE=<une autre chaîne aléatoire : openssl rand -hex 16>
 POSTGRES_PASSWORD=<un mot de passe pour la base>
 ```
 
@@ -116,6 +119,25 @@ Questions à essayer sur le site :
 
 Le bouton micro du site pose la question à voix haute, en français ou en wolof.
 
+### Depuis un autre poste (serveur distant)
+
+Les adresses ci-dessus valent **sur le serveur lui-même**. Depuis le poste d'un évaluateur, `http://<IP>:3000`
+ne suffit pas : le site appellerait l'API sur `localhost` (le poste, pas le serveur), et le navigateur refuse le
+micro hors HTTPS. Trois façons, de la plus simple à la plus complète :
+
+1. **Tunnel SSH (recommandé, rien à reconfigurer, micro compris)**. Sur le poste de l'évaluateur :
+
+   ```bash
+   ssh -L 3000:localhost:3000 -L 8000:localhost:8000 <utilisateur>@<serveur>
+   ```
+
+   puis ouvrir http://localhost:3000 sur ce poste. Tout fonctionne comme sur le serveur.
+2. **Par l'adresse IP du serveur**. Dans `.env` : `NEXT_PUBLIC_API_URL=http://<IP>:8000` et
+   `GESTUKAAY_URL_PUBLIQUE=http://<IP>:3000`, puis `docker compose up -d --build` (le site est reconstruit avec
+   cette adresse). Le site, l'API et les liens des réponses marchent ; **le micro, non** (le navigateur l'exige en
+   HTTPS).
+3. **Par un nom de domaine en HTTPS** : section 7. Tout marche, micro, Telegram et WhatsApp compris.
+
 ## 6. Commandes utiles
 
 | Action | Commande |
@@ -126,16 +148,20 @@ Le bouton micro du site pose la question à voix haute, en français ou en wolof
 | Journaux | `docker compose logs -f api` (ou `web`, `transcription`, `synthese`) |
 | Reproduire la mesure, sans réseau | `docker compose exec api python mesure/scripts/benchmark.py --regles` |
 
-## 7. Telegram et WhatsApp (facultatif)
+## 7. Adresse publique en HTTPS : Telegram, WhatsApp, micro à distance (facultatif)
 
-Les deux canaux reçoivent les messages par webhook : il faut une adresse publique en HTTPS.
+Les deux canaux reçoivent les messages par webhook, et le micro du site exige HTTPS : il faut une adresse publique
+en HTTPS.
 
 1. Faire pointer un nom de domaine vers la machine, ports 80 et 443 ouverts.
 2. Dans `.env` :
    - `DOMAINE=<votre domaine>` et `COMPOSE_PROFILES=voix,https` (le service Caddy obtient le certificat) ;
    - `GESTUKAAY_URL_PUBLIQUE=https://<votre domaine>` ;
    - `NEXT_PUBLIC_API_URL=https://<votre domaine>` ;
-   - `GESTUKAAY_PROXY_DE_CONFIANCE=1`.
+   - `GESTUKAAY_PROXY_DE_CONFIANCE=1` ;
+   - `GESTUKAAY_ECOUTE=127.0.0.1` : les ports 3000 et 8000 ne restent ouverts que sur la machine. Sans elle,
+     Docker les publie en passant outre le pare-feu, et le site, l'API et la connexion au back-office restent
+     joignables en HTTP non chiffré à côté de l'adresse HTTPS. Le tunnel SSH continue de marcher.
 3. Telegram : créer un bot avec @BotFather, puis mettre `TELEGRAM_BOT_TOKEN` et `TELEGRAM_SECRET_TOKEN`
    (une chaîne de votre choix) dans `.env`. Brancher ensuite le webhook :
 
