@@ -174,8 +174,8 @@ test("barre latérale mobile : ouverture, navigation, fermeture (M-Menu)", async
 test("méthode : le taux de bonnes réponses aux tests est publié, et lui seul (décision 0036)", async ({ page }) => {
   await page.goto("/methode");
   const mesure = page.getByRole("region", { name: "Résultat des tests" });
-  await expect(mesure).toContainText("89,2 %");
-  await expect(mesure).toContainText("74 questions sur 83");
+  await expect(mesure).toContainText("98,8 %");
+  await expect(mesure).toContainText("83 questions sur 84");
   // Choix de SAN du 08/10 : ni temps de réponse ni liste d'erreurs sur la page
   await expect(page.getByText("temps de réponse", { exact: false })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Là où Gëstukaay se trompe encore" })).toHaveCount(0);
