@@ -71,3 +71,15 @@ def test_journal_jamais_en_cache(connecter):
     connecte = TestClient(module_app.app)
     connecter(connecte)
     assert connecte.get("/admin/journal").headers["cache-control"] == "no-store"
+
+
+
+def test_jeton_de_verification_masque_dans_le_journal():
+    """09/10 : le journal d'accès d'uvicorn écrivait hub.verify_token en clair."""
+    import logging
+
+    r = logging.LogRecord("uvicorn.access", logging.INFO, "", 0, '%s - "%s %s HTTP/%s" %d', (
+        "1.2.3.4:0", "GET", "/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token=secret123&hub_verify_token=secret123",
+        "1.1", 200), None)
+    module_app.MasquerJetons().filter(r)
+    assert "secret123" not in r.getMessage() and "verify_token=***" in r.getMessage()
