@@ -1,17 +1,7 @@
 """Protection de l'API : limite de requêtes par adresse et en-têtes de sécurité.
 
-Limites par minute, par groupe de routes (fenêtre glissante, en mémoire : suffisant pour une seule
-instance). Au-delà : 429 au format Problem, avec Retry-After.
-
-Qui est compté (audit du 09/10) : une salle entière derrière le même Wi-Fi, ou tout le trafic derrière un
-proxy, partage une seule adresse IP ; compter par adresse revenait à donner 30 questions par minute à tout
-le jury. Le site envoie donc, avec chaque POST, un identifiant d'onglet tiré au hasard (en-tête
-X-Gestukaay-Client, le même que l'identifiant de conversation) :
-  - avec cet en-tête : la limite s'applique à l'onglet, et l'adresse a un plafond de PLAFOND_IP fois la
-    limite (un robot qui change d'identifiant à chaque requête reste borné) ;
-  - sans lui (curl, robots) : la limite s'applique à l'adresse, comme avant.
-Les lectures (catalogue, fiches, séries, exports) restent comptées par adresse, avec des limites larges :
-elles ne coûtent rien et n'ont pas besoin de l'en-tête (qui ajouterait une requête CORS préalable).
+Limites par minute et par adresse IP, par groupe de routes (fenêtre glissante, en mémoire :
+suffisant pour une seule instance). Au-delà : 429 au format Problem, avec Retry-After.
 
     GESTUKAAY_LIMITES=off              coupe les limites (tests de bout en bout)
     GESTUKAAY_PROXY_DE_CONFIANCE=1     derrière un proxy (préproduction) : l'adresse est le premier
@@ -21,29 +11,27 @@ elles ne coûtent rien et n'ont pas besoin de l'en-tête (qui ajouterait une req
 from __future__ import annotations
 
 import os
-import re
 import threading
 import time
 from collections import defaultdict, deque
 
 from starlette.requests import Request
 
-# Groupe -> requêtes par minute. Assez large pour un humain pressé, trop étroit pour un robot.
+# Groupe -> requêtes par minute ET PAR ADRESSE. Une salle entière derrière le même Wi-Fi (jury, démo) ou tout
+# le trafic derrière un proxy partage une seule adresse : les limites sont donc larges, assez pour une salle de
+# 30 personnes qui testent en même temps, et ne bornent qu'un robot qui boucle (audit du 09/10). Le compte
+# du back-office a en plus son propre blocage après 5 essais manqués (comptes.py).
 LIMITES: dict[str, int] = {
-    "question": 30,  # /v1/ask, /v1/ask/{id}/confirm
-    "voix": 10,  # /v1/transcrire : le plus coûteux
-    "situer": 30,
-    "retour": 20,
-    "export": 120,  # lectures par adresse : une salle qui exporte en même temps (audit du 09/10)
-    "admin": 20,  # protège aussi le jeton contre les essais à la chaîne
-    "ecoute": 120,  # /v1/answers/{id}/audio.ogg : la voix de la réponse, calculée une fois puis gardée (0040)
-    "explorer": 300,  # catalogue, fiches et séries : lecture seule, sans LLM, par adresse (une salle entière)
+    "question": 300,  # /v1/ask, /v1/ask/{id}/confirm (environ 0,0006 $ la question avec le LLM)
+    "voix": 60,  # /v1/transcrire : le plus coûteux (carte graphique, ADIA en repli)
+    "situer": 300,
+    "retour": 200,
+    "export": 300,
+    "admin": 120,
+    "ecoute": 300,  # /v1/answers/{id}/audio.ogg : la voix de la réponse, calculée une fois puis gardée (0040)
+    "explorer": 600,  # catalogue, fiches et séries : lecture seule, sans LLM
 }
 FENETRE_S = 60.0
-# Avec l'identifiant d'onglet : plafond par adresse = PLAFOND_IP × la limite (GESTUKAAY_PLAFOND_IP pour l'ajuster)
-PLAFOND_IP = 10
-ENTETE_CLIENT = "x-gestukaay-client"
-_CLIENT = re.compile(r"[A-Za-z0-9-]{8,64}")
 
 
 def groupe(chemin: str) -> str | None:
@@ -79,40 +67,20 @@ class Limiteur:
         self._appels: dict[tuple[str, str], deque[float]] = defaultdict(deque)
         self._verrou = threading.Lock()
 
-    def attente(self, ip: str, grp: str, maintenant: float | None = None, client: str | None = None) -> float:
-        """0 si la requête passe (et elle est comptée), sinon les secondes à attendre.
-        client : identifiant d'onglet ; la limite vaut alors pour lui, et l'adresse a un plafond plus large."""
+    def attente(self, ip: str, grp: str, maintenant: float | None = None) -> float:
+        """0 si la requête passe (et elle est comptée), sinon les secondes à attendre."""
         t = time.monotonic() if maintenant is None else maintenant
-        compteurs = [((ip, grp), LIMITES[grp])] if client is None else [
-            ((f"{ip}|{client}", grp), LIMITES[grp]), ((ip, f"{grp}:plafond"), LIMITES[grp] * plafond_ip())]
         with self._verrou:
-            files = []
-            for cle, limite in compteurs:
-                appels = self._appels[cle]
-                while appels and appels[0] <= t - FENETRE_S:
-                    appels.popleft()
-                if len(appels) >= limite:
-                    return appels[0] + FENETRE_S - t
-                files.append(appels)
-            for appels in files:  # comptée seulement si elle passe partout
-                appels.append(t)
+            appels = self._appels[(ip, grp)]
+            while appels and appels[0] <= t - FENETRE_S:
+                appels.popleft()
+            if len(appels) >= LIMITES[grp]:
+                return appels[0] + FENETRE_S - t
+            appels.append(t)
             if len(self._appels) > 50_000:  # garde-fou mémoire : on oublie les adresses inactives
                 for cle in [c for c, a in self._appels.items() if not a or a[-1] <= t - FENETRE_S]:
                     del self._appels[cle]
             return 0.0
-
-
-def client(requete: Request) -> str | None:
-    """L'identifiant d'onglet envoyé par le site, s'il est bien formé (sinon : compté par adresse)."""
-    valeur = requete.headers.get(ENTETE_CLIENT, "")
-    return valeur if _CLIENT.fullmatch(valeur) else None
-
-
-def plafond_ip() -> int:
-    try:
-        return max(1, int(os.environ.get("GESTUKAAY_PLAFOND_IP", PLAFOND_IP)))
-    except ValueError:
-        return PLAFOND_IP
 
 
 def limites_actives() -> bool:

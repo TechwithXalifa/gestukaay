@@ -27,12 +27,12 @@ export class ErreurApi extends Error {
 async function requete<T>(chemin: string, init?: RequestInit): Promise<T> {
   let r: Response;
   // Lectures sans en-tête : une requête simple, sans requête CORS préalable (un aller-retour de moins en 3G,
-  // audit du 09/10). Envois : JSON, et l'identifiant d'onglet qui sert à la limite de requêtes (securite.py)
+  // audit du 09/10). Seuls les envois portent du JSON.
   const envoi = (init?.method ?? "GET") !== "GET";
   try {
     r = await fetch(`${BASE}${chemin}`, {
       ...init,
-      headers: envoi ? { "Content-Type": "application/json", ...enteteClient(), ...init?.headers } : init?.headers,
+      headers: envoi ? { "Content-Type": "application/json", ...init?.headers } : init?.headers,
     });
   } catch {
     const horsLigne = typeof navigator !== "undefined" && !navigator.onLine;
@@ -67,12 +67,6 @@ export function conversationId(): string | undefined {
   }
 }
 
-/** Identifiant d'onglet pour la limite de requêtes : une salle sur le même Wi-Fi ne partage plus un quota. */
-function enteteClient(): Record<string, string> {
-  const id = conversationId();
-  return id ? { "X-Gestukaay-Client": id } : {};
-}
-
 export const demander = (req: AskRequest) =>
   requete<AskResponse>("/v1/ask", {
     method: "POST",
@@ -101,7 +95,7 @@ export async function transcrire(audio: Blob, langue: "fr" | "wo" | "auto" = "au
   corps.append("langue", langue);
   let r: Response;
   try {
-    r = await fetch(`${BASE}/v1/transcrire`, { method: "POST", body: corps, headers: enteteClient() });
+    r = await fetch(`${BASE}/v1/transcrire`, { method: "POST", body: corps });
   } catch {
     throw new ErreurApi("Le service ne répond pas.", 0, typeof navigator !== "undefined" && !navigator.onLine);
   }

@@ -56,7 +56,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINES,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "X-Gestukaay-Client"],  # identifiant d'onglet (securite.py)
+    allow_headers=["Content-Type"],
     allow_credentials=True,  # cookie de session du back-office (décision 0037)
 )
 
@@ -75,7 +75,7 @@ async def _proteger(requete: Request, suite):
         probleme = Problem(title="Origine refusée", status=403)
         return JSONResponse(probleme.model_dump(), status_code=403, media_type="application/problem+json")
     if grp and requete.method != "OPTIONS" and securite.limites_actives():
-        attente = limiteur.attente(securite.adresse(requete), grp, client=securite.client(requete))
+        attente = limiteur.attente(securite.adresse(requete), grp)
         if attente:
             probleme = Problem(title="Trop de requêtes", status=429,
                                detail="Patientez un instant avant de réessayer.")
