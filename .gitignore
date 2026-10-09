@@ -15,3 +15,6 @@ socle/brut/
 .claude/
 *.tsbuildinfo
 .base-e2e.db
+
+# Socle officiel téléchargé par scripts/recuperer_socle.sh (release GitHub)
+socle_gestukaay/

@@ -1,0 +1,12 @@
+# Adresse publique en HTTPS (certificat Let's Encrypt automatique) : l'API sous /v1, /admin, /webhooks,
+# /health et /docs, le site pour tout le reste. Même origine : pas de CORS à régler.
+{$DOMAINE} {
+	encode gzip
+	@api path /v1/* /admin/* /webhooks/* /health /docs /docs/* /openapi.json
+	handle @api {
+		reverse_proxy api:8000
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}

@@ -20,6 +20,11 @@ Hackathon ANSD 20 ans — Challenge Open Data. Équipe : Khalifa Babacar DIOUF (
 
 ## Démarrage
 
+**Déployer toute la solution** (site, API, base, voix en wolof sur GPU NVIDIA) depuis zéro : voir
+[DEPLOIEMENT.md](DEPLOIEMENT.md).
+
+Pour développer :
+
 ```bash
 brew install uv          # gestionnaire Python (installe aussi Python 3.12)
 uv sync                  # dépendances
