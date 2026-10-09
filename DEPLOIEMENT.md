@@ -53,13 +53,18 @@ cd gestukaay
 cp .env.example .env
 ```
 
-Dans `.env`, remplir trois lignes :
+Dans `.env`, remplir ces lignes :
 
 ```
 HF_TOKEN=<votre jeton Hugging Face>
 LLM_PRINCIPAL_CLE=<votre clé Gemini>
 LLM_REPLI_CLE=<la même clé Gemini>
+GESTUKAAY_SEL=<une chaîne aléatoire, par exemple la sortie de : openssl rand -hex 16>
+POSTGRES_PASSWORD=<un mot de passe pour la base>
 ```
+
+`GESTUKAAY_SEL` sert à pseudonymiser les numéros de téléphone dans le journal : gardé hors de la base, il
+empêche de les retrouver à partir d'une copie de la base.
 
 Le reste a déjà ses valeurs : moteur réel (`GESTUKAAY_MOTEUR=reel`), voix sur le GPU (`COMPOSE_PROFILES=voix`).
 
