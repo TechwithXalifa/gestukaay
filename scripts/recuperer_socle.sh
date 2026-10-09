@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
-# Télécharge le socle officiel (release GitHub « socle-2026.10.0 », 15 Mo), vérifie son empreinte et celles de
+# Télécharge le socle officiel (release GitHub « socle-2026.10.1 », 15 Mo), vérifie son empreinte et celles de
 # son MANIFEST, puis l'extrait dans socle_gestukaay/ (chemin lu par docker-compose.yml). Relançable.
 #   ./scripts/recuperer_socle.sh
 set -eu
-VERSION="2026.10.0"
-SHA256="db4ac1118d00d62c98e11bb7e5c049d8be3f0da2a974d31a759bd247cb29cde2"
+VERSION="2026.10.1"
+SHA256="cc4e00fc5f7a4250b20d07ad96462ce3cb022b1c8f53c4d28a34aad5da3663c2"
 DEPOT="TechwithXalifa/gestukaay"
 ARCHIVE="socle-$VERSION.zip"
 CIBLE="socle_gestukaay"
