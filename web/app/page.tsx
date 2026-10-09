@@ -155,7 +155,7 @@ export default function Accueil() {
                   <div>
                     <h2 id="titre-domaines" className="sous-titre">{t("domaines.accueil")}</h2>
                   </div>
-                  <Link href="/domaines" className="lien-situer">
+                  <Link href="/indicateurs" className="lien-situer">
                     {t("domaines.tous")} <Fleche taille={16} />
                   </Link>
                 </div>

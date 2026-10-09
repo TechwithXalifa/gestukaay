@@ -12,7 +12,7 @@ export default function PageIntrouvable() {
       <p className="explication">{t("etat.pageIntrouvableAide")}</p>
       <div className="actions">
         <Link href="/" className="primaire">{t("etat.accueil")}</Link>
-        <Link href="/domaines" className="secondaire">{t("etat.domaines")}</Link>
+        <Link href="/indicateurs" className="secondaire">{t("etat.domaines")}</Link>
       </div>
     </PageTexte>
   );

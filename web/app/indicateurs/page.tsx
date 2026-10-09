@@ -43,6 +43,20 @@ function Catalogue() {
 
   useEffect(() => setSaisie(q), [q]);
 
+  // Nombre d'indicateurs de chaque domaine, pour les filtres rapides (l'ancienne page Domaines, fusionnée
+  // ici) : demandé à l'API, il suit le socle servi ; sans réponse, les filtres restent, sans nombre.
+  const [nombres, setNombres] = useState<Record<string, number>>({});
+  useEffect(() => {
+    let actif = true;
+    Promise.allSettled(TOUS_LES_DOMAINES.map((d) => catalogue({ domaine: d, limite: 1 }).then((r) => [d, r.total] as const)))
+      .then((res) => {
+        if (actif) setNombres(Object.fromEntries(res.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))));
+      });
+    return () => {
+      actif = false;
+    };
+  }, []);
+
   useEffect(() => {
     let annule = false;
     setEnCours(true);
@@ -106,14 +120,27 @@ function Catalogue() {
             maxLength={100}
           />
           <button type="submit" className="primaire">{t("catalogue.rechercher")}</button>
-          <label className="catalogue-domaine">
-            <span>{t("catalogue.domaine")}</span>
-            <select value={domaine} onChange={(e) => filtrer({ domaine: e.target.value })}>
-              <option value="">{t("catalogue.tous")}</option>
-              {TOUS_LES_DOMAINES.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </label>
         </form>
+
+        <div role="group" aria-label={t("catalogue.domaines")} className="filtres-domaines">
+          <button type="button" aria-pressed={!domaine} onClick={() => filtrer({ domaine: "" })}>{t("catalogue.tous")}</button>
+          {TOUS_LES_DOMAINES.map((d) => {
+            const n = nombres[d];
+            const choisi = domaine === d;
+            return (
+              <button
+                key={d}
+                type="button"
+                aria-pressed={choisi}
+                aria-label={!n ? d : n === 1 ? t("domaines.lienUn", { domaine: d }) : t("domaines.lien", { domaine: d, n: nombre(n) })}
+                onClick={() => filtrer({ domaine: choisi ? "" : d })}
+              >
+                {d}
+                {n ? <span className="filtres-domaines-nombre" aria-hidden="true">{nombre(n)}</span> : null}
+              </button>
+            );
+          })}
+        </div>
 
         {erreur ? (
           <Erreur erreur={erreur} onReessayer={() => filtrer({})} />
