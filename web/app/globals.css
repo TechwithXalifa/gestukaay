@@ -469,7 +469,12 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .onglets-donnees a[aria-current="page"] { background: var(--carte); color: var(--baobab); box-shadow: 0 1px 2px rgba(28, 20, 13, .12); }
 .site main.domaines-page { max-width: 880px; }
 .liste-domaines { margin: 16px 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
-.liste-domaines li { padding: 8px 16px; border: 1px solid var(--ligne); border-radius: 999px; background: var(--carte); font-weight: 500; }
+/* Chaque domaine ouvre le catalogue filtré ; le nombre d'indicateurs suit le nom */
+.liste-domaines a { display: inline-flex; align-items: center; gap: 8px; min-height: var(--controle-tactile); padding: 0 8px 0 16px; border: 1px solid var(--ligne); border-radius: 999px;
+  background: var(--carte); color: var(--encre); font-weight: 500; text-decoration: none; transition: border-color var(--duree-moyenne), transform var(--duree-rapide) var(--ease-sortie); }
+.liste-domaines a:not(:has(.liste-domaines-nombre)) { padding-right: 16px; }
+.liste-domaines a:hover { border-color: var(--baobab); color: var(--baobab); transform: translateY(-1px); }
+.liste-domaines-nombre { min-width: 28px; padding: 2px 8px; border-radius: 999px; background: var(--baobab-50); color: var(--baobab); font: 600 12px/18px var(--font-mono); text-align: center; }
 .domaines-page > .primaire { align-self: flex-start; }
 .site main.catalogue, .site main.fiche, .site main.explorer { max-width: 1200px; }
 .catalogue-filtres { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }

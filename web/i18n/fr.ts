@@ -189,7 +189,9 @@ export const fr = {
   "domaines.accueil": "Parcourir par domaine",
   "domaines.tous": "Tous les domaines",
   "domaines.titre": "{n} domaines de données officielles",
-  "domaines.intro": "Posez votre question sur l'un de ces sujets, en français ou en wolof.",
+  "domaines.intro": "Choisissez un domaine pour voir ses indicateurs, ou posez votre question en français ou en wolof.",
+  "domaines.lien": "{domaine} : {n} indicateurs",
+  "domaines.lienUn": "{domaine} : 1 indicateur",
 
   // Méthode et transparence (maquette Methode)
   "methode.titre": "Comment Gëstukaay trouve vos chiffres",
