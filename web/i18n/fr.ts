@@ -46,7 +46,6 @@ export const fr = {
   "reponse.projection": "Projection",
   "reponse.estimation": "Estimation",
   "reponse.base": "Ce n'est pas une valeur observée. Base : {base}.",
-  "reponse.sansEstimation": "Gëstukaay ne remplace jamais un chiffre manquant par une estimation. Aucune valeur n'est affichée avant votre choix.",
   "reponse.horsligne": "Hors ligne · réponse enregistrée sur cet appareil.",
   "reponse.sansUnite": "unité non précisée par la source",
   "reponse.classement": "Le classement complet des {n} zones est dans le graphique ci-dessous.",

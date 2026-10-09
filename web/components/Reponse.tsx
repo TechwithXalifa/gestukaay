@@ -42,7 +42,6 @@ export function Reponse({
               </button>
             ))}
           </div>
-          <p className="note">{t("reponse.sansEstimation")}</p>
         </article>
       );
     case "aucune":
