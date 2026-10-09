@@ -133,6 +133,13 @@ test("pied de page : Méthode, À propos et Confidentialité", async ({ page }) 
   }
 });
 
+test("/admin mène à la connexion du back-office", async ({ page }) => {
+  await page.goto("/admin");
+  await page.waitForURL(/\/admin\/tableau$/);
+  await expect(page.getByLabel("Identifiant")).toBeVisible();
+  await expect(page.getByLabel("Mot de passe")).toBeVisible();
+});
+
 test("tableau de bord : indicateurs, issues et questions non résolues (US-28)", async ({ page }) => {
   await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
   await page.goto("/admin/tableau");
