@@ -125,3 +125,15 @@ def test_sel_garde_d_un_demarrage_a_l_autre(tmp_path, monkeypatch):
     assert Stockage(url).hacher("whatsapp:+221770000000") == Stockage(url).hacher("whatsapp:+221770000000")
     monkeypatch.setenv("GESTUKAAY_SEL", "sel-de-preprod")
     assert Stockage(url).hacher("x") == Stockage("").hacher("x")  # la variable prime sur la base
+
+
+def test_sel_de_la_base_signale(tmp_path, monkeypatch, caplog):
+    """Revue de KBD sur #200 : un sel gardé dans la base est signalé au démarrage ; pas en mémoire ni avec la variable."""
+    monkeypatch.delenv("GESTUKAAY_SEL", raising=False)
+    Stockage(f"sqlite:///{tmp_path / 'g.db'}")
+    assert "GESTUKAAY_SEL absent" in caplog.text
+    caplog.clear()
+    Stockage("")
+    monkeypatch.setenv("GESTUKAAY_SEL", "sel-de-preprod")
+    Stockage(f"sqlite:///{tmp_path / 'g.db'}")
+    assert "GESTUKAAY_SEL absent" not in caplog.text

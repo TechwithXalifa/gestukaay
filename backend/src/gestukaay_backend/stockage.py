@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import secrets
 import sqlite3
@@ -150,6 +151,12 @@ class Stockage:
         # une fois et gardé dans la base. Avant, un sel neuf à chaque démarrage : « et pour Kaolack ? » et le
         # « 1 » de WhatsApp perdaient la conversation après un redémarrage.
         self._sel = os.environ.get("GESTUKAAY_SEL") or self._sel_de_la_base()
+        if not os.environ.get("GESTUKAAY_SEL") and url:
+            # Revue de KBD sur #200 : sel et hachages dans la même base, une copie de la base suffit à
+            # retrouver les numéros par force brute. Bon pour le développement, pas pour la production.
+            logging.getLogger("gestukaay.stockage").warning(
+                "GESTUKAAY_SEL absent : le sel des conversations est gardé dans la base. "
+                "En production, le donner hors de la base (DEPLOIEMENT.md).")
 
     @contextmanager
     def _curseur(self) -> Iterator:
