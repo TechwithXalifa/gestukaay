@@ -60,7 +60,10 @@ Raison = Literal["indicateur_inconnu", "zone_non_couverte", "periode_absente", "
 ANNEE_EN_COURS = 2026  # au-delà, une valeur publiée est une prévision (refus, #116)
 
 _TOTAUX = {"total", "totale", "totaux", "ensemble", "global", "globale", "tous", "toutes", "all",
-           "les deux sexes", "deux sexes", "ensemble du pays", "national"}
+           "les deux sexes", "deux sexes", "ensemble du pays", "national",
+           # le pays comme modalité d'une dimension (« zones » : Rural, Urbain, Sénégal), dans une vingtaine de jeux :
+           # c'est leur total (recette du 09/10, #203 : « Sénégal (Région de Thiès) » proposé comme un choix)
+           "senegal", "total senegal"}
 
 # Vocabulaire fixe de la compréhension (décision 0010) -> dimension du jeu, puis modalité
 _CLES = {

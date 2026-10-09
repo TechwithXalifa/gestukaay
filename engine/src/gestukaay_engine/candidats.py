@@ -395,9 +395,30 @@ def mesure_inverse(code: str, question: str) -> bool:
 _SANS_EMPLOI = re.compile(r"\bsans (emploi|travail|boulot|job)\b", re.IGNORECASE)
 
 
+# Recette de SAN du 09/10 : des données publiées jamais trouvées. Des tournures exactes, ramenées aux mots du
+# libellé publié (des synonymes larges faisaient servir des voisins : « dépensent les ménages » -> le savon de
+# ménage). Rien d'autre n'est touché.
+_TOURNURES = [
+    # #201 : « le nombre de femmes à Dakar » -> population (RGPH-5), sexe féminin
+    (re.compile(r"\b(?:le )?(?:nombre d(?:e |')|combien d(?:e |'))(femmes|hommes)\b(?=\s+(?:à|a|au|aux|en|dans|du|de la)\s+"
+                r"[A-ZÉÈÎa-zéèîñ' -]+(?:\s+en\s+\d{4})?\s*[?.!]?\s*$)", re.IGNORECASE),
+     lambda m: f"la population des {m[1].lower()}"),
+    # #209 : la dépense moyenne publiée est la consommation moyenne par tête (EHCVM, jcvcajc)
+    (re.compile(r"\b(?:combien\s+)?d[ée]pens(?:ent|e|es)\s+(?:moyennes?\s+)?(?:les\s+|des\s+)?m[ée]nages(?:\s+en\s+moyenne)?\b",
+                re.IGNORECASE), lambda m: "consommation moyenne par tête"),
+    # #215 : « enfants scolarisés » = effectifs d'élèves scolarisés (recensement scolaire, MEN)
+    (re.compile(r"\b(?:le\s+)?nombre\s+d['’]\s*enfants\s+scolaris[ée]s\b|\benfants\s+scolaris[ée]s\b", re.IGNORECASE),
+     lambda m: "effectifs d'élèves scolarisés"),
+]
+
+
 def sans_emploi(question: str) -> str:
-    """#202 : « sans emploi » rapprochait du taux d'EMPLOI (l'inverse). C'est le chômage."""
-    return _SANS_EMPLOI.sub("au chômage", question)
+    """#202 : « sans emploi » rapprochait du taux d'EMPLOI (l'inverse). C'est le chômage. Puis les tournures
+    exactes de la recette du 09/10 (_TOURNURES)."""
+    q = _SANS_EMPLOI.sub("au chômage", question)
+    for motif, par in _TOURNURES:
+        q = motif.sub(par, q)
+    return q
 
 
 def deux_sexes(question: str) -> bool:

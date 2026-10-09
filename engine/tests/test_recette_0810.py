@@ -238,3 +238,28 @@ def test_precision_demandee_servie_par_la_meme_notion(monkeypatch):  # #210
     monkeypatch.setattr(moteur.comprehension, "comprendre", lambda q, ctx=None: Comprise(choisi, cands, "regles"))
     r = moteur.repondre(AskRequest(question="Et chez les jeunes ?")).reponse
     assert r.issue == "exacte" and r.resultats[0].valeur == 25.7
+
+
+def test_tournures_exactes_de_la_recette():  # #201, #209, #215
+    from gestukaay_engine.candidats import sans_emploi
+
+    assert sans_emploi("Je veux connaître le nombre de femmes à Dakar.") == "Je veux connaître la population des femmes à Dakar."
+    assert sans_emploi("Combien de femmes à Dakar sont au chômage ?") == "Combien de femmes à Dakar sont au chômage ?"
+    assert sans_emploi("Combien dépensent les ménages en moyenne ?") == "consommation moyenne par tête ?"
+    assert sans_emploi("le nombre d'enfants scolarisés à Dakar") == "effectifs d'élèves scolarisés à Dakar"
+
+
+def test_le_pays_total_d_une_dimension():  # #203
+    from gestukaay_engine.resolution import est_total
+
+    assert est_total("Sénégal") and est_total("SENEGAL") and est_total("Total Sénégal")
+    assert not est_total("Sénégalaise") and not est_total("Sénégal oriental (Tambacounda, Kédougou)")
+
+
+def test_donnees_d_un_domaine():  # #216
+    from gestukaay_engine.conversation import domaine_demande
+
+    assert domaine_demande("Quelles données as-tu par rapport à l'agriculture ?") == "Agriculture"
+    assert domaine_demande("Quels chiffres avez-vous sur la santé au Sénégal ?") == "Santé"
+    assert domaine_demande("Quelles sont les données sur le chômage des jeunes à Dakar en 2025 ?") is None
+    assert domaine_demande("Combien d'habitants à Thiès ?") is None
