@@ -142,6 +142,10 @@ Les deux canaux reçoivent les messages par webhook : il faut une adresse publiq
   vérifier `HF_TOKEN` (section 3).
 - **Les services de voix restent « starting »** plusieurs minutes : premier chargement des modèles sur le GPU, ou
   téléchargement si l'étape 4 n'a pas été faite (`docker compose logs transcription`).
+- **Quota de la clé Gemini** : une clé gratuite accepte quelques requêtes par minute seulement. Si une salle
+  pose beaucoup de questions en même temps, le moteur passe à Flash-Lite, puis à ses règles locales, sans
+  erreur pour l'usager. Pour une démonstration devant beaucoup de monde, une clé avec facturation activée évite
+  cette baisse.
 - **Le LLM ne répond pas toujours exactement pareil** : une même question peut recevoir la valeur, ou une réponse
   approchée à confirmer. Aucun chiffre faux ne passe : chaque valeur affichée est contrôlée dans le socle.
 - **Interface en wolof** : les parcours principaux sont traduits ; les autres pages
