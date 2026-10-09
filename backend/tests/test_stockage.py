@@ -148,5 +148,8 @@ def test_base_en_memoire_signalee(tmp_path, caplog):
     Stockage("sqlite:///:memory:")
     assert "GESTUKAAY_BASE vide" in caplog.text
     caplog.clear()
+    Stockage("sqlite://g.db")  # deux barres : non reconnue, en mémoire aussi, et dit comme tel
+    assert "GESTUKAAY_BASE non reconnue" in caplog.text and "g.db" not in caplog.text
+    caplog.clear()
     Stockage(f"sqlite:///{tmp_path / 'g.db'}")
-    assert "GESTUKAAY_BASE vide" not in caplog.text
+    assert "GESTUKAAY_BASE" not in caplog.text
