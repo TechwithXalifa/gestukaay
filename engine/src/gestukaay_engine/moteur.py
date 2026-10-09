@@ -67,7 +67,7 @@ from .candidats import (
 )
 from .compagnons import compagnon
 from .comprehension import Comprehension, Comprise, _meme_notion
-from .conversation import sans_politesse
+from .conversation import domaine_demande, sans_politesse
 from .conversation import texte as conversation_texte
 from .gabarits import citation, explication, note_perimetre
 from .interface import NoteVocale
@@ -126,6 +126,8 @@ class MoteurReel:
     def _repondre(self, req: AskRequest, contexte: list[RequeteStructuree | None] | None = None) -> AskResponse:
         question = req.question
         transcription = question if req.source == "voix" else None
+        if dom := domaine_demande(question):  # « quelles données sur l'agriculture ? » (#216) : lecture du référentiel
+            return self._domaine(dom, question, transcription, req.langue if req.langue in ("fr", "wo") else detecter(question))
         c = self.comprehension.comprendre(question, contexte)
         if c.requete and (propre := self._precisions_publiees(c.requete, question)) is not c.requete:
             c = replace(c, requete=propre)  # B en amont : vaut aussi pour l'approchée (« ville de Thiès »)
@@ -326,6 +328,24 @@ class MoteurReel:
         base = self._base(ident, question, c.requete if sugg else None, transcription) | {"langue": langue}
         return AskResponse(reponse=ReponseAucune(**base, motif="conversation", message=message,
                                                  suggestions=[sugg] if sugg else []))
+
+    def _domaine(self, domaine: str, question: str, transcription: str | None, langue: str) -> AskResponse:
+        """Jusqu'à 3 chiffres publiés du domaine, en questions à poser : vérifiés, P1 d'abord, un par jeu, résolus
+        dans le socle comme toute suggestion (zéro chiffre inventé). Aucune valeur dans le message."""
+        retenus, jeux = [], set()
+        candidats = sorted((i for i in indicateurs().values() if i.domaine == domaine and i.verification == "verifie"),
+                           key=lambda i: (i.priorite, -i.nb_valeurs))
+        for ind in candidats:
+            if ind.dataset_id in jeux:
+                continue
+            if sugg := (verifier_suggestion(self.socle, ind.code, "SN") or verifier_suggestion(self.socle, ind.code, "SN-DK")):
+                retenus.append(sugg)
+                jeux.add(ind.dataset_id)
+            if len(retenus) == 3:  # le contrat en permet 3
+                break
+        message = conversation_texte("domaine" if retenus else "aide", langue, domaine=domaine)
+        base = self._base(_ident(), question, None, transcription) | {"langue": langue}
+        return AskResponse(reponse=ReponseAucune(**base, motif="conversation", message=message, suggestions=retenus))
 
     def _non_disponible(self, requete: RequeteStructuree | None, question: str,
                         transcription: str | None = None) -> AskResponse:
