@@ -24,6 +24,7 @@ from typing import Literal
 from urllib.parse import urlencode
 
 from fastapi import BackgroundTasks, Cookie, FastAPI, Form, Header, Query, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from gestukaay_contracts.models import (
@@ -74,7 +75,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINES,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Gestukaay-Client"],  # identifiant d'onglet (securite.py)
     allow_credentials=True,  # cookie de session du back-office (décision 0037)
 )
 
@@ -93,7 +94,7 @@ async def _proteger(requete: Request, suite):
         probleme = Problem(title="Origine refusée", status=403)
         return JSONResponse(probleme.model_dump(), status_code=403, media_type="application/problem+json")
     if grp and requete.method != "OPTIONS" and securite.limites_actives():
-        attente = limiteur.attente(securite.adresse(requete), grp)
+        attente = limiteur.attente(securite.adresse(requete), grp, client=securite.client(requete))
         if attente:
             probleme = Problem(title="Trop de requêtes", status=429,
                                detail="Patientez un instant avant de réessayer.")
@@ -198,17 +199,20 @@ FORMATS_AUDIO = {"audio/webm": "webm", "audio/ogg": "ogg"}
 
 
 @app.post("/v1/transcrire", response_model=TranscriptionResponse)
-async def transcrire(
+def transcrire(
     fichier: UploadFile,
     langue: Literal["fr", "wo", "auto"] = Form("auto"),
 ) -> TranscriptionResponse:
     """Voix sur le web (décision 0004 §1) : audio -> texte, que l'utilisateur
     corrige avant d'envoyer /v1/ask. L'audio n'est jamais écrit sur disque ni
-    conservé : il ne vit qu'en mémoire le temps de la transcription (10.7)."""
+    conservé : il ne vit qu'en mémoire le temps de la transcription (10.7).
+    Fonction ordinaire, pas « async » (audit du 09/10) : la transcription attend un service distant
+    jusqu'à 17 s (M-Kiriku puis ADIA) avec un client bloquant ; en « async », elle figeait toute l'API
+    pendant ce temps. Ici FastAPI la lance dans un fil à part, les autres requêtes continuent."""
     type_mime = (fichier.content_type or "").split(";")[0].strip()
     if type_mime not in FORMATS_AUDIO:
         raise ErreurApi(415, "Format audio non pris en charge", "WebM ou OGG (Opus) attendu.")
-    audio = await fichier.read(AUDIO_MAX_OCTETS + 1)
+    audio = fichier.file.read(AUDIO_MAX_OCTETS + 1)
     if len(audio) > AUDIO_MAX_OCTETS:
         raise ErreurApi(413, "Enregistrement trop long", "60 secondes au maximum.")
     if not audio:
@@ -645,7 +649,7 @@ async def whatsapp(requete: Request, taches: BackgroundTasks,
     attendue = "sha256=" + hmac.new(secret.encode(), corps, hashlib.sha256).hexdigest()
     if not signature or not secrets.compare_digest(signature, attendue):
         raise ErreurApi(403, "Signature invalide")
-    return _recevoir("whatsapp", corps, taches)
+    return await run_in_threadpool(_recevoir, "whatsapp", corps, taches)  # la base hors de la boucle
 
 
 @app.post("/webhooks/telegram")
@@ -656,4 +660,4 @@ async def telegram(requete: Request, taches: BackgroundTasks,
     attendu = _canal_ouvert("telegram", os.environ.get("TELEGRAM_SECRET_TOKEN"))
     if not jeton or not secrets.compare_digest(jeton, attendu):
         raise ErreurApi(403, "Jeton invalide")
-    return _recevoir("telegram", await requete.body(), taches)
+    return await run_in_threadpool(_recevoir, "telegram", await requete.body(), taches)

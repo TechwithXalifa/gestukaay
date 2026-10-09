@@ -26,6 +26,30 @@ def test_fenetre_glissante():
     assert lim.attente("1.2.3.4", "voix", 61) == 0  # la première requête est sortie de la fenêtre
 
 
+def test_une_salle_derriere_la_meme_adresse(monkeypatch):
+    """Audit du 09/10 : 30 onglets sur le même Wi-Fi posent chacun leurs questions ; un robot qui change
+    d'identifiant à chaque requête reste borné par le plafond de l'adresse."""
+    monkeypatch.setitem(securite.LIMITES, "question", 2)
+    monkeypatch.setenv("GESTUKAAY_PLAFOND_IP", "3")
+    ip = "41.82.1.1"
+    lim = securite.Limiteur()
+    # plafond de l'adresse : 2 x 3 = 6 requêtes ; 6 onglets passent, le 7e est bloqué
+    assert [lim.attente(ip, "question", 0, client=f"onglet-{n:04d}") == 0 for n in range(7)] == [True] * 6 + [False]
+    lim2 = securite.Limiteur()
+    # un même onglet a sa propre limite (2), sans gêner les autres
+    assert [lim2.attente(ip, "question", t, client="onglet-aaaa") == 0 for t in range(3)] == [True, True, False]
+    assert lim2.attente(ip, "question", 3, client="onglet-bbbb") == 0
+    assert lim2.attente("5.6.7.8", "question", 3) == 0  # sans en-tête : par adresse, comme avant
+
+
+def test_identifiant_d_onglet_mal_forme_ignore():
+    from types import SimpleNamespace
+
+    assert securite.client(SimpleNamespace(headers={"x-gestukaay-client": "court"})) is None
+    assert securite.client(SimpleNamespace(headers={"x-gestukaay-client": "a" * 65})) is None
+    assert securite.client(SimpleNamespace(headers={"x-gestukaay-client": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed"}))
+
+
 def test_adresse_derriere_un_proxy(monkeypatch):
     from types import SimpleNamespace
 

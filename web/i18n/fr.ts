@@ -253,6 +253,7 @@ export const fr = {
   "apropos.titre": "Le chiffre officiel, avec sa source et sa date",
   "apropos.texte1": "Gëstukaay (« vérifier », en wolof) répond aux questions sur les statistiques du Sénégal, en français et en wolof, à l'écrit ou à la voix.",
   "apropos.texte2": "Il s'adresse à tout le monde : élèves, journalistes, agents publics, entrepreneurs, curieux. Chaque réponse peut être exportée, citée et partagée.",
+  "apropos.origine": "Gëstukaay est un projet présenté au hackathon de l'ANSD. Il répond à partir des données publiques du portail Open Data du Sénégal (ANSD et producteurs officiels).",
   "apropos.contact": "Pour nous écrire, le plus simple est « Signaler une erreur » sous une réponse.",
 
   // Confidentialité
