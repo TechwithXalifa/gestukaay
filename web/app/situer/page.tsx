@@ -176,7 +176,7 @@ export default function Situer() {
                     <label key={m.cle} className={milieu === m.valeur ? "option choisie" : "option"} onPointerUp={montrerContinuer}>
                       <input type="radio" name="milieu" className="sr-only" checked={milieu === m.valeur} onChange={() => setMilieu(m.valeur)} />
                       {t(m.cle)}
-                      {milieu === m.valeur && <Coche />}
+                      {milieu === m.valeur && <CocheFine />}
                     </label>
                   ))}
                 </div>
