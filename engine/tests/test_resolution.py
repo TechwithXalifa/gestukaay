@@ -200,3 +200,21 @@ def test_region_servie_par_son_academie_equivalente():  # Sédhiou : une seule a
     x = une(resoudre(socle, req(tbs, ["SN-SE"])))
     assert (x.zone.code, x.valeur) == ("SN-IA-SEDHIOU", 100.1)
     assert resoudre(socle, req(tbs, ["SN-DK"])).raison == "zone_non_couverte"  # Dakar : trois académies
+
+
+def test_classement_et_comparaison_ne_melangent_pas_les_categories():
+    """Benchmark LLM du 09/10 (WO-009) : la pêche continentale, seule publiée à Matam, était prise d'office et
+    rangée avec la pêche artisanale de la côte ; Saint-Louis, qui a les deux, disparaissait. On propose le choix."""
+    peche = Socle([
+        obs("wrqfsxb.quantite", "SN-SL", "2024", 109830, **{"type-de-pêche": "Pêche artisanale"}),
+        obs("wrqfsxb.quantite", "SN-SL", "2024", 1141, **{"type-de-pêche": "Pêche continentale"}),
+        obs("wrqfsxb.quantite", "SN-TH", "2024", 104460, **{"type-de-pêche": "Pêche artisanale"}),
+        obs("wrqfsxb.quantite", "SN-MT", "2024", 3419, **{"type-de-pêche": "Pêche continentale"}),
+    ], {"wrqfsxb": SourceJeu("wrqfsxb", "DPM", "Pêches", "Jeu wrqfsxb", date(2025, 6, 1), "", "https://x/wrqfsxb")})
+    for r in (resoudre(peche, req("wrqfsxb.quantite", periode="2024", intention="classement")),
+              resoudre(peche, req("wrqfsxb.quantite", ["SN-TH", "SN-MT"], "2024", intention="comparaison"))):
+        assert isinstance(r, Introuvable) and r.raison == "desagregation_ambigue", r
+        assert r.choix == {"type-de-pêche": ["Pêche artisanale", "Pêche continentale"]}
+    r = resoudre(peche, req("wrqfsxb.quantite", periode="2024", intention="classement",
+                            **{"type-de-pêche": "Pêche artisanale"}))
+    assert [(x.zone.code, x.valeur) for x in r.resultats] == [("SN-SL", 109830), ("SN-TH", 104460)]

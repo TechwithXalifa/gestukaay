@@ -391,6 +391,22 @@ def resoudre_un(socle: Socle, ind: Indicateur, zone: str | None, periode: str | 
     return resultat(socle, retenues[0], ind, langue, uniques), defauts
 
 
+def meme_categorie(socle: Socle, ind: Indicateur, resultats: list[Resultat]) -> Introuvable | None:
+    """Un classement ou une comparaison de zones compare la même catégorie partout. Chaque zone fixe ses
+    dimensions seule (une catégorie unique y est prise d'office) : benchmark LLM du 09/10, WO-009, la pêche
+    artisanale de la côte et la pêche continentale de Matam dans le même graphique. Sinon : le choix."""
+    par_id = {o.id: o for o in socle.observations(ind.code)}
+    dims = [{k: "total" if est_total(v) else v for k, v in par_id[r.observation_id].desagregation} for r in resultats]
+    differentes = {k for d in dims for k in d if len({x.get(k, "total") for x in dims}) > 1}  # absente = total
+    # d'abord la dimension où les zones ont deux catégories réelles (artisanale / continentale), pas un total
+    differentes = sorted(differentes, key=lambda k: (sum(x.get(k, "total") == "total" for x in dims), k))
+    if not differentes:
+        return None
+    choix = {k: sorted({m for o in par_id.values() if (m := o.dims().get(k)) and not est_total(m)}) for k in differentes}
+    return Introuvable("desagregation_ambigue", "catégorie différente selon la zone : " + ", ".join(differentes),
+                       choix=choix)
+
+
 def _chercher_indicateur(code: str | None) -> Indicateur | None:
     if not code:
         return None
@@ -477,6 +493,8 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
 
         if not resultats:
             return Introuvable("zone_non_couverte", "aucune zone disponible pour le classement")
+        if melange := meme_categorie(socle, ind, resultats):
+            return melange
 
         reverse = ordre_effectif(requete, question) == "desc"
         resultats.sort(key=lambda r: r.valeur, reverse=reverse)
@@ -569,6 +587,8 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
             r[0].mise_en_evidence = True
             resultats.append(r[0])
             defauts = {k: defauts.get(k, False) or v for k, v in r[1].items()}
+        if len(resultats) > 1 and (melange := meme_categorie(socle, ind, resultats)):
+            return melange
         graph = graphique_comparaison_zones(resultats, ind) if len(resultats) > 1 else None
         return Resolution(resultats, defauts, graph)
 

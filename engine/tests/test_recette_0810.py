@@ -153,3 +153,23 @@ def test_evolution_sans_annee_de_la_premiere_a_la_derniere_periode():
     req = RequeteStructuree(intention="comparaison", indicateur="jcvcajc.taux-de-pauvrete", zones=[], confiance=0.9)
     r = resoudre(socle, req, "fr", "Évolution du taux de pauvreté")
     assert [x.periode.valeur for x in r.resultats] == ["2011", "2022"]
+
+
+def test_zone_non_publiee_servie_par_la_meme_notion(monkeypatch):
+    """Benchmark LLM du 09/10 (FR-049, WO-021) : « riz brisé » n'est publié que pour Dakar ; le riz à Thiès
+    finissait en « donnée absente » alors que le prix de détail du riz est publié par région."""
+    i = indicateurs()
+    socle_riz = Socle([
+        obs("feujxob.riz-brise-ordinaire-au-detail", "SN-DK", "2026-03", 309.0),
+        obs("sbsryhc", "SN-TH", "2023", 391.1, **{"type-de-céréales": "Riz"}),
+        obs("sbsryhc", "SN-TH", "2023", 300.0, **{"type-de-céréales": "Mil"}),
+    ], {d: SourceJeu(d, "ANSD", "Agence", f"Jeu {d}", date(2023, 10, 31), "", f"https://x/{d}")
+        for d in ("feujxob", "sbsryhc")}, "test")
+    moteur = MoteurReel(socle_riz, Comprehension(None))
+    choisi = RequeteStructuree(intention="valeur", indicateur="feujxob.riz-brise-ordinaire-au-detail",
+                               zones=["SN-TH"], periode={"type": "derniere"}, desagregation={"produit": "riz"},
+                               confiance=0.4)
+    cands = [Candidat(i["feujxob.riz-brise-ordinaire-au-detail"], 9), Candidat(i["sbsryhc"], 8)]
+    monkeypatch.setattr(moteur.comprehension, "comprendre", lambda q, ctx=None: Comprise(choisi, cands, "regles"))
+    r = moteur.repondre(AskRequest(question="Combien coûte le riz à Thiès ?")).reponse
+    assert r.issue == "exacte" and r.resultats[0].valeur == 391.1

@@ -58,7 +58,7 @@ from .approchee import (
 )
 from .candidats import desagregation_citee, deux_sexes, ratio_non_publie
 from .compagnons import compagnon
-from .comprehension import Comprehension, Comprise
+from .comprehension import Comprehension, Comprise, _meme_notion
 from .conversation import sans_politesse
 from .conversation import texte as conversation_texte
 from .gabarits import citation, explication, note_perimetre
@@ -158,6 +158,25 @@ class MoteurReel:
         """Option B de KBD : une question en wolof reçoit sa réponse écrite en wolof (phrases de KBD)."""
         return en_wolof(rep, self.socle) if langue == "wo" else rep
 
+    def _serie_de_la_zone(self, r: Introuvable, c: Comprise, question: str) -> tuple[Comprise, Resolution] | None:
+        """La zone demandée n'est pas publiée par l'indicateur choisi (« riz brisé » : Dakar seulement) mais un
+        autre candidat la publie, sur la même notion et dans la même unité (le prix de détail du riz par région) :
+        FR-049 et WO-021 finissaient en « donnée absente » (benchmark LLM du 09/10). Jamais une autre mesure : un
+        taux n'est pas remplacé par un effectif."""
+        choisi = indicateurs().get(c.requete.indicateur or "")
+        if r.raison != "zone_non_couverte" or not c.requete.zones or c.lieux_inconnus or choisi is None:
+            return None
+        unite = normaliser(choisi.unite_affichee or choisi.unite or "")
+        for cand in c.candidats[:5]:
+            ind = cand.indicateur
+            if (ind.code == choisi.code or not unite or normaliser(ind.unite_affichee or ind.unite or "") != unite
+                    or not _meme_notion(choisi, ind)):
+                continue
+            req = c.requete.model_copy(update={"indicateur": ind.code})
+            if isinstance(r2 := resoudre(self.socle, req, LANGUE, question), Resolution):
+                return replace(c, requete=req), r2
+        return None
+
     def _executer(self, requete: RequeteStructuree, question: str) -> AskResponse:
         r = resoudre(self.socle, requete, LANGUE, question)
         if isinstance(r, Resolution):
@@ -209,6 +228,8 @@ class MoteurReel:
         a = proposer_approchee(self.socle, c.requete, r, question, LANGUE, c.lieux_inconnus)
         if isinstance(a, Approchee):
             return self._approchee(a, c.requete, question, transcription)
+        if ailleurs := self._serie_de_la_zone(r, c, question):  # en dernier, avant un refus
+            return self._exacte(ailleurs[1], ailleurs[0].requete, question, transcription)
         if isinstance(a, RepliAucune) and a.suggestions:  # un seul choix vérifié : proposé en suggestion
             return self._aucune(Refus(a.motif, a.message, a.suggestions, c.requete), question, transcription)
         return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
