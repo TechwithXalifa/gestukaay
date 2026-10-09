@@ -377,6 +377,12 @@ def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | N
                          decalage=decalage)
 
 
+def _cellule(valeur):
+    """Export ouvert dans un tableur : un texte saisi par l'usager (question, commentaire, suggestion) qui
+    commence par = + - @ y deviendrait une formule (injection CSV). Une apostrophe le garde en texte."""
+    return f"'{valeur}" if isinstance(valeur, str) and valeur[:1] in ("=", "+", "-", "@", "\t", "\r") else valeur
+
+
 @app.get("/admin/journal")
 def journal(
     session: str | None = Cookie(None, alias=COOKIE_ADMIN),
@@ -477,7 +483,7 @@ def journal_csv(
     sortie = io.StringIO()
     w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, *COLONNES_RETOURS], delimiter=";")
     w.writeheader()
-    w.writerows(lignes)
+    w.writerows({k: _cellule(v) for k, v in ligne.items()} for ligne in lignes)
     return Response(
         "﻿" + sortie.getvalue(),  # BOM : Excel ouvre l'UTF-8 correctement
         media_type="text/csv; charset=utf-8",

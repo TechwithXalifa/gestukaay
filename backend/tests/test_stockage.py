@@ -94,6 +94,17 @@ def test_admin_journal(connecter):
     assert client.get("/admin/journal", params={"retour": "nimporte"}).status_code == 422
 
 
+def test_journal_csv_sans_formule(connecter):
+    """Un commentaire d'usager qui commence par « = » reste du texte dans le tableur (injection CSV)."""
+    client = TestClient(app)
+    rid = client.post("/v1/ask", json={"question": "Combien d'habitants à Thiès ?"}).json()["reponse"]["id"]
+    client.post("/v1/feedback", json={"reponse_id": rid, "type": "signalement", "motif": "autre",
+                                      "commentaire": '=HYPERLINK("http://x","clic")'})
+    connecter(client)
+    texte = client.get("/admin/journal.csv", params={"retour": "signale"}).text
+    assert "'=HYPERLINK" in texte and ';=HYPERLINK' not in texte and ';"=HYPERLINK' not in texte
+
+
 def test_suggestion_d_indicateur_depuis_un_refus():
     """EF-51 : la suggestion est gardée et visible dans le journal."""
     s = Stockage("")
