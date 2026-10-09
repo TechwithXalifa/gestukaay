@@ -272,8 +272,6 @@ export const fr = {
   "confid.retours": "Vos votes et signalements",
   "confid.retours.texte": "Ils sont gardés avec la réponse concernée, sans rien qui vous identifie, pour corriger le service.",
 
-  // Interface wolof incomplète
-  
   // Navigation : Explorer et Indicateurs (décision 0023)
   "nav.explorer": "Explorer",
   "nav.indicateurs": "Indicateurs",
