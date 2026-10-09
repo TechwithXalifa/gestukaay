@@ -106,14 +106,21 @@ function Catalogue() {
             maxLength={100}
           />
           <button type="submit" className="primaire">{t("catalogue.rechercher")}</button>
-          <label className="catalogue-domaine">
-            <span>{t("catalogue.domaine")}</span>
-            <select value={domaine} onChange={(e) => filtrer({ domaine: e.target.value })}>
-              <option value="">{t("catalogue.tous")}</option>
-              {TOUS_LES_DOMAINES.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </label>
         </form>
+
+        <div role="group" aria-label={t("catalogue.domaines")} className="filtres-domaines">
+          <button type="button" aria-pressed={!domaine} onClick={() => filtrer({ domaine: "" })}>{t("catalogue.tous")}</button>
+          {/* Sans nombre par domaine : 32 appels à chaque ouverture dépasseraient la limite de 60 requêtes
+              par minute (revue de KBD sur #188). Le nombre s'affiche une fois le domaine choisi. */}
+          {TOUS_LES_DOMAINES.map((d) => {
+            const choisi = domaine === d;
+            return (
+              <button key={d} type="button" aria-pressed={choisi} onClick={() => filtrer({ domaine: choisi ? "" : d })}>
+                {d}
+              </button>
+            );
+          })}
+        </div>
 
         {erreur ? (
           <Erreur erreur={erreur} onReessayer={() => filtrer({})} />

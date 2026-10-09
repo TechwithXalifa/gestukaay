@@ -1,10 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { accessible, poser, seConnecter } from "./outils";
 
-test("domaines : la liste complète", async ({ page }) => {
+test("domaines : fusionnés dans le catalogue, en filtres rapides ; /domaines y mène", async ({ page }) => {
   await page.goto("/domaines");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("32 domaines");
-  await accessible(page, "domaines");
+  await page.waitForURL(/\/indicateurs$/);
+  const filtres = page.getByRole("group", { name: "Filtrer par domaine" }).getByRole("button");
+  await expect(filtres).toHaveCount(33); // « Tous les domaines » et les 32 domaines
+  await expect(page.getByRole("button", { name: "Tous les domaines" })).toHaveAttribute("aria-pressed", "true");
+  await filtres.filter({ hasText: "Pauvreté" }).click();
+  await expect(page).toHaveURL(/domaine=Pauvret%C3%A9/);
+  await expect(filtres.filter({ hasText: "Pauvreté" })).toHaveAttribute("aria-pressed", "true");
+  await accessible(page, "catalogue filtré par domaine");
 });
 
 test("hors ligne : l'état s'affiche et la question est bloquée", async ({ page, context }) => {
@@ -66,8 +72,8 @@ test("journal des requêtes : connexion, filtres et détail", async ({ page }) =
 test("titres de page propres à chaque écran (WCAG 2.4.2)", async ({ page }) => {
   await page.goto("/situer");
   await expect(page).toHaveTitle("Où je me situe · Gëstukaay");
-  await page.goto("/domaines");
-  await expect(page).toHaveTitle("Domaines de données · Gëstukaay");
+  await page.goto("/indicateurs");
+  await expect(page).toHaveTitle("Catalogue des indicateurs · Gëstukaay");
   await poser(page, "Combien d'habitants à Thiès ?");
   await expect(page).toHaveTitle("Combien d'habitants à Thiès ? · Gëstukaay");
 });
