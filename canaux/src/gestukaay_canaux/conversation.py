@@ -116,7 +116,11 @@ def _envoyer(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur
     # en français (choix de KBD, 08/10 : une note wolof répondait à une question posée en français)
     vocal = rep.reponse.transcription is not None and rep.reponse.langue == "wo" and _dire(dest, rep, services, envoyeur)
     if s.choix:  # approchée : le texte et les boutons en UN message (#213 : les choix partaient deux fois)
-        envoyeur.choix(dest, s.choix, s.texte)
+        try:
+            envoyeur.choix(dest, s.choix, s.texte)
+        except Exception:  # noqa: BLE001 — liste ou boutons refusés : le texte numéroté suffit pour répondre (revue de SAN)
+            _log.exception("choix : la liste n'a pas pu être envoyée (réponse %s)", rep.reponse.id)
+            envoyeur.texte(dest, s.texte)
     elif vocal:
         if f := fiche(rep, envoyeur.gras):  # question vocale : la voix est partie, puis la fiche
             envoyeur.texte(dest, f)
