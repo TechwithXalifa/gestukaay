@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { poser } from "./outils";
+import { poser, poserAVoix } from "./outils";
 
 test("en-têtes de sécurité du site", async ({ page }) => {
   const r = await page.goto("/");
@@ -15,9 +15,9 @@ test("aucune violation de la politique de contenu sur les parcours", async ({ pa
   page.on("console", (m) => {
     if (/Content Security Policy|Refused to/i.test(m.text())) violations.push(m.text());
   });
-  await page.route("**/audio/**", (r) => r.fulfill({ status: 404 }));
+  await page.route("**/audio.ogg", (r) => r.fulfill({ status: 404 }));
   await poser(page, "Combien d'habitants à Thiès ?"); // graphique, exports
-  await poser(page, "Ñaata nit ñoo dëkk Tiés ?"); // lecteur audio
+  await poserAVoix(page, "Ñaata nit ñoo dëkk Tiés ?"); // lecteur audio
   await page.goto("/situer");
   await page.goto("/methode");
   expect(violations).toEqual([]);

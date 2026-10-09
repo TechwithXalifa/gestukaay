@@ -14,6 +14,19 @@ from pathlib import Path
 from gestukaay_contracts.models import ReponseExacte, SeriesResponse
 from gestukaay_socle.zones import zones
 
+# Format des CSV (réponse, séries, journal) : UTF-16 avec BOM et tabulations. C'est le seul qu'Excel
+# ouvre d'un double-clic en colonnes, accents compris, quel que soit le séparateur de liste de Windows :
+# « ; » UTF-8 se lisait en deux colonnes sur un poste réglé en anglais, et la ligne « sep=; » casse les
+# accents (testé dans Excel 16, choix de SAN du 09/10). pandas : read_csv(f, sep="\t", encoding="utf-16").
+SEPARATEUR = "\t"
+TYPE_CSV = "text/csv; charset=utf-16"
+
+
+def encoder_csv(texte: str) -> bytes:
+    """UTF-16 petit-boutiste avec BOM, quel que soit le serveur."""
+    return "\ufeff".encode("utf-16-le") + texte.encode("utf-16-le")
+
+
 # Schéma imposé par EF-34, dans cet ordre
 COLONNES = [
     "indicateur", "zone", "code_zone", "periode", "valeur", "unite", "desagregation",
@@ -22,9 +35,9 @@ COLONNES = [
 
 
 def vers_csv(rep: ReponseExacte, virgule_decimale: bool = False) -> bytes:
-    """UTF-8 avec BOM (ouverture correcte dans Excel FR), séparateur « ; »."""
+    """Format Excel commun (voir SEPARATEUR), une ligne par valeur, comparaisons du graphique comprises."""
     sortie = io.StringIO()
-    w = csv.writer(sortie, delimiter=";", lineterminator="\r\n")
+    w = csv.writer(sortie, delimiter=SEPARATEUR, lineterminator="\r\n")
     w.writerow(COLONNES)
     for r in rep.resultats:
         valeur = repr(r.valeur) if r.valeur != int(r.valeur) else str(int(r.valeur))
@@ -54,7 +67,7 @@ def vers_csv(rep: ReponseExacte, virgule_decimale: bool = False) -> bytes:
             r0.source.libelle, r0.source.date_publication.isoformat(),
             NOTE_COMPARAISON, rep.url,
         ])
-    return ("﻿" + sortie.getvalue()).encode("utf-8")
+    return encoder_csv(sortie.getvalue())
 
 
 NOTE_COMPARAISON = "Valeur de comparaison, affichée dans le graphique de la réponse."
@@ -83,7 +96,7 @@ def _comparaisons(rep: ReponseExacte) -> list[tuple[str, str, float]]:
 def vers_csv_series(rep: SeriesResponse, url: str, virgule_decimale: bool = False) -> bytes:
     """Séries d'Explorer au même schéma EF-34 que les réponses : une ligne par zone et par période."""
     sortie = io.StringIO()
-    w = csv.writer(sortie, delimiter=";", lineterminator="\r\n")
+    w = csv.writer(sortie, delimiter=SEPARATEUR, lineterminator="\r\n")
     w.writerow(COLONNES)
     desag = "|".join(f"{k}={v}" for k, v in (rep.desagregation or {}).items())
     for serie in rep.series:
@@ -92,7 +105,7 @@ def vers_csv_series(rep: SeriesResponse, url: str, virgule_decimale: bool = Fals
             w.writerow([rep.indicateur.libelle, serie.zone.libelle, serie.zone.code, p.periode,
                         valeur.replace(".", ",") if virgule_decimale else valeur, rep.unite, desag,
                         serie.source.libelle, serie.source.date_publication.isoformat(), "", url])
-    return ("﻿" + sortie.getvalue()).encode("utf-8")
+    return encoder_csv(sortie.getvalue())
 
 
 # ---- PDF : fiche statistique officielle (charte v2, décision 0036) ------------------------------------

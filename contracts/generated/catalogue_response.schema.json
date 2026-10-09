@@ -82,7 +82,7 @@
   "description": "GET /v1/indicators?domaine=&q=&niveau=&limite=&decalage= — triés : vérifiés d'abord, puis libellé.",
   "properties": {
     "version_contrat": {
-      "default": "1.6.0",
+      "default": "1.7.0",
       "type": "string"
     },
     "version_socle": {

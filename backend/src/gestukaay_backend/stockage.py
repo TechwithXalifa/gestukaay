@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import secrets
 import sqlite3
@@ -86,6 +87,11 @@ _TABLES = [
         bloque_jusqu_a TEXT
     )""",
     # Sessions : seul le hachage du jeton est gardé (une base copiée n'ouvre aucune session)
+    # Réglages de la base : le sel du hachage des conversations, s'il n'est pas donné par GESTUKAAY_SEL
+    """CREATE TABLE IF NOT EXISTS parametres (
+        cle TEXT PRIMARY KEY,
+        valeur TEXT NOT NULL
+    )""",
     """CREATE TABLE IF NOT EXISTS sessions_admin (
         jeton TEXT PRIMARY KEY,
         identifiant TEXT NOT NULL,
@@ -102,6 +108,15 @@ CONSERVATION_MESSAGES = timedelta(hours=48)
 
 COLONNES_JOURNAL = ["recu_le", "canal", "source", "langue", "question", "transcription_brute", "issue",
                     "indicateur", "latence_ms", "version_socle", "conversation", "confirme_depuis", "reponse_id"]
+# Retours joints à chaque ligne du journal (écran Journal et export CSV)
+COLONNES_RETOURS = ["vote", "signalement", "commentaire", "suggestions", "suggestion"]
+# Filtre « Retour » du journal : condition sur les retours de la réponse
+FILTRES_RETOUR = {
+    "signale": "r.type = 'signalement'",
+    "pas_utile": "r.type = 'vote' AND r.vote = 'pas_utile'",
+    "utile": "r.type = 'vote' AND r.vote = 'utile'",
+    "suggere": "r.type = 'suggestion_indicateur'",
+}
 
 
 @dataclass(frozen=True)
@@ -110,6 +125,7 @@ class FiltreJournal:
     canal: str | None = None
     langue: str | None = None
     texte: str | None = None
+    retour: str | None = None  # clé de FILTRES_RETOUR
     limite: int = 50
     decalage: int = 0
 
@@ -117,9 +133,6 @@ class FiltreJournal:
 class Stockage:
     def __init__(self, url: str | None = None):
         url = url if url is not None else os.environ.get("GESTUKAAY_BASE", "")
-        # Sel du hachage des conversations : fixe en préprod pour suivre une conversation
-        # d'un redémarrage à l'autre ; tiré au hasard sinon.
-        self._sel = os.environ.get("GESTUKAAY_SEL") or secrets.token_hex(16)
         self._verrou = threading.Lock()
         if url.startswith(("postgresql://", "postgres://")):
             import psycopg
@@ -134,6 +147,16 @@ class Stockage:
         with self._curseur() as c:
             for sql in _TABLES:
                 c.execute(sql)
+        # Sel du hachage des conversations (audit du 09/10) : GESTUKAAY_SEL s'il est donné, sinon un sel tiré
+        # une fois et gardé dans la base. Avant, un sel neuf à chaque démarrage : « et pour Kaolack ? » et le
+        # « 1 » de WhatsApp perdaient la conversation après un redémarrage.
+        self._sel = os.environ.get("GESTUKAAY_SEL") or self._sel_de_la_base()
+        if not os.environ.get("GESTUKAAY_SEL") and url:
+            # Revue de KBD sur #200 : sel et hachages dans la même base, une copie de la base suffit à
+            # retrouver les numéros par force brute. Bon pour le développement, pas pour la production.
+            logging.getLogger("gestukaay.stockage").warning(
+                "GESTUKAAY_SEL absent : le sel des conversations est gardé dans la base. "
+                "En production, le donner hors de la base (DEPLOIEMENT.md).")
 
     @contextmanager
     def _curseur(self) -> Iterator:
@@ -247,6 +270,11 @@ class Stockage:
             "ON CONFLICT DO NOTHING RETURNING message_id",
             (canal, message_id, maintenant.isoformat(timespec="seconds"))))
 
+    def _sel_de_la_base(self) -> str:
+        self._executer("INSERT INTO parametres (cle, valeur) VALUES ('sel', ?) ON CONFLICT DO NOTHING",
+                       (secrets.token_hex(16),))
+        return self._executer("SELECT valeur FROM parametres WHERE cle = 'sel'")[0][0]
+
     def hacher(self, conversation_id: str) -> str:
         return hashlib.sha256(f"{self._sel}:{conversation_id}".encode()).hexdigest()[:16]
 
@@ -262,8 +290,8 @@ class Stockage:
     # ------------------------------------------------------------------ journal
 
     def journal(self, f: FiltreJournal) -> tuple[int, list[dict]]:
-        """(nombre total filtré, page de lignes, plus récentes d'abord), avec le vote et le
-        signalement éventuels de chaque réponse."""
+        """(nombre total filtré, page de lignes, plus récentes d'abord), avec le vote, le signalement
+        et la suggestion éventuels de chaque réponse, et le commentaire laissé par l'usager."""
         conditions, params = [], []
         for colonne in ("issue", "canal", "langue"):
             if valeur := getattr(f, colonne):
@@ -272,6 +300,9 @@ class Stockage:
         if f.texte:
             conditions.append("LOWER(j.question) LIKE ?")
             params.append(f"%{f.texte.lower()}%")
+        if f.retour in FILTRES_RETOUR:
+            conditions.append("EXISTS (SELECT 1 FROM retours r WHERE r.reponse_id = j.reponse_id"
+                              f" AND {FILTRES_RETOUR[f.retour]})")
         where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
         total = self._executer(f"SELECT COUNT(*) FROM journal j {where}", tuple(params))[0][0]
         lignes = self._executer(
@@ -280,12 +311,17 @@ class Stockage:
                         ORDER BY r.recu_le DESC LIMIT 1),
                        (SELECT r.motif FROM retours r WHERE r.reponse_id = j.reponse_id
                         AND r.type = 'signalement' ORDER BY r.recu_le DESC LIMIT 1),
+                       (SELECT r.commentaire FROM retours r WHERE r.reponse_id = j.reponse_id
+                        AND r.type = 'signalement' AND r.commentaire <> '' ORDER BY r.recu_le DESC LIMIT 1),
                        (SELECT COUNT(*) FROM retours r WHERE r.reponse_id = j.reponse_id
-                        AND r.type = 'suggestion_indicateur')
+                        AND r.type = 'suggestion_indicateur'),
+                       (SELECT r.commentaire FROM retours r WHERE r.reponse_id = j.reponse_id
+                        AND r.type = 'suggestion_indicateur' AND r.commentaire <> ''
+                        ORDER BY r.recu_le DESC LIMIT 1)
                 FROM journal j {where} ORDER BY j.recu_le DESC, j.reponse_id LIMIT ? OFFSET ?""",
             (*params, f.limite, f.decalage),
         )
-        return total, [dict(zip([*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], ligne, strict=True)) for ligne in lignes]
+        return total, [dict(zip([*COLONNES_JOURNAL, *COLONNES_RETOURS], ligne, strict=True)) for ligne in lignes]
 
     # ------------------------------------------------------------------ tableau de bord
 

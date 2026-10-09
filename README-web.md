@@ -64,7 +64,7 @@ SAN a aussi relu et approuvé les PR de KBD (contrat 1.1.0 à 1.2.0, socle, mote
 | `POST /v1/ask` | question → réponse du moteur, adresse stable, latence, enregistrement | EF-01, EF-05 |
 | `POST /v1/ask/{id}/confirm` | confirme un choix d'une réponse approchée : relit la réponse stockée, prend `choix[i].requete` et appelle `moteur.executer()` | EF-06, US-03 |
 | `GET /v1/answers/{id}` | relit une réponse (lien partageable) | EF-29 |
-| `GET /v1/answers/{id}/export.csv` | export CSV ; `?decimale=virgule` en option | EF-34 |
+| `GET /v1/answers/{id}/export.csv` | export CSV (UTF-16 et tabulations : Excel l'ouvre en colonnes dans toutes les langues) ; `?decimale=virgule` en option | EF-34 |
 | `GET /v1/answers/{id}/export.pdf` | export PDF A4 d'une page | EF-33 |
 | `POST /v1/transcrire` | audio WebM/OGG Opus (2 Mo au plus) → transcription corrigeable | EF-11, EF-15, décision 0004 |
 | `POST /v1/situate` | « Où je me situe » : rien n'est stocké ni journalisé | EF-37 à EF-40 |
@@ -232,10 +232,7 @@ Les tests du site tournent sur le faux moteur : ils ne dépendent ni du socle ni
 
 ## 9. Ce qui reste à faire côté SAN
 
-- Rendre `NonDisponible` en 503 « Pas encore disponible » dans `app.py`, pour le vrai moteur ([PR #96](https://github.com/TechwithXalifa/gestukaay/pull/96)).
-- Contrat 1.3.0, en ajout seulement : tranches `500k_750k`, `750k_1m`, `plus_1m` (`plus_500k` accepté mais plus proposé), motif `non_disponible`, mise à jour du site et de la décision 0012. Le calcul réel de « Où je me situe » ([#95](https://github.com/TechwithXalifa/gestukaay/issues/95)) attend cette version.
-- Passer au moteur les 3 derniers échanges de la conversation (EF-09) : le moteur l'accepte, le backend ne le transmet pas encore.
-- Préproduction en ligne ([#38](https://github.com/TechwithXalifa/gestukaay/issues/38)) : clé OpenRouter dans les secrets, proxy de confiance, Lighthouse sur la vraie adresse.
-- `.gitattributes` qui garde les CSV en fins de ligne LF, pour que les empreintes du manifeste du socle se comparent aussi sous Windows (branche `san/csv-lf`).
-- Écrans des maquettes pas encore construits : Explorer, Catalogue, Fiche indicateur, barre latérale mobile, tableau de bord et jeu de test du back-office. Explorer, Catalogue et Fiches demandent des routes qui ne sont pas encore dans le contrat (`/v1/indicators`, `/v1/series`).
-- Routes des webhooks WhatsApp et Telegram, pour brancher la logique de KBD.
+- Préproduction en ligne ([#38](https://github.com/TechwithXalifa/gestukaay/issues/38), avec le déploiement de KBD) : `GESTUKAAY_URL_PUBLIQUE` en https, `NEXT_PUBLIC_API_URL`, `GESTUKAAY_PROXY_DE_CONFIANCE=1`, `GESTUKAAY_SEL` fixe, comptes du back-office (SAN, KBD). Si l'API n'est pas sur le même domaine que le site, faire passer `/admin/*` par le serveur web (le cookie de session ne passe qu'entre sites du même domaine, décision 0037).
+- Lighthouse et INP mesurés sur la vraie adresse et sur un vrai téléphone (section 4).
+- Recette des parcours P1 à P4 sur la préproduction ([#39](https://github.com/TechwithXalifa/gestukaay/issues/39)) : interface et exports, sécurité, performance web, back-office, parcours de bout en bout.
+- Captures et vidéo de secours du site avant le gel ([#40](https://github.com/TechwithXalifa/gestukaay/issues/40)).

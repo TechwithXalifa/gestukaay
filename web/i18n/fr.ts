@@ -227,7 +227,7 @@ export const fr = {
 
   // Méthode et transparence (maquette Methode)
   "methode.titre": "Comment Gëstukaay trouve vos chiffres",
-  "methode.intro": "Gëstukaay ne fabrique jamais un chiffre. Il retrouve un chiffre publié par l'ANSD, le met en forme et vous dit toujours d'où il vient.",
+  "methode.intro": "Gëstukaay ne fabrique jamais un chiffre. Il retrouve un chiffre officiel publié par l'ANSD ou un autre producteur officiel, le met en forme et vous dit toujours d'où il vient.",
   "methode.etapes": "Comment ça marche, en cinq étapes",
   "methode.e1.titre": "Vous posez votre question",
   "methode.e1.texte": "À l'écrit ou à la voix, en français ou en wolof.",
@@ -240,7 +240,7 @@ export const fr = {
   "methode.e5.titre": "La réponse vous arrive",
   "methode.e5.texte": "Avec la source, la date de publication et une courte explication écrite par des modèles fixes, pas par l'IA.",
   "methode.donnees": "D'où viennent les données",
-  "methode.donnees.texte": "Toutes les valeurs viennent des jeux de données publiés par l'ANSD sur le portail Open Data du Sénégal. Elles sont reprises telles quelles, figées dans une version numérotée, et chaque réponse indique cette version.",
+  "methode.donnees.texte": "Toutes les valeurs viennent des jeux de données publiés sur le portail Open Data du Sénégal, par l'ANSD et les autres producteurs officiels (ministères, directions statistiques). Elles sont reprises telles quelles, figées dans une version numérotée, et chaque réponse indique cette version.",
   "methode.projections": "Les projections et estimations officielles sont toujours signalées par un badge, avec leur base. Gëstukaay ne fait lui-même aucune prévision.",
   "methode.corrections": "Quand une valeur publiée est manifestement fausse, elle n'est pas corrigée : elle est retirée, avec le motif et la preuve. Gëstukaay préfère ne rien répondre plutôt qu'un chiffre douteux.",
   "methode.mesure": "Résultat des tests",
@@ -253,6 +253,7 @@ export const fr = {
   "apropos.titre": "Le chiffre officiel, avec sa source et sa date",
   "apropos.texte1": "Gëstukaay (« vérifier », en wolof) répond aux questions sur les statistiques du Sénégal, en français et en wolof, à l'écrit ou à la voix.",
   "apropos.texte2": "Il s'adresse à tout le monde : élèves, journalistes, agents publics, entrepreneurs, curieux. Chaque réponse peut être exportée, citée et partagée.",
+  "apropos.origine": "Gëstukaay est un projet présenté au hackathon de l'ANSD. Il répond à partir des données publiques du portail Open Data du Sénégal (ANSD et producteurs officiels).",
   "apropos.contact": "Pour nous écrire, le plus simple est « Signaler une erreur » sous une réponse.",
 
   // Confidentialité
@@ -271,9 +272,6 @@ export const fr = {
   "confid.appareil.texte": "Votre navigateur garde vos dernières réponses consultées et votre langue, pour qu'elles restent lisibles hors ligne. Effacer les données du site les supprime.",
   "confid.retours": "Vos votes et signalements",
   "confid.retours.texte": "Ils sont gardés avec la réponse concernée, sans rien qui vous identifie, pour corriger le service.",
-
-  // Interface wolof incomplète
-  "wo.enCours": "L'interface en wolof est en cours de validation par un linguiste : les textes pas encore validés restent en français.",
 
   // Navigation : Explorer et Indicateurs (décision 0023)
   "nav.explorer": "Explorer",
@@ -329,12 +327,16 @@ export const fr = {
   "explorer.changer": "Changer d'indicateur",
   "explorer.zones": "Zones comparées",
   "explorer.ajouter": "Ajouter une zone",
+  "explorer.choisirZone": "Choisir une zone",
+  "fiche.derniere": "Dernière valeur publiée",
+  "fiche.nature.estimation": "estimation officielle",
+  "fiche.nature.projection": "projection officielle",
   "explorer.retirer": "Retirer {zone}",
   "explorer.compte": "{n} zones sur 6 possibles",
   "explorer.periode": "Période",
   "explorer.debut": "De",
   "explorer.fin": "à",
-  "explorer.toutes": "toutes",
+  "explorer.toutes": "toutes les années",
   "explorer.affichage": "Affichage",
   "explorer.graphique": "Graphique",
   "explorer.tableau": "Tableau",
@@ -345,7 +347,6 @@ export const fr = {
   "explorer.zone": "Zone",
   "explorer.sources": "Sources",
   "explorer.fiche": "Définition complète dans la fiche indicateur",
-  "explorer.lien": "Cette page a une adresse stable : copiez-la pour partager exactement cette vue.",
 
   // Design system v2 : navigation en trois espaces, accueil, pied de page
   "nav.demander": "Demander",
@@ -361,8 +362,6 @@ export const fr = {
   "pied.navDonnees": "Données, pied de page",
   "pied.titreConfiance": "Confiance",
   "pied.donnees": "Données : ANSD et producteurs officiels du portail Open Data.",
-  // Seule mention d'indépendance du site depuis le retrait de l'encadré d'« À propos » (#181)
-  "pied.independant": "Projet indépendant, non affilié à l'ANSD.",
   "accueil.socle.titre": "Des chiffres publiés, rien d'autre.",
   "accueil.socle.valeurs": "valeurs officielles",
   "accueil.socle.indicateurs": "indicateurs",

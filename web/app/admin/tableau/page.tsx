@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CANAUX, Cadre, Choix, Connexion, useAdmin } from "@/components/Admin";
+import { MESURE, TAUX_BONNES } from "@/lib/mesure";
 import { nombre } from "@/lib/typo";
 
 /**
@@ -69,7 +70,7 @@ function variation(t: Tableau): string {
 export default function TableauDeBord() {
   const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
   const [jours, setJours] = useState<(typeof PERIODES)[number]>(30);
-  const [filtres, setFiltres] = useState({ canal: "", langue: "" });
+  const [filtres, setFiltres] = useState({ canal: "" });
   const [t, setT] = useState<Tableau | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
@@ -95,7 +96,7 @@ export default function TableauDeBord() {
   if (!identifiant) {
     return (
       <Cadre actif="tableau">
-        <Connexion titre="Tableau de bord" bouton="Ouvrir le tableau de bord" erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
+        <Connexion erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
       </Cadre>
     );
   }
@@ -112,7 +113,6 @@ export default function TableauDeBord() {
         </div>
         <div className="admin-filtres">
           <Choix libelle="Canal" valeur={filtres.canal} onChange={(v) => setFiltres((f) => ({ ...f, canal: v }))} options={CANAUX} tous="tous" />
-          <Choix libelle="Langue" valeur={filtres.langue} onChange={(v) => setFiltres((f) => ({ ...f, langue: v }))} options={{ fr: "FR", wo: "WO" }} tous="toutes" />
           <div role="group" aria-label="Période" className="bascule admin-periode">
             {PERIODES.map((p) => (
               <button key={p} type="button" aria-pressed={jours === p} onClick={() => setJours(p)}>{p} j</button>
@@ -160,6 +160,10 @@ export default function TableauDeBord() {
                   </strong>
                   <span className="note">
                     jeu de test du {dateHeure.format(new Date(t.benchmark.lancee_le))} ({t.benchmark.mode.startsWith("llm") ? "LLM" : "règles"}, {t.benchmark.nb_total} questions) · cibles ≥ 85 % et ≥ 95 %
+                  </span>
+                  {/* Pas le même calcul que le chiffre publié : le rappeler évite de croire à une contradiction */}
+                  <span className="note">
+                    Publié sur le site : {TAUX_BONNES} de bonnes réponses ({MESURE.bonne.reussies} sur {MESURE.bonne.sur}, mesure du {MESURE.date}, page Méthode)
                   </span>
                 </>
               ) : (

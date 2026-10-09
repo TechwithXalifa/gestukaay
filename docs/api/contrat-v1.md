@@ -49,8 +49,9 @@ il la complète (`latence_ms`), la stocke, et la renvoie telle quelle.
 | `POST /v1/ask/{id}/confirm` | `ConfirmRequest` | `AskResponse` (issue `exacte`) | SAN | EF-06, US-03 |
 | `GET /v1/answers/{id}` | — | `AskResponse` | SAN | EF-29 |
 | `GET /v1/answers/{id}/export.pdf` | — | `application/pdf` (A4, 1 page) | SAN | EF-33 |
-| `GET /v1/answers/{id}/export.csv` | — | `text/csv` (schéma EF-34) | SAN | EF-34 |
+| `GET /v1/answers/{id}/export.csv` | — | `text/csv; charset=utf-16` (schéma EF-34) : UTF-16 avec BOM, colonnes séparées par des tabulations, pour qu'Excel l'ouvre en colonnes dans toutes les langues (KBD, 09/10). Même format pour `/v1/series.csv` et `/admin/journal.csv`. pandas : `read_csv(f, sep="\t", encoding="utf-16")` | SAN | EF-34 |
 | `GET /v1/answers/{id}/chart.svg` | — | `image/svg+xml` | SAN | EF-26, EF-27 |
+| `GET /v1/answers/{id}/audio.ogg` | — | `audio/ogg` (Opus, 60 Ko au plus) ; `404` si la réponse n'a pas de voix — **1.7.0** | SAN (route) · KBD (voix) | EF-16, EF-20 |
 | `POST /v1/feedback` | `FeedbackRequest` | `204` | SAN | EF-49–51 |
 | `POST /v1/situate` | `SituateRequest` | `SituateResponse` — **rien n'est conservé** | SAN (route) · KBD (calcul) | EF-37–40 |
 | `GET /v1/indicators` | `domaine`, `q`, `niveau`, `limite`, `decalage` | `CatalogueResponse` | SAN (route) · KBD (lecture) | 5.5 |
@@ -230,3 +231,4 @@ Procédure :
 | 1.4.0 | 2026-10-04 | Additif (décision 0023) : `GET /v1/indicators`, `GET /v1/indicators/{code}`, `GET /v1/series` ; modèles `CatalogueResponse`, `FicheIndicateur`, `SeriesResponse` |
 | 1.5.0 | 2026-10-07 | Additif (décision 0033) : `ReponseAucune.motif` gagne `conversation` |
 | 1.6.0 | 2026-10-08 | Additif (décision 0039) : `SituateRequest.milieu` ; `SituateResponse` gagne `moyenne_milieu`, `position_milieu`, `seuil_pauvrete`, `position_seuil`, `repartition_bien_etre`, `moyennes_regions` ; exemple `situer_milieu.json` |
+| 1.7.0 | 2026-10-09 | Additif (décision 0040) : `audio_url` aussi sur `ReponseApprochee` et `ReponseAucune` ; route `GET /v1/answers/{id}/audio.ogg` (réponse dite en wolof, calculée à la demande) |

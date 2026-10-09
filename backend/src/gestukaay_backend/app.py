@@ -24,6 +24,7 @@ from typing import Literal
 from urllib.parse import urlencode
 
 from fastapi import BackgroundTasks, Cookie, FastAPI, Form, Header, Query, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from gestukaay_contracts.models import (
@@ -46,16 +47,35 @@ from pydantic import BaseModel, Field
 
 from . import comptes, jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
-from .exports import vers_csv, vers_csv_series, vers_pdf
-from .stockage import COLONNES_JOURNAL, FiltreJournal, Stockage
+from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
+from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
 ORIGINES = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(",")
+_log_incidents = logging.getLogger("gestukaay.incidents")
+
+
+async def _incident(requete: Request, suite):
+    """Une erreur imprévue devient un Problem 500 avec un code d'incident court (cahier 7.3) : le site l'affiche
+    discrètement, le journal le garde avec la trace. Jamais de trace renvoyée, jamais le corps de la requête
+    journalisé (« Où je me situe », questions). Placé sous CORS : la réponse garde ses en-têtes et le navigateur
+    peut la lire (une erreur levée plus haut arrivait sans eux : « le service ne répond pas »)."""
+    try:
+        return await suite(requete)
+    except Exception:  # noqa: BLE001 — toute erreur imprévue : journalisée avec sa trace, Problem 500 au client
+        code = secrets.token_hex(4)
+        _log_incidents.exception("incident %s : %s %s", code, requete.method, requete.url.path)
+        probleme = Problem(title="Erreur interne", status=500, code_incident=code,
+                           detail="Une erreur inattendue s'est produite. Réessayez dans un instant.")
+        return JSONResponse(probleme.model_dump(), status_code=500, media_type="application/problem+json")
+
+
+app.middleware("http")(_incident)  # avant CORS : ajouté en premier, il s'exécute à l'intérieur
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINES,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Gestukaay-Client"],  # identifiant d'onglet (securite.py)
     allow_credentials=True,  # cookie de session du back-office (décision 0037)
 )
 
@@ -74,7 +94,7 @@ async def _proteger(requete: Request, suite):
         probleme = Problem(title="Origine refusée", status=403)
         return JSONResponse(probleme.model_dump(), status_code=403, media_type="application/problem+json")
     if grp and requete.method != "OPTIONS" and securite.limites_actives():
-        attente = limiteur.attente(securite.adresse(requete), grp)
+        attente = limiteur.attente(securite.adresse(requete), grp, client=securite.client(requete))
         if attente:
             probleme = Problem(title="Trop de requêtes", status=429,
                                detail="Patientez un instant avant de réessayer.")
@@ -134,12 +154,15 @@ URL_PUBLIQUE = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000")
 
 
 def _conserver(rep: AskResponse, debut: float, req: AskRequest | None = None,
-               confirme_depuis: str | None = None) -> AskResponse:
+               confirme_depuis: str | None = None, voix: bool | None = None) -> AskResponse:
+    voix = bool(req and req.audio_retour) if voix is None else voix
     # Les URL relèvent du backend (interface.py) : adresse stable du site [EF-29]
     rep.reponse.url = f"{URL_PUBLIQUE.rstrip('/')}/r/{rep.reponse.id}"
     if isinstance(rep.reponse, ReponseExacte):
         # La citation (EF-35) renvoie à la même adresse stable que la réponse
         rep.reponse.citation = _URL_CITEE.sub(rep.reponse.url, rep.reponse.citation)
+    # Voix sur le web (décision 0040) : wolof seulement, et calculée à la demande par la route audio.ogg
+    rep.reponse.audio_url = f"/v1/answers/{rep.reponse.id}/audio.ogg" if voix and rep.reponse.langue == "wo" else None
     rep.reponse.latence_ms = round((time.perf_counter() - debut) * 1000)
     stockage.enregistrer(rep, req, confirme_depuis)
     return rep
@@ -176,17 +199,20 @@ FORMATS_AUDIO = {"audio/webm": "webm", "audio/ogg": "ogg"}
 
 
 @app.post("/v1/transcrire", response_model=TranscriptionResponse)
-async def transcrire(
+def transcrire(
     fichier: UploadFile,
     langue: Literal["fr", "wo", "auto"] = Form("auto"),
 ) -> TranscriptionResponse:
     """Voix sur le web (décision 0004 §1) : audio -> texte, que l'utilisateur
     corrige avant d'envoyer /v1/ask. L'audio n'est jamais écrit sur disque ni
-    conservé : il ne vit qu'en mémoire le temps de la transcription (10.7)."""
+    conservé : il ne vit qu'en mémoire le temps de la transcription (10.7).
+    Fonction ordinaire, pas « async » (audit du 09/10) : la transcription attend un service distant
+    jusqu'à 17 s (M-Kiriku puis ADIA) avec un client bloquant ; en « async », elle figeait toute l'API
+    pendant ce temps. Ici FastAPI la lance dans un fil à part, les autres requêtes continuent."""
     type_mime = (fichier.content_type or "").split(";")[0].strip()
     if type_mime not in FORMATS_AUDIO:
         raise ErreurApi(415, "Format audio non pris en charge", "WebM ou OGG (Opus) attendu.")
-    audio = await fichier.read(AUDIO_MAX_OCTETS + 1)
+    audio = fichier.file.read(AUDIO_MAX_OCTETS + 1)
     if len(audio) > AUDIO_MAX_OCTETS:
         raise ErreurApi(413, "Enregistrement trop long", "60 secondes au maximum.")
     if not audio:
@@ -213,7 +239,9 @@ def confirmer(rid: str, req: ConfirmRequest) -> AskResponse:
     choix = next((c for c in rep.choix if c.id == req.choix_id), None)
     if choix is None:
         raise ErreurApi(422, "Choix inconnu", f"choix_id={req.choix_id!r}")
-    return _conserver(moteur.executer(choix.requete, rep.question, rep.langue), debut, confirme_depuis=rid)
+    # Un choix fait après une question vocale garde la voix (décision 0040)
+    return _conserver(moteur.executer(choix.requete, rep.question, rep.langue), debut, confirme_depuis=rid,
+                      voix=rep.audio_url is not None)
 
 
 @app.get("/v1/answers/{rid}", response_model=AskResponse)
@@ -228,11 +256,59 @@ def _exacte(rid: str) -> ReponseExacte:
     return rep
 
 
+# Notes déjà dites, gardées en mémoire pour une réécoute (décision 0040) : jamais sur disque ni journalisées
+NOTES_EN_MEMOIRE, NOTES_DUREE_S = 64, 600.0
+_notes: dict[str, tuple[float, bytes]] = {}
+_verrous_notes: dict[str, threading.Lock] = {}
+_verrou_notes = threading.Lock()
+
+
+def _note(rep: AskResponse) -> bytes | None:
+    rid = rep.reponse.id
+    with _verrou_notes:
+        verrou = _verrous_notes.setdefault(rid, threading.Lock())
+    with verrou:  # le navigateur demande souvent deux fois (durée, puis lecture) : une seule synthèse
+        maintenant = time.monotonic()
+        with _verrou_notes:
+            for k in [k for k, (t, _) in _notes.items() if maintenant - t > NOTES_DUREE_S]:
+                del _notes[k]
+            if rid in _notes:
+                return _notes[rid][1]
+        try:
+            note = moteur.parler(rep)
+        finally:
+            with _verrou_notes:
+                _verrous_notes.pop(rid, None)
+        if note is None:
+            return None
+        with _verrou_notes:
+            while len(_notes) >= NOTES_EN_MEMOIRE:
+                del _notes[min(_notes, key=lambda k: _notes[k][0])]
+            _notes[rid] = (maintenant, note.opus)
+        return note.opus
+
+
+@app.get("/v1/answers/{rid}/audio.ogg")
+def audio(rid: str) -> Response:
+    """La réponse dite en wolof (EF-16, décision 0040), si la question a été posée à la voix."""
+    rep = _stockee(rid)
+    if rep.reponse.audio_url is None:
+        raise ErreurApi(404, "Pas de voix pour cette réponse")
+    try:
+        opus = _note(rep)
+    except Exception:  # une panne de la voix ne doit jamais casser la réponse : le texte reste
+        logging.getLogger("gestukaay.voix").exception("voix : note impossible (réponse %s)", rid)
+        opus = None
+    if opus is None:
+        raise ErreurApi(404, "Voix indisponible", "Le texte reste la réponse.")
+    return Response(opus, media_type="audio/ogg", headers={"Cache-Control": "private, max-age=600"})
+
+
 @app.get("/v1/answers/{rid}/export.csv")
 def export_csv(rid: str, decimale: Literal["point", "virgule"] = "point") -> Response:
     return Response(
         vers_csv(_exacte(rid), virgule_decimale=decimale == "virgule"),
-        media_type="text/csv; charset=utf-8",
+        media_type=TYPE_CSV,
         headers={"Content-Disposition": f'attachment; filename="gestukaay-{rid}.csv"'},
     )
 
@@ -308,7 +384,7 @@ def series_csv(
     fichier = re.sub(r"[^A-Za-z0-9._-]", "_", indicateur)  # nom de fichier toujours bien formé
     return Response(
         vers_csv_series(rep, url, virgule_decimale=decimale == "virgule"),
-        media_type="text/csv; charset=utf-8",
+        media_type=TYPE_CSV,
         headers={"Content-Disposition": f'attachment; filename="gestukaay-{fichier}.csv"'},
     )
 
@@ -371,9 +447,16 @@ def moi(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
     return {"identifiant": _admin(session)}
 
 
-def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | None,
+def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | None, retour: str | None,
             limite: int, decalage: int) -> FiltreJournal:
-    return FiltreJournal(issue=issue, canal=canal, langue=langue, texte=q, limite=limite, decalage=decalage)
+    return FiltreJournal(issue=issue, canal=canal, langue=langue, texte=q, retour=retour, limite=limite,
+                         decalage=decalage)
+
+
+def _cellule(valeur):
+    """Export ouvert dans un tableur : un texte saisi par l'usager (question, commentaire, suggestion) qui
+    commence par = + - @ y deviendrait une formule (injection CSV). Une apostrophe le garde en texte."""
+    return f"'{valeur}" if isinstance(valeur, str) and valeur[:1] in ("=", "+", "-", "@", "\t", "\r") else valeur
 
 
 @app.get("/admin/journal")
@@ -383,11 +466,12 @@ def journal(
     canal: str | None = None,
     langue: str | None = None,
     q: str | None = Query(None, max_length=100),
+    retour: Literal["signale", "pas_utile", "utile", "suggere"] | None = None,
     limite: int = Query(50, ge=1, le=500),
     decalage: int = Query(0, ge=0),
 ) -> dict:
     _admin(session)
-    total, lignes = stockage.journal(_filtre(issue, canal, langue, q, limite, decalage))
+    total, lignes = stockage.journal(_filtre(issue, canal, langue, q, retour, limite, decalage))
     return {"total": total, "lignes": lignes}
 
 
@@ -468,16 +552,17 @@ def journal_csv(
     canal: str | None = None,
     langue: str | None = None,
     q: str | None = Query(None, max_length=100),
+    retour: Literal["signale", "pas_utile", "utile", "suggere"] | None = None,
 ) -> Response:
     _admin(session)
-    _, lignes = stockage.journal(_filtre(issue, canal, langue, q, 100_000, 0))
+    _, lignes = stockage.journal(_filtre(issue, canal, langue, q, retour, 100_000, 0))
     sortie = io.StringIO()
-    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, "vote", "signalement", "suggestions"], delimiter=";")
+    w = csv.DictWriter(sortie, [*COLONNES_JOURNAL, *COLONNES_RETOURS], delimiter=SEPARATEUR, lineterminator="\r\n")
     w.writeheader()
-    w.writerows(lignes)
+    w.writerows({k: _cellule(v) for k, v in ligne.items()} for ligne in lignes)
     return Response(
-        "﻿" + sortie.getvalue(),  # BOM : Excel ouvre l'UTF-8 correctement
-        media_type="text/csv; charset=utf-8",
+        encoder_csv(sortie.getvalue()),  # même format Excel que les exports de réponse
+        media_type=TYPE_CSV,
         headers={"Content-Disposition": 'attachment; filename="gestukaay-journal.csv"'},
     )
 
@@ -564,7 +649,7 @@ async def whatsapp(requete: Request, taches: BackgroundTasks,
     attendue = "sha256=" + hmac.new(secret.encode(), corps, hashlib.sha256).hexdigest()
     if not signature or not secrets.compare_digest(signature, attendue):
         raise ErreurApi(403, "Signature invalide")
-    return _recevoir("whatsapp", corps, taches)
+    return await run_in_threadpool(_recevoir, "whatsapp", corps, taches)  # la base hors de la boucle
 
 
 @app.post("/webhooks/telegram")
@@ -575,4 +660,4 @@ async def telegram(requete: Request, taches: BackgroundTasks,
     attendu = _canal_ouvert("telegram", os.environ.get("TELEGRAM_SECRET_TOKEN"))
     if not jeton or not secrets.compare_digest(jeton, attendu):
         raise ErreurApi(403, "Jeton invalide")
-    return _recevoir("telegram", await requete.body(), taches)
+    return await run_in_threadpool(_recevoir, "telegram", await requete.body(), taches)

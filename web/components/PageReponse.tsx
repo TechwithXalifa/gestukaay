@@ -13,6 +13,7 @@ import { Reponse } from "@/components/Reponse";
 import { useEnLigne } from "@/hooks/useEnLigne";
 import { useLangue } from "@/i18n/langue";
 import { confirmer, demander, ErreurApi, lireReponse } from "@/lib/api";
+import { aEcouter } from "@/lib/ecoute";
 import { memoriser, retrouver } from "@/lib/historique";
 
 /**
@@ -36,8 +37,11 @@ export function PageReponse({ id, initiale }: { id: string; initiale: AskRespons
     setErreur(null);
     try {
       const r = await appel();
-      if (naviguer) router.push(`/r/${r.reponse.id}`);
-      else {
+      if (naviguer) {
+        // question vocale en wolof, ou choix qui la suit : la note démarre seule (0040) ; jamais à l'ouverture d'un lien
+        aEcouter(r.reponse.audio_url);
+        router.push(`/r/${r.reponse.id}`);
+      } else {
         memoriser(r);
         setReponse(r);
         setDepuisAppareil(false);

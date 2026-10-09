@@ -133,7 +133,7 @@ export default function JeuDeTest() {
   if (!identifiant) {
     return (
       <Cadre actif="jeu">
-        <Connexion titre="Jeu de test" bouton="Ouvrir le jeu de test" erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
+        <Connexion erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
       </Cadre>
     );
   }

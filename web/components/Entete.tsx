@@ -23,7 +23,7 @@ export const ENTREE_DONNEES = "/indicateurs";
 const espace = (actif: Actif) => (actif === "explorer" || actif === "indicateurs" ? "donnees" : actif);
 
 export function Entete({ actif = "question" }: { actif?: Actif }) {
-  const { langue, setLangue, t, incomplet } = useLangue();
+  const { langue, setLangue, t } = useLangue();
   const [menu, setMenu] = useState(false);
   const ici = espace(actif);
   const courant = (e: Actif) => (ici === e ? "page" : undefined);
@@ -84,7 +84,6 @@ export function Entete({ actif = "question" }: { actif?: Actif }) {
             ))}
           </div>
         </div>
-        {incomplet && <p className="bandeau-langue" role="status" lang="fr">{t("wo.enCours")}</p>}
       </header>
       <nav aria-label={t("nav.onglets")} className="barre-onglets">
         <Link href="/" aria-current={courant("question")}><Question taille={22} />{t("nav.demander")}</Link>
@@ -124,7 +123,6 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
       </div>
       <div className="pied-bas">
         <p>{adresse ? t("pied.adresse", { adresse: adresse.replace(/^https?:\/\//, "") }) : t("pied.donnees")}</p>
-        <p>{t("pied.independant")}</p>
       </div>
     </footer>
   );

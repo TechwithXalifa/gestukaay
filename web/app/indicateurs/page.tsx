@@ -14,7 +14,7 @@ import { catalogue } from "@/lib/api";
 import { TOUS_LES_DOMAINES } from "@/lib/domaines";
 import { nombre } from "@/lib/typo";
 
-const PAR_PAGE = 20;
+const PAR_PAGE = 24; // multiple de 2, 3 et 4 : la grille finit sans case vide
 type Indicateur = CatalogueResponse["indicateurs"][number];
 
 /**

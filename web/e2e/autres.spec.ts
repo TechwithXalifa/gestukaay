@@ -22,12 +22,13 @@ test("hors ligne : l'état s'affiche et la question est bloquée", async ({ page
   await context.setOffline(false);
 });
 
-test("bascule FR/WO : l'état est annoncé et le bandeau prévient", async ({ page }) => {
+test("bascule FR/WO : l'état est annoncé, sans bandeau d'avertissement", async ({ page }) => {
   await page.goto("/");
   const wo = page.getByRole("button", { name: "WO", exact: true });
   await wo.click();
   await expect(wo).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("status").filter({ hasText: "wolof" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "wo");
+  await expect(page.getByText(/en cours de validation/)).toHaveCount(0); // retiré le 09/10 : traduction faite
   await accessible(page, "accueil en wolof");
 });
 
@@ -52,7 +53,7 @@ test("journal des requêtes : connexion, filtres et détail", async ({ page }) =
   await page.goto("/admin/journal");
   await accessible(page, "journal, connexion");
   await seConnecter(page);
-  await page.getByRole("button", { name: "Ouvrir le journal" }).click();
+  await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page.getByRole("heading", { name: "Journal des requêtes" })).toBeVisible();
 
   await page.getByLabel("Issue :").selectOption("aucune");
@@ -139,12 +140,24 @@ test("pied de page : Méthode, À propos et Confidentialité", async ({ page }) 
   }
 });
 
+test("/admin mène à la connexion du back-office", async ({ page }) => {
+  await page.goto("/admin");
+  await page.waitForURL(/\/admin\/tableau$/);
+  await expect(page.getByLabel("Identifiant")).toBeVisible();
+  await expect(page.getByLabel("Mot de passe")).toBeVisible();
+  // Sans connexion, rien ne dit ce que contient le back-office
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Connexion au back-office");
+  await expect(page.getByRole("navigation", { name: "Back-office" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Journal des requêtes" })).toHaveCount(0);
+  await accessible(page, "connexion au back-office");
+});
+
 test("tableau de bord : indicateurs, issues et questions non résolues (US-28)", async ({ page }) => {
   await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
   await page.goto("/admin/tableau");
   await accessible(page, "tableau de bord, connexion");
   await seConnecter(page);
-  await page.getByRole("button", { name: "Ouvrir le tableau de bord" }).click();
+  await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
   await expect(page.getByText("Questions traitées")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Issues du moteur" })).toBeVisible();
@@ -191,7 +204,7 @@ test("méthode : le taux de bonnes réponses aux tests est publié, et lui seul 
 test("jeu de test : écran du back-office, benchmark réservé au moteur réel (5.10)", async ({ page }) => {
   await page.goto("/admin/jeu-de-test");
   await seConnecter(page);
-  await page.getByRole("button", { name: "Ouvrir le jeu de test" }).click();
+  await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page.getByRole("heading", { name: "Jeu de test" })).toBeVisible();
   await expect(page.getByText(/\d+ questions de référence/)).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "faux moteur" })).toBeVisible();

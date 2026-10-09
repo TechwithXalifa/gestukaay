@@ -9,7 +9,7 @@ import { Actions } from "./Actions";
 import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
 import { Retour } from "./Retour";
-import { chiffres, insecables } from "@/lib/typo";
+import { chiffres, insecables, titreSource } from "@/lib/typo";
 import { Base, Certifie, Externe, Fleche, Info, Livre, Micro, Tendance } from "./icones";
 
 type R = AskResponse["reponse"];
@@ -35,6 +35,7 @@ export function Reponse({
         <article className="carte" aria-labelledby="titre-reponse">
           <span className="badge approchee"><Info taille={16} />{t("reponse.approchee")}</span>
           <p id="titre-reponse" className="explication">{insecables(r.reformulation)}</p>
+          {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
           <div className="choix">
             {r.choix.map((c) => (
               <button key={c.id} type="button" className="secondaire" onClick={() => onChoix(c.id)}>
@@ -50,6 +51,7 @@ export function Reponse({
         return (
           <article className="carte bulle-conversation" aria-labelledby="titre-reponse">
             <h1 id="titre-reponse" className="texte-conversation">{insecables(r.message)}</h1>
+            {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
             <Suggestions r={r} onQuestion={onQuestion} />
           </article>
         );
@@ -63,6 +65,7 @@ export function Reponse({
             ) : (
               <h1 id="titre-reponse" className="titre-etat">{t("reponse.incompris")}</h1>
             )}
+            {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
             <p className="explication">{t("reponse.incomprisAide")}</p>
             <div className="exemples gauche">
               {EXEMPLES_INCOMPRIS.map((e) => (
@@ -83,6 +86,7 @@ export function Reponse({
         <article className="carte" aria-labelledby="titre-reponse">
           <span className="pastille-icone"><Base taille={24} /></span>
           <h1 id="titre-reponse" className="titre-etat">{insecables(r.message)}</h1>
+          {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
           <Suggestions r={r} onQuestion={onQuestion} />
           {/* EF-51 : suggérer un indicateur n'a de sens que s'il manque au socle */}
           {r.motif === "hors_socle" && <SuggererIndicateur reponseId={r.id} question={r.question} />}
@@ -197,10 +201,12 @@ function Exacte({ r }: { r: ReponseExacte }) {
         {r.graphique && <Graphique g={r.graphique} />}
         <aside aria-label={t("reponse.source")} className="bloc-source">
           <p className="bloc-source-titre"><Livre />{t("reponse.source")}</p>
+          {/* Le libellé (« ANSD · RGPH-5 · publié le… ») est déjà sous le chiffre : ici seulement s'il faut
+              distinguer plusieurs sources (audit du 09/10, source écrite trois fois) */}
           {sources.map((s) => (
             <div key={s.url}>
-              <p>{s.titre}</p>
-              <p className="discret">{s.libelle}</p>
+              <p>{titreSource(s.titre)}</p>
+              {sources.length > 1 && <p className="discret">{s.libelle}</p>}
             </div>
           ))}
           {r.note_perimetre && <p className="discret">{t("reponse.perimetre", { note: r.note_perimetre })}</p>}

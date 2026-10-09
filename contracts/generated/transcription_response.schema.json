@@ -3,7 +3,7 @@
   "description": "Réponse de POST /v1/transcrire [EF-11, EF-15, US-09].\n\nCorps de la requête : multipart, champ `fichier` (WebM/OGG Opus, 60 s\nmax) et champ facultatif `langue` (fr | wo | auto). L'audio n'est pas\nconservé (10.7). Le web affiche `transcription`, l'utilisateur la corrige,\npuis envoie POST /v1/ask avec source=\"voix\".",
   "properties": {
     "version_contrat": {
-      "default": "1.6.0",
+      "default": "1.7.0",
       "type": "string"
     },
     "transcription": {
