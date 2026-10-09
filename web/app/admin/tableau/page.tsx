@@ -95,7 +95,7 @@ export default function TableauDeBord() {
   if (!identifiant) {
     return (
       <Cadre actif="tableau">
-        <Connexion titre="Tableau de bord" bouton="Ouvrir le tableau de bord" erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
+        <Connexion erreur={avis ?? erreur} verification={identifiant === undefined} onConnecter={connecter} />
       </Cadre>
     );
   }
