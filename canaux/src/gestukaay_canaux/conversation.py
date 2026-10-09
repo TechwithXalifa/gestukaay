@@ -47,7 +47,7 @@ class Envoyeur(Protocol):
 
     def accuser(self, destinataire: str, contenu: Contenu) -> None: ...
     def texte(self, destinataire: str, texte: str) -> None: ...
-    def choix(self, destinataire: str, choix: list[Choix]) -> None: ...
+    def choix(self, destinataire: str, choix: list[Choix], message: str) -> None: ...  # un seul message
     def media(self, contenu: Contenu) -> bytes: ...
     def preparer_vocal(self, destinataire: str) -> None: ...  # « enregistre un audio… » si le canal le sait
     def vocal(self, destinataire: str, opus: bytes) -> None: ...  # note vocale OGG/Opus
@@ -111,13 +111,14 @@ def _envoyer(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur
     s: Sortant = formater(rep, envoyeur.gras)
     # la voix est en wolof (EF-20, seule voix du projet) : une question vocale en français reçoit le texte complet,
     # en français (choix de KBD, 08/10 : une note wolof répondait à une question posée en français)
-    if rep.reponse.transcription is not None and rep.reponse.langue == "wo" and _dire(dest, rep, services, envoyeur):
+    vocal = rep.reponse.transcription is not None and rep.reponse.langue == "wo" and _dire(dest, rep, services, envoyeur)
+    if s.choix:  # approchée : le texte et les boutons en UN message (#213 : les choix partaient deux fois)
+        envoyeur.choix(dest, s.choix, s.texte)
+    elif vocal:
         if f := fiche(rep, envoyeur.gras):  # question vocale : la voix est partie, puis la fiche
             envoyeur.texte(dest, f)
     else:  # question écrite, ou voix indisponible ou en panne : le texte complet
         envoyeur.texte(dest, s.texte)
-    if s.choix:
-        envoyeur.choix(dest, s.choix)
 
 
 def _dire(dest: str, rep: AskResponse, services: Services, envoyeur: Envoyeur) -> bool:
