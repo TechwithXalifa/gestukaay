@@ -362,7 +362,6 @@ export const fr = {
   "pied.titreConfiance": "Confiance",
   "pied.donnees": "Données : ANSD et producteurs officiels du portail Open Data.",
   // Seule mention d'indépendance du site depuis le retrait de l'encadré d'« À propos » (#181)
-  "pied.independant": "Projet indépendant, non affilié à l'ANSD.",
   "accueil.socle.titre": "Des chiffres publiés, rien d'autre.",
   "accueil.socle.valeurs": "valeurs officielles",
   "accueil.socle.indicateurs": "indicateurs",
