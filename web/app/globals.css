@@ -86,8 +86,9 @@ main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .bouton-icone:hover:not(:disabled) { box-shadow: var(--ombre-or); }
 .bouton-icone:disabled { background: var(--squelette); color: var(--encre-douce); cursor: not-allowed; }
 .bouton-icone.occupe:disabled { background: linear-gradient(150deg, var(--or-clair), var(--or)); color: var(--sur-or); cursor: progress; }
-.bouton-icone.micro { border-radius: var(--radius-full); background: var(--baobab); color: var(--sur-baobab); }
-.bouton-icone.micro:hover:not(:disabled) { box-shadow: 0 0 0 6px var(--baobab-50); }
+/* Micro : brun-noir de l'en-tête et icône or, distinct du bouton d'envoi (dégradé or) */
+.bouton-icone.micro { border-radius: var(--radius-full); background: var(--sombre); color: var(--or-clair); }
+.bouton-icone.micro:hover:not(:disabled) { box-shadow: 0 0 0 6px var(--or-50); }
 .bouton-icone.micro:disabled { background: var(--squelette); color: var(--encre-douce); }
 
 /* ---- Champ de question ------------------------------------------------ */
