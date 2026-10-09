@@ -9,6 +9,7 @@ export default function APropos() {
     <PageTexte titre="apropos.titre">
       <p className="explication">{t("apropos.texte1")}</p>
       <p>{t("apropos.texte2")}</p>
+      <p>{t("apropos.origine")}</p>
       <p className="note">{t("apropos.contact")}</p>
     </PageTexte>
   );
