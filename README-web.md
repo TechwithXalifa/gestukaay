@@ -86,7 +86,7 @@ Les erreurs suivent la RFC 9457 (`application/problem+json`) : 404 réponse intr
 ### 3.3 Exports (`exports.py`)
 
 - **CSV** : colonnes EF-34 dans l'ordre, UTF-8 avec BOM pour Excel, séparateur `;`, valeur brute jamais reformatée.
-- **PDF** (fpdf2, polices Poppins et Lora embarquées) : logo baobab, question, badge, valeurs, badge projection ou estimation avec sa base, explication, graphique en barres (8 au plus, zone demandée en vert, ordre du moteur conservé), bloc source sur fond Coton, citation, adresse, date de génération. Toujours une seule page : s'il manque de place, on met moins de barres.
+- **PDF** (fpdf2, polices de la charte v2 embarquées : Unbounded, Bricolage Grotesque, Space Mono, licence OFL) : une **fiche statistique officielle**, pas une copie de la page. Bandeau sombre et frise ; titre = l'indicateur, puis zone et période ; statut (sceau « correspondance exacte », ou projection / estimation avec sa base) ; chiffre clé à côté d'une fiche technique (zone, période, producteur, opération, publication, nature) ; lecture ; mise en perspective (barres, 8 au plus, zone demandée en baobab, ordre du moteur conservé) ; source et méthode, citation EF-35 ; pied avec adresse, licence et page. Toujours une seule page : s'il manque de place, on met moins de barres.
 - **Licence (décision 0016)** : en pied, « Export Gëstukaay sous licence CC BY 4.0 » pour notre mise en forme ; dans le bloc source, la licence publiée par le portail, sinon « non précisée par le portail ». On n'écrit jamais qu'un jeu de l'ANSD est sous CC BY sans preuve.
 
 ### 3.4 Sécurité (`securite.py`)
@@ -171,7 +171,7 @@ Filtres canal, langue, issue et recherche ; tableau paginé par 50 ; une requêt
 ### 4.10 Sécurité et performance du site
 
 - CSP en production (nos scripts, notre API, l'audio, rien d'autre), `Permissions-Policy` (micro pour le site seulement), pas d'en-tête `X-Powered-By`.
-- Polices Unbounded, Bricolage Grotesque et Space Mono auto-hébergées (next/font), sous-ensemble latin, `font-display: swap`. Plus aucune requête vers un tiers. Le PDF garde pour l'instant Poppins et Lora (décision 0036).
+- Polices Unbounded, Bricolage Grotesque et Space Mono auto-hébergées (next/font), sous-ensemble latin, `font-display: swap`. Plus aucune requête vers un tiers. Le PDF embarque les mêmes polices, en TTF statiques (`backend/src/gestukaay_backend/polices`).
 - Mesures Lighthouse en 3G rapide simulée, processeur ralenti ×4, écran 360 × 640 (`docs/performance.md`) :
 
 | | Cible | Accueil | Réponse | Où je me situe |
