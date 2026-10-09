@@ -324,7 +324,8 @@ def comparaison(resultats: list[Resultat], ind: Indicateur) -> str:
         tete += " " + periode_en_lettres(resultats[0].periode.valeur)
     phrases = [f"{tete} : {', '.join(morceaux[:-1])} et {morceaux[-1]}."]
     haut = max(resultats, key=lambda r: r.valeur)
-    if sum(r.valeur == haut.valeur for r in resultats) == 1:
+    # « la plus élevée » seulement à la même date : deux années différentes ne se classent pas (#212)
+    if memes_periodes and sum(r.valeur == haut.valeur for r in resultats) == 1:
         phrases.append(f"La valeur la plus élevée est celle {zone_en_lettres(haut.zone.code)['de']}.")
     phrases.append(notes(resultats[0], arrondi))
     return " ".join(p for p in phrases if p)

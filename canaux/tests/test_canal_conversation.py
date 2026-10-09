@@ -131,6 +131,8 @@ def test_vocal_transcrit_puis_repondu():
     traiter(entrant(type="audio", media="300000000000001"), s, e)
     assert appels == [("demander", tr.transcription, {"source": "voix", "transcription_brute": tr.transcription,
                                                        "audio_retour": True})]
+    # EF-15, US-07 : la transcription comprise part d'abord, pour pouvoir répondre « non » (audit du 09/10)
+    assert e.textes()[0] == f"{texte('compris')} « Ñaata nit ñoo dëkk Tiés ? »"
 
 
 def test_vocal_trop_gros_invite_a_reformuler():
@@ -187,8 +189,8 @@ def test_question_vocale_la_voix_puis_une_fiche():
     e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=tr,
                                       demander=lambda q: avec_question(q, transcription=q))
     traiter(entrant(type="audio", media="300000000000001"), s, e)
-    assert [k for k, _ in e.envois] == ["accuse", "preparer_vocal", "vocal", "texte"]
-    assert e.envois[2] == ("vocal", b"OggS-note")
+    assert [k for k, _ in e.envois] == ["accuse", "texte", "preparer_vocal", "vocal", "texte"]  # « J'ai compris »
+    assert e.envois[3] == ("vocal", b"OggS-note")
     ligne, lien, mention = e.textes()[-1].split("\n")  # revue de SAN : se suffit si on la transfère
     assert "2\u202f463\u202f677" in ligne and "Source" in ligne and " · " in ligne
     assert lien.startswith("http") and mention == "— gestukaay"
@@ -200,7 +202,7 @@ def test_question_vocale_en_francais_le_texte_complet_en_francais():
     e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), transcrire=tr,
                                       demander=lambda q: avec_question(q, transcription=q, langue="fr"))
     traiter(entrant(type="audio", media="300000000000001"), s, e)
-    assert [k for k, _ in e.envois] == ["accuse", "texte"]  # ni « enregistre un audio… » ni note wolof
+    assert [k for k, _ in e.envois] == ["accuse", "texte", "texte"]  # « J'ai compris », puis le texte ; ni note wolof
     assert "2\u202f463\u202f677" in e.textes()[-1]
 
 
@@ -244,7 +246,7 @@ def test_approchee_vocale_la_voix_puis_les_choix():
                                       demander=lambda q: rep("approchee").model_copy(update={"reponse": rep(
                                           "approchee").reponse.model_copy(update={"transcription": q, "langue": "wo"})}))
     traiter(entrant(type="audio", media="300000000000001"), s, e)
-    assert [k for k, _ in e.envois] == ["accuse", "preparer_vocal", "vocal", "choix"]
+    assert [k for k, _ in e.envois] == ["accuse", "texte", "preparer_vocal", "vocal", "choix"]  # « J'ai compris »
 
 
 def test_envoi_de_la_note_en_panne_le_texte_complet_part():

@@ -82,6 +82,9 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
             return envoyeur.texte(dest, texte("reformuler"))
         if not tr.transcription.strip():  # rien d'audible ou de compris
             return envoyeur.texte(dest, texte("reformuler"))
+        # EF-15, US-07, P1 étape 3 : la transcription comprise d'abord, pour que l'utilisateur voie ce qui a été
+        # entendu et puisse répondre « non » / « déet » (US-09) ; la réponse suit
+        envoyeur.texte(dest, f"{texte('compris')} « {tr.transcription.strip()} »")
         rep = services.demander(tr.transcription, source="voix", transcription_brute=tr.transcription,
                                 audio_retour=True)
         return _envoyer(dest, rep, services, envoyeur)

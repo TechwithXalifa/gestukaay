@@ -74,6 +74,21 @@ def test_journal_jamais_en_cache(connecter):
 
 
 
+def test_erreur_imprevue_problem_avec_code_d_incident(monkeypatch):
+    """Cahier 7.3 : message humain, code d'incident discret, jamais de trace ; lisible par le site (CORS)."""
+    def panne(*a, **k):
+        raise RuntimeError("détail interne à ne jamais montrer")
+
+    monkeypatch.setattr(module_app.moteur, "repondre", panne)
+    origine = module_app.ORIGINES[0]
+    r = client.post("/v1/ask", json={"question": "Combien d'habitants à Thiès ?"}, headers={"Origin": origine})
+    assert r.status_code == 500 and r.headers["content-type"].startswith("application/problem+json")
+    corps = r.json()
+    assert corps["title"] == "Erreur interne" and len(corps["code_incident"]) == 8
+    assert "détail interne" not in r.text
+    assert r.headers["access-control-allow-origin"] == origine  # le navigateur peut lire l'erreur
+
+
 def test_jeton_de_verification_masque_dans_le_journal():
     """09/10 : le journal d'accès d'uvicorn écrivait hub.verify_token en clair."""
     import logging

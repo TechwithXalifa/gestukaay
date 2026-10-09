@@ -101,7 +101,9 @@ def formuler_question_suggeree(ind: Indicateur, zone_code: str = "SN") -> str:
         return f"Quel est le taux de pauvreté {lieu} ?"
     if "gini" in code:
         return f"Quel est l'indice de Gini {lieu} ?"
-    if "inflation" in normaliser(ind.libelle_fr) or code == "tsghpfc.indice-global":
+    if code == "tsghpfc.indice-global":  # le niveau de l'indice, pas l'inflation (#207 : « inflation » est refusée)
+        return f"Quel est l'indice des prix à la consommation {lieu} ?"
+    if "inflation" in normaliser(ind.libelle_fr):
         return f"Quelle est l'inflation {lieu} ?"
     if "salaire" in normaliser(ind.libelle_fr):
         return f"Quel est le salaire moyen {lieu} ?"
