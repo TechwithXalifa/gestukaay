@@ -14,7 +14,7 @@ from gestukaay_backend.canaux import Entrant, Services
 from gestukaay_contracts.models import Choix
 
 from .conversation import Contenu, traiter
-from .media import telecharger
+from .media import relance, telecharger
 from .textes import texte
 
 DELAI_S = 10
@@ -55,9 +55,12 @@ class ClientTelegram:
             raise ErreurTelegram("TELEGRAM_BOT_TOKEN absent de l'environnement")
         return jeton
 
+    def _client(self) -> httpx.Client:
+        return httpx.Client(timeout=DELAI_S, transport=self._transport, mounts=relance(self._transport))
+
     def _appel(self, methode: str, corps: dict) -> dict:
         try:
-            with httpx.Client(timeout=DELAI_S, transport=self._transport) as h:
+            with self._client() as h:
                 r = h.post(f"https://api.telegram.org/bot{self._jeton()}/{methode}", json=corps)
                 r.raise_for_status()
                 return r.json().get("result") or {}
@@ -84,7 +87,7 @@ class ClientTelegram:
     def vocal(self, destinataire: str, opus: bytes) -> None:
         """Note vocale (0029). Erreur relancée sans l'adresse, qui contient le jeton du bot."""
         try:
-            with httpx.Client(timeout=DELAI_S, transport=self._transport) as h:
+            with self._client() as h:
                 h.post(f"https://api.telegram.org/bot{self._jeton()}/sendVoice", data={"chat_id": destinataire},
                        files={"voice": ("reponse.ogg", opus, "audio/ogg")}).raise_for_status()
         except httpx.HTTPError as e:
@@ -93,7 +96,7 @@ class ClientTelegram:
     def media(self, contenu: Contenu) -> bytes:
         chemin = self._appel("getFile", {"file_id": contenu.media}).get("file_path", "")
         try:
-            with httpx.Client(timeout=DELAI_S, transport=self._transport) as h:
+            with self._client() as h:
                 return telecharger(h, f"https://api.telegram.org/file/bot{self._jeton()}/{chemin}")
         except httpx.HTTPError as e:
             raise ErreurTelegram(f"Telegram fichier : {type(e).__name__}") from None

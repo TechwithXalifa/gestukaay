@@ -259,3 +259,16 @@ def test_envoi_de_la_note_en_panne_le_texte_complet_part():
     assert texte("erreur") not in e.textes()
     assert "2\u202f463\u202f677" in e.textes()[-1] and "— gestukaay" in e.textes()[-1]  # le texte complet
 
+
+
+def test_accuse_en_panne_la_reponse_part_quand_meme(caplog):
+    # essais du 09/10 : « lu » refusé par Meta (400), « en train d'écrire » injoignable (Telegram) -> aucune réponse
+    class SansAccuse(Envoyeur):
+        def accuser(self, destinataire, contenu):
+            raise RuntimeError("Telegram sendChatAction : ConnectTimeout")
+
+    e, (s, _) = SansAccuse(), services(derniere=rep("exacte_valeur"))
+    with caplog.at_level("WARNING"):
+        traiter(entrant(type="texte", texte="Combien d'habitants à Thiès ?"), s, e)  # ne remonte pas
+    assert texte("erreur") not in e.textes() and "2\u202f463\u202f677" in e.textes()[-1]
+    assert "accusé non envoyé" in caplog.text and "221700000001" not in caplog.text
