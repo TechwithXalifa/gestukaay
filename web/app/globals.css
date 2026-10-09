@@ -142,10 +142,6 @@ main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 /* Choix WO retenu, avant que React ait relu la préférence (voir layout.tsx) */
 html[data-langue="wo"] .bascule button[lang="fr"] { background: transparent; color: var(--sur-sombre-doux); }
 html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair); color: var(--sur-or); }
-.bouton-poser { flex: none; min-height: 44px; padding: 0 16px; border-radius: var(--radius-full); font-size: 14px; }
-/* Un seul bouton or plein par écran (design system) : dans l'en-tête, il reste en contour */
-.entete .bouton-poser { background: transparent; border: 1px solid var(--or-clair); color: var(--or-clair); box-shadow: none; }
-.entete .bouton-poser:hover { background: var(--or-clair); color: var(--sur-or); box-shadow: none; }
 .bandeau-langue { margin: 8px 0 0; padding: 8px 16px; border-radius: var(--radius-md); background: var(--or-50); color: var(--encre); font-size: 13px; line-height: 18px; text-align: center; box-shadow: var(--ombre-carte); }
 
 /* Barre d'onglets mobile (< 768 px) : Demander, Données, Me situer, Plus */
@@ -602,7 +598,7 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
   .site.admin { padding-bottom: 0; }
   .entete { width: calc(100% - 16px); }
   .entete-int { padding: 0 4px 0 14px; gap: 12px; }
-  .nav, .bouton-poser { display: none; }
+  .nav { display: none; }
   .bascule { margin-left: auto; }
   .logo { font-size: 18px; }
   .barre-onglets { display: grid; }
