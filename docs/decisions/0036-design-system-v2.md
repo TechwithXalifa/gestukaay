@@ -61,6 +61,8 @@ courts), sans toucher aux fonctionnalités ni aux adresses.
   le test de la page Méthode suit le point 8 ; un test mobile vérifie que « Continuer » (Où je me
   situe) n'est jamais recouvert par la barre d'onglets ; un autre, que l'en-tête se cache en
   descendant et revient en remontant ou au clavier.
-- **Reste à faire** : le PDF exporté garde Poppins, Lora et l'ancienne palette (polices TTF à
-  embarquer dans `backend/src/gestukaay_backend/polices`) ; les maquettes du cahier (§9) sont à
-  mettre à jour pour la v1.2 du document.
+- **PDF exporté** (09/10) : fiche statistique officielle dans la charte v2 (bandeau sombre, frise,
+  chiffre clé et fiche technique, lecture, mise en perspective, source et citation), polices
+  Unbounded, Bricolage Grotesque et Space Mono en TTF statiques (OFL) dans
+  `backend/src/gestukaay_backend/polices` ; Poppins et Lora retirées.
+- **Reste à faire** : les maquettes du cahier (§9) sont à mettre à jour pour la v1.2 du document.
