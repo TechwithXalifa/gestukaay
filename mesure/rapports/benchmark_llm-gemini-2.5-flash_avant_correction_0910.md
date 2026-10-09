@@ -1,19 +1,19 @@
-# Rapport de Benchmark — Gëstukaay (regles)
+# Rapport de Benchmark — Gëstukaay (llm-gemini-2.5-flash)
 
-- **Date** : 2026-10-09 01:08:05 UTC
-- **Mode** : `regles`
+- **Date** : 2026-10-09 00:48:45 UTC
+- **Mode** : `llm-gemini-2.5-flash`
 - **Jeu de test** : 113 questions officielles
 
 ## 1. Cibles du cahier des charges (§12)
 
 | Mesure | Cible | Obtenu | Statut |
 |---|---|---|---|
-| **Chiffres faux affichés** (confiance) | 0 | **0** | CONFORME |
-| **Exactitude** (sourcée, sur 84 questions) | ≥ 85 % | **100.0 %** (84/84) | CONFORME |
-| **Refus pertinent** (sur 19 refus) | ≥ 95 % | **89.5 %** (17/19) | indicatif |
+| **Chiffres faux affichés** (confiance) | 0 | **1** | NON CONFORME |
+| **Exactitude** (sourcée, sur 84 questions) | ≥ 85 % | **95.2 %** (80/84) | CONFORME |
+| **Refus pertinent** (sur 19 refus) | ≥ 95 % | **100.0 %** (19/19) | CONFORME |
 | Hors sujet : réponse de conversation (0033) | — | **10/10** | indicatif |
-| **Invariant « zéro chiffre inventé »** | Tolérance 0 | **0 violation(s)** | **CONFORME** |
-| **Latence médiane** | < 3,0 s | **2.4 ms** (P95: 8.0 ms) | indicatif |
+| **Invariant « zéro chiffre inventé »** | Tolérance 0 | **6 violation(s)** | **VIOLATION** |
+| **Latence médiane** | < 3,0 s | **1501.5 ms** (P95: 5029.3 ms) | CONFORME |
 
 ## 2. Sous-scores par type de question
 
@@ -24,24 +24,29 @@
 | Comparaison spatiale (multi-zones) | 10/10 | 100.0 % |
 | Comparaison temporelle (deux périodes) | 5/5 | 100.0 % |
 | Hors sujet (réponse de conversation, 0033) | 10/10 | 100.0 % |
-| Refus officiel (hors socle, projection, inintelligible) | 17/19 | 89.5 % |
-| Simple (valeur exacte directe) | 43/43 | 100.0 % |
+| Refus officiel (hors socle, projection, inintelligible) | 19/19 | 100.0 % |
+| Simple (valeur exacte directe) | 39/43 | 90.7 % |
 | Suivi contextuel (suite_de) | 5/5 | 100.0 % |
 
 ## 3. Sous-scores par langue
 
 | Langue | Réussite | Pourcentage |
 |---|---|---|
-| Français | 78/78 | 100.0 % |
+| Français | 76/78 | 97.4 % |
 | Wolof | 33/35 | 94.3 % |
 
 ## 4. Invariant « zéro chiffre inventé »
 
-> **Invariant strictement vérifié** : aucune violation détectée sur les 113 questions.
-- Volet (a) : 100 % des `Resultat` servis proviennent d'une observation du socle avec la valeur exacte.
-- Volet (b) : 100 % des points de graphiques correspondent à des observations du socle.
-- Volet (c) : tous les chiffres figurant dans les explications appartiennent à la liste blanche des données officielles affichées.
-- Volet (d) : aucune valeur numérique statistique n'apparaît dans une réponse approchée ou un refus.
+> **ALERTE : 6 violation(s) de l'invariant constatée(s) !**
+
+| Question | Volet | Détail |
+|---|---|---|
+| WO-009 | b | point barre Matam (SN-MT) y=3419.0 absent du socle pour l'indicateur wrqfsxb.quantite |
+| WO-009 | b | point barre Sédhiou (SN-SE) y=1772.0 absent du socle pour l'indicateur wrqfsxb.quantite |
+| WO-009 | b | point barre Kédougou (SN-KE) y=1309.0 absent du socle pour l'indicateur wrqfsxb.quantite |
+| WO-009 | b | point barre Tambacounda (SN-TC) y=900.0 absent du socle pour l'indicateur wrqfsxb.quantite |
+| WO-009 | b | point barre Kolda (SN-KD) y=804.0 absent du socle pour l'indicateur wrqfsxb.quantite |
+| WO-009 | b | point barre Kaffrine (SN-KA) y=53.0 absent du socle pour l'indicateur wrqfsxb.quantite |
 
 ## 5. Changements du jeu de test
 
@@ -64,9 +69,11 @@ Attendus modifiés ou questions ajoutées depuis la première mesure, avec leur 
 | FR-075|FR-076|FR-077|FR-078 | 2026-10-08 | 0033 | Questions ajoutées : quatre hors-sujet (points cardinaux, capitale de la Zambie, champion de football, maire de Saint-Louis). | Écrites par KBD. Avant ajout, en règles : points cardinaux -> points d'eau (approchée), football et maire -> « donnée absente », le LLM répondait bien en conversation. |
 | FR-018 | 2026-10-08 | 0035 | Attendu changé : 1 011 269 t (ovothxc, 2017) devient 991 551 t (dwehszb, 2023). | La question ne cite pas d'année : la dernière valeur publiée est attendue (US-06). dwehszb (BADIS) est la même série que ovothxc (1 011 269 t en 2017 dans les deux) et publie 2023. Signalé dans #162 (recette du 8/10), validé par KBD le 8/10 (dwehszb vérifié) : changé après la mesure, signalé ici pour qu'on ne lise pas un examen ajusté au moteur. |
 
-## 6. Détail des écarts (2 questions non conformes)
+## 6. Détail des écarts (4 questions non conformes)
 
 | Id | Type | Langue | Attendu | Obtenu | Détail |
 |---|---|---|---|---|---|
-| WO-032 | refus | wo | aucune | approchee | issue attendue aucune, obtenu approchee |
-| WO-033 | refus | wo | aucune | approchee | issue attendue aucune, obtenu approchee |
+| FR-015 | simple | fr | exacte | approchee | issue attendue exacte, obtenu approchee |
+| FR-049 | simple | fr | exacte | aucune | issue attendue exacte, obtenu aucune |
+| WO-009 | simple | wo | exacte | exacte | attendu [('SN', '2024', 361077.455)] != obtenu [('SN-DK', '2024', 59467.792), ('SN-FK', '2024', 25457.869), ('SN-KA', '2024', 53.0), ('SN-KD', '2024', 804.0), ('SN-KE', '2024', 1309.0), ('SN-KL', '2024', 243.056), ('SN-LG', '2024', 456.61), ('SN-MT', '2024', 3419.0), ('SN-SE', '2024', 1772.0), ('SN-SL', '2024', 108982.837), ('SN-TC', '2024', 900.0), ('SN-TH', '2024', 98893.9), ('SN-ZG', '2024', 67575.391)] |
+| WO-021 | simple | wo | exacte | aucune | issue attendue exacte, obtenu aucune |

@@ -340,8 +340,7 @@ def proposer_approchee(
             desag = dict(requete.desagregation or {})
             desag[dim] = m
             req_c = requete.model_copy(update={"desagregation": desag})
-            z_code = requete.zones[0] if requete.zones else "SN"
-            lib = f"{m} ({_nom_zone(z_code, langue)})"
+            lib = f"{m}{_portee(req_c, langue)}"  # « Pêche artisanale, par région » pour un classement
             candidats_choix.append((req_c, lib))
         reformulation = (
             "Veuillez préciser la catégorie souhaitée parmi celles pour lesquelles l'ANSD publie ce chiffre. "
