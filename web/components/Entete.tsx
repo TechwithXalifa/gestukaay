@@ -124,6 +124,7 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
       </div>
       <div className="pied-bas">
         <p>{adresse ? t("pied.adresse", { adresse: adresse.replace(/^https?:\/\//, "") }) : t("pied.donnees")}</p>
+        <p>{t("pied.independant")}</p>
       </div>
     </footer>
   );
