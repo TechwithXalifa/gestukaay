@@ -4,7 +4,8 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 WORKDIR /app
-ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy PYTHONUTF8=1 PYTHONUNBUFFERED=1 HF_HOME=/modeles
+# Délai réseau de uv relevé (30 s par défaut) : les paquets CUDA font jusqu'à 700 Mo (build du 09/10)
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy PYTHONUTF8=1 PYTHONUNBUFFERED=1 HF_HOME=/modeles UV_HTTP_TIMEOUT=300
 RUN uv pip install --system --no-cache --index-strategy unsafe-best-match \
       --extra-index-url https://download.pytorch.org/whl/cu126 \
       "torch==2.11.0+cu126" "transformers==4.57.6" "av==19.0.1" "numpy==2.5.3" \
