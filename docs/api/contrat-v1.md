@@ -49,7 +49,7 @@ il la complète (`latence_ms`), la stocke, et la renvoie telle quelle.
 | `POST /v1/ask/{id}/confirm` | `ConfirmRequest` | `AskResponse` (issue `exacte`) | SAN | EF-06, US-03 |
 | `GET /v1/answers/{id}` | — | `AskResponse` | SAN | EF-29 |
 | `GET /v1/answers/{id}/export.pdf` | — | `application/pdf` (A4, 1 page) | SAN | EF-33 |
-| `GET /v1/answers/{id}/export.csv` | — | `text/csv` (schéma EF-34) | SAN | EF-34 |
+| `GET /v1/answers/{id}/export.csv` | — | `text/csv; charset=utf-16` (schéma EF-34) : UTF-16 avec BOM, colonnes séparées par des tabulations, pour qu'Excel l'ouvre en colonnes dans toutes les langues (KBD, 09/10). Même format pour `/v1/series.csv` et `/admin/journal.csv`. pandas : `read_csv(f, sep="\t", encoding="utf-16")` | SAN | EF-34 |
 | `GET /v1/answers/{id}/chart.svg` | — | `image/svg+xml` | SAN | EF-26, EF-27 |
 | `GET /v1/answers/{id}/audio.ogg` | — | `audio/ogg` (Opus, 60 Ko au plus) ; `404` si la réponse n'a pas de voix — **1.7.0** | SAN (route) · KBD (voix) | EF-16, EF-20 |
 | `POST /v1/feedback` | `FeedbackRequest` | `204` | SAN | EF-49–51 |

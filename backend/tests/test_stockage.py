@@ -88,8 +88,8 @@ def test_admin_journal(connecter):
     r = client.get("/admin/journal", params={"issue": "aucune", "limite": 1})
     assert r.status_code == 200 and r.json()["total"] >= 1 and len(r.json()["lignes"]) == 1
     csv = client.get("/admin/journal.csv")
-    assert csv.status_code == 200 and csv.text.startswith("﻿recu_le;canal;")
-    assert "commentaire" in csv.text.splitlines()[0]
+    assert csv.status_code == 200 and csv.content.decode("utf-16").startswith("recu_le\tcanal\t")
+    assert "commentaire" in csv.content.decode("utf-16").splitlines()[0]
     assert client.get("/admin/journal", params={"retour": "signale"}).status_code == 200
     assert client.get("/admin/journal", params={"retour": "nimporte"}).status_code == 422
 
@@ -102,7 +102,7 @@ def test_journal_csv_sans_formule(connecter):
                                       "commentaire": '=HYPERLINK("http://x","clic")'})
     connecter(client)
     texte = client.get("/admin/journal.csv", params={"retour": "signale"}).text
-    assert "'=HYPERLINK" in texte and ';=HYPERLINK' not in texte and ';"=HYPERLINK' not in texte
+    assert "'=HYPERLINK" in texte and '\t=HYPERLINK' not in texte and '\t"=HYPERLINK' not in texte
 
 
 def test_suggestion_d_indicateur_depuis_un_refus():

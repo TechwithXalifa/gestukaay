@@ -64,7 +64,7 @@ SAN a aussi relu et approuvé les PR de KBD (contrat 1.1.0 à 1.2.0, socle, mote
 | `POST /v1/ask` | question → réponse du moteur, adresse stable, latence, enregistrement | EF-01, EF-05 |
 | `POST /v1/ask/{id}/confirm` | confirme un choix d'une réponse approchée : relit la réponse stockée, prend `choix[i].requete` et appelle `moteur.executer()` | EF-06, US-03 |
 | `GET /v1/answers/{id}` | relit une réponse (lien partageable) | EF-29 |
-| `GET /v1/answers/{id}/export.csv` | export CSV ; `?decimale=virgule` en option | EF-34 |
+| `GET /v1/answers/{id}/export.csv` | export CSV (UTF-16 et tabulations : Excel l'ouvre en colonnes dans toutes les langues) ; `?decimale=virgule` en option | EF-34 |
 | `GET /v1/answers/{id}/export.pdf` | export PDF A4 d'une page | EF-33 |
 | `POST /v1/transcrire` | audio WebM/OGG Opus (2 Mo au plus) → transcription corrigeable | EF-11, EF-15, décision 0004 |
 | `POST /v1/situate` | « Où je me situe » : rien n'est stocké ni journalisé | EF-37 à EF-40 |

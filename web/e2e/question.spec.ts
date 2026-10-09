@@ -104,7 +104,7 @@ test("exports PDF et CSV, adresse stable et vote", async ({ page, request }) => 
   const csv = await request.get(await page.getByRole("link", { name: "Exporter CSV" }).getAttribute("href") ?? "");
   expect(csv.ok()).toBeTruthy();
   expect(csv.headers()["content-type"]).toContain("text/csv");
-  expect(await csv.text()).toContain("Population totale;Thiès;SN-TH;2023;2463677");
+  expect((await csv.body()).toString("utf16le")).toContain("Population totale\tThiès\tSN-TH\t2023\t2463677"); // UTF-16 + tabulations (Excel)
 
   const pdf = await request.get(await page.getByRole("link", { name: "Exporter PDF" }).getAttribute("href") ?? "");
   expect(pdf.ok()).toBeTruthy();
