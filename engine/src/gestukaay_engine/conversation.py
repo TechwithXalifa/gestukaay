@@ -125,3 +125,25 @@ def sans_politesse(question: str) -> str:
             # rien après, ou encore une salutation (« Salam naka leu ») : tout le message est la salutation
             return reste if len(reste) >= 3 and regles(reste) is None else question
     return question
+
+
+# « Quelles données as-tu sur l'agriculture ? » (recette du 09/10, #216) : les chiffres publiés de ce domaine,
+# lus dans le référentiel (aucun LLM), au lieu de l'aide générique
+_SUR_UN_DOMAINE = re.compile(r" (quelles?|quels?|tu as|vous avez|as tu|avez vous|y a t il) .*"
+                             r"(donnees|chiffres|statistiques|stats|indicateurs|informations|infos)(?: \w+){0,3}? "
+                             r"(sur|concernant|par rapport a|a propos de|en matiere de|dans|du domaine|de)"
+                             r" (l |la |le |les |des |du )?(\w+)(?: au senegal| ci senegaal)? $")  # le domaine, et rien après
+_DOMAINES_DITS = {"agriculture": "Agriculture", "agricoles": "Agriculture", "agricole": "Agriculture",
+                  "sante": "Santé", "education": "Éducation", "ecole": "Éducation", "emploi": "Emploi et chômage",
+                  "chomage": "Emploi et chômage", "prix": "Prix", "pauvrete": "Pauvreté", "peche": "Pêche",
+                  "elevage": "Élevage", "energie": "Énergie", "electricite": "Énergie", "eau": "Eau",
+                  "population": "Démographie", "demographie": "Démographie", "tourisme": "Tourisme",
+                  "transport": "Transport", "transports": "Transport", "justice": "Justice", "genre": "Genre",
+                  "migration": "Migration", "mines": "Mines", "habitat": "Habitat", "logement": "Habitat",
+                  "economie": "Économie", "commerce": "Commerce extérieur", "telecommunications": "Télécommunications et TIC"}
+
+
+def domaine_demande(question: str) -> str | None:
+    """Le domaine dont l'usager demande les données disponibles, s'il est reconnu."""
+    m = _SUR_UN_DOMAINE.search(_t(question))
+    return _DOMAINES_DITS.get(m[5]) if m else None
