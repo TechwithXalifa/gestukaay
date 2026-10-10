@@ -27,6 +27,7 @@ from typing import Literal, Protocol
 from gestukaay_backend.canaux import Entrant, Services
 from gestukaay_contracts.models import AskResponse, Choix, ReponseApprochee
 from gestukaay_engine import NonDisponible
+from gestukaay_engine.langue import detecter
 
 from .format import Sortant, fiche, formater
 from .media import NoteTropGrosse
@@ -73,7 +74,8 @@ def traiter(entrant: Entrant, services: Services, envoyeur: Envoyeur) -> None:
             envoyeur.texte(dest, texte("accueil"))
         _repondre(dest, c, services, envoyeur)
     except Exception:
-        envoyeur.texte(dest, texte("erreur"))
+        langue = detecter(c.texte) if c.type == "texte" and c.texte.strip() else None  # #274 : une seule langue
+        envoyeur.texte(dest, texte("erreur", langue))
         raise
 
 

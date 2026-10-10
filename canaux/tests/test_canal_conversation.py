@@ -164,7 +164,7 @@ def test_erreur_le_dit_a_l_utilisateur_puis_remonte():
     e, (s, _) = Envoyeur(), services(derniere=rep("exacte_valeur"), demander=panne)
     with pytest.raises(RuntimeError):
         traiter(entrant(type="texte", texte="Combien d'habitants à Thiès ?"), s, e)
-    assert e.textes()[-1] == texte("erreur")
+    assert e.textes()[-1] == texte("erreur", "fr")  # question en français : l'erreur en français seul (#274)
 
 
 def test_image_ou_autre_aide():

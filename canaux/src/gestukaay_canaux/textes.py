@@ -28,9 +28,15 @@ def _textes() -> dict[str, tuple[str, str]]:
                 for r in csv.DictReader(f, delimiter=";")}
 
 
-def texte(cle: str) -> str:
-    """Le texte fixe, wolof puis français (l'accueil, déjà bilingue, n'a qu'une colonne)."""
+def texte(cle: str, langue: str | None = None) -> str:
+    """Le texte fixe, wolof puis français (l'accueil, déjà bilingue, n'a qu'une colonne). Langue connue (« fr »,
+    « wo ») : cette langue seule (#274 : une réponse française finissait par la consigne en wolof) ; une case
+    wolof vide donne le français."""
     fr, wo = _textes()[cle]
+    if langue == "fr" and fr:
+        return fr
+    if langue == "wo" and wo:
+        return wo
     return "\n".join(x for x in (wo, fr) if x)
 
 
