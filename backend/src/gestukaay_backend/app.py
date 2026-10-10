@@ -49,9 +49,9 @@ from . import comptes, jeu_de_test, lexique, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
 from .carte import CarteResponse, carte
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
+from .flux import flux_atom
 from .profil_zone import ProfilZone, ZoneInconnue, profil
 from .regroupement import regrouper
-from .flux import flux_atom
 from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
 from .suggestions import SuggestionsResponse, suggerer
 
