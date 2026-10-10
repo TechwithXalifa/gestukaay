@@ -21,13 +21,24 @@ const CSP = [
   "frame-ancestors 'none'",
 ].join("; ");
 
-const ENTETES = [
+const COMMUNS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "X-Frame-Options", value: "DENY" },
   // Le micro pour le site lui-même seulement ; ni caméra ni position
   { key: "Permissions-Policy", value: "microphone=(self), camera=(), geolocation=(), payment=()" },
+];
+const ENTETES = [
+  ...COMMUNS,
+  { key: "X-Frame-Options", value: "DENY" },
   ...(process.env.NODE_ENV === "production" ? [{ key: "Content-Security-Policy", value: CSP }] : []),
+];
+// Widget à intégrer (/integrer/…) : la seule page qu'un autre site peut afficher dans un cadre. Ni micro ni
+// formulaire : un chiffre, sa source et un lien qui s'ouvre dans un nouvel onglet.
+const ENTETES_WIDGET = [
+  ...COMMUNS,
+  ...(process.env.NODE_ENV === "production"
+    ? [{ key: "Content-Security-Policy", value: CSP.replace("frame-ancestors 'none'", "frame-ancestors *") }]
+    : []),
 ];
 
 /** @type {import('next').NextConfig} */
@@ -39,7 +50,10 @@ const nextConfig = {
   experimental: { externalDir: true },
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:chemin*", headers: ENTETES }];
+    return [
+      { source: "/((?!integrer/).*)", headers: ENTETES },
+      { source: "/integrer/:chemin*", headers: ENTETES_WIDGET },
+    ];
   },
 };
 
