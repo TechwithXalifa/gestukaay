@@ -220,3 +220,16 @@ test("adresse inconnue : page en français, avec l'en-tête et une suite (7.1 n�
   await expect(page.getByRole("link", { name: "Poser une question" }).last()).toHaveAttribute("href", "/");
   await accessible(page, "page introuvable");
 });
+
+test("journal : rejouer une requête sur le moteur actuel, sans rien enregistrer", async ({ page }) => {
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.goto("/admin/journal");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await page.getByRole("button", { name: /habitants à Thiès/ }).first().click();
+  await page.getByRole("button", { name: "Rejouer sur le moteur actuel" }).click();
+  const rejeu = page.getByRole("region", { name: "Rejouer sur le moteur actuel" });
+  await expect(rejeu.getByText("Réponse identique")).toBeVisible();
+  await expect(rejeu).toContainText("Thiès");
+  await accessible(page, "journal, rejeu");
+});
