@@ -87,7 +87,7 @@ def test_conversation_en_cours_pas_d_accueil():
 
 
 @pytest.mark.parametrize("message, cle", [("ndimbal", "aide"), ("stop", "stop"), ("Làkk", "langue"),
-                                          ("ok", "aide"), ("déet", "reformuler"), ("Non", "reformuler"),
+                                          ("déet", "reformuler"), ("Non", "reformuler"),
                                           ("waxuma loolu deh", "reformuler"), ("laaju loolu deh", "reformuler")])
 def test_commandes_et_message_trop_court(message, cle):
     e, (s, appels) = Envoyeur(), services(derniere=rep("exacte_valeur"))
@@ -288,3 +288,9 @@ def test_accuse_en_panne_la_reponse_part_quand_meme(caplog):
         traiter(entrant(type="texte", texte="Combien d'habitants à Thiès ?"), s, e)  # ne remonte pas
     assert texte("erreur") not in e.textes() and "2\u202f463\u202f677" in e.textes()[-1]
     assert "accusé non envoyé" in caplog.text and "221700000001" not in caplog.text
+
+
+def test_ok_seul_recoit_une_reponse_pas_l_aide():  # #284
+    e, (s, appels) = Envoyeur(), services(derniere=rep("exacte_valeur"))
+    traiter(entrant(type="texte", texte="ok"), s, e)
+    assert appels and appels[0][1] == "d'accord" and texte("aide") not in e.textes()
