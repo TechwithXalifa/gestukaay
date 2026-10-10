@@ -62,7 +62,7 @@ def groupe(chemin: str) -> str | None:
         return "export"
     if chemin.startswith("/admin"):
         return "admin"
-    if chemin.startswith(("/v1/indicators", "/v1/series", "/v1/carte")):
+    if chemin.startswith(("/v1/indicators", "/v1/series", "/v1/carte", "/v1/zones")):
         return "explorer"
     if chemin == "/v1/suggestions":
         return "suggestions"

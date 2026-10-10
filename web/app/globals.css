@@ -625,6 +625,32 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .explorer-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
 .explorer-choisir { align-items: stretch; gap: 16px; }
 
+/* ---- Ma région en chiffres : fiche d'une zone, comparaison ------------- */
+.site main.zones-page { max-width: 1120px; }
+.zones-carte { max-width: 640px; }
+.zone-tuile { background: var(--baobab-50); color: var(--baobab); text-decoration: none; transition: background-color var(--duree-moyenne), color var(--duree-moyenne); }
+.zone-tuile:hover { background: var(--baobab); color: var(--sur-baobab); }
+.zone-comparer { max-width: 320px; }
+.zone-theme .sous-titre { margin-top: 12px; }
+.chiffres-cles { margin: 12px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; }
+.chiffre-cle { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 20px 22px 8px; background: var(--carte); border: 1px solid var(--ligne); border-radius: var(--radius-lg); }
+.chiffre-cle h3 { margin: 0; font: 600 15px/21px var(--font-sans); color: var(--encre-douce); }
+.chiffre-cle-valeur { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; font: 700 34px/40px var(--font-display); letter-spacing: -.02em; color: var(--baobab); font-variant-numeric: tabular-nums; }
+.chiffre-cle-valeur.longue { font-size: 26px; line-height: 32px; }
+.chiffre-cle-valeur .unite { font-size: 15px; line-height: 22px; }
+.chiffre-cle-periode { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; color: var(--encre-douce); }
+.chiffre-cle-periode .badge { height: 24px; font-size: 12px; }
+.chiffre-cle-rang { margin: 2px 0 0; padding: 2px 10px; border-radius: var(--radius-full); background: var(--or-50); color: var(--or-texte); font: 650 13px/20px var(--font-sans); }
+.chiffre-cle .source-ligne { margin-top: 6px; }
+.zones-comparer { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
+.zones-comparer .explorer-champ { flex: 1 1 220px; }
+.comparer-carte { gap: 12px; align-items: stretch; }
+.comparer-carte .tableau-defile { max-height: none; } /* une douzaine de lignes : toute la page défile, pas le tableau */
+.comparer-tableau th small, .comparer-tableau td small { display: block; font: 400 12px/16px var(--font-mono); color: var(--encre-douce); }
+.comparer-tableau td strong { font: 700 16px/22px var(--font-display); color: var(--baobab); font-variant-numeric: tabular-nums; }
+.comparer-tableau td.absent { color: var(--encre-douce); font-style: italic; }
+.comparer-tableau tr.comparer-theme th { padding-top: 16px; background: transparent; font: 650 14px/20px var(--font-sans); color: var(--baobab); border-bottom: 1px solid var(--ligne); }
+
 /* ---- Pages d'information : Méthode, À propos, Confidentialité ----------- */
 .site main.page-texte { max-width: 760px; }
 .page-texte p { margin: 8px 0 0; max-width: 660px; }
