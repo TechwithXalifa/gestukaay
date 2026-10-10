@@ -53,3 +53,12 @@ def test_refus_message_suggestions_mention():
     assert s.texte.startswith(r.reponse.message) and s.texte.endswith("— gestukaay") and not s.choix
     for x in r.reponse.suggestions:
         assert f"• {x.question_suggeree}" in s.texte
+
+
+def test_pas_de_lien_vers_localhost():  # #228 : sur un téléphone, http://localhost:3000/r/… n'ouvre rien
+    r = rep("exacte_valeur")
+    public = formater(r).texte
+    assert r.reponse.url in public
+    local = r.model_copy(update={"reponse": r.reponse.model_copy(update={"url": "http://localhost:3000/r/abc"})})
+    texte = formater(local).texte
+    assert "localhost" not in texte and texte.endswith("— gestukaay")

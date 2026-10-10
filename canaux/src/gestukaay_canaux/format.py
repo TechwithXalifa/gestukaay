@@ -10,6 +10,7 @@ n'est recalculé : chaque nombre vient de la réponse du moteur.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from urllib.parse import urlsplit
 
 from gestukaay_contracts.models import (
     AskResponse,
@@ -23,6 +24,13 @@ from gestukaay_engine.gabarits import avec_unite
 from .textes import texte
 
 MENTION = "— gestukaay"
+_LOCALES = {"localhost", "127.0.0.1", "0.0.0.0", "::1"}
+
+
+def _lien(url: str) -> list[str]:
+    """Le lien de la réponse, sauf s'il pointe vers la machine elle-même (#228 : GESTUKAAY_URL_PUBLIQUE par défaut,
+    « http://localhost:3000/r/… » n'ouvre rien sur un téléphone, ou ouvre un autre site)."""
+    return [] if not url or urlsplit(url).hostname in _LOCALES else [url]
 
 
 @dataclass
@@ -84,7 +92,7 @@ def _exacte(r: ReponseExacte, gras: bool) -> str:
     lignes.append(r.explication)
     if r.note_perimetre:
         lignes.append(r.note_perimetre)
-    lignes += [f"Source : {r.resultats[0].source.libelle}", r.url, MENTION]
+    lignes += [f"Source : {r.resultats[0].source.libelle}", *_lien(r.url), MENTION]
     return "\n".join(lignes)
 
 
@@ -110,7 +118,7 @@ def fiche(rep: AskResponse, gras: bool = True) -> str | None:
             corps = f"{res[0].indicateur.libelle} : " + " · ".join(
                 f"{x.zone.libelle} {avec_unite(x.valeur_affichee, x.unite)}" for x in res[:3])
             corps += f" ({res[0].periode.libelle})"
-        return "\n".join([f"{corps} — Source : {res[0].source.libelle}", r.url, MENTION])
+        return "\n".join([f"{corps} — Source : {res[0].source.libelle}", *_lien(r.url), MENTION])
     if isinstance(r, ReponseAucune) and r.suggestions:
         return "\n".join([*(f"• {s.question_suggeree}" for s in r.suggestions), MENTION])
     return None
