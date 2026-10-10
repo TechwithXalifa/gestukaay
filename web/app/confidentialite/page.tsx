@@ -13,7 +13,7 @@ export default function Confidentialite() {
       <Section titre="confid.voix" textes={["confid.voix.texte", "confid.voix.repli", "confid.lecture"]} />
       <Section titre="confid.situer" textes={["confid.situer.texte"]} />
       <Section titre="confid.retours" textes={["confid.retours.texte"]} />
-      <Section titre="confid.appareil" textes={["confid.appareil.texte"]} />
+      <Section titre="confid.appareil" textes={["confid.appareil.texte", "confid.suivre"]} />
     </PageTexte>
   );
 }

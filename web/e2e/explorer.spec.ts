@@ -93,3 +93,16 @@ test("explorer, vue carte : les 14 régions, absentes signalées, une tuile ajou
   await expect(carte.getByRole("button", { name: /^Kolda : 76,6/ })).toHaveCount(0); // titre changé : nouvelle carte
   await expect(page.getByRole("group", { name: "Taux de pauvreté par région, 2011" }).getByRole("button", { name: /^Kolda : 76,6/ })).toBeVisible();
 });
+
+test("fiche : suivre les mises à jour d'un indicateur par un flux Atom, sans donnée personnelle", async ({ page, request }) => {
+  await page.goto("/indicateurs/jcvcajc.taux-de-pauvrete");
+  await page.getByRole("button", { name: "Suivre les mises à jour" }).click();
+  const adresse = page.getByLabel("Adresse du flux");
+  await expect(adresse).toHaveValue("http://localhost:8000/v1/indicators/jcvcajc.taux-de-pauvrete/flux.atom?zone=SN");
+  await page.getByLabel("Zone", { exact: true }).selectOption("SN-KD");
+  await expect(adresse).toHaveValue(/zone=SN-KD$/);
+  await accessible(page, "fiche, suivre");
+  const flux = await request.get((await adresse.inputValue()) ?? "");
+  expect(flux.headers()["content-type"]).toContain("application/atom+xml");
+  expect(await flux.text()).toContain("<title>Taux de pauvreté · Kolda · 2022 : 62,5 %</title>");
+});

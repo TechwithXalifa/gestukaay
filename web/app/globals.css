@@ -714,6 +714,12 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .dev-routes code { font: 400 12.5px/18px var(--font-mono); overflow-wrap: anywhere; }
 .dev-routes td, .dev-routes th { vertical-align: top; }
 
+/* ---- Suivre les mises à jour (flux Atom, fiche indicateur) --------------- */
+.suivre { margin-top: 8px; padding: 18px 20px; border: 1px solid var(--ligne); border-radius: var(--radius-md); background: var(--carte); display: flex; flex-direction: column; gap: 12px; }
+.suivre[hidden] { display: none; }
+.suivre-adresse { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--fond-2); color: var(--encre); font: 400 14px/20px var(--font-mono); }
+.suivre-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+
 /* ---- Pages d'information : Méthode, À propos, Confidentialité ----------- */
 .site main.page-texte { max-width: 760px; }
 .page-texte p { margin: 8px 0 0; max-width: 660px; }
