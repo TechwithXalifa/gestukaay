@@ -146,4 +146,6 @@ _DOMAINES_DITS = {"agriculture": "Agriculture", "agricoles": "Agriculture", "agr
 def domaine_demande(question: str) -> str | None:
     """Le domaine dont l'usager demande les données disponibles, s'il est reconnu."""
     m = _SUR_UN_DOMAINE.search(_t(question))
-    return _DOMAINES_DITS.get(m[5]) if m else None
+    if not m or (m[3] == "de" and m[2] not in ("donnees", "indicateurs")):  # #237 : « les chiffres de la population »
+        return None                                                          # demande la population, pas une liste
+    return _DOMAINES_DITS.get(m[5])

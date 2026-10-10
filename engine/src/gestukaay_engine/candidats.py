@@ -389,7 +389,26 @@ def mesure_inverse(code: str, question: str) -> bool:
     t, libelle = texte_normalise(question), texte_normalise(ind.libelle_fr)
     if _INFLATION.search(t) and not re.search(r"\b(inflation|glissement)\b", libelle):
         return True
-    return bool(_NEGATION.search(t)) and not re.search(r"\b(sans|non|pas|aucun|prives?|privees?)\b", libelle)
+    m = _NEGATION.search(t)
+    if not m or re.search(r"\b(sans|non|pas|aucun|prives?|privees?)\b", libelle):
+        return False
+    if m[1] in ("ne sont pas", "n est pas"):  # un état (« qui ne sont pas diplômées ») : la population, sauf s'il
+        return _porte_sur_la_mesure(t[m.end():], libelle)  # est ce que l'indicateur mesure (« pas scolarisés »)
+    return True  # un accès, une possession (« n'ont pas accès », « ne disposent pas ») : toujours la mesure (#206)
+
+
+_VIDES_NEGATION = {"d", "de", "du", "des", "l", "la", "le", "les", "au", "aux", "un", "une", "a", "en", "encore"}
+
+
+def _porte_sur_la_mesure(apres: str, libelle: str) -> bool:
+    """#238 : « chômage des personnes qui ne sont pas diplômées » nie la population, pas la mesure ; « enfants qui
+    ne sont pas scolarisés » nie bien la mesure (la scolarisation). L'état nié compte si l'un des mots qui le suivent
+    est dans le libellé ; sans mot à comparer, il compte (prudence : un refus plutôt qu'un chiffre inverse)."""
+    mots = [w for w in apres.split()[:7] if w not in _VIDES_NEGATION][:3]
+    if not mots:
+        return True
+    du_libelle = {w[:5] for w in libelle.split() if len(w) >= 3}
+    return any(w[:5] in du_libelle for w in mots)
 
 
 _SANS_EMPLOI = re.compile(r"\bsans (emploi|travail|boulot|job)\b", re.IGNORECASE)
@@ -404,7 +423,10 @@ _TOURNURES = [
                 r"[A-ZÉÈÎa-zéèîñ' -]+(?:\s+en\s+\d{4})?\s*[?.!]?\s*$)", re.IGNORECASE),
      lambda m: f"la population des {m[1].lower()}"),
     # #209 : la dépense moyenne publiée est la consommation moyenne par tête (EHCVM, jcvcajc)
-    (re.compile(r"\b(?:combien\s+)?d[ée]pens(?:ent|e|es)\s+(?:moyennes?\s+)?(?:les\s+|des\s+)?m[ée]nages(?:\s+en\s+moyenne)?\b",
+    # ... mais pas pour un poste précis (#236 : « en électricité », « pour la santé », « d'eau » -> refus, jamais le total)
+    (re.compile(r"\b(?:combien\s+)?d[ée]pens(?:ent|e|es)\s+(?:moyennes?\s+)?(?:les\s+|des\s+)?m[ée]nages(?:\s+en\s+moyenne)?\b"
+                r"(?!\s+(?:(?:en|pour|de|du|des|sur|dans)\s+(?:l[ae]\s+|les\s+|l['’]\s*)?|d['’]\s*)(?!\d{4}\b)(?!moyenne\b)"
+                r"(?!(?:r[ée]gion|d[ée]partement|ville|commune|milieu)\b)[a-zéèêàâîôûç])",
                 re.IGNORECASE), lambda m: "consommation moyenne par tête"),
     # #215 : « enfants scolarisés » = effectifs d'élèves scolarisés (recensement scolaire, MEN)
     (re.compile(r"\b(?:le\s+)?nombre\s+d['’]\s*enfants\s+scolaris[ée]s\b|\benfants\s+scolaris[ée]s\b", re.IGNORECASE),

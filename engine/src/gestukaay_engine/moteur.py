@@ -62,6 +62,7 @@ from .candidats import (
     deux_sexes,
     index,
     mesure_inverse,
+    periodes_citees,
     ratio_non_publie,
     sans_emploi,
 )
@@ -295,6 +296,9 @@ class MoteurReel:
             # total ni moyenne de l'année n'est calculé (zéro chiffre fabriqué)
             texte = (f"{texte} L'ANSD publie cette série par {'trimestre' if '-T' in res[0].periode.valeur else 'mois'}"
                      f" : voici la dernière période publiée de {an}, pas un total ni une moyenne de l'année.")
+        if manquantes := _annees_non_servies(question, res):  # #242 : jamais une année citée perdue en silence
+            texte = (f"{texte} Vous avez aussi cité {_liste(manquantes)} : une réponse porte sur deux périodes au plus, "
+                     f"posez la question pour {'cette année' if len(manquantes) == 1 else 'ces années'} à part.")
         if intention == "valeur" and len(res) == 1 and (c := compagnon(self.socle, res[0], LANGUE)):
             res = [*res, c[0]]  # le taux après le nombre, au même point (0024)
             texte = f"{texte} {c[1]}"
@@ -371,15 +375,29 @@ def _unite(ind) -> str:
     return "%" if u in ("%", "pour cent", "pourcentage", "en %") else u
 
 
-_BALISE = re.compile(r"<[^>]{0,200}>")
-_SYMBOLE = re.compile(r"[^\w\s'’?!.,;:%()«»\"/+-]")
+_BALISE = re.compile(r"</?[a-zA-Z][^<>]{0,200}>")  # #241 : « taux < 5 % et > 2 % » n'est pas une balise
+_TIRET = re.compile(r"[–—]")  # #241 : « 2011–2022 » garde ses deux années
+_SYMBOLE = re.compile(r"[^\w\s'’?!.,;:%()«»\"/+<>=-]")
+
+
+def _annees_non_servies(question: str, res: list) -> list[str]:
+    """#242 : « pauvreté à Dakar en 2011, 2019 et 2022 » ; la résolution sert deux périodes au plus."""
+    citees = list(dict.fromkeys(p for p in periodes_citees(question) if re.fullmatch(r"\d{4}", p)))
+    if len(citees) < 3:
+        return []
+    servies = {x.periode.valeur[:4] for x in res}
+    return [a for a in citees if a not in servies]
+
+
+def _liste(annees: list[str]) -> str:
+    return annees[0] if len(annees) == 1 else f"{', '.join(annees[:-1])} et {annees[-1]}"
 
 
 def saisie_propre(question: str) -> str:
     """Recette du 09/10 (#204) : « 😀 Combien d'habitants à Thiès ? 🙏 », des espaces en trop ou une balise
     HTML faisaient refuser une question comprise (« Combien », qui n'ouvrait plus le texte, passait pour un
     lieu). Balises, emojis et symboles retirés, espaces réduits ; la réponse garde la question telle que posée."""
-    return re.sub(r"\s+", " ", _SYMBOLE.sub(" ", _BALISE.sub(" ", question))).strip()
+    return re.sub(r"\s+", " ", _SYMBOLE.sub(" ", _TIRET.sub("-", _BALISE.sub(" ", question)))).strip()
 
 
 def _sans_precision_inventee(r: Introuvable, requete: RequeteStructuree, question: str) -> RequeteStructuree | None:
