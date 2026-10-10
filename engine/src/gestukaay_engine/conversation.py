@@ -54,6 +54,9 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
         r"na ?nga def|na ?ngee?n def|lo?u be+s+|d?ja+m+ nga am|ya ?ngi ci d?ja+m+|comment (tu vas|allez vous|ca va)|"
         r"ca va)( \w+){0,2} $")),
     ("remerciement", re.compile(r"^ (merci( beaucoup| bien)?|jerejef|jerrejef|jerejeuf) ")),
+    # #284 : « d'accord », « ok », « super » : tout le message (« ok, combien d'habitants à Thiès ? » reste une question)
+    ("remerciement", re.compile(r"^ (d accord|ok|okay|ok merci|super|parfait|c est note|ca marche|entendu|cool|"
+                                r"waaw|waw)( ge?stu?kaa?y)? $")),
     ("au_revoir", re.compile(r"^ (au revoir|a plus|a bientot|bye|ciao|ba beneen yoon) ")),
     ("a_propos", re.compile(r" (qui es tu|tu es qui|t es qui|qui t a (cree|fait|developpe)|tu es un robot|"
                             r"c est quoi gestukaay|qu est ce que gestukaay|d ou viennent tes (chiffres|donnees)) ")),
@@ -122,8 +125,10 @@ def sans_politesse(question: str) -> str:
     for k in range(min(len(jetons) - 1, 6), 0, -1):  # le plus long préfixe de politesse d'abord
         if _POLITESSE.match(_t(" ".join(jetons[:k]))):
             reste = " ".join(jetons[k:]).lstrip(" ,.;:!-–")
-            # rien après, ou encore une salutation (« Salam naka leu ») : tout le message est la salutation
-            return reste if len(reste) >= 3 and regles(reste) is None else question
+            # rien après, encore une salutation (« Salam naka leu ») ou le nom du bot (« merci gëstukaay », #284) :
+            # tout le message est la formule
+            nom_seul = re.fullmatch(r" ge?stu?kaa?y ", _t(reste))
+            return reste if len(reste) >= 3 and regles(reste) is None and not nom_seul else question
     return question
 
 
