@@ -520,7 +520,16 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
   .tuile-nom { font-size: 11.5px; line-height: 13px; overflow-wrap: anywhere; }
   .tuile-valeur { font-size: 11px; line-height: 13px; letter-spacing: -.02em; }
 }
-.carte-legende { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; color: var(--encre-douce); }
+.carte-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; color: var(--encre-douce); }
+/* Explorer, vue « Carte » : région sans valeur publiée en pointillés, région comparée cerclée d'or */
+.tuile.absente, .pastille.absente { background: var(--fond-2); color: var(--encre-douce); box-shadow: inset 0 0 0 1.5px var(--champ); }
+.pastille.absente { margin-left: 10px; }
+.tuile[aria-pressed="true"] { outline: 3px solid var(--or); outline-offset: 2px; }
+.carte-explorer { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.carte-explorer-tete { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; }
+.carte-explorer .graphique-titre { margin: 0; font: 650 15px/20px var(--font-sans); }
+.carte-notes { margin: 12px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 18px; color: var(--encre-douce); }
+.carte-explorer .bloc-source { margin-top: 12px; }
 .etsi { padding: 18px 20px; border: 1px solid var(--ligne); border-radius: var(--radius-md); background: var(--carte); }
 .etsi-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 12px 16px; margin-top: 12px; }
 .etsi-champs label, .etsi-taille { display: flex; flex-direction: column; gap: 6px; font: 600 13.5px/18px var(--font-sans); }

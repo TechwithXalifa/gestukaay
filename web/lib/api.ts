@@ -137,5 +137,29 @@ const parametresSeries = (d: DemandeSeries) =>
 
 export const series = (d: DemandeSeries) => requete<SeriesResponse>(`/v1/series?${parametresSeries(d)}`);
 
+/** Carte des 14 régions (Explorer, vue « Carte ») : route du site, hors contrat public (carte.py). */
+export type ValeurCarte = {
+  region: string;
+  zone: { code: string; libelle: string; niveau: string };
+  valeur: number;
+  valeur_affichee: string;
+  nature: string | null;
+};
+export type CarteResponse = {
+  version_socle: string;
+  indicateur: { code: string; libelle: string };
+  unite: string;
+  periode: string | null;
+  libelle_periode: string | null;
+  periodes: string[];
+  valeurs: ValeurCarte[];
+  absents: string[];
+  ensemble: ValeurCarte | null;
+  sources: SeriesResponse["series"][number]["source"][];
+};
+
+export const carte = (indicateur: string, periode?: string) =>
+  requete<CarteResponse>(`/v1/carte?${parametres({ indicateur, periode })}`);
+
 /** Export CSV de la vue Explorer (EF-34), virgule décimale pour Excel en français. */
 export const seriesCsvUrl = (d: DemandeSeries) => `${BASE}/v1/series.csv?${parametresSeries(d)}&decimale=virgule`;

@@ -47,6 +47,7 @@ from pydantic import BaseModel, Field
 
 from . import comptes, jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
+from .carte import CarteResponse, carte
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
 from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
 
@@ -365,6 +366,16 @@ def series(
 ) -> SeriesResponse:
     """Séries publiées pour Explorer : jamais d'interpolation, les zones sans valeur dans `absents`."""
     return moteur.series(indicateur, _zones(zones), debut or None, fin or None)
+
+
+@app.get("/v1/carte", response_model=CarteResponse)
+def carte_regions(
+    indicateur: str = Query(..., max_length=120),
+    periode: str | None = Query(None, max_length=10),
+) -> CarteResponse:
+    """Carte des 14 régions (Explorer, vue « Carte ») : une valeur publiée par région à une période commune,
+    les régions qui ne la publient pas dans `absents` (carte.py). Hors contrat public : une vue du site."""
+    return carte(moteur, indicateur, periode or None)
 
 
 @app.get("/v1/series.csv")
