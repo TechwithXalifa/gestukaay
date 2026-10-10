@@ -131,3 +131,17 @@ def test_remerciements_et_acquiescements(message):  # #284
 def test_ok_devant_une_question_reste_une_question():  # #284 : « ok » seul est un acquiescement, pas en tête
     from gestukaay_engine.conversation import regles
     assert regles("ok combien d'habitants à Thiès ?") is None
+
+
+@pytest.mark.parametrize("code, question, attendu", [  # #282
+    ("feujxob.arachide-decortiquee", "exportation arachide", True),
+    ("feujxob.mil-en-grain-vendu-au-detail", "on a cultivé beaucoup de mil cette année ?", True),
+    ("feujxob.arachide-decortiquee", "prix de l'arachide", False),
+    ("feujxob.riz-brise-ordinaire-au-detail", "Combien coûte le riz à Dakar ?", False),
+    ("dwehszb.production-hivernale-nette-en-cereales-entieres", "production de mil", False),
+    ("rxerpbb.mil-et-sorgho", "on a cultivé beaucoup de mil cette année ?", True),  # des importations
+    ("rxerpbb.riz", "combien on importe de riz", False),
+])
+def test_un_prix_ne_repond_pas_a_une_exportation_ou_une_production(code, question, attendu):
+    from gestukaay_engine.candidats import nature_differente
+    assert nature_differente(code, question) is attendu
