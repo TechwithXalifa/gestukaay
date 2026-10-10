@@ -134,7 +134,7 @@ export const ROLES: Record<string, string> = { admin: "administrateur", linguist
 
 export function Cadre({ children, actif, identifiant, role, onFermer }: {
   children: React.ReactNode;
-  actif: "tableau" | "journal" | "jeu" | "cles" | "non-resolues" | "signalements" | "comptes";
+  actif: "tableau" | "journal" | "jeu" | "cles" | "non-resolues" | "signalements" | "comptes" | "lexique";
   identifiant?: string | null;
   role?: string | null;
   onFermer?: () => void;
@@ -152,6 +152,7 @@ export function Cadre({ children, actif, identifiant, role, onFermer }: {
             <Link href="/admin/non-resolues" aria-current={actif === "non-resolues" ? "page" : undefined}>Non résolues</Link>
             <Link href="/admin/signalements" aria-current={actif === "signalements" ? "page" : undefined}>Signalements</Link>
             <Link href="/admin/jeu-de-test" aria-current={actif === "jeu" ? "page" : undefined}>Jeu de test</Link>
+            <Link href="/admin/lexique" aria-current={actif === "lexique" ? "page" : undefined}>Lexique</Link>
             {role === "admin" && <Link href="/admin/cles" aria-current={actif === "cles" ? "page" : undefined}>Clés d'API</Link>}
             {role === "admin" && <Link href="/admin/comptes" aria-current={actif === "comptes" ? "page" : undefined}>Comptes</Link>}
           </nav>
