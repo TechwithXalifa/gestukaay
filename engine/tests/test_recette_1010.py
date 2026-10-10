@@ -89,3 +89,34 @@ def test_dans_chaque_region_toutes_les_valeurs():  # #217
     from gestukaay_engine.gabarits import les_autres
     assert les_autres([]) == ""
     assert indicateurs()["hfhored.centres-de-sante"].unite_affichee == "centres de santé"
+
+
+@pytest.mark.parametrize("question, attendu", [  # test du bot du 10/10 (#266 à #269)
+    ("Comment ménages selon la source d'éclairage a-t-il évolué entre le trimestre précédent et le trimestre courant ?",
+     "deux_dernieres"),
+    ("La valeur du riz a-t-elle augmenté ou diminué depuis le trimestre précédent ?", "deux_dernieres"),
+    ("Comment taux de chômage a-t-il évolué entre l'année précédente et l'année courante ?", "deux_dernieres"),
+    ("Quel est le taux de pauvreté pour le début de la série ?", "debut"),
+    ("Quelle est la première année disponible pour le chômage ?", "debut"),
+    ("Taux de chômage le mois dernier", None),
+    ("Évolution de la pauvreté entre 2011 et 2022", None),
+])
+def test_periode_relative_lue_dans_la_question(question, attendu):
+    from gestukaay_engine.candidats import periode_relative
+    assert periode_relative(question) == attendu
+
+
+def test_tournure_relative_retiree_pour_trouver_l_indicateur():  # « courante » attirait les dépenses courantes
+    from gestukaay_engine.candidats import sans_periode_relative
+    assert sans_periode_relative(
+        "Comment taux de chômage a-t-il évolué entre l'année précédente et l'année courante ?") == \
+        "Comment taux de chômage a-t-il évolué ?"
+    assert sans_periode_relative("Quel est le taux de pauvreté pour le début de la série ?") == "Quel est le taux de pauvreté ?"
+
+
+def test_dit_ce_qui_est_servi_pour_une_periode_relative():
+    from gestukaay_engine.moteur import _dit_relative
+    q = "Comment X a-t-il évolué entre le trimestre précédent et le trimestre courant ?"
+    assert _dit_relative("deux_dernieres", q, _res("2021", "2023")).startswith("La série est annuelle")
+    assert _dit_relative("deux_dernieres", q, _res("2026-T1", "2026-T2")) == "Ce sont les deux dernières périodes publiées."
+    assert _dit_relative("debut", "début de la série", _res("2011")) == "C'est la première période publiée de la série."

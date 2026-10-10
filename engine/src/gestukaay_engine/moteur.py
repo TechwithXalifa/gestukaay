@@ -63,9 +63,11 @@ from .candidats import (
     deux_sexes,
     index,
     mesure_inverse,
+    periode_relative,
     periodes_citees,
     ratio_non_publie,
     sans_emploi,
+    sans_periode_relative,
 )
 from .compagnons import compagnon
 from .comprehension import (
@@ -73,6 +75,7 @@ from .comprehension import (
     Comprehension,
     Comprise,
     _meme_notion,
+    periode_de,
     sujet_dans_la_question,
 )
 from .conversation import domaine_demande, sans_politesse
@@ -83,7 +86,14 @@ from .langue import detecter
 from .nombres import en_chiffres
 from .parole import en_wolof, texte_parle
 from .refus import Refus, construire_reponse_aucune, est_projection, refuser, verifier_suggestion
-from .resolution import Introuvable, Resolution, national, ordre_effectif, resoudre
+from .resolution import (
+    Introuvable,
+    Resolution,
+    national,
+    ordre_effectif,
+    resoudre,
+    zone_de_la_serie,
+)
 from .situer import situer as situer_menage
 from .socle import Socle, socle
 from .synthese import Synthetiseur
@@ -136,7 +146,10 @@ class MoteurReel:
         transcription = question if req.source == "voix" else None
         if dom := domaine_demande(question):  # « quelles données sur l'agriculture ? » (#216) : lecture du référentiel
             return self._domaine(dom, question, transcription, req.langue if req.langue in ("fr", "wo") else detecter(question))
-        c = self.comprehension.comprendre(question, contexte)
+        rel = periode_relative(question)
+        c = self.comprehension.comprendre(sans_periode_relative(question) if rel else question, contexte)
+        if c.requete and c.requete.indicateur and rel:
+            c = replace(c, requete=self._periode_relative(c.requete, rel))
         if c.requete and (propre := self._precisions_publiees(c.requete, question)) is not c.requete:
             c = replace(c, requete=propre)  # B en amont : vaut aussi pour l'approchée (« ville de Thiès »)
         if c.conversation:  # salutation, « qui es-tu », définition, « pourquoi »… : pas un refus (0033)
@@ -294,6 +307,19 @@ class MoteurReel:
             **self._base(ident, question, requete, transcription),
             reformulation=a.reformulation, choix=a.choix))
 
+    def _periode_relative(self, requete: RequeteStructuree, rel: str) -> RequeteStructuree:
+        """#266 à #269 : la période relative lue dans la question remplace celle du LLM (« 2024-T1 » inventé pour
+        « le trimestre courant ») ; elle est résolue sur la série elle-même."""
+        if rel == "deux_dernieres":  # la résolution prend les deux dernières périodes publiées
+            intention = requete.intention if requete.intention == "classement" else "comparaison"
+            return requete.model_copy(update={"periode": Periode(type="derniere"), "intention": intention})
+        z = requete.zones[0] if len(requete.zones or []) == 1 else None
+        serie = sorted({o.periode for o in self.socle.observations(requete.indicateur)
+                        if o.zone == zone_de_la_serie(self.socle, requete.indicateur, z)})
+        if not serie:
+            return requete
+        return requete.model_copy(update={"periode": periode_de(serie[0]), "intention": "valeur"})
+
     def _exacte(self, r: Resolution, requete: RequeteStructuree, question: str,
                 transcription: str | None = None) -> AskResponse:
         ident = _ident()
@@ -314,6 +340,8 @@ class MoteurReel:
                      f" : voici la dernière période publiée de {an}, pas un total ni une moyenne de l'année.")
         if intention == "classement" and len(res) > 3 and _TOUTES_REGIONS.search(normaliser(question)):
             texte = f"{texte} {les_autres(res[3:])}"  # #217 : « dans chaque région », toutes les valeurs
+        if rel := periode_relative(question):
+            texte = f"{texte} {_dit_relative(rel, question, res)}".rstrip()
         if manquantes := _annees_non_servies(question, res):  # #242 : jamais une année citée perdue en silence
             texte = (f"{texte} Vous avez aussi cité {_liste(manquantes)} : une réponse porte sur deux périodes au plus, "
                      f"posez la question pour {'cette année' if len(manquantes) == 1 else 'ces années'} à part.")
@@ -405,6 +433,22 @@ def _annees_non_servies(question: str, res: list) -> list[str]:
         return []
     servies = {x.periode.valeur[:4] for x in res}
     return [a for a in citees if a not in servies]
+
+
+def _dit_relative(rel: str, question: str, res: list) -> str:
+    """Ce qui est servi pour une période relative, et la fréquence de la série si elle n'est pas celle demandée."""
+    if rel == "debut":
+        return "C'est la première période publiée de la série."
+    servies = [x.periode.valeur for x in res]
+    t = normaliser(question)
+    frequence = ("trimestrielle" if any("-T" in p for p in servies) else
+                 "mensuelle" if any(re.fullmatch(r"\d{4}-\d{2}", p) for p in servies) else "annuelle")
+    demandee = ("trimestrielle" if "trimestre" in t else "mensuelle" if re.search(r"\bmois\b", t) else
+                "annuelle" if re.search(r"\b(annee|an)\b", t) else frequence)
+    phrase = "Ce sont les deux dernières périodes publiées."
+    if demandee != frequence:
+        phrase = f"La série est {frequence} : ce sont ses deux dernières périodes publiées."
+    return phrase
 
 
 def _liste(annees: list[str]) -> str:
