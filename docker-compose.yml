@@ -1,11 +1,16 @@
-# Lancer toute l'application :  docker compose up --build
+# Déploiement complet : voir DEPLOIEMENT.md. En bref :
+#   cp .env.example .env            (HF_TOKEN, clé Gemini ; COMPOSE_PROFILES=voix y active la voix sur GPU)
+#   ./scripts/recuperer_socle.sh    (socle officiel, 15 Mo)
+#   docker compose run --rm modeles (modèles de voix, ~15 Go, une fois)
+#   docker compose up -d --build
 # Site : http://localhost:3000 · API : http://localhost:8000/docs
+# Sans .env (CI, développement) : site, API et base seulement, avec le faux moteur.
 services:
   api:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    ports: ["8000:8000"]
+    ports: ["${GESTUKAAY_ECOUTE:-0.0.0.0}:8000:8000"]  # 127.0.0.1 derrière Caddy (DEPLOIEMENT.md §7)
     environment:
       GESTUKAAY_MOTEUR: ${GESTUKAAY_MOTEUR:-fake}
       GESTUKAAY_URL_PUBLIQUE: ${GESTUKAAY_URL_PUBLIQUE:-http://localhost:3000}
@@ -14,6 +19,11 @@ services:
       # Réponses, journal, retours et comptes du back-office (stockage.py). Sans compte, le
       # back-office est fermé : docker compose exec api python -m gestukaay_backend.comptes creer SAN
       GESTUKAAY_BASE: postgresql://gestukaay:${POSTGRES_PASSWORD:-gestukaay}@db:5432/gestukaay
+      # Voix en wolof sur le GPU (profil « voix ») : réseau interne de Docker, jamais publié sur l'hôte
+      TRANSCRIPTION_URL: ${TRANSCRIPTION_URL:-http://transcription:8100/v1}
+      TRANSCRIPTION_CLE: ${VOIX_CLE:-gestukaay-voix-interne}
+      SYNTHESE_URL: ${SYNTHESE_URL:-http://synthese:8200/v1}
+      SYNTHESE_CLE: ${VOIX_CLE:-gestukaay-voix-interne}
     # Clés du moteur (LLM_PRINCIPAL_CLE…) : dans .env, jamais dans Git
     env_file:
       - path: .env
@@ -38,7 +48,7 @@ services:
       dockerfile: web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-    ports: ["3000:3000"]
+    ports: ["${GESTUKAAY_ECOUTE:-0.0.0.0}:3000:3000"]
     environment:
       # Rendu serveur de la page réponse : le serveur web joint l'API par le réseau interne
       API_INTERNE: http://api:8000
@@ -61,5 +71,83 @@ services:
       timeout: 3s
       retries: 10
 
+  # -------------------------------------------------------------------------
+  # Voix en wolof (profil « voix », GPU NVIDIA) : M-Kiriku comprend la note vocale,
+  # Oolel-Voices répond par la voix. Modèles dans le volume « modeles » (HF_HOME).
+  # -------------------------------------------------------------------------
+  transcription:
+    profiles: ["voix"]
+    build:
+      context: .
+      dockerfile: transcription/Dockerfile
+    environment:
+      TRANSCRIPTION_CLE: ${VOIX_CLE:-gestukaay-voix-interne}
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - modeles:/modeles
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8100/ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10m  # chargement sur le GPU, ou téléchargement si « modeles » n'a pas été lancé
+
+  synthese:
+    profiles: ["voix"]
+    build:
+      context: .
+      dockerfile: synthese/Dockerfile
+    environment:
+      SYNTHESE_CLE: ${VOIX_CLE:-gestukaay-voix-interne}
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - modeles:/modeles
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8200/ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10m
+
+  # Téléchargement des modèles, une fois : docker compose run --rm modeles
+  modeles:
+    profiles: ["outils"]
+    build:
+      context: .
+      dockerfile: synthese/Dockerfile
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - modeles:/modeles
+    command: ["python", "telecharger_modeles.py"]
+
+  # Adresse publique en HTTPS (Telegram, WhatsApp) : profil « https », DOMAINE dans .env (DEPLOIEMENT.md)
+  caddy:
+    profiles: ["https"]
+    image: caddy:2-alpine
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAINE: ${DOMAINE:-localhost}
+    volumes:
+      - ./deploiement/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy:/data
+    depends_on: [api, web]
+
 volumes:
   base:
+  modeles:
+  caddy:

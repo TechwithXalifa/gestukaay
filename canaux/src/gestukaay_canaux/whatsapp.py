@@ -108,12 +108,16 @@ class ClientGraph:
         self._envoyer({"recipient_type": "individual", "to": destinataire, "type": "text",
                        "text": {"preview_url": False, "body": message[:4096]}})
 
-    def choix(self, destinataire: str, choix: list[Choix]) -> None:
-        """La liste à toucher (#34) ; les choix sont aussi numérotés dans le texte qui précède."""
+    def choix(self, destinataire: str, choix: list[Choix], message: str) -> None:
+        """La liste à toucher (#34), avec le texte de la réponse comme corps du même message (#213) ; au-delà
+        de 1 024 caractères (limite de Meta), le texte part d'abord, seul."""
+        if len(message) > 1024:
+            self.texte(destinataire, message)
+            message = texte("choisir")
         lignes = [{"id": f"choix-{c.id}", "title": f"{c.id}. {c.libelle}"[:24],
                    "description": c.libelle[:72]} for c in choix]
         self._envoyer({"recipient_type": "individual", "to": destinataire, "type": "interactive",
-                       "interactive": {"type": "list", "body": {"text": texte("choisir")[:1024]},
+                       "interactive": {"type": "list", "body": {"text": message[:1024]},
                                        "action": {"button": bouton_liste(),
                                                   "sections": [{"title": "Choix", "rows": lignes}]}}})
 

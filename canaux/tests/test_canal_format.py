@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from gestukaay_canaux.format import formater
+from gestukaay_canaux.format import CHIFFRES, _commun, formater
 from gestukaay_contracts.models import AskResponse
 
 EXEMPLES = Path(__file__).parents[2] / "contracts" / "examples"
@@ -31,10 +31,20 @@ def test_comparaison_sans_ligne_de_chiffre_isolee():
 def test_approchee_choix_numerotes_et_proposes():
     r = rep("approchee")
     s = formater(r)
-    for c in r.reponse.choix:
-        assert f"{c.id}) {c.libelle}" in s.texte
+    for c in s.choix:  # #214 : numéros emoji, choix courts (le contexte commun est dit une fois en tête)
+        assert f"{CHIFFRES[c.id]} {c.libelle}" in s.texte
     assert [c.id for c in s.choix] == [c.id for c in r.reponse.choix]
     assert "Tontul ak lim (numéro) bi nga tànn." in s.texte  # « choisir », wolof de KBD
+
+
+def test_choix_courts_contexte_une_fois():  # #214
+    tete, courts = _commun(["Taux de pauvreté - Région de Kolda en 2011", "Taux de pauvreté - Région de Kolda en 2019"])
+    assert tete == "Taux de pauvreté - Région de Kolda" and courts == ["en 2011", "en 2019"]
+    assert _commun(["Pêche artisanale, par région", "Pêche continentale, par région"])[0] == ""
+    libelles = ["Taux brut de scolarisation", "Taux net de scolarisation"]  # différents dès le 2e mot (revue de SAN)
+    assert _commun(libelles) == ("", libelles)
+    assert _commun(["Population (2023) - Région de Thiès (2023)", "Population (2023) - Sénégal (2023)"])[1] == [
+        "Région de Thiès (2023)", "Sénégal (2023)"]
 
 
 def test_refus_message_suggestions_mention():
