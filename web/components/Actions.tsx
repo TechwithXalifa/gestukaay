@@ -1,14 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ReponseExacte } from "@contracts/ask_response";
 import { useLangue } from "@/i18n/langue";
 import { exportUrl } from "@/lib/api";
-import { Copier, Partager, Telecharger } from "./icones";
+import { epingler, estEpingle, EVENEMENT, retirer } from "@/lib/favoris";
+import { Copier, Partager, Signet, SignetPlein, Telecharger } from "./icones";
 
-/** Copier la citation (EF-35) et partager l'adresse stable (EF-29). Toast 3 s (9.7). */
-export function Actions({ id, citation, url }: { id: string; citation: string; url: string }) {
+/**
+ * Copier la citation (EF-35), partager l'adresse stable (EF-29) et épingler la réponse dans « Mes chiffres »
+ * (gardée sur l'appareil seulement). Toast 3 s (9.7).
+ */
+export function Actions({ id, citation, url, reponse }: { id: string; citation: string; url: string; reponse?: ReponseExacte }) {
   const { t } = useLangue();
   const [toast, setToast] = useState<string | null>(null);
+  const [epingle, setEpingle] = useState(false);
+  useEffect(() => {
+    const lire = () => setEpingle(estEpingle(id));
+    lire();
+    window.addEventListener(EVENEMENT, lire);
+    return () => window.removeEventListener(EVENEMENT, lire);
+  }, [id]);
+
+  function basculer() {
+    if (!reponse) return;
+    if (epingle) {
+      retirer(id);
+      setToast(t("favoris.retire"));
+    } else {
+      setToast(t(epingler(reponse) ? "favoris.ajoute" : "favoris.impossible"));
+    }
+  }
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 3000);
@@ -55,6 +77,11 @@ export function Actions({ id, citation, url }: { id: string; citation: string; u
       <button type="button" className="secondaire" onClick={() => copier(citation, t("actions.citationCopiee"))}>
         <Copier />{t("actions.citer")}
       </button>
+      {reponse && (
+        <button type="button" className="secondaire" aria-pressed={epingle} onClick={basculer}>
+          {epingle ? <SignetPlein /> : <Signet />}{t(epingle ? "favoris.epingle" : "favoris.epingler")}
+        </button>
+      )}
       <p role="status" aria-live="polite" className={toast ? "toast visible" : "toast"}>{toast}</p>
     </div>
   );
