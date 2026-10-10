@@ -167,6 +167,8 @@ class MoteurReel:
             proches = [x for x in c.candidats if x.indicateur.code == prec.indicateur] + c.proches
             c = replace(c, requete=c.requete.model_copy(update={"indicateur": None, "intention": "hors_perimetre"}),
                         proches=proches, incomprehensible=False)  # un refus « non publié », le précédent suggéré
+        if c.requete and c.requete.indicateur and c.requete.periode.type == "derniere":
+            c = _serie_annuelle_si_demandee(c, question)  # #272
         if c.requete and c.requete.indicateur and rel:
             c = replace(c, requete=self._periode_relative(c.requete, rel))
         if c.requete and (propre := self._precisions_publiees(c.requete, question)) is not c.requete:
@@ -450,6 +452,21 @@ class MoteurReel:
         return {"id": ident, "url": URL_PROVISOIRE.format(id=ident), "question": question,
                 "langue": LANGUE, "transcription": transcription, "requete": requete,
                 "version_socle": self.socle.version, "cree_le": datetime.now(UTC)}
+
+
+def _serie_annuelle_si_demandee(c: Comprise, question: str) -> Comprise:
+    """#272 : « le taux de chômage pour la dernière année disponible » servait (LLM) le 1er trimestre 2026 de la série
+    trimestrielle (22,9 %), au lieu de 2025 dans la série annuelle (20,4 %). La question parle d'année, sans trimestre
+    ni mois : la série annuelle de la même notion, si un candidat la publie."""
+    t = texte_normalise(question)
+    if not re.search(r"\b(annee|annees|annuel|annuelle|an)\b", t) or re.search(r"\b(trimestre|trimestriel|mois|mensuel)", t):
+        return c
+    ind = indicateurs().get(c.requete.indicateur)
+    if ind is None or (ind.frequence or "A").strip().upper()[:1] == "A":
+        return c
+    annuel = next((x.indicateur.code for x in c.candidats if x.indicateur.code != ind.code
+                   and (x.indicateur.frequence or "").strip().upper()[:1] == "A" and _meme_notion(x.indicateur, ind)), None)
+    return replace(c, requete=c.requete.model_copy(update={"indicateur": annuel})) if annuel else c
 
 
 def _unite(ind) -> str:
