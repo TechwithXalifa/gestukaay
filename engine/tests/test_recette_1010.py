@@ -76,3 +76,16 @@ def test_annee_citee_jamais_perdue_en_silence():  # #242
 
 def test_population_de_l_enquete_emploi_dit_ce_qu_elle_est():  # #232
     assert "enquête emploi" in indicateurs()["puummg.population-totale"].libelle_fr
+
+
+def test_les_lits_ne_sont_pas_des_centres_de_sante():  # #217
+    from gestukaay_engine.candidats import capacite_au_lieu_de
+    assert capacite_au_lieu_de("mksvmnc.centres-de-sante", "Il y a combien de centres de santé dans chaque région ?")
+    assert not capacite_au_lieu_de("mksvmnc.centres-de-sante", "Combien de lits dans les centres de santé de Dakar ?")
+    assert not capacite_au_lieu_de("hfhored.centres-de-sante", "Combien de centres de santé à Thiès ?")
+
+
+def test_dans_chaque_region_toutes_les_valeurs():  # #217
+    from gestukaay_engine.gabarits import les_autres
+    assert les_autres([]) == ""
+    assert indicateurs()["hfhored.centres-de-sante"].unite_affichee == "centres de santé"
