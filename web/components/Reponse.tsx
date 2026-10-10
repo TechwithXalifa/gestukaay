@@ -6,6 +6,7 @@ import { useLangue } from "@/i18n/langue";
 import { envoyerRetour } from "@/lib/api";
 import { uniteAmbigue } from "@/lib/unites";
 import { Actions } from "./Actions";
+import { Comprendre } from "./Comprendre";
 import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
 import { Retour } from "./Retour";
@@ -216,6 +217,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
         </aside>
       </div>
 
+      <Comprendre r={r} />
       <Retour reponseId={r.id} />
     </article>
   );

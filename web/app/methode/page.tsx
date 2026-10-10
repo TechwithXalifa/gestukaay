@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { PageTexte, Section } from "@/components/PageTexte";
 import type { Cle } from "@/i18n/fr";
 import { useLangue } from "@/i18n/langue";
@@ -45,6 +46,7 @@ export default function Methode() {
       <Section titre="methode.donnees" textes={["methode.donnees.texte", "methode.projections", "methode.corrections"]} />
 
       <p className="note">{t("methode.signaler")}</p>
+      <p><Link href="/glossaire" className="lien">{t("glossaire.titre")}</Link></p>
     </PageTexte>
   );
 }
