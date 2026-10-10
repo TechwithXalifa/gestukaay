@@ -11,3 +11,6 @@ erreur;Un problème technique m'empêche de répondre. Réessayez dans un instan
 bouton_liste;Choisir;Tànnal
 reformuler;Je n'ai peut-être pas bien compris votre question. Reposez-la, à l'écrit ou à la voix.;Xéyna dégguma la bu baax. Mën nga baamtuwaat laaj bi wala nga bind ko.
 compris;J'ai compris :;
+menu_themes;Choisissez un thème :;
+menu_questions;{nom} : touchez une question.;
+menu_regions;Choisissez votre région :;

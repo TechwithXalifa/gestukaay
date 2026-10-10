@@ -2,6 +2,8 @@
 
   - premier message de la conversation : l'accueil d'abord ;
   - commande seule (« ndimbal », « exemples », « stop »…) : le texte fixe ;
+  - « menu » / « thèmes » / « /themes », « région » / « /region » : un menu à boutons (menu.py) ; un bouton de
+    question touché part au moteur comme une question écrite ;
   - « non », « déet », « waxuma loolu deh »… : on a mal compris, on invite à reformuler (US-09) ;
   - choix « 1 », « benn », ou un toucher dans la liste : confirmer le choix de la dernière réponse
     approchée (EF-06) ; sans approchée en attente, « choix invalide » ;
@@ -29,6 +31,7 @@ from gestukaay_contracts.models import AskResponse, Choix, ReponseApprochee
 from gestukaay_engine import NonDisponible
 from gestukaay_engine.langue import detecter
 
+from . import menu as menus
 from .format import Sortant, fiche, formater
 from .media import NoteTropGrosse
 from .textes import commande, est_salutation, mot, texte
@@ -38,8 +41,8 @@ from .textes import commande, est_salutation, mot, texte
 class Contenu:
     """Ce que `lire` garde d'un message : son type et ce qu'il faut pour le traiter."""
 
-    type: Literal["texte", "audio", "choix", "autre"]
-    texte: str = ""
+    type: Literal["texte", "audio", "choix", "menu", "autre"]
+    texte: str = ""  # menu : l'identifiant du bouton touché (« menu-t3 »)
     media: str = ""  # identifiant du média (WhatsApp : media id ; Telegram : file_id)
     choix_id: str = ""
     accuse: str = ""  # identifiant à accuser (WhatsApp : wamid ; Telegram : callback_query id)
@@ -51,6 +54,7 @@ class Envoyeur(Protocol):
     def accuser(self, destinataire: str, contenu: Contenu) -> None: ...
     def texte(self, destinataire: str, texte: str) -> None: ...
     def choix(self, destinataire: str, choix: list[Choix], message: str) -> None: ...  # un seul message
+    def menu(self, destinataire: str, message: str, boutons: list[menus.Bouton]) -> None: ...  # navigation
     def media(self, contenu: Contenu) -> bytes: ...
     def preparer_vocal(self, destinataire: str) -> None: ...  # « enregistre un audio… » si le canal le sait
     def vocal(self, destinataire: str, opus: bytes) -> None: ...  # note vocale OGG/Opus
@@ -70,7 +74,8 @@ def traiter(entrant: Entrant, services: Services, envoyeur: Envoyeur) -> None:
     try:
         if c.type == "texte" and est_salutation(c.texte):  # « /start », « Salam naka leu » : l'accueil seul
             return envoyeur.texte(dest, texte("accueil"))
-        if services.derniere() is None:
+        # Un toucher dans le menu est de la navigation : pas d'accueil à chaque bouton
+        if services.derniere() is None and c.type != "menu":
             envoyeur.texte(dest, texte("accueil"))
         _repondre(dest, c, services, envoyeur)
     except Exception:
@@ -82,6 +87,13 @@ def traiter(entrant: Entrant, services: Services, envoyeur: Envoyeur) -> None:
 def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> None:
     if c.type == "choix":
         return _choisir(dest, c.choix_id, services, envoyeur)
+    if c.type == "menu":
+        action = menus.reagir(c.texte)
+        if action is None:  # bouton d'un ancien menu, ou inconnu
+            return envoyeur.texte(dest, texte("aide"))
+        if isinstance(action, str):  # une question touchée : comme si elle avait été écrite
+            return _envoyer(dest, services.demander(action), services, envoyeur)
+        return _menu(dest, action, envoyeur)
     if c.type == "audio":
         try:
             tr = services.transcrire(envoyeur.media(c), "ogg")
@@ -104,6 +116,10 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
         return _choisir(dest, cmd, services, envoyeur)
     if cmd == "non":
         return envoyeur.texte(dest, texte("reformuler"))
+    if cmd == "themes":
+        return _menu(dest, menus.themes(), envoyeur)
+    if cmd == "regions":
+        return _menu(dest, menus.liste_regions(), envoyeur)
     if cmd:
         return envoyeur.texte(dest, texte(cmd))
     if mot(c.texte) in ("ok", "ko"):  # #284 : un acquiescement, pas une question trop courte
@@ -111,6 +127,16 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
     if len(c.texte.strip()) < 3:  # « ?? » : trop court pour une question (contrat : 3 caractères)
         return envoyeur.texte(dest, texte("aide"))
     _envoyer(dest, services.demander(c.texte.strip()[:300]), services, envoyeur)  # écrite : texte seul
+
+
+def _menu(dest: str, m: menus.Menu, envoyeur: Envoyeur) -> None:
+    """Le titre et ses boutons ; si les boutons sont refusés, la liste en texte (à recopier comme une question)."""
+    message = texte(m.titre).replace("{nom}", m.complement)
+    try:
+        envoyeur.menu(dest, message, list(m.boutons))
+    except Exception:  # noqa: BLE001 — boutons refusés : le texte suffit, la personne peut recopier
+        _log.exception("menu : les boutons n'ont pas pu être envoyés (%s)", m.titre)
+        envoyeur.texte(dest, "\n".join([message, *(f"• {b.libelle}" for b in m.boutons)]))
 
 
 def _choisir(dest: str, choix_id: str, services: Services, envoyeur: Envoyeur) -> None:
