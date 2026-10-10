@@ -46,6 +46,10 @@ class ClientLLM:
             raise ValueError("chaîne LLM vide : définir LLM_CHAINE")
         self.chaine = chaine
         self.regles = regles
+        # #278 : un maillon en quota épuisé (429) ou trop lent plusieurs fois de suite est sauté un moment, au lieu
+        # de faire attendre chaque question jusqu'à son délai (latence passée de 2 s à 5,5-7,5 s, nuit du 10/10)
+        self._pause_jusqu_a: dict[int, float] = {}
+        self._delais_de_suite: dict[int, int] = {}
         self._transport = transport  # tests : httpx.MockTransport
 
     def structurer(self, systeme: str, utilisateur: str, modele: type[M]) -> tuple[M, Appel]:
@@ -64,6 +68,10 @@ class ClientLLM:
 
         def lancer(i: int) -> None:
             debuts[i] = time.perf_counter()
+            if self.chaine[i].fournisseur != "regles" and time.monotonic() < self._pause_jusqu_a.get(i, 0.0):
+                issues[i] = ErreurAdaptateur("indisponible", "en pause (quota épuisé ou trop lent, #278)")
+                fins[i] = debuts[i]
+                return
             if self.chaine[i].fournisseur == "regles":  # local et immédiat : pas de fil
                 try:
                     issues[i] = essai(self.chaine[i])
@@ -108,6 +116,7 @@ class ClientLLM:
                         continue
                     fins[i] = maintenant
                     del lances[i]
+                    self._surveiller(i, issues[i])
                 if (relais is not None and suivant < n and suivant not in debuts and dernier not in issues
                         and maintenant - debuts[dernier] >= relais):
                     lancer(suivant)
@@ -115,6 +124,20 @@ class ClientLLM:
             pool.shutdown(wait=False, cancel_futures=True)  # un maillon abandonné finit seul, sans nous retenir
         self._noter(appel, issues, debuts, fins, debut_appel)
         raise EchecLLM(appel)
+
+    PAUSE_QUOTA_S, PAUSE_LENTEUR_S, DELAIS_AVANT_PAUSE = 60.0, 30.0, 3
+
+    def _surveiller(self, i: int, issue) -> None:
+        """Quota épuisé (HTTP 429) : pause de 60 s ; 3 délais dépassés de suite : pause de 30 s."""
+        if not isinstance(issue, ErreurAdaptateur):
+            self._delais_de_suite[i] = 0
+        elif issue.statut == "http" and str(issue).startswith("429"):
+            self._pause_jusqu_a[i] = time.monotonic() + self.PAUSE_QUOTA_S
+        elif issue.statut == "delai":
+            self._delais_de_suite[i] = self._delais_de_suite.get(i, 0) + 1
+            if self._delais_de_suite[i] >= self.DELAIS_AVANT_PAUSE:
+                self._pause_jusqu_a[i] = time.monotonic() + self.PAUSE_LENTEUR_S
+                self._delais_de_suite[i] = 0
 
     def _bilan(self, appel: Appel, j: int, issues: dict, debuts: dict, fins: dict, debut_appel: float):
         objet, brut = issues[j]
