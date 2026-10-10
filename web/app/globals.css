@@ -792,6 +792,16 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-groupe-exemples { margin: 10px 0 0; padding-left: 18px; font-size: 14px; line-height: 20px; }
 .admin-groupe-pistes ul { margin: 4px 0 0; padding-left: 18px; font-size: 14px; }
 .admin-groupe-pistes a { color: var(--baobab); }
+
+.admin-groupes { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 12px; }
+/* Quatre statuts avec leur compte : ils passent à la ligne sur un téléphone (sinon la page déborde et se dézoome) */
+.admin-statuts { flex: 0 1 auto; flex-wrap: wrap; border-radius: var(--radius-md); }
+.admin-signalement { display: flex; flex-direction: column; gap: 8px; }
+.admin-signalement p { margin: 0; }
+.admin-signalement-question { margin: 0; font: 650 16px/22px var(--font-sans); color: var(--encre); }
+.admin-signalement .admin-commentaire { white-space: pre-wrap; padding: 6px 10px; border-left: 3px solid var(--or-clair); background: var(--baobab-50); border-radius: var(--radius-md); font-size: 14px; }
+.admin-signalement .admin-champ input { min-height: 44px; padding: 0 10px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; } /* 16 px : pas de zoom au focus sur mobile */
+.admin-signalement-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .erreur-admin { margin: 0; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--approchee-50); color: var(--approchee); font-size: 14px; }
 .admin-periode { border-color: var(--ligne); background: var(--fond-2); }
 .admin-periode button { min-width: 52px; color: var(--encre-douce); }
