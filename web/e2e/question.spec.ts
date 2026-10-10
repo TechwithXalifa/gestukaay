@@ -6,7 +6,7 @@ import { accessible, poser } from "./outils";
 test("accueil : question, exemples et domaines", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Posez votre question.");
-  await expect(page.getByRole("textbox", { name: "Votre question" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Votre question" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Parcourir par domaine" })).toBeVisible();
   await expect(page.locator(".grille-domaines li")).toHaveCount(8); // deux lignes de quatre
   await accessible(page, "accueil");
@@ -19,7 +19,7 @@ test("pendant la recherche : le bouton tourne et les étapes viennent à l'écra
     await route.continue();
   });
   await page.goto("/");
-  await page.getByRole("textbox", { name: "Votre question" }).fill("Combien d'habitants à Thiès ?");
+  await page.getByRole("combobox", { name: "Votre question" }).fill("Combien d'habitants à Thiès ?");
   await page.getByRole("button", { name: "Envoyer la question" }).click();
   const bouton = page.getByRole("button", { name: "Recherche du chiffre officiel…" });
   await expect(bouton).toBeDisabled();
@@ -131,7 +131,7 @@ test("signaler une erreur", async ({ page }) => {
 test("au clavier seul : de l'accueil à la réponse", async ({ page, isMobile }) => {
   test.skip(isMobile, "parcours clavier : poste de bureau");
   await page.goto("/");
-  const champ = page.getByRole("textbox", { name: "Votre question" });
+  const champ = page.getByRole("combobox", { name: "Votre question" });
   for (let i = 0; i < 15 && !(await champ.evaluate((e) => e === document.activeElement)); i++) {
     await page.keyboard.press("Tab");
   }
@@ -140,6 +140,34 @@ test("au clavier seul : de l'accueil à la réponse", async ({ page, isMobile })
   await page.keyboard.press("Enter");
   await page.waitForURL(/\/r\/[\w-]+$/);
   await expect(page.locator(".valeur")).toContainText("2 463 677");
+});
+
+test("autocomplétion : des questions qui marchent pendant la frappe (EF-10)", async ({ page }) => {
+  await page.goto("/");
+  const champ = page.getByRole("combobox", { name: "Votre question" });
+  await champ.fill("pauvreté à kol");
+  const liste = page.getByRole("listbox", { name: "Questions suggérées" });
+  await expect(liste.getByRole("option").first()).toContainText("taux de pauvreté à Kolda");
+  await accessible(page, "autocomplétion");
+  // Flèches pour choisir, Échap pour fermer, la flèche rouvre
+  await champ.press("ArrowDown");
+  await expect(champ).toHaveAttribute("aria-activedescendant", /suggestion-0$/);
+  await expect(liste.getByRole("option").first()).toHaveAttribute("aria-selected", "true");
+  await champ.press("Escape");
+  await expect(liste).toBeHidden();
+  await champ.press("ArrowDown");
+  await liste.getByRole("option").first().click();
+  await page.waitForURL(/\/r\/[\w-]+$/);
+  await expect(page.getByRole("combobox", { name: "Votre question" })).toHaveValue(/taux de pauvreté à Kolda/);
+});
+
+test("autocomplétion indisponible : la saisie continue sans liste", async ({ page }) => {
+  await page.route("**/v1/suggestions**", (r) => r.abort());
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Votre question" }).fill("pauvreté à kol");
+  await expect(page.getByRole("listbox", { name: "Questions suggérées" })).toBeHidden();
+  await page.getByRole("button", { name: "Envoyer la question" }).click();
+  await page.waitForURL(/\/r\/[\w-]+$/);
 });
 
 test("adresse inconnue : message clair, pas d'erreur technique", async ({ page }) => {
@@ -154,7 +182,7 @@ test("suivi : les questions d'un même onglet partagent une conversation (décis
     if (r.url().endsWith("/v1/ask") && r.method() === "POST") ids.push(r.postDataJSON().conversation_id);
   });
   await poser(page, "Combien d'habitants à Thiès ?");
-  await page.getByRole("textbox", { name: "Votre question" }).fill("Et pour Kaolack ?");
+  await page.getByRole("combobox", { name: "Votre question" }).fill("Et pour Kaolack ?");
   await page.getByRole("button", { name: "Envoyer la question" }).click();
   await expect.poll(() => ids.length).toBe(2);
   expect(ids[0]).toBeTruthy();

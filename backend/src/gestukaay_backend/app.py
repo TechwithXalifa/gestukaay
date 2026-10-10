@@ -49,6 +49,7 @@ from . import comptes, jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
 from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
+from .suggestions import SuggestionsResponse, suggerer
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
 ORIGINES = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(",")
@@ -387,6 +388,13 @@ def series_csv(
         media_type=TYPE_CSV,
         headers={"Content-Disposition": f'attachment; filename="gestukaay-{fichier}.csv"'},
     )
+
+
+@app.get("/v1/suggestions", response_model=SuggestionsResponse)
+def suggestions(q: str = Query("", max_length=100)) -> SuggestionsResponse:
+    """Autocomplétion de la question (EF-10) : questions types vérifiées et indicateurs du catalogue publiés
+    au niveau de la zone tapée (suggestions.py). Hors contrat public : une aide de saisie du site."""
+    return SuggestionsResponse(suggestions=suggerer(moteur, q))
 
 
 @app.post("/v1/feedback", status_code=204)

@@ -35,7 +35,7 @@ export async function accessible(page: Page, ecran: string) {
 /** Pose une question depuis l'accueil et attend la page réponse. */
 export async function poser(page: Page, question: string) {
   await page.goto("/");
-  await page.getByRole("textbox", { name: "Votre question" }).fill(question);
+  await page.getByRole("combobox", { name: "Votre question" }).fill(question);
   await page.getByRole("button", { name: "Envoyer la question" }).click();
   await page.waitForURL(/\/r\/[\w-]+$/);
 }

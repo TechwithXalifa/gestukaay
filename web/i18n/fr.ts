@@ -35,6 +35,9 @@ export const fr = {
   "champ.horsligne": "Question indisponible hors ligne",
   "champ.micro": "Poser la question à voix haute",
   "champ.envoyer": "Envoyer la question",
+  "champ.suggestions": "Questions suggérées",
+  "champ.suggestionsN": "{n} questions suggérées : flèches haut et bas pour choisir, Entrée pour poser.",
+  "champ.suggestionIndicateur": "Indicateur du catalogue",
 
   // Réponse
   "reponse.exacte": "Correspondance exacte",
