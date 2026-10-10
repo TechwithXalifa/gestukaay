@@ -52,11 +52,18 @@ def test_classement_garde_son_sens():
 
 
 def test_dernier_echange_compris_parmi_les_trois():
-    """Thiès, puis une incompréhension et un hors périmètre : « et Kaolack ? » repart de Thiès."""
-    perdu = RequeteStructuree(intention="hors_perimetre", confiance=0.1)
-    contexte = [req("pvswjnd", ["SN-TH"], "2023"), None, perdu]
+    """Thiès, puis une incompréhension : « et Kaolack ? » repart de Thiès (0021)."""
+    contexte = [req("pvswjnd", ["SN-TH"], "2023"), None]
     r = REGLES.comprendre("Et Kaolack ?", contexte).requete
     assert (r.indicateur, r.zones, r.periode.valeur) == ("pvswjnd", ["SN-KL"], "2023")
+
+
+def test_un_refus_coupe_le_fil():
+    """#281 (amendement de la 0021, à valider par KBD) : Thiès, puis un refus d'une vraie question : « et Kaolack ? »
+    ne repart plus de Thiès (« Et à Dakar ? » servait le prix du mil d'un échange plus ancien)."""
+    perdu = RequeteStructuree(intention="hors_perimetre", confiance=0.1)
+    contexte = [req("pvswjnd", ["SN-TH"], "2023"), None, perdu]
+    assert REGLES.comprendre("Et Kaolack ?", contexte).requete.indicateur != "pvswjnd"
 
 
 def test_au_dela_de_trois_echanges_le_fil_est_perdu():
