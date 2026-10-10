@@ -17,7 +17,7 @@ const C = {
 const FRISE = ["#1d4448", "#f6f0e3", "#a4472b", "#d9952e", "#1c140d", "#f6f0e3"];
 
 /** Les espaces fines insécables (« 2 463 677 ») deviennent insécables simples : la police les connaît toutes. */
-const net = (s: string) => s.replace(/[  ]/g, " ");
+const net = (s: string) => s.replace(/[\u202f\u2009]/g, "\u00a0");
 const court = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
 
 /** Un graphique se dessine à droite : barres d'une seule série (deux barres au moins) ou courbes. */
