@@ -98,6 +98,22 @@ _TABLES = [
         ouverte_le TEXT NOT NULL,
         vue_le TEXT NOT NULL
     )""",
+    # Lexique grand public et wolof (lexique.py) : seules les entrées validées réécrivent les questions
+    """CREATE TABLE IF NOT EXISTS lexique (
+        id TEXT PRIMARY KEY,
+        expression TEXT NOT NULL,
+        cle TEXT NOT NULL,
+        remplacement TEXT NOT NULL,
+        langue TEXT NOT NULL,
+        statut TEXT NOT NULL,
+        note TEXT,
+        propose_par TEXT NOT NULL,
+        propose_le TEXT NOT NULL,
+        decide_par TEXT,
+        decide_le TEXT,
+        utilisations INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (cle, langue)
+    )""",
 ]
 
 # Suivi de conversation (décision 0021) : 3 derniers échanges, oubliés après 30 min sans échange
@@ -297,6 +313,39 @@ class Stockage:
             (req.reponse_id, datetime.now(UTC).isoformat(timespec="seconds"), req.type, req.vote, req.motif,
              req.commentaire),
         )
+
+    # ------------------------------------------------------------------ lexique
+
+    _COLONNES_LEXIQUE = ("id", "expression", "remplacement", "langue", "statut", "note", "propose_par",
+                         "propose_le", "decide_par", "decide_le", "utilisations")
+
+    def lexique(self, statut: str | None = None) -> list[dict]:
+        lignes = self._executer(f"SELECT {', '.join(self._COLONNES_LEXIQUE)} FROM lexique ORDER BY propose_le DESC")
+        tous = [dict(zip(self._COLONNES_LEXIQUE, lg, strict=True)) for lg in lignes]
+        return [x for x in tous if not statut or x["statut"] == statut]
+
+    def proposer_lexique(self, expression: str, cle: str, remplacement: str, langue: str, note: str | None,
+                         par: str) -> str | None:
+        """L'identifiant de la nouvelle entrée (proposée), ou None si l'expression existe déjà dans cette langue."""
+        if self._executer("SELECT 1 FROM lexique WHERE cle = ? AND langue = ?", (cle, langue)):
+            return None
+        eid = secrets.token_hex(4)
+        self._executer(
+            "INSERT INTO lexique (id, expression, cle, remplacement, langue, statut, note, propose_par, propose_le) "
+            "VALUES (?, ?, ?, ?, ?, 'propose', ?, ?, ?)",
+            (eid, expression, cle, remplacement, langue, note, par, datetime.now(UTC).isoformat(timespec="seconds")))
+        return eid
+
+    def decider_lexique(self, eid: str, statut: str, par: str) -> bool:
+        if not self._executer("SELECT 1 FROM lexique WHERE id = ?", (eid,)):
+            return False
+        self._executer("UPDATE lexique SET statut = ?, decide_par = ?, decide_le = ? WHERE id = ?",
+                       (statut, par, datetime.now(UTC).isoformat(timespec="seconds"), eid))
+        return True
+
+    def noter_lexique(self, ids: list[str]) -> None:
+        for eid in ids:
+            self._executer("UPDATE lexique SET utilisations = utilisations + 1 WHERE id = ?", (eid,))
 
     # ------------------------------------------------------------------ journal
 

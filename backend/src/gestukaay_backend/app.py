@@ -45,7 +45,7 @@ from gestukaay_contracts.models import (
 from gestukaay_engine import IndicateurInconnu, NonDisponible, SaisieInvalide, charger_moteur
 from pydantic import BaseModel, Field
 
-from . import comptes, jeu_de_test, securite
+from . import comptes, jeu_de_test, lexique, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
 from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
@@ -185,12 +185,32 @@ def demander(req: AskRequest) -> AskResponse:
     return _demander(req)
 
 
+# Entrées validées du lexique (lexique.py), relues au plus toutes les 30 s, ou aussitôt après une décision
+_LEXIQUE_DUREE_S = 30.0
+_lexique_cache: dict = {"le": -1e9, "entrees": []}
+
+
+def _lexique_valide() -> list[lexique.Entree]:
+    if time.monotonic() - _lexique_cache["le"] > _LEXIQUE_DUREE_S:
+        _lexique_cache["entrees"] = [lexique.Entree(e["id"], e["expression"], e["remplacement"])
+                                     for e in stockage.lexique("valide")]
+        _lexique_cache["le"] = time.monotonic()
+    return _lexique_cache["entrees"]
+
+
 def _demander(req: AskRequest) -> AskResponse:
     """Chemin commun au web et aux messageries : suivi, réponse du moteur, journal."""
     debut = time.perf_counter()
     # Suivi sur 3 échanges (EF-09, décision 0021) : le moteur reçoit les requêtes précédentes
     contexte = stockage.contexte(req.conversation_id) if req.conversation_id else None
-    return _conserver(moteur.repondre(req, contexte), debut, req)
+    # Lexique (V1.1) : la question réécrite part au moteur ; l'usager et le journal gardent la sienne
+    question, appliquees = lexique.appliquer(req.question, _lexique_valide())
+    if not appliquees:
+        return _conserver(moteur.repondre(req, contexte), debut, req)
+    rep = moteur.repondre(req.model_copy(update={"question": question}), contexte)
+    rep.reponse.question = req.question
+    stockage.noter_lexique([e.id for e in appliquees])
+    return _conserver(rep, debut, req)
 
 
 # Opus à 60 s dépasse rarement 600 Ko : 2 Mo laisse de la marge sans ouvrir la porte aux abus
@@ -491,6 +511,74 @@ def tableau(
     derniere = next((e for e in stockage.executions() if e["statut"] == "terminee" and e["resultat"]), None)
     return {**stockage.tableau(jours, canal or None, langue or None),
             "benchmark": {"lancee_le": derniere["lancee_le"], **jeu_de_test.resume(derniere["resultat"])} if derniere else None}
+
+
+# Lexique grand public et wolof (lexique.py) : proposer, valider ou rejeter, essayer, exporter
+class EntreeLexique(BaseModel):
+    expression: str = Field(min_length=2, max_length=80)
+    remplacement: str = Field(min_length=1, max_length=120)
+    langue: Literal["fr", "wo"]
+    note: str | None = Field(None, max_length=300)
+
+
+class DecisionLexique(BaseModel):
+    statut: Literal["propose", "valide", "rejete"]
+
+
+class EssaiLexique(BaseModel):
+    question: str = Field(min_length=1, max_length=300)
+
+
+@app.get("/admin/lexique")
+def lexique_liste(session: str | None = Cookie(None, alias=COOKIE_ADMIN),
+                  statut: Literal["propose", "valide", "rejete"] | None = None) -> dict:
+    _admin(session)
+    tous = stockage.lexique()
+    return {"comptes": {s: sum(e["statut"] == s for e in tous) for s in ("propose", "valide", "rejete")},
+            "entrees": [e for e in tous if not statut or e["statut"] == statut]}
+
+
+@app.post("/admin/lexique", status_code=201)
+def lexique_proposer(corps: EntreeLexique, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Propose une expression ; elle ne s'applique qu'une fois validée."""
+    par = _admin(session)
+    expression = " ".join(corps.expression.split())
+    eid = stockage.proposer_lexique(expression, lexique.sans_accents(expression), corps.remplacement.strip(),
+                                    corps.langue, (corps.note or "").strip() or None, par)
+    if eid is None:
+        raise ErreurApi(409, "Expression déjà dans le lexique", "Cette expression existe déjà dans cette langue.")
+    return {"id": eid}
+
+
+@app.post("/admin/lexique/{eid}/statut", status_code=204)
+def lexique_decider(eid: str, corps: DecisionLexique, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    par = _admin(session)
+    if not stockage.decider_lexique(eid, corps.statut, par):
+        raise ErreurApi(404, "Entrée introuvable")
+    _lexique_cache["le"] = -1e9  # la décision vaut aussitôt
+
+
+@app.post("/admin/lexique/essai")
+def lexique_essai(corps: EssaiLexique, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Ce que deviendrait une question avec les entrées validées, sans appeler le moteur."""
+    _admin(session)
+    texte, appliquees = lexique.appliquer(corps.question, _lexique_valide())
+    return {"question": corps.question, "transformee": texte,
+            "appliquees": [{"expression": e.expression, "remplacement": e.remplacement} for e in appliquees]}
+
+
+@app.get("/admin/lexique.csv")
+def lexique_csv(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> Response:
+    """Le lexique en CSV (même format Excel que les autres exports) : KBD peut l'intégrer au moteur."""
+    _admin(session)
+    colonnes = ["expression", "remplacement", "langue", "statut", "note", "propose_par", "propose_le", "decide_par",
+                "decide_le", "utilisations"]
+    sortie = io.StringIO()
+    w = csv.DictWriter(sortie, colonnes, delimiter=SEPARATEUR, lineterminator="\r\n", extrasaction="ignore")
+    w.writeheader()
+    w.writerows({k: _cellule(v) for k, v in e.items()} for e in stockage.lexique())
+    return Response(encoder_csv(sortie.getvalue()), media_type=TYPE_CSV,
+                    headers={"Content-Disposition": 'attachment; filename="gestukaay-lexique.csv"'})
 
 
 # Jeu de test (cahier 5.10, maquette BO-JeuTest) : le benchmark de KBD lancé depuis le back-office

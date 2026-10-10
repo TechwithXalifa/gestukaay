@@ -125,7 +125,7 @@ export function Connexion({ erreur, verification, onConnecter }: {
 
 export function Cadre({ children, actif, identifiant, onFermer }: {
   children: React.ReactNode;
-  actif: "tableau" | "journal" | "jeu";
+  actif: "tableau" | "journal" | "jeu" | "lexique";
   identifiant?: string | null;
   onFermer?: () => void;
 }) {
@@ -140,6 +140,7 @@ export function Cadre({ children, actif, identifiant, onFermer }: {
             <Link href="/admin/tableau" aria-current={actif === "tableau" ? "page" : undefined}>Tableau de bord</Link>
             <Link href="/admin/journal" aria-current={actif === "journal" ? "page" : undefined}>Journal des requêtes</Link>
             <Link href="/admin/jeu-de-test" aria-current={actif === "jeu" ? "page" : undefined}>Jeu de test</Link>
+            <Link href="/admin/lexique" aria-current={actif === "lexique" ? "page" : undefined}>Lexique</Link>
           </nav>
         )}
         {onFermer && (

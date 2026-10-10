@@ -220,3 +220,35 @@ test("adresse inconnue : page en français, avec l'en-tête et une suite (7.1 n�
   await expect(page.getByRole("link", { name: "Poser une question" }).last()).toHaveAttribute("href", "/");
   await accessible(page, "page introuvable");
 });
+
+test("lexique : proposer, essayer, valider ; la question réécrite part au moteur, l'usager garde la sienne", async ({ page }) => {
+  await page.goto("/admin/lexique");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByRole("heading", { name: "Lexique grand public et wolof" })).toBeVisible();
+  const expression = `mamans${Date.now() % 100000}`;
+  const formulaire = page.getByRole("form", { name: "Proposer une expression" });
+  await formulaire.getByLabel("Expression des usagers").fill(expression);
+  await formulaire.getByLabel("Ce que le moteur comprend").fill("habitants");
+  await formulaire.getByRole("button", { name: "Proposer" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "proposée" })).toBeVisible();
+  const ligne = page.getByRole("row", { name: new RegExp(expression) });
+  await accessible(page, "lexique");
+
+  const essai = page.getByRole("form", { name: "Essayer une question" });
+  await essai.getByLabel("Question à essayer").fill(`Combien de ${expression} à Thiès ?`);
+  await essai.getByRole("button", { name: "Essayer" }).click();
+  await expect(page.getByText("Aucune entrée validée ne s'applique.")).toBeVisible(); // proposée : rien ne change
+
+  await ligne.getByRole("button", { name: "Valider" }).click();
+  await expect(page.getByRole("status").filter({ hasText: new RegExp(`${expression}.*: validée`) })).toBeVisible();
+  await essai.getByRole("button", { name: "Essayer" }).click();
+  await expect(page.getByText("Le moteur recevrait")).toContainText("Combien de habitants à Thiès ?");
+
+  // Sur le site, la réponse affiche la question telle que l'usager l'a écrite
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Votre question" }).or(page.getByRole("textbox", { name: "Votre question" })).fill(`Combien de ${expression} à Thiès ?`);
+  await page.getByRole("button", { name: "Envoyer la question" }).click();
+  await page.waitForURL(/\/r\/[\w-]+$/);
+  await expect(page.locator(".valeur")).toContainText("2 463 677"); // faux moteur : « thiès » → population
+});
