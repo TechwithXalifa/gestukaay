@@ -169,8 +169,27 @@ en HTTPS.
    curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
      -d url=https://<votre domaine>/webhooks/telegram -d secret_token=<TELEGRAM_SECRET_TOKEN>
    ```
-4. WhatsApp : une application Meta (WhatsApp Cloud API) et ses quatre variables `WHATSAPP_*` dans `.env`. L'URL du
-   webhook est `https://<votre domaine>/webhooks/whatsapp`.
+4. WhatsApp (WhatsApp Cloud API, gratuit, 30 à 45 minutes avec un compte Facebook) :
+   1. Sur developers.facebook.com, créer une application de type « Entreprise », cas d'usage WhatsApp. Meta
+      fournit un numéro de test (+1 555…) ; y autoriser jusqu'à 5 numéros destinataires.
+   2. Dans `.env` : `WHATSAPP_PHONE_NUMBER_ID` (identifiant du numéro), `WHATSAPP_APP_SECRET` (clé secrète de
+      l'application, Paramètres de base) et `WHATSAPP_VERIFY_TOKEN` (une chaîne de votre choix).
+   3. `WHATSAPP_TOKEN` : le jeton temporaire de la page de l'API suffit pour un essai (24 h). Pour durer :
+      Paramètres de l'entreprise, Utilisateurs système, attribuer l'application ET le compte WhatsApp en contrôle
+      total, puis générer un jeton sans expiration (`whatsapp_business_messaging`, `whatsapp_business_management`).
+   4. Dans l'application, WhatsApp, Configuration, Webhook : l'URL `https://<votre domaine>/webhooks/whatsapp`,
+      le jeton de vérification de l'étape 2, et abonner le champ `messages`.
+
+   Si rien ne revient, `docker compose logs api` donne le code de Meta (lignes « whatsapp : … ») :
+   - **131031** « Business account locked » : Meta bloque les réponses de certains portefeuilles non vérifiés ;
+     changer de portefeuille, ou faire vérifier l'entreprise ;
+   - **131000** « business profile incomplete » : renseigner la raison sociale, le pays et le site web du
+     portefeuille ;
+   - **code 10** « Viewer cannot access … Account » : l'utilisateur système n'a pas le compte WhatsApp dans ses
+     éléments ;
+   - **aucun message reçu** avec un vrai numéro : l'application doit être publiée (mode Live, URL de politique de
+     confidentialité) ; sinon, réabonner l'application au compte avec son propre jeton :
+     `POST https://graph.facebook.com/v21.0/<WABA_ID>/subscribed_apps`.
 5. `docker compose up -d --build` (le site est reconstruit avec la nouvelle adresse).
 
 ## 8. Problèmes connus
@@ -189,3 +208,5 @@ en HTTPS.
   approchée à confirmer. Aucun chiffre faux ne passe : chaque valeur affichée est contrôlée dans le socle.
 - **Interface en wolof** : les parcours principaux sont traduits ; les autres pages
   restent en français.
+- **`.env` est transmis en entier à l'API** (`env_file`), `HF_TOKEN` compris, dont elle ne se sert pas : l'API a
+  besoin de la plupart des autres lignes (clés du LLM, canaux, sel). Ce jeton n'a que le droit de lecture.

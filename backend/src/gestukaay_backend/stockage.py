@@ -144,6 +144,17 @@ class Stockage:
             self._pg = False
             chemin = url.removeprefix("sqlite:///") if url.startswith("sqlite:///") else ":memory:"
             self._cx = sqlite3.connect(chemin, check_same_thread=False, isolation_level=None)
+            if chemin == ":memory:":
+                # Liens « Cette réponse n'existe plus » (09/10) : sans base, tout disparaît au redémarrage,
+                # y compris un compte créé par « comptes creer », qui ne vit que le temps de la commande.
+                # Une valeur non reconnue (« sqlite://g.db », deux barres) tombe aussi en mémoire : on le dit,
+                # sans afficher la valeur (une adresse PostgreSQL porte le mot de passe).
+                cause = "vide" if not url or url == "sqlite:///:memory:" else "non reconnue (ni sqlite:///…, ni postgresql://…)"
+                logging.getLogger("gestukaay.stockage").warning(
+                    "GESTUKAAY_BASE %s : base SQLite en mémoire. Réponses, journal et comptes du back-office "
+                    "sont perdus au redémarrage, et les liens /r/… déjà envoyés afficheront « Cette réponse "
+                    "n'existe plus ». Pour les garder : GESTUKAAY_BASE=sqlite:///gestukaay.db, ou PostgreSQL "
+                    "(Docker Compose).", cause)
         with self._curseur() as c:
             for sql in _TABLES:
                 c.execute(sql)
