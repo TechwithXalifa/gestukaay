@@ -122,6 +122,15 @@ def test_dit_ce_qui_est_servi_pour_une_periode_relative():
     assert _dit_relative("debut", "début de la série", _res("2011")) == "C'est la première période publiée de la série."
 
 
+@pytest.mark.parametrize("question, attendu", [  # #281
+    ("et pour les mamans ?", True), ("Et les personnes âgées ?", True), ("et pour les élèves ?", True),
+    ("Et pour les femmes ?", False), ("et pour les jeunes ?", False), ("Et à Thiès ?", False),
+])
+def test_groupe_non_traduit_dans_une_relance(question, attendu):
+    from gestukaay_engine.candidats import groupe_non_traduit
+    assert groupe_non_traduit(question) is attendu
+
+
 @pytest.mark.parametrize("message", ["merci gëstukaay", "d'accord", "ok merci", "Super gëstukaay", "C'est noté"])
 def test_remerciements_et_acquiescements(message):  # #284
     from gestukaay_engine.conversation import regles, sans_politesse
