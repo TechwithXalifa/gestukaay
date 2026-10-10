@@ -47,7 +47,8 @@ def test_question_ecrite_de_bout_en_bout(meta):
     corps_envoyes = [t["text"]["body"] for t in textes]
     assert texte("accueil") in corps_envoyes  # premier message de cette conversation
     reponse = corps_envoyes[-1]
-    assert "Thiès" in reponse and "/r/" in reponse and reponse.endswith("— gestukaay")
+    # adresse publique par défaut (http://localhost:3000) : pas de lien, il n'ouvrirait rien sur un téléphone (#228)
+    assert "Thiès" in reponse and "localhost" not in reponse and reponse.endswith("— gestukaay")
     assert all(t["to"] == "221700009999" for t in textes)
 
 
