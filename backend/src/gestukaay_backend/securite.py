@@ -44,6 +44,9 @@ FENETRE_S = 60.0
 # Avec l'identifiant d'onglet : plafond par adresse = PLAFOND_IP × la limite (GESTUKAAY_PLAFOND_IP pour l'ajuster)
 PLAFOND_IP = 10
 ENTETE_CLIENT = "x-gestukaay-client"
+# API publique (développeurs) : une clé délivrée par l'équipe (back-office) multiplie les limites, comptées par clé
+ENTETE_CLE = "x-gestukaay-cle"
+FACTEUR_CLE = 10
 _CLIENT = re.compile(r"[A-Za-z0-9-]{8,64}")
 
 
@@ -82,16 +85,23 @@ class Limiteur:
         self._appels: dict[tuple[str, str], deque[float]] = defaultdict(deque)
         self._verrou = threading.Lock()
 
-    def attente(self, ip: str, grp: str, maintenant: float | None = None, client: str | None = None) -> float:
+    def attente(self, ip: str, grp: str, maintenant: float | None = None, client: str | None = None,
+                cle: str | None = None) -> float:
         """0 si la requête passe (et elle est comptée), sinon les secondes à attendre.
-        client : identifiant d'onglet ; la limite vaut alors pour lui, et l'adresse a un plafond plus large."""
+        client : identifiant d'onglet ; la limite vaut alors pour lui, et l'adresse a un plafond plus large.
+        cle : identifiant d'une clé d'API valide ; la limite, FACTEUR_CLE fois plus large, vaut pour la clé."""
         t = time.monotonic() if maintenant is None else maintenant
-        compteurs = [((ip, grp), LIMITES[grp])] if client is None else [
-            ((f"{ip}|{client}", grp), LIMITES[grp]), ((ip, f"{grp}:plafond"), LIMITES[grp] * plafond_ip())]
+        if cle is not None:
+            compteurs = [((f"cle:{cle}", grp), LIMITES[grp] * FACTEUR_CLE)]
+        elif client is None:
+            compteurs = [((ip, grp), LIMITES[grp])]
+        else:
+            compteurs = [((f"{ip}|{client}", grp), LIMITES[grp]),
+                         ((ip, f"{grp}:plafond"), LIMITES[grp] * plafond_ip())]
         with self._verrou:
             files = []
-            for cle, limite in compteurs:
-                appels = self._appels[cle]
+            for compteur, limite in compteurs:
+                appels = self._appels[compteur]
                 while appels and appels[0] <= t - FENETRE_S:
                     appels.popleft()
                 if len(appels) >= limite:
@@ -100,8 +110,8 @@ class Limiteur:
             for appels in files:  # comptée seulement si elle passe partout
                 appels.append(t)
             if len(self._appels) > 50_000:  # garde-fou mémoire : on oublie les adresses inactives
-                for cle in [c for c, a in self._appels.items() if not a or a[-1] <= t - FENETRE_S]:
-                    del self._appels[cle]
+                for inactif in [c for c, a in self._appels.items() if not a or a[-1] <= t - FENETRE_S]:
+                    del self._appels[inactif]
             return 0.0
 
 

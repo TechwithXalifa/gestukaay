@@ -120,6 +120,7 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
           <Link href="/mes-chiffres">{t("nav.mesChiffres")}</Link>
           <Link href="/methode">{t("pied.methode")}</Link>
           <Link href="/glossaire">{t("pied.glossaire")}</Link>
+          <Link href="/developpeurs">{t("pied.api")}</Link>
           <Link href="/a-propos">{t("pied.apropos")}</Link>
           <Link href="/confidentialite">{t("pied.confidentialite")}</Link>
         </nav>

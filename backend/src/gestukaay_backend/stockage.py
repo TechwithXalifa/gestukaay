@@ -98,6 +98,17 @@ _TABLES = [
         ouverte_le TEXT NOT NULL,
         vue_le TEXT NOT NULL
     )""",
+    # Clés de l'API publique (développeurs) : seule l'empreinte est gardée, la clé n'est montrée qu'une fois
+    """CREATE TABLE IF NOT EXISTS cles_api (
+        id TEXT PRIMARY KEY,
+        nom TEXT NOT NULL,
+        empreinte TEXT NOT NULL UNIQUE,
+        creee_le TEXT NOT NULL,
+        creee_par TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        vue_le TEXT,
+        appels INTEGER NOT NULL DEFAULT 0
+    )""",
 ]
 
 # Suivi de conversation (décision 0021) : 3 derniers échanges, oubliés après 30 min sans échange
@@ -494,6 +505,35 @@ class Stockage:
 
     def fermer_session(self, jeton: str) -> None:
         self._executer("DELETE FROM sessions_admin WHERE jeton = ?", (_empreinte(jeton),))
+
+    # ------------------------------------------------------------------ clés de l'API publique
+
+    def creer_cle(self, nom: str, par: str) -> tuple[str, str]:
+        """(identifiant, clé en clair) : la clé n'est rendue qu'ici, la base n'en garde que l'empreinte."""
+        cid, cle = secrets.token_hex(4), f"gk_{secrets.token_urlsafe(24)}"
+        self._executer("INSERT INTO cles_api (id, nom, empreinte, creee_le, creee_par) VALUES (?, ?, ?, ?, ?)",
+                       (cid, nom, _empreinte(cle), datetime.now(UTC).isoformat(timespec="seconds"), par))
+        return cid, cle
+
+    def cles(self) -> list[dict]:
+        colonnes = ("id", "nom", "creee_le", "creee_par", "active", "vue_le", "appels")
+        return [{**dict(zip(colonnes, ligne, strict=True)), "active": bool(ligne[4])} for ligne in self._executer(
+            f"SELECT {', '.join(colonnes)} FROM cles_api ORDER BY creee_le DESC")]
+
+    def revoquer_cle(self, cid: str) -> bool:
+        if not self._executer("SELECT 1 FROM cles_api WHERE id = ?", (cid,)):
+            return False
+        self._executer("UPDATE cles_api SET active = 0 WHERE id = ?", (cid,))
+        return True
+
+    def verifier_cle(self, cle: str, maintenant: datetime | None = None) -> str | None:
+        """L'identifiant d'une clé active (son appel est compté), None si elle est inconnue ou révoquée."""
+        lignes = self._executer("SELECT id FROM cles_api WHERE empreinte = ? AND active = 1", (_empreinte(cle),))
+        if not lignes:
+            return None
+        quand = (maintenant or datetime.now(UTC)).isoformat(timespec="seconds")
+        self._executer("UPDATE cles_api SET appels = appels + 1, vue_le = ? WHERE id = ?", (quand, lignes[0][0]))
+        return lignes[0][0]
 
 
 def _empreinte(jeton: str) -> str:
