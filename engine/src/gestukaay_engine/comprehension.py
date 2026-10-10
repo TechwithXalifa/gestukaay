@@ -201,9 +201,15 @@ def _suivi(question: str) -> bool:
 
 
 def precedente_comprise(contexte: list[RequeteStructuree | None] | None) -> RequeteStructuree | None:
-    """Le dernier des 3 derniers échanges qui a été compris (un indicateur) : un refus ou une
-    incompréhension intercalés ne coupent pas le fil (décision 0021)."""
-    return next((r for r in reversed((contexte or [])[-3:]) if r is not None and r.indicateur), None)
+    """Le dernier des 3 derniers échanges qui a été compris (un indicateur). Une incompréhension ou une formule de
+    conversation (requête vide) ne coupe pas le fil (décision 0021). Un refus d'une vraie question (requête sans
+    indicateur) le coupe : l'usager a changé de sujet (#281 : « On est combien au Sénégal ? » refusé, puis
+    « Et à Dakar ? » servait le prix du mil d'un échange plus ancien) — amendement de la 0021 à valider par KBD."""
+    for r in reversed((contexte or [])[-3:]):
+        if r is None:
+            continue
+        return r if r.indicateur else None
+    return None
 
 
 def heriter(req: RequeteStructuree, precedente: RequeteStructuree, question: str,
