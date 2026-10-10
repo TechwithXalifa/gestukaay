@@ -366,5 +366,6 @@ def citation(r: Resultat, consulte_le: date, url: str) -> str:
     L'URL est provisoire : le backend la remplace par l'adresse stable de la réponse (/r/…)."""
     s = r.source
     operation = s.operation or s.titre
-    return (f"Source : {s.producteur}, {operation} ({r.periode.valeur[:4]}), publié le "
+    verbe = "mis à jour le" if "mis à jour le" in s.libelle else "publié le"  # #233
+    return (f"Source : {s.producteur}, {operation} ({r.periode.valeur[:4]}), {verbe} "
             f"{date_en_lettres(s.date_publication)}. Consulté via Gëstukaay le {date_en_lettres(consulte_le)}, {url}.")

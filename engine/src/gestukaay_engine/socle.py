@@ -52,6 +52,7 @@ class SourceJeu:
     date_publication: date | None
     licence: str
     url: str
+    derniere_maj: date | None = None  # #233 : dernière mise à jour du jeu (séries mensuelles, trimestrielles…)
 
 
 class Socle:
@@ -95,7 +96,8 @@ def charger(dossier: Path) -> Socle:
             ))
     with open(dossier / "sources.csv", encoding="utf-8", newline="") as f:
         sources = {r["source_id"]: SourceJeu(r["source_id"], r["producteur"], r["organisme"], r["titre"],
-                                             _date(r["date_publication"]), r["licence"], r["url"])
+                                             _date(r["date_publication"]), r["licence"], r["url"],
+                                             _date(r.get("derniere_maj") or ""))
                    for r in csv.DictReader(f, delimiter=";")}
     version_ = dossier / "VERSION"
     return Socle(observations, sources, version_.read_text().strip() if version_.exists() else "dev")
