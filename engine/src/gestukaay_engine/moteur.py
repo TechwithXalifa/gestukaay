@@ -61,6 +61,7 @@ from .candidats import (
     capacite_au_lieu_de,
     desagregation_citee,
     deux_sexes,
+    groupe_non_traduit,
     index,
     mesure_inverse,
     periode_relative,
@@ -76,6 +77,7 @@ from .comprehension import (
     Comprise,
     _meme_notion,
     periode_de,
+    precedente_comprise,
     sujet_dans_la_question,
 )
 from .conversation import domaine_demande, sans_politesse
@@ -148,6 +150,12 @@ class MoteurReel:
             return self._domaine(dom, question, transcription, req.langue if req.langue in ("fr", "wo") else detecter(question))
         rel = periode_relative(question)
         c = self.comprehension.comprendre(sans_periode_relative(question) if rel else question, contexte)
+        if (c.requete and c.requete.indicateur and contexte and (prec := precedente_comprise(contexte))
+                and c.requete.indicateur == prec.indicateur and groupe_non_traduit(question)):
+            # #281 : « et pour les mamans ? » après la mortalité des enfants ne resert jamais la même valeur
+            proches = [x for x in c.candidats if x.indicateur.code == prec.indicateur] + c.proches
+            c = replace(c, requete=c.requete.model_copy(update={"indicateur": None, "intention": "hors_perimetre"}),
+                        proches=proches, incomprehensible=False)  # un refus « non publié », le précédent suggéré
         if c.requete and c.requete.indicateur and rel:
             c = replace(c, requete=self._periode_relative(c.requete, rel))
         if c.requete and (propre := self._precisions_publiees(c.requete, question)) is not c.requete:
