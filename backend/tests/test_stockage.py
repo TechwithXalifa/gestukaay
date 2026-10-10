@@ -137,3 +137,19 @@ def test_sel_de_la_base_signale(tmp_path, monkeypatch, caplog):
     monkeypatch.setenv("GESTUKAAY_SEL", "sel-de-preprod")
     Stockage(f"sqlite:///{tmp_path / 'g.db'}")
     assert "GESTUKAAY_SEL absent" not in caplog.text
+
+
+def test_base_en_memoire_signalee(tmp_path, caplog):
+    """Sans GESTUKAAY_BASE, la base est en mémoire : les liens /r/… cassent au redémarrage (09/10). C'est dit
+    au démarrage ; pas avec un fichier SQLite."""
+    Stockage("")
+    assert "GESTUKAAY_BASE vide" in caplog.text
+    caplog.clear()
+    Stockage("sqlite:///:memory:")
+    assert "GESTUKAAY_BASE vide" in caplog.text
+    caplog.clear()
+    Stockage("sqlite://g.db")  # deux barres : non reconnue, en mémoire aussi, et dit comme tel
+    assert "GESTUKAAY_BASE non reconnue" in caplog.text and "g.db" not in caplog.text
+    caplog.clear()
+    Stockage(f"sqlite:///{tmp_path / 'g.db'}")
+    assert "GESTUKAAY_BASE" not in caplog.text
