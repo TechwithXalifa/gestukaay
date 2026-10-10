@@ -67,6 +67,9 @@ export const fr = {
   "audio.ecouterWo": "Écouter la réponse en wolof, {s} secondes",
   "audio.pause": "Mettre la lecture en pause",
   "audio.lue": "réponse lue",
+  "lecture.ecouter": "Écouter la réponse, lue par la voix de votre appareil",
+  "lecture.arreter": "Arrêter la lecture",
+  "lecture.voix": "voix de votre appareil, rien n'est envoyé",
 
   // Refus (EF-51)
   "refus.suggerer": "Suggérer cet indicateur à l'équipe",
@@ -264,6 +267,7 @@ export const fr = {
   "confid.ia": "Le texte de votre question est envoyé à un modèle d'IA d'un prestataire externe, uniquement pour la comprendre. Ne mettez pas de données personnelles dans vos questions.",
   "confid.voix": "Votre voix",
   "confid.voix.texte": "Gëstukaay n'écoute que lorsque vous appuyez sur le micro. L'enregistrement sert seulement à la transcription, puis il est effacé : il n'est jamais enregistré sur nos serveurs.",
+  "confid.lecture": "Le bouton « Écouter » des réponses en français utilise une voix installée sur votre appareil : le texte n'est envoyé nulle part.",
   "confid.voix.repli": "La transcription est faite par notre propre service. S'il ne répond pas, l'enregistrement est envoyé à ADIA (Concree), un service de transcription externe, uniquement pour être transcrit. Cela vaut pour le micro du site comme pour les notes vocales WhatsApp et Telegram.",
   "confid.situer": "Où je me situe",
   "confid.situer.texte": "Votre région, la taille de votre ménage et vos dépenses servent au calcul, puis disparaissent. Elles ne sont ni enregistrées ni journalisées.",
