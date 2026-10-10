@@ -382,3 +382,23 @@ def test_configuration_invalide_explique_l_erreur(env, message):
 def test_chaine_vide_refusee():
     with pytest.raises(ValueError, match="LLM_CHAINE"):
         ClientLLM([])
+
+
+# ---- #278 : un maillon en quota épuisé ou trop lent est mis en pause ---------------------------
+
+def test_quota_epuise_le_maillon_est_saute_ensuite():
+    def quota(request):
+        return httpx.Response(429, json={"error": {"message": "RESOURCE_EXHAUSTED"}})
+    t = transport(**{G: quota, A: anthropic_ok()})
+    client = ClientLLM([PRINCIPAL, REPLI], transport=t)
+    client.structurer("sys", "q1", Capitale)
+    client.structurer("sys", "q2", Capitale)
+    hotes = [r.url.host for r in t.recues]
+    assert hotes == [G, A, A]  # la 2e question ne repasse pas par Gemini
+
+
+def test_reponse_valide_remet_le_compteur_de_lenteur_a_zero():
+    client = ClientLLM([PRINCIPAL], transport=transport(**{G: gemini_ok()}))
+    client._delais_de_suite[0] = 2
+    client.structurer("sys", "q", Capitale)
+    assert client._delais_de_suite[0] == 0 and 0 not in client._pause_jusqu_a
