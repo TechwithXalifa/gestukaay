@@ -75,7 +75,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINES,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "X-Gestukaay-Client"],  # identifiant d'onglet (securite.py)
+    allow_headers=["Content-Type", "X-Gestukaay-Client", "X-Gestukaay-Cle"],  # onglet, clé d'API (securite.py)
     allow_credentials=True,  # cookie de session du back-office (décision 0037)
 )
 
@@ -93,8 +93,16 @@ async def _proteger(requete: Request, suite):
         # Le back-office tient par un cookie : un POST venu d'un autre site est refusé (CSRF)
         probleme = Problem(title="Origine refusée", status=403)
         return JSONResponse(probleme.model_dump(), status_code=403, media_type="application/problem+json")
+    cle = None
+    if requete.headers.get(securite.ENTETE_CLE) and requete.url.path.startswith("/v1"):
+        # API publique : une clé fausse ou révoquée est refusée (le développeur doit le savoir), jamais ignorée
+        cle = await run_in_threadpool(stockage.verifier_cle, requete.headers[securite.ENTETE_CLE])
+        if cle is None:
+            probleme = Problem(title="Clé d'API inconnue ou révoquée", status=401,
+                               detail="Retirez l'en-tête X-Gestukaay-Cle, ou demandez une nouvelle clé à l'équipe.")
+            return JSONResponse(probleme.model_dump(), status_code=401, media_type="application/problem+json")
     if grp and requete.method != "OPTIONS" and securite.limites_actives():
-        attente = limiteur.attente(securite.adresse(requete), grp, client=securite.client(requete))
+        attente = limiteur.attente(securite.adresse(requete), grp, client=securite.client(requete), cle=cle)
         if attente:
             probleme = Problem(title="Trop de requêtes", status=429,
                                detail="Patientez un instant avant de réessayer.")
@@ -457,6 +465,32 @@ def _cellule(valeur):
     """Export ouvert dans un tableur : un texte saisi par l'usager (question, commentaire, suggestion) qui
     commence par = + - @ y deviendrait une formule (injection CSV). Une apostrophe le garde en texte."""
     return f"'{valeur}" if isinstance(valeur, str) and valeur[:1] in ("=", "+", "-", "@", "\t", "\r") else valeur
+
+
+class NouvelleCle(BaseModel):
+    nom: str = Field(min_length=2, max_length=80)  # qui l'utilise : « Le Soleil, rubrique économie »
+
+
+@app.get("/admin/cles")
+def cles_api(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Clés de l'API publique : nom, création, dernière utilisation, nombre d'appels. Jamais la clé elle-même."""
+    _admin(session)
+    return {"cles": stockage.cles(), "facteur": securite.FACTEUR_CLE}
+
+
+@app.post("/admin/cles", status_code=201)
+def creer_cle_api(corps: NouvelleCle, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Délivre une clé : elle n'est montrée qu'une fois, la base n'en garde que l'empreinte."""
+    par = _admin(session)
+    cid, cle = stockage.creer_cle(corps.nom.strip(), par)
+    return {"id": cid, "cle": cle}
+
+
+@app.post("/admin/cles/{cid}/revoquer", status_code=204)
+def revoquer_cle_api(cid: str, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    _admin(session)
+    if not stockage.revoquer_cle(cid):
+        raise ErreurApi(404, "Clé introuvable")
 
 
 @app.get("/admin/journal")

@@ -604,6 +604,12 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .explorer-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
 .explorer-choisir { align-items: stretch; gap: 16px; }
 
+/* ---- API publique (page développeurs) ------------------------------------- */
+.dev-code { margin: 8px 0 0; padding: 14px 16px; overflow-x: auto; border-radius: var(--radius-md); background: var(--sombre); color: var(--sur-sombre); font: 400 13px/20px var(--font-mono); }
+.dev-code-ligne { padding: 4px 10px; border-radius: var(--radius-sm); background: var(--fond-2); font: 400 14px/20px var(--font-mono); overflow-wrap: anywhere; }
+.dev-routes code { font: 400 12.5px/18px var(--font-mono); overflow-wrap: anywhere; }
+.dev-routes td, .dev-routes th { vertical-align: top; }
+
 /* ---- Pages d'information : Méthode, À propos, Confidentialité ----------- */
 .site main.page-texte { max-width: 760px; }
 .page-texte p { margin: 8px 0 0; max-width: 660px; }
@@ -663,7 +669,10 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-connexion input { min-height: 48px; padding: 0 14px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; }
 .admin-connexion input:focus-visible { outline: 3px solid var(--or-clair); outline-offset: 1px; border-color: var(--baobab); }
 .admin-connexion .primaire { width: 100%; justify-content: center; margin-top: 4px; }
-.admin-connexion .erreur-admin { margin: 0; }
+.admin-connexion .admin-cle-nouvelle { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; border-color: var(--or); }
+.admin-cle-nouvelle p { margin: 0; }
+.admin-cle { padding: 6px 10px; border-radius: var(--radius-sm); background: var(--fond-2); font: 400 14px/20px var(--font-mono); overflow-wrap: anywhere; user-select: all; }
+.erreur-admin { margin: 0; }
 .admin-connexion-note { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 0; }
 .admin-verification { margin: clamp(24px, 10vh, 96px) auto 0; text-align: center; }
 @media (max-width: 480px) { .admin-connexion { padding: 28px 20px 22px; } }
