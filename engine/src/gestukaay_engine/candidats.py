@@ -528,6 +528,18 @@ def sans_emploi(question: str) -> str:
     return q
 
 
+# #281 : « mortalité des bébés » puis « et pour les mamans ? » resservait la mortalité des enfants (42 ‰) comme si
+# elle portait sur les mères. Un groupe de personnes nommé dans une relance, que l'on ne sait pas traduire en
+# désagrégation publiée, ne garde pas l'indicateur précédent.
+_GROUPES = re.compile(r"\b(mamans?|meres?|peres?|papas?|bebes?|nourrissons?|nouveaux? nes?|personnes agees|vieux|"
+                      r"seniors?|retraites?|adolescents?|ados?|eleves?|etudiants?|handicapes?|veuves?|"
+                      r"femmes enceintes|yaay|baay|xale|mag ni)\b")
+
+
+def groupe_non_traduit(question: str) -> bool:
+    return bool(_GROUPES.search(texte_normalise(question))) and not desagregation_citee(question)
+
+
 def deux_sexes(question: str) -> bool:
     """« entre hommes et femmes » : deux catégories à comparer, que la résolution ne sait pas encore servir."""
     t = texte_normalise(question)
