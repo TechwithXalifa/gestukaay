@@ -44,6 +44,9 @@ _VIDES = {
 # Formes normalisées (minuscules, sans accents), FR et WO dans les deux écritures.
 SYNONYMES: dict[str, tuple[str, ...]] = {
     "habitants": ("population",), "habitant": ("population",), "peuplee": ("population",),
+    # #282 : « on a cultivé beaucoup de mil ? » demande la production, pas un prix ni la fécondité « pour mille »
+    "cultive": ("production",), "cultivee": ("production",), "cultives": ("production",), "cultiver": ("production",),
+    "recolte": ("production",), "recoltes": ("production",), "recolter": ("production",),
     # « askan » : le mot du libellé wolof de la population (KBD). Sans lui, « nit », présent dans le seul
     # libellé wolof des prisons, faisait répondre les détenus à « Ñaata nit ñoo dëkk Kaolack ? » (07/10)
     "nit": ("population", "askan"), "nitt": ("population", "askan"), "deuk": ("population", "askan"),
@@ -451,6 +454,34 @@ def _porte_sur_la_mesure(apres: str, libelle: str) -> bool:
 # compte. Une unité de capacité (lits, places, chambres) en tête du libellé, absente de la question : l'indicateur
 # compte la capacité d'un établissement, pas l'établissement.
 _CAPACITES = {"lits", "places", "chambres"}
+
+
+# #282 : « exportation arachide » servait un prix de détail (567 FCFA/kg), « on a cultivé beaucoup de mil ? » le
+# prix du mil. La question demande une quantité d'une autre nature (exportation, importation, production,
+# superficie) ; un prix n'y répond pas.
+_NATURES_DEMANDEES = {
+    "exportation": (r"\bexport\w*", r"\bexport"),
+    "importation": (r"\bimport\w*", r"\bimport"),
+    "production": (r"\b(production|cultiv\w*|recolt\w*|rendement)\b", r"\b(production|recolte|rendement|captures?)\b"),
+    "superficie": (r"\b(superficie|surface|hectares?)\b", r"\b(superficie|surface|hectares?)\b"),
+}
+_UN_PRIX = re.compile(r"\bprix\b|\bau detail\b|\bfcfa ?/ ?(kg|l|litre)\b|\bfcfa le (kg|litre)\b")
+
+
+def nature_differente(code: str, question: str) -> bool:
+    ind = indicateurs().get(code)
+    if ind is None:
+        return False
+    t = texte_normalise(question)
+    libelle = texte_normalise(f"{ind.libelle_fr} {ind.jeu}")
+    unite = texte_normalise(ind.unite_affichee or ind.unite or "")
+    autres = {n for n, (_, publie) in _NATURES_DEMANDEES.items() if re.search(publie, libelle)}
+    if _UN_PRIX.search(libelle) or _UN_PRIX.search(unite):
+        autres.add("prix")
+    for nature, (demande, _) in _NATURES_DEMANDEES.items():
+        if re.search(demande, t) and nature not in autres:
+            return bool(autres)  # l'indicateur a une autre nature nommée (prix, importation…) : il ne répond pas
+    return False
 
 
 def capacite_au_lieu_de(code: str, question: str) -> bool:
