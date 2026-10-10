@@ -8,6 +8,7 @@ import type { SeriesResponse } from "@contracts/series_response";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { Chargement, Erreur } from "@/components/Etats";
 import { Copier, Externe, Fleche, Livre } from "@/components/icones";
+import { Integrer } from "@/components/Integrer";
 import type { Cle } from "@/i18n/fr";
 import { useLangue } from "@/i18n/langue";
 import { demander, ErreurApi, fiche, series } from "@/lib/api";
@@ -139,6 +140,7 @@ export default function Fiche() {
                   {t("fiche.explorer")}
                 </Link>
               </div>
+              <Integrer code={i.code} libelle={i.libelle} niveaux={i.niveaux} />
 
               {(f.methode || f.note_perimetre) && (
                 <section>
