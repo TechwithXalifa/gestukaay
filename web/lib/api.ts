@@ -161,5 +161,29 @@ export type CarteResponse = {
 export const carte = (indicateur: string, periode?: string) =>
   requete<CarteResponse>(`/v1/carte?${parametres({ indicateur, periode })}`);
 
+/** « Ma région en chiffres » : chiffres clés d'une zone (route du site, hors contrat public : profil_zone.py). */
+export type ValeurCle = {
+  theme: string;
+  indicateur: { code: string; libelle: string };
+  unite: string;
+  zone_servie: { code: string; libelle: string; niveau: string };
+  periode: string;
+  libelle_periode: string;
+  valeur: number;
+  valeur_affichee: string;
+  nature: string | null;
+  rang: number | null;
+  sur: number | null;
+  source: SeriesResponse["series"][number]["source"];
+};
+export type ProfilZone = {
+  version_socle: string;
+  zone: { code: string; libelle: string; niveau: string };
+  chiffres: ValeurCle[];
+  absents: { code: string; libelle: string }[];
+};
+
+export const profilZone = (code: string) => requete<ProfilZone>(`/v1/zones/${encodeURIComponent(code)}`);
+
 /** Export CSV de la vue Explorer (EF-34), virgule décimale pour Excel en français. */
 export const seriesCsvUrl = (d: DemandeSeries) => `${BASE}/v1/series.csv?${parametresSeries(d)}&decimale=virgule`;

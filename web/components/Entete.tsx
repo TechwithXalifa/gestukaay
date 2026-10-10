@@ -14,13 +14,13 @@ import { Baobab, Donnees, Points, Question, Repere } from "./icones";
  * l'écran quand on descend et revient dès qu'on remonte. Il reste visible en haut de page, menu
  * ouvert, quand le focus clavier y entre, et toujours si moins d'animations est demandé (CSS).
  */
-export type Actif = "question" | "donnees" | "explorer" | "situer" | "indicateurs" | "methode" | null;
+export type Actif = "question" | "donnees" | "explorer" | "situer" | "indicateurs" | "zones" | "methode" | null;
 
 /** Explorer, Indicateurs et Domaines forment l'espace Données. */
 
 /** Entrée de l'espace Données (en-tête, menu) : le catalogue, servi par le moteur réel depuis #156. */
 export const ENTREE_DONNEES = "/indicateurs";
-const espace = (actif: Actif) => (actif === "explorer" || actif === "indicateurs" ? "donnees" : actif);
+const espace = (actif: Actif) => (actif === "explorer" || actif === "indicateurs" || actif === "zones" ? "donnees" : actif);
 
 export function Entete({ actif = "question" }: { actif?: Actif }) {
   const { langue, setLangue, t } = useLangue();
@@ -112,6 +112,7 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
           <Link href="/">{t("nav.poser")}</Link>
           <Link href="/indicateurs">{t("nav.indicateurs")}</Link>
           <Link href="/explorer">{t("nav.explorer")}</Link>
+          <Link href="/zones">{t("nav.zones")}</Link>
           <Link href="/situer">{t("nav.situer")}</Link>
         </nav>
         <nav aria-label={t("pied.nav")}>
