@@ -15,7 +15,7 @@ from gestukaay_backend.canaux import Entrant, Services
 from gestukaay_contracts.models import Choix
 
 from .conversation import Contenu, traiter
-from .media import telecharger
+from .media import relance, telecharger
 from .textes import bouton_liste, texte
 
 _log = logging.getLogger("gestukaay.canaux.whatsapp")
@@ -87,7 +87,8 @@ class ClientGraph:
             raise RuntimeError("WHATSAPP_TOKEN ou WHATSAPP_PHONE_NUMBER_ID absent de l'environnement")
         version = os.environ.get("WHATSAPP_API_VERSION", VERSION)
         return httpx.Client(base_url=f"https://graph.facebook.com/{version}", timeout=DELAI_S,
-                            headers={"Authorization": f"Bearer {jeton}"}, transport=self._transport)
+                            headers={"Authorization": f"Bearer {jeton}"}, transport=self._transport,
+                            mounts=relance(self._transport))
 
     def _envoyer(self, corps: dict) -> None:
         with self._http() as h:

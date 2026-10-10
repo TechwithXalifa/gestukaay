@@ -13,7 +13,9 @@
     complet en français (pas de voix française, KBD 08/10) ; si la voix manque ou tombe en
     panne, le texte complet, comme pour une question écrite.
 Une erreur envoie le texte « erreur » puis remonte au backend, qui la journalise sans le numéro ; une
-panne de la voix (calcul ou envoi) est journalisée et le texte complet part à la place.
+panne de la voix (calcul ou envoi) est journalisée et le texte complet part à la place ; un accusé (lu, « en
+train d'écrire ») refusé ou injoignable est journalisé et la réponse part quand même (essais du 09/10 : un 400 de
+Meta et une coupure réseau vers Telegram bloquaient toute réponse).
 """
 
 from __future__ import annotations
@@ -58,7 +60,12 @@ _log = logging.getLogger("gestukaay.canaux")
 
 def traiter(entrant: Entrant, services: Services, envoyeur: Envoyeur) -> None:
     dest, c = entrant.expediteur, entrant.contenu
-    envoyeur.accuser(dest, c)
+    try:
+        envoyeur.accuser(dest, c)
+    except Exception as e:  # noqa: BLE001 — l'accusé n'est qu'un confort : il ne doit jamais empêcher la réponse
+        # le motif précis est journalisé par le canal (WhatsApp : code et motif de Meta, juste avant) ; ici, ni
+        # l'adresse de l'API ni le numéro
+        _log.warning("accusé non envoyé, la réponse suit quand même (%s)", type(e).__name__)
     try:
         if c.type == "texte" and est_salutation(c.texte):  # « /start », « Salam naka leu » : l'accueil seul
             return envoyeur.texte(dest, texte("accueil"))

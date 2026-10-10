@@ -193,3 +193,42 @@ def test_statut_non_remis_journalise_sans_numero(caplog):
     with caplog.at_level(logging.WARNING):
         assert lire(statut) == []
     assert "131031" in caplog.text and "221770000000" not in caplog.text
+
+
+@pytest.fixture
+def transport_retente(monkeypatch):
+    """Remplace le transport réel de `media.relance` : on voit comment il est créé et lequel sert."""
+    for nom in ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "ALL_PROXY", "all_proxy", "NO_PROXY",
+                "no_proxy"):
+        monkeypatch.delenv(nom, raising=False)
+    crees, requetes = [], []
+
+    class Retente(httpx.MockTransport):
+        def __init__(self, **kw):
+            crees.append(kw)
+            super().__init__(lambda r: requetes.append((kw.get("proxy"), r.url.host))
+                             or httpx.Response(200, json={"ok": True, "result": {}}))
+    monkeypatch.setattr(httpx, "HTTPTransport", Retente)
+    return crees, requetes
+
+
+def test_connexion_retentee_hors_tests_telegram_et_meta(monkeypatch, transport_retente):
+    # essais du 09/10 : api.telegram.org injoignable par moments (ConnectTimeout), réponse jamais partie
+    crees, requetes = transport_retente
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", JETON_TG)
+    monkeypatch.setenv("WHATSAPP_TOKEN", "jeton-meta")
+    monkeypatch.setenv("WHATSAPP_PHONE_NUMBER_ID", "1331556276698765")
+    telegram.ClientTelegram().texte("600000001", "Bonjour")
+    whatsapp.ClientGraph().texte("221700000001", "Bonjour")
+    assert crees == [{"retries": media.RELANCES}] * 2 and media.RELANCES >= 1
+    assert requetes == [(None, "api.telegram.org"), (None, "graph.facebook.com")]
+
+
+def test_relance_garde_le_proxy_de_l_environnement(monkeypatch, transport_retente):
+    # un `transport` explicite couperait HTTPS_PROXY : le proxy de l'environnement reste prioritaire (sans relance, #244)
+    _, requetes = transport_retente
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9")  # port fermé : la connexion au proxy échoue
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", JETON_TG)
+    with pytest.raises(telegram.ErreurTelegram):
+        telegram.ClientTelegram().texte("600000001", "Bonjour")
+    assert requetes == []  # passé par le proxy, pas par le transport direct
