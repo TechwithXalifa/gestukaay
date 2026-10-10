@@ -10,6 +10,7 @@ sinon : on ne mesure jamais le moteur sur un socle altéré.
 from __future__ import annotations
 
 import argparse
+import csv
 import sys
 from pathlib import Path
 
@@ -33,6 +34,28 @@ def verifier(dossier: Path, version: str | None = None) -> list[str]:
             ecarts.append(f"{nom} absent")
         elif empreinte(f) != attendue:
             ecarts.append(f"{nom} : empreinte différente du manifeste")
+    return ecarts + liens_des_sources(dossier)
+
+
+PORTAIL = "https://senegal.opendataforafrica.org/"
+
+
+def liens_des_sources(dossier: Path) -> list[str]:
+    """#165 : chaque réponse garde un lien vers la page du jeu sur le portail. Chaque source citée par une
+    observation existe dans sources.csv, avec l'adresse https://senegal.opendataforafrica.org/<source_id>."""
+    s_csv, o_csv = dossier / "sources.csv", dossier / "observations.csv"
+    if not s_csv.exists() or not o_csv.exists():
+        return []
+    with o_csv.open(encoding="utf-8", newline="") as f:
+        lecteur = csv.DictReader(f, delimiter=";")
+        if "source_id" not in (lecteur.fieldnames or []):
+            return []
+        citees = {r["source_id"] for r in lecteur if r["source_id"]}
+    with s_csv.open(encoding="utf-8", newline="") as f:
+        urls = {r["source_id"]: (r.get("url") or "").strip() for r in csv.DictReader(f, delimiter=";")}
+    ecarts = [f"source {s} citée par les observations, absente de sources.csv" for s in sorted(citees - urls.keys())]
+    ecarts += [f"source {s} : lien du portail manquant ou inattendu ({u or 'vide'})" for s, u in sorted(urls.items())
+               if s in citees and u != PORTAIL + s]
     return ecarts
 
 

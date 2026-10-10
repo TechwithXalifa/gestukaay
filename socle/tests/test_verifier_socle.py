@@ -36,3 +36,15 @@ def test_mauvaise_version_ou_sans_manifeste(tmp_path):
     assert verifier(d, "2026.10.1") == ["version '2026.10.0' au lieu de '2026.10.1'"]
     (d / "MANIFEST.json").unlink()
     assert verifier(d) == [f"{d}/MANIFEST.json absent"]
+
+
+def test_lien_du_portail_pour_chaque_source_citee(tmp_path):  # #165
+    from verifier_socle import liens_des_sources
+    d = tmp_path / "s"
+    d.mkdir()
+    (d / "observations.csv").write_text("observation_id;source_id\na;abc\nb;def\nc;xyz\n", encoding="utf-8")
+    (d / "sources.csv").write_text("source_id;url\nabc;https://senegal.opendataforafrica.org/abc\ndef;\n",
+                                   encoding="utf-8")
+    ecarts = liens_des_sources(d)
+    assert any("xyz" in e and "absente" in e for e in ecarts) and any("def" in e and "vide" in e for e in ecarts)
+    assert not any("abc" in e for e in ecarts)
