@@ -340,6 +340,42 @@ def fenetre_periodes(question: str) -> int | None:
     return None if not m else 12 if m[1] == "douze" else int(m[1]) if m[1].isdigit() else _NOMBRES[m[1]]
 
 
+# Test du bot du 10/10 (#266 à #269) : des périodes relatives que le LLM remplissait au hasard (« l'année 2024-T1 »
+# pour « le trimestre courant », toute la série pour « l'année précédente et l'année courante », la dernière valeur
+# pour « le début de la série »). Elles sont lues ici et résolues sur la série elle-même.
+_DEUX_DERNIERES = re.compile(r"\b(?:trimestre|mois|annee|an) (?:precedent|precedente|passe|passee|dernier|derniere)\b"
+                             r".*\b(?:trimestre|mois|annee|an) (?:courant|courante|en cours|actuel|actuelle)\b"
+                             r"|\bdepuis (?:le |la |l )?(?:trimestre|mois|annee|an) (?:precedent|precedente|passe|passee)\b")
+_DEBUT_DE_SERIE = re.compile(r"\b(?:debut|commencement) de la serie\b|\bpremiere (?:annee|periode|valeur|donnee)"
+                             r" (?:disponible|publiee)\b|\b(?:la |les )?plus ancien(?:ne)?s?\b(?! que)")
+
+
+_UNITE_REL = r"(?:trimestre|mois|ann[ée]e|an)"
+_TOURNURE_RELATIVE = re.compile(
+    r"\s*(?:entre|depuis|pour|au|du|en)?\s*(?:l['’]\s*|le\s+|la\s+)?" + _UNITE_REL
+    + r"\s+(?:pr[ée]c[ée]dente?|pass[ée]e?|derni[eè]re?)(?:\s+et\s+(?:en\s+)?(?:l['’]\s*|le\s+|la\s+)?" + _UNITE_REL
+    + r"\s+(?:courante?|en cours|actuelle?))?"
+    r"|\s*(?:pour|au|du|depuis)?\s*(?:le\s+)?d[ée]but de la s[ée]rie"
+    r"|\s*(?:la\s+)?premi[eè]re\s+(?:ann[ée]e|p[ée]riode|valeur|donn[ée]e)\s+(?:disponible|publi[ée]e)",
+    re.IGNORECASE)
+
+
+def sans_periode_relative(question: str) -> str:
+    """La question sans sa tournure relative, pour trouver l'indicateur : « l'année précédente et l'année
+    courante » faisait servir les « dépenses courantes » au lieu du chômage."""
+    return re.sub(r"\s+", " ", _TOURNURE_RELATIVE.sub(" ", question)).strip()
+
+
+def periode_relative(question: str) -> str | None:
+    """« deux_dernieres » (le précédent et le courant), « debut » (la première période publiée) ou None."""
+    t = texte_normalise(question)
+    if _DEUX_DERNIERES.search(t):
+        return "deux_dernieres"
+    if _DEBUT_DE_SERIE.search(t):
+        return "debut"
+    return None
+
+
 def est_evolution(question: str) -> bool:
     return bool(EVOLUTION.search(texte_normalise(question)))
 

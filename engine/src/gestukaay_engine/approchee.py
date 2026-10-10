@@ -34,7 +34,7 @@ from gestukaay_contracts.models import (
 from gestukaay_socle.indicateurs import indicateurs
 from gestukaay_socle.zones import normaliser, zones
 
-from .gabarits import libelle_court
+from .gabarits import libelle_court, periode_en_lettres
 from .resolution import Introuvable, Resolution, est_total, libelle_periode, resoudre
 from .socle import Socle
 
@@ -468,6 +468,9 @@ def proposer_approchee(
         p_demandee = requete.periode.valeur or "2024"
         z_code = requete.zones[0] if requete.zones else "SN"
         nom_lieu_concerne = _nom_zone(z_code, langue)
+        publiees_zone = {o.periode for o in socle.observations(code_ind) if o.zone == z_code}
+        if requete.periode.fin and p_demandee in publiees_zone and requete.periode.fin not in publiees_zone:
+            p_demandee = requete.periode.fin  # #270 : « entre 2021 et 2022 », c'est 2022 qui manque, pas 2021
 
         # Récupérer toutes les périodes publiées pour cet indicateur et cette zone
         periodes_publiees = sorted(
@@ -479,11 +482,12 @@ def proposer_approchee(
             lib = f"{_nom_indicateur(code_ind, langue)} - {_nom_zone(z_code, langue)} en {libelle_periode(p)}"
             candidats_choix.append((req_c, lib))
 
-        reformulation = (
-            f"Ce chiffre n'a pas été publié pour l'année {p_demandee} ; "
-            "voici les années les plus proches pour lesquelles l'ANSD publie ce chiffre. "
-            "Est-ce ce que vous cherchez ?"
-        )
+        if re.fullmatch(r"\d{4}", p_demandee):  # « pour l'année 2024 » est relu par parole.py (réponse en wolof)
+            manque, proches = f"pour l'année {p_demandee}", "les années les plus proches"
+        else:  # #267 : « au 1er trimestre 2024 », « en mars 2024 », jamais « l'année 2024-T1 »
+            manque, proches = periode_en_lettres(p_demandee), "les périodes les plus proches"
+        reformulation = (f"Ce chiffre n'a pas été publié {manque} ; voici {proches} pour lesquelles l'ANSD publie "
+                         "ce chiffre. Est-ce ce que vous cherchez ?")
 
     # -----------------------------------------------------------------------
     # Cas 6 : précision citée non publiée pour cette zone (« pauvreté rurale à Kaffrine », recette du 08/10 :

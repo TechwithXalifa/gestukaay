@@ -410,7 +410,7 @@ class Comprehension:
                 periode.fin = periodes[1]
         elif _TEMPS.search(normaliser(question)):
             periode = periode_valide(s.periode_type, s.periode_valeur) or Periode(type="derniere")
-            if s.periode_fin:
+            if s.periode_fin and re.fullmatch(r"\d{4}(?:-\d{2}|-T[1-4])?", s.periode_fin):  # #266 : jamais « precedent »
                 periode.fin = s.periode_fin
         else:
             periode = Periode(type="derniere")

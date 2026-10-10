@@ -41,6 +41,7 @@ from .candidats import (
     extremum,
     fenetre_annees,
     fenetre_periodes,
+    periode_relative,
     periodes_citees,
     texte_normalise,
     zones_citees,
@@ -568,14 +569,17 @@ def resoudre(socle: Socle, requete: RequeteStructuree, langue: str = "fr", quest
         citees = periodes_citees(question) if not fin else []
         q = normaliser(question)
         evolutif = est_evolution(question)
-        if (len(requete.zones or []) <= 1) and (fin or len(citees) >= 2 or evolutif):
+        relative = periode_relative(question)
+        if (len(requete.zones or []) <= 1) and (fin or len(citees) >= 2 or evolutif or relative == "deux_dernieres"):
             # Comparaison temporelle. Recette du 08/10 : « a-t-il diminué ? », « après 2019 », « sur les dix dernières
             # années », « l'évolution des arrivées en 2017 » ne donnaient qu'une valeur.
             z = requete.zones[0] if (requete.zones and len(requete.zones) == 1) else None
             serie = sorted({o.periode for o in socle.observations(ind.code) if o.zone == zone_de_la_serie(socle, ind.code, z)})
             passees = [x for x in serie if x[:4] <= str(ANNEE_EN_COURS)] or serie
             mode_debut = "fin"
-            if fin or len(citees) >= 2:
+            if relative == "deux_dernieres" and len(passees) >= 2:  # #266, #269 : le précédent et le courant publiés
+                p_debut, p_fin = passees[-2], passees[-1]
+            elif (fin and (requete.periode.valeur or citees)) or len(citees) >= 2:
                 p_debut = requete.periode.valeur if requete.periode.valeur else citees[0]
                 p_fin = fin or citees[1]
             else:
