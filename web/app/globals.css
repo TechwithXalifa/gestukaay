@@ -104,6 +104,18 @@ main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .champ input { flex: 1; min-width: 0; height: 52px; border: 0; background: transparent; font: 400 18px/26px var(--font-sans); color: var(--encre); outline: none; }
 .champ input::placeholder { color: var(--encre-douce); opacity: 1; }
 .champ.desactive { background: var(--fond-2); border-color: var(--ligne); }
+/* Autocomplétion (EF-10) : la liste flotte sous le champ, au-dessus des exemples */
+.champ-zone { position: relative; z-index: 20; width: 100%; }
+/* Les blocs animés (.monte, carte réponse) forment chacun un contexte d'empilement : le bloc du champ passe devant */
+:has(> .champ-zone) { position: relative; z-index: 20; }
+.suggestions-champ { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 30; margin: 0; padding: 6px; list-style: none; text-align: left;
+  background: var(--carte); border: 1px solid var(--ligne); border-radius: var(--radius-md); box-shadow: var(--ombre-question); }
+.suggestions-champ[hidden] { display: none; }
+.suggestions-champ li { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 12px; border-radius: var(--radius-sm); color: var(--encre); font: 500 15.5px/22px var(--font-sans); cursor: pointer; }
+.suggestions-champ li .ic { color: var(--baobab); }
+.suggestions-champ li span { display: flex; flex-direction: column; min-width: 0; }
+.suggestions-champ li small { font: 400 12px/16px var(--font-mono); color: var(--encre-douce); }
+.suggestions-champ li.actif { background: var(--baobab-50); }
 .sombre .champ { border-color: transparent; box-shadow: var(--ombre-question); }
 .sombre .champ:focus-within { border-color: var(--or-clair); box-shadow: var(--ombre-question), 0 0 0 4px rgba(226, 189, 107, .25); }
 

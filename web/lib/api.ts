@@ -130,6 +130,12 @@ export const catalogue = (f: FiltreCatalogue = {}) =>
 
 export const fiche = (code: string) => requete<FicheIndicateur>(`/v1/indicators/${encodeURIComponent(code)}`);
 
+/** Autocomplétion de la question (EF-10) : route de confort du site, hors contrat public (suggestions.py). */
+export type Suggestion = { texte: string; indicateur: { code: string; libelle: string } | null };
+
+export const suggerer = (q: string, signal?: AbortSignal) =>
+  requete<{ suggestions: Suggestion[] }>(`/v1/suggestions?${parametres({ q })}`, { signal });
+
 export type DemandeSeries = { indicateur: string; zones: string[]; debut?: string; fin?: string };
 
 const parametresSeries = (d: DemandeSeries) =>

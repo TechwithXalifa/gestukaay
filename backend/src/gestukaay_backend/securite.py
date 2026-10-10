@@ -38,6 +38,7 @@ LIMITES: dict[str, int] = {
     "admin": 20,  # protège aussi le jeton contre les essais à la chaîne
     "ecoute": 120,  # /v1/answers/{id}/audio.ogg : la voix de la réponse, calculée une fois puis gardée (0040)
     "explorer": 300,  # catalogue, fiches et séries : lecture seule, sans LLM, par adresse (une salle entière)
+    "suggestions": 600,  # autocomplétion : une requête par pause de frappe, par adresse (une salle qui tape)
 }
 FENETRE_S = 60.0
 # Avec l'identifiant d'onglet : plafond par adresse = PLAFOND_IP × la limite (GESTUKAAY_PLAFOND_IP pour l'ajuster)
@@ -63,6 +64,8 @@ def groupe(chemin: str) -> str | None:
         return "admin"
     if chemin.startswith(("/v1/indicators", "/v1/series")):
         return "explorer"
+    if chemin == "/v1/suggestions":
+        return "suggestions"
     return None  # lecture d'une réponse, santé, documentation : pas de limite
 
 
