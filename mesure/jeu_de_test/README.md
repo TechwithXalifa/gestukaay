@@ -8,19 +8,20 @@ indicateurs du socle (#3).
 
 | Type | Ce qu'on teste | FR | WO |
 |---|---|---|---|
-| simple | une valeur | 30 | 13 |
-| comparative | 2 zones ou 2 périodes | 11 | 4 |
+| simple | une valeur | 34 | 13 |
+| comparative | 2 zones ou 2 périodes | 12 | 4 |
 | classement | « quelle région… le plus… » | 7 | 3 |
-| approchee | ville → département, « Dakar » → 3 académies, période voisine, catégorie non publiée | 8 | 3 |
-| refus | une demande de chiffre sans réponse officielle : donnée absente, prévision non publiée, inintelligible | 12 | 7 |
+| approchee | ville → département, « Dakar » → 3 académies, période voisine, catégorie non publiée | 9 | 3 |
+| refus | une demande de chiffre sans réponse officielle : donnée absente, prévision non publiée, inintelligible | 15 | 7 |
 | conversation | un message qui ne demande pas de chiffre (président, maire, météo, poème) : réponse de conversation (0033), mesurée à part | 7 | 3 |
-| suivi | « et pour Kaolack ? » (colonne `suite_de`) | 3 | 2 |
+| suivi | « et pour Kaolack ? » (colonne `suite_de`) | 4 | 2 |
 
 Le cahier (12.1) prévoit 100 questions, 70 FR / 30 WO. En #3, trois refus se sont révélés couverts
 par le socle (voitures à Kolda et à Ziguinchor : `qbvttzc` ; criminalité : `iocwzud`, national) et sont
 devenus des approchées ; trois refus ont été ajoutés pour garder **20 refus** (avec 17, une seule erreur
 ferait passer sous la cible de 95 %). D'où 103 questions, 72 FR / 31 WO ; puis 104 avec FR-073
-(décision 0024).
+(décision 0024). Puis 113 avec les refus et hors-sujet de KBD (0033), et 123 avec dix cas de la recette
+de SAN du 09/10 (FR-079 à FR-089 sauf FR-085, ajoutés après correction : voir `changements.csv`).
 
 **Tout changement d'attendu ou ajout de question** après une mesure est consigné dans
 `changements.csv` (id, date, décision, changement, raison) : le rapport du benchmark le recopie,
