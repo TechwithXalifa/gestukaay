@@ -25,7 +25,7 @@ from .candidats import SYNONYMES, mots, periodes_citees, zones_citees
 ICI = Path(__file__).resolve().parent
 
 Categorie = Literal["salutation", "remerciement", "au_revoir", "a_propos", "langue", "aide", "definition",
-                    "pourquoi", "hors_sujet", "impoli"]
+                    "pourquoi", "hors_sujet", "impoli", "unite", "frequence", "producteur"]
 CATEGORIES: tuple[str, ...] = Categorie.__args__
 
 
@@ -66,8 +66,15 @@ _REGLES: tuple[tuple[str, re.Pattern], ...] = (
                         r"que puis je (te )?demander) ")),
     # « Lou gestukay meune def », « … lane leu gestukaay meune def » : formes de KBD (essai Telegram, 08/10)
     ("aide", re.compile(r" (lu|lou|lan|lane) (la |leu |le )?ge?stu?kaa?y (meune?|mene?|mun) def ")),
+    # #273 : la fiche d'un indicateur nommé, lue dans le référentiel (unité, fréquence, producteur)
+    ("unite", re.compile(r" (quelle unite|en quelle unite|dans quelle unite|unite (est )?(utilisee|de mesure)|"
+                         r"se mesure en quoi|mesure en quoi) ")),
+    ("frequence", re.compile(r" (a quelle frequence|quelle (est la )?frequence|tous les combien|"
+                             r"(sont|est) (elles?|ils?) mis(es)? a jour|mises? a jour (quand|tous))")),
+    ("producteur", re.compile(r" (qui (produit|publie|calcule|fournit|collecte)|produit ou publie|"
+                              r"quel (organisme|service) (produit|publie)) ")),
     ("definition", re.compile(r"^ (c est quoi|qu est ce que?|que veut dire|ca veut dire quoi|definition( de| du)?|"
-                              r"definis?) ")),
+                              r"definis?|que signifie(nt)?) ")),
     # « Quelle est la différence entre le taux brut et le taux net ? », « Que signifie un Gini de 0,35 ? », « Comment
     # mesure-t-on les inégalités ? » : une explication de concept, sans zone ni période (recette du 08/10)
     ("definition", re.compile(r"^ (quelle est la difference entre|quelle difference (y a t il|existe t il) entre|"

@@ -75,6 +75,7 @@ from .candidats import (
 from .compagnons import compagnon
 from .comprehension import (
     _TOUTES_REGIONS,
+    SEUIL_REGLES,
     Comprehension,
     Comprise,
     _meme_notion,
@@ -84,7 +85,14 @@ from .comprehension import (
 )
 from .conversation import domaine_demande, sans_politesse
 from .conversation import texte as conversation_texte
-from .gabarits import citation, explication, les_autres, note_perimetre, periode_en_lettres
+from .gabarits import (
+    citation,
+    explication,
+    les_autres,
+    libelle_court,
+    note_perimetre,
+    periode_en_lettres,
+)
 from .interface import NoteVocale
 from .langue import detecter
 from .nombres import en_chiffres
@@ -384,12 +392,21 @@ class MoteurReel:
         « pourquoi » proposent le chiffre lié, vérifié par la résolution (zéro chiffre inventé)."""
         cle, code = c.conversation, c.requete.indicateur if c.requete else None
         zone = c.requete.zones[0] if c.requete and c.requete.zones else "SN"
-        sugg = verifier_suggestion(self.socle, code, zone) if code and cle in ("definition", "pourquoi") else None
+        fiche = ("unite", "frequence", "producteur")  # #273
+        sugg = (verifier_suggestion(self.socle, code, zone) if code and cle in ("definition", "pourquoi", *fiche)
+                else None)
+        if cle in (*fiche, "definition") and not code:  # les mots sur la fiche brouillent la recherche (#273)
+            code = _sujet_de_la_fiche(question)
+            sugg = verifier_suggestion(self.socle, code, zone) if code else None
         ind = indicateurs().get(code) if code else None
         if cle == "definition" and ind and ind.definition.strip():
             message = conversation_texte("definition", langue, definition=ind.definition.strip().rstrip(".") + ".")
         elif cle == "definition":
             message = conversation_texte("definition_absente" if sugg else "aide", langue)
+        elif cle in fiche and ind:
+            message = conversation_texte(cle, langue, **_fiche(ind))
+        elif cle in fiche:
+            message = conversation_texte("aide", langue)
         elif cle == "pourquoi" and not sugg:  # pas de « Voici le chiffre : » sans chiffre (revue de SAN)
             message = conversation_texte("pourquoi_sans_chiffre", langue)
         else:
@@ -472,6 +489,45 @@ def _precisions_de_lecture(texte: str, question: str, res: list) -> str:
         texte = (f"{texte} La série est mensuelle : la comparaison porte sur deux mois "
                  f"({periode_en_lettres(mois[0])[3:]} et {periode_en_lettres(mois[1])[3:]}), pas sur la moyenne de l'année.")
     return texte
+
+
+_MOTS_DE_LA_FICHE = re.compile(
+    r"\b(quelle|quel|quelles|en|dans|est|sont|unite|utilisee|utilise|de|mesure|mesurer|pour|a|frequence|les|des|la|le|"
+    r"l|donnees|indicateur|elles|ils|mises?|jour|qui|produit|publie|ou|calcule|fournit|collecte|signifie|"
+    r"que|se|en quoi|quoi|tous|combien|signifient|veut|dire|c|definition)\b")
+
+
+def _sujet_de_la_fiche(question: str) -> str | None:
+    """« Quelle unité est utilisée pour mesurer le taux de chômage ? » -> l'indicateur cherché sur « taux chômage »."""
+    reste = re.sub(r"\s+", " ", _MOTS_DE_LA_FICHE.sub(" ", texte_normalise(question))).strip()
+    if not reste:
+        return None
+    meilleurs = index().chercher(reste, 5)
+    return meilleurs[0].indicateur.code if meilleurs and meilleurs[0].score >= SEUIL_REGLES else None
+
+
+_FREQUENCES = {"A": "chaque année", "M": "chaque mois", "T": "chaque trimestre", "Q": "chaque trimestre",
+               "S": "chaque semestre", "J": "chaque jour", "H": "chaque semaine"}
+
+
+def _fiche(ind) -> dict[str, str]:
+    """#273 : unité, fréquence, période couverte et producteur d'un indicateur, lus dans le référentiel."""
+    from gestukaay_socle.indicateurs import nom_du_jeu
+    unite = (ind.unite_affichee or ind.unite or "").strip()
+    return {"libelle": libelle_court(ind),
+            "unite": unite or "une unité que la source ne précise pas",
+            "frequence": _FREQUENCES.get((ind.frequence or "").strip().upper()[:1], "à intervalles irréguliers"),
+            "debut": str(ind.periode_debut or "?"), "fin": str(ind.periode_fin or "?"),
+            "producteur": _producteur_lisible(ind.producteur or "l'ANSD"), "jeu": nom_du_jeu(ind.jeu)}
+
+
+def _producteur_lisible(p: str) -> str:
+    """« Direction-de-l-Administration-Penitentiaire-Ministere » -> « Direction de l'Administration Penitentiaire
+    Ministere » (même remise en clair que les sources, resolution.producteur_et_operation)."""
+    p = p.strip()
+    if "-" in p and " " not in p:
+        p = re.sub(r"\b([ldLD]) ", r"\1'", p.replace("-", " "))
+    return p
 
 
 def _dit_relative(rel: str, question: str, res: list) -> str:
