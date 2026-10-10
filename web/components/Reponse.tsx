@@ -6,8 +6,10 @@ import { useLangue } from "@/i18n/langue";
 import { envoyerRetour } from "@/lib/api";
 import { uniteAmbigue } from "@/lib/unites";
 import { Actions } from "./Actions";
+import { Comprendre } from "./Comprendre";
 import { Graphique } from "./Graphique";
 import { LecteurAudio } from "./LecteurAudio";
+import { LectureFrancais } from "./LectureFrancais";
 import { Retour } from "./Retour";
 import { chiffres, insecables, titreSource } from "@/lib/typo";
 import { Base, Certifie, Externe, Fleche, Info, Livre, Micro, Tendance } from "./icones";
@@ -192,10 +194,11 @@ function Exacte({ r }: { r: ReponseExacte }) {
       })}
       {classement && <p className="note">{t("reponse.classement", { n: String(r.resultats.length) })}</p>}
       <p className="explication">{insecables(r.explication)}</p>
-      {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
+      {/* Voix wolof du serveur (0040) ; en français, la voix de l'appareil, si elle existe */}
+      {r.audio_url ? <LecteurAudio url={r.audio_url} langue={r.langue} /> : r.langue === "fr" && <LectureFrancais texte={r.explication} />}
 
       {/* Partager vient juste sous le chiffre : sur mobile, la barre était 1,4 écran plus bas (revue UI) */}
-      <Actions id={r.id} citation={r.citation} url={r.url} />
+      <Actions id={r.id} citation={r.citation} url={r.url} reponse={r} />
 
       <div className="corps">
         {r.graphique && <Graphique g={r.graphique} />}
@@ -216,6 +219,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
         </aside>
       </div>
 
+      <Comprendre r={r} />
       <Retour reponseId={r.id} />
     </article>
   );

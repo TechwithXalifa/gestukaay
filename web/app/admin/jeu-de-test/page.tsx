@@ -41,7 +41,7 @@ function libelleExecution(e: Execution): string {
 }
 
 export default function JeuDeTest() {
-  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
+  const { identifiant, role, avis, connecter, fermer, appeler } = useAdmin();
   const [liste, setListe] = useState<Liste | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [idA, setIdA] = useState("");
@@ -139,7 +139,7 @@ export default function JeuDeTest() {
   }
 
   return (
-    <Cadre actif="jeu" identifiant={identifiant} onFermer={() => { fermer(); setListe(null); }}>
+    <Cadre actif="jeu" identifiant={identifiant} role={role} onFermer={() => { fermer(); setListe(null); }}>
       <div className="admin-titre">
         <div>
           <h1 className="titre-etat">Jeu de test</h1>
@@ -148,6 +148,7 @@ export default function JeuDeTest() {
             classements, approchées, refus et suivis · benchmark de mesure/scripts/benchmark.py
           </p>
         </div>
+        {role === "admin" ? (
         <div className="admin-filtres">
           <button type="button" className="primaire" disabled={!liste?.disponible || enCours} onClick={() => lancer("regles")}>
             Relancer (règles locales)
@@ -164,6 +165,9 @@ export default function JeuDeTest() {
             </button>
           )}
         </div>
+        ) : (
+          <p className="note">Le lancement du jeu de test est réservé aux administrateurs.</p>
+        )}
       </div>
 
       {liste && !liste.disponible && (

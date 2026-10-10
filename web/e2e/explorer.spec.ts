@@ -71,3 +71,38 @@ test("explorer sans indicateur : on le choisit dans le catalogue", async ({ page
   await expect(page).toHaveURL(/indicateur=jcvcajc\.taux-de-pauvrete/);
   await expect(page.getByRole("figure")).toBeVisible();
 });
+
+test("explorer, vue carte : les 14 régions, absentes signalées, une tuile ajoute la zone", async ({ page }) => {
+  await page.goto("/explorer?indicateur=jcvcajc.taux-de-pauvrete&zones=SN");
+  await page.getByRole("button", { name: "Carte", exact: true }).click();
+  await expect(page).toHaveURL(/vue=carte/);
+  const carte = page.getByRole("group", { name: "Taux de pauvreté par région, 2022" });
+  await expect(carte.getByRole("button")).toHaveCount(14);
+  // Faux moteur : Dakar et Kolda publient, les douze autres sont signalées, jamais estimées
+  await expect(carte.getByRole("button", { name: /^Kolda : 62,5/ })).toBeVisible();
+  await expect(carte.getByRole("button", { name: /^Thiès : pas de valeur publiée/ })).toBeVisible();
+  await expect(page.getByText("Sénégal : 37,5")).toBeVisible();
+  await accessible(page, "explorer, carte");
+
+  await carte.getByRole("button", { name: /^Kolda/ }).click();
+  await expect(page).toHaveURL(/zones=SN%2CSN-KD/);
+  await expect(carte.getByRole("button", { name: /^Kolda/ })).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByLabel("Période affichée").selectOption("2011");
+  await expect(page).toHaveURL(/periode=2011/);
+  await expect(carte.getByRole("button", { name: /^Kolda : 76,6/ })).toHaveCount(0); // titre changé : nouvelle carte
+  await expect(page.getByRole("group", { name: "Taux de pauvreté par région, 2011" }).getByRole("button", { name: /^Kolda : 76,6/ })).toBeVisible();
+});
+
+test("fiche : suivre les mises à jour d'un indicateur par un flux Atom, sans donnée personnelle", async ({ page, request }) => {
+  await page.goto("/indicateurs/jcvcajc.taux-de-pauvrete");
+  await page.getByRole("button", { name: "Suivre les mises à jour" }).click();
+  const adresse = page.getByLabel("Adresse du flux");
+  await expect(adresse).toHaveValue("http://localhost:8000/v1/indicators/jcvcajc.taux-de-pauvrete/flux.atom?zone=SN");
+  await page.locator(".suivre").getByLabel("Zone", { exact: true }).selectOption("SN-KD");
+  await expect(adresse).toHaveValue(/zone=SN-KD$/);
+  await accessible(page, "fiche, suivre");
+  const flux = await request.get((await adresse.inputValue()) ?? "");
+  expect(flux.headers()["content-type"]).toContain("application/atom+xml");
+  expect(await flux.text()).toContain("<title>Taux de pauvreté · Kolda · 2022 : 62,5 %</title>");
+});

@@ -68,7 +68,7 @@ function variation(t: Tableau): string {
 }
 
 export default function TableauDeBord() {
-  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
+  const { identifiant, role, avis, connecter, fermer, appeler } = useAdmin();
   const [jours, setJours] = useState<(typeof PERIODES)[number]>(30);
   const [filtres, setFiltres] = useState({ canal: "" });
   const [t, setT] = useState<Tableau | null>(null);
@@ -105,7 +105,7 @@ export default function TableauDeBord() {
   const totalIssues = t ? t.issues.exacte + t.issues.approchee + t.issues.aucune : 0;
 
   return (
-    <Cadre actif="tableau" identifiant={identifiant} onFermer={() => { fermer(); setT(null); }}>
+    <Cadre actif="tableau" identifiant={identifiant} role={role} onFermer={() => { fermer(); setT(null); }}>
       <div className="admin-titre">
         <div>
           <h1 className="titre-etat">Tableau de bord</h1>
@@ -227,6 +227,7 @@ export default function TableauDeBord() {
           <section className="admin-panneau" aria-labelledby="titre-non-resolues">
             <div className="admin-titre">
               <h2 id="titre-non-resolues" className="sous-titre">Questions non résolues les plus fréquentes</h2>
+              <Link href="/admin/non-resolues" className="lien">Regrouper par thème</Link>
               <Link href="/admin/journal" className="lien">Tout voir dans le journal</Link>
             </div>
             {t.non_resolues.length === 0 ? (

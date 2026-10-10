@@ -41,6 +41,9 @@ html { scroll-padding-top: var(--hauteur-entete); scroll-padding-bottom: var(--h
 /* Sur ordinateur, le défilement se cale doucement sur le haut de chaque section de l'accueil.
    Les sections font tout l'écran et l'en-tête se cache en descendant : pas de marge en haut. */
 @media (min-width: 768px) { html:has(main.accueil) { scroll-snap-type: y proximity; scroll-padding-top: 0; } }
+/* Le bas du pied de page est aussi un point d'arrêt : sans lui, le défilement revenait au haut de la dernière
+   section et les derniers liens du pied (À propos, Confidentialité) restaient sous l'écran. */
+@media (min-width: 768px) { html:has(main.accueil) .pied { scroll-snap-align: end; } }
 main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .evitement { position: absolute; left: 16px; top: -56px; z-index: 100; padding: 10px 16px; border-radius: var(--radius-md); background: var(--or-clair); color: var(--sur-or); font-weight: 700; text-decoration: none; }
 .evitement:focus { top: 10px; }
@@ -104,6 +107,18 @@ main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .champ input { flex: 1; min-width: 0; height: 52px; border: 0; background: transparent; font: 400 18px/26px var(--font-sans); color: var(--encre); outline: none; }
 .champ input::placeholder { color: var(--encre-douce); opacity: 1; }
 .champ.desactive { background: var(--fond-2); border-color: var(--ligne); }
+/* Autocomplétion (EF-10) : la liste flotte sous le champ, au-dessus des exemples */
+.champ-zone { position: relative; z-index: 20; width: 100%; }
+/* Les blocs animés (.monte, carte réponse) forment chacun un contexte d'empilement : le bloc du champ passe devant */
+:has(> .champ-zone) { position: relative; z-index: 20; }
+.suggestions-champ { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 30; margin: 0; padding: 6px; list-style: none; text-align: left;
+  background: var(--carte); border: 1px solid var(--ligne); border-radius: var(--radius-md); box-shadow: var(--ombre-question); }
+.suggestions-champ[hidden] { display: none; }
+.suggestions-champ li { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 12px; border-radius: var(--radius-sm); color: var(--encre); font: 500 15.5px/22px var(--font-sans); cursor: pointer; }
+.suggestions-champ li .ic { color: var(--baobab); }
+.suggestions-champ li span { display: flex; flex-direction: column; min-width: 0; }
+.suggestions-champ li small { font: 400 12px/16px var(--font-mono); color: var(--encre-douce); }
+.suggestions-champ li.actif { background: var(--baobab-50); }
 .sombre .champ { border-color: transparent; box-shadow: var(--ombre-question); }
 .sombre .champ:focus-within { border-color: var(--or-clair); box-shadow: var(--ombre-question), 0 0 0 4px rgba(226, 189, 107, .25); }
 
@@ -520,7 +535,16 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
   .tuile-nom { font-size: 11.5px; line-height: 13px; overflow-wrap: anywhere; }
   .tuile-valeur { font-size: 11px; line-height: 13px; letter-spacing: -.02em; }
 }
-.carte-legende { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; color: var(--encre-douce); }
+.carte-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; color: var(--encre-douce); }
+/* Explorer, vue « Carte » : région sans valeur publiée en pointillés, région comparée cerclée d'or */
+.tuile.absente, .pastille.absente { background: var(--fond-2); color: var(--encre-douce); box-shadow: inset 0 0 0 1.5px var(--champ); }
+.pastille.absente { margin-left: 10px; }
+.tuile[aria-pressed="true"] { outline: 3px solid var(--or); outline-offset: 2px; }
+.carte-explorer { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.carte-explorer-tete { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; }
+.carte-explorer .graphique-titre { margin: 0; font: 650 15px/20px var(--font-sans); }
+.carte-notes { margin: 12px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 18px; color: var(--encre-douce); }
+.carte-explorer .bloc-source { margin-top: 12px; }
 .etsi { padding: 18px 20px; border: 1px solid var(--ligne); border-radius: var(--radius-md); background: var(--carte); }
 .etsi-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 12px 16px; margin-top: 12px; }
 .etsi-champs label, .etsi-taille { display: flex; flex-direction: column; gap: 6px; font: 600 13.5px/18px var(--font-sans); }
@@ -604,6 +628,101 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .explorer-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
 .explorer-choisir { align-items: stretch; gap: 16px; }
 
+/* ---- Ma région en chiffres : fiche d'une zone, comparaison ------------- */
+.site main.zones-page { max-width: 1120px; }
+.zones-carte { max-width: 640px; }
+.zone-tuile { background: var(--baobab-50); color: var(--baobab); text-decoration: none; transition: background-color var(--duree-moyenne), color var(--duree-moyenne); }
+.zone-tuile:hover { background: var(--baobab); color: var(--sur-baobab); }
+.zone-comparer { max-width: 320px; }
+.zone-theme .sous-titre { margin-top: 12px; }
+.chiffres-cles { margin: 12px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; }
+.chiffre-cle { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 20px 22px 8px; background: var(--carte); border: 1px solid var(--ligne); border-radius: var(--radius-lg); }
+.chiffre-cle h3 { margin: 0; font: 600 15px/21px var(--font-sans); color: var(--encre-douce); }
+.chiffre-cle-valeur { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; font: 700 34px/40px var(--font-display); letter-spacing: -.02em; color: var(--baobab); font-variant-numeric: tabular-nums; }
+.chiffre-cle-valeur.longue { font-size: 26px; line-height: 32px; }
+.chiffre-cle-valeur .unite { font-size: 15px; line-height: 22px; }
+.chiffre-cle-periode { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; color: var(--encre-douce); }
+.chiffre-cle-periode .badge { height: 24px; font-size: 12px; }
+.chiffre-cle-rang { margin: 2px 0 0; padding: 2px 10px; border-radius: var(--radius-full); background: var(--or-50); color: var(--or-texte); font: 650 13px/20px var(--font-sans); }
+.chiffre-cle .source-ligne { margin-top: 6px; }
+.zones-comparer { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
+.zones-comparer .explorer-champ { flex: 1 1 220px; }
+.comparer-carte { gap: 12px; align-items: stretch; }
+.comparer-carte .tableau-defile { max-height: none; } /* une douzaine de lignes : toute la page défile, pas le tableau */
+.comparer-tableau th small, .comparer-tableau td small { display: block; font: 400 12px/16px var(--font-mono); color: var(--encre-douce); }
+.comparer-tableau td strong { font: 700 16px/22px var(--font-display); color: var(--baobab); font-variant-numeric: tabular-nums; }
+.comparer-tableau td.absent { color: var(--encre-douce); font-style: italic; }
+.comparer-tableau tr.comparer-theme th { padding-top: 16px; background: transparent; font: 650 14px/20px var(--font-sans); color: var(--baobab); border-bottom: 1px solid var(--ligne); }
+
+/* ---- Mes chiffres : épinglés et consultés, sur l'appareil ---------------- */
+.site main.mes-chiffres { max-width: 760px; }
+.mes-chiffres .section-tete { align-items: center; margin-top: 12px; }
+.mes-chiffres .sous-titre { margin: 0; }
+.mes-chiffres-liste { margin-top: 12px; }
+.mes-chiffres-liste li { position: relative; }
+.mes-chiffres-liste a { padding-right: 56px; }
+.mes-chiffres-liste .bouton-retirer { position: absolute; top: 8px; right: 8px; margin: 0; }
+.mes-chiffres-confirmer { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.actions .secondaire[aria-pressed="true"] { border-color: var(--baobab); color: var(--baobab); background: var(--baobab-50); }
+
+/* ---- Explique-moi simplement : « Comprendre ce chiffre », glossaire ------ */
+.comprendre { width: 100%; margin-top: 20px; }
+.comprendre-bouton { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--ligne); border-radius: var(--radius-full);
+  background: var(--fond-2); color: var(--baobab); font: 650 14.5px/20px var(--font-sans); cursor: pointer; }
+.comprendre-bouton:hover { border-color: var(--baobab); }
+.comprendre-bouton .ic:last-child { transition: transform var(--duree-moyenne) var(--ease-sortie); }
+/* Chevron Phosphor pointé à gauche : vers le bas fermé, vers le haut ouvert */
+.comprendre-bouton .ic:last-child { transform: rotate(-90deg); }
+.comprendre-bouton[aria-expanded="true"] .ic:last-child { transform: rotate(90deg); }
+.comprendre-corps { margin-top: 12px; padding: 18px 20px; border-radius: var(--radius-md); background: var(--or-50); }
+.comprendre-corps[hidden] { display: none; }
+.comprendre-titre { margin: 0; font: 650 16px/22px var(--font-sans); color: var(--encre); }
+.comprendre-sous-titre { margin: 16px 0 0; font: 650 14px/20px var(--font-sans); color: var(--encre); }
+.comprendre-definition { margin: 8px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid var(--or); font-size: 15px; line-height: 23px; }
+.comprendre-mots, .glossaire { margin: 8px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.comprendre-mots dt, .glossaire dt { font-weight: 650; }
+.comprendre-mots dd, .glossaire dd { margin: 2px 0 0; color: var(--encre); font-size: 14.5px; line-height: 22px; }
+.comprendre-liens { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.glossaire { gap: 0; }
+.glossaire > div { padding: 14px 0; border-bottom: 1px solid var(--ligne); scroll-margin-top: calc(var(--hauteur-entete) + 12px); }
+.glossaire > div:target { background: var(--or-50); }
+.glossaire dt { color: var(--baobab); font-size: 17px; }
+.glossaire-filtre { margin-top: 16px; }
+
+/* ---- Widget à intégrer (/integrer/…) : un chiffre dans le cadre d'un autre site --------------------- */
+.widget { min-height: 100vh; margin: 0; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  background: var(--carte); color: var(--encre); border-top: 6px solid var(--baobab); font: 400 15px/22px var(--font-sans); }
+.widget.sombre { background: var(--sombre); color: var(--sur-sombre); border-top-color: var(--or); }
+.widget p { margin: 0; }
+.widget-titre { font: 600 14.5px/20px var(--font-sans); color: var(--encre-douce); }
+.widget.sombre .widget-titre, .widget.sombre .widget-source { color: var(--sur-sombre-doux); }
+.widget-valeur { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; font: 700 40px/46px var(--font-display); letter-spacing: -.02em; color: var(--baobab); font-variant-numeric: tabular-nums; }
+.widget.sombre .widget-valeur { color: var(--or-clair); }
+.widget-unite { font: 500 16px/22px var(--font-sans); letter-spacing: 0; color: var(--encre-douce); }
+.widget.sombre .widget-unite { color: var(--sur-sombre-doux); }
+.widget-source { font: 400 12.5px/18px var(--font-mono); color: var(--encre-douce); }
+.widget-lien { margin-top: 8px; color: var(--baobab); font: 700 13.5px/18px var(--font-sans); text-decoration: none; }
+.widget.sombre .widget-lien { color: var(--or-clair); }
+.widget-lien:hover { text-decoration: underline; }
+/* Fenêtre « Intégrer » de la fiche indicateur */
+.integrer { margin-top: 8px; padding: 18px 20px; border: 1px solid var(--ligne); border-radius: var(--radius-md); background: var(--carte); display: flex; flex-direction: column; gap: 12px; }
+.integrer-reglages { display: flex; flex-wrap: wrap; gap: 12px 16px; }
+.integrer-reglages .explorer-champ { flex: 1 1 200px; }
+.integrer iframe { width: 100%; max-width: 420px; height: 200px; border: 1px solid var(--ligne); border-radius: var(--radius-sm); }
+.integrer textarea { width: 100%; min-height: 84px; padding: 10px 12px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--fond-2); color: var(--encre); font: 400 13px/19px var(--font-mono); resize: vertical; }
+
+/* ---- API publique (page développeurs) ------------------------------------- */
+.dev-code { margin: 8px 0 0; padding: 14px 16px; overflow-x: auto; border-radius: var(--radius-md); background: var(--sombre); color: var(--sur-sombre); font: 400 13px/20px var(--font-mono); }
+.dev-code-ligne { padding: 4px 10px; border-radius: var(--radius-sm); background: var(--fond-2); font: 400 14px/20px var(--font-mono); overflow-wrap: anywhere; }
+.dev-routes code { font: 400 12.5px/18px var(--font-mono); overflow-wrap: anywhere; }
+.dev-routes td, .dev-routes th { vertical-align: top; }
+
+/* ---- Suivre les mises à jour (flux Atom, fiche indicateur) --------------- */
+.suivre { margin-top: 8px; padding: 18px 20px; border: 1px solid var(--ligne); border-radius: var(--radius-md); background: var(--carte); display: flex; flex-direction: column; gap: 12px; }
+.suivre[hidden] { display: none; }
+.suivre-adresse { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--fond-2); color: var(--encre); font: 400 14px/20px var(--font-mono); }
+.suivre-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+
 /* ---- Pages d'information : Méthode, À propos, Confidentialité ----------- */
 .site main.page-texte { max-width: 760px; }
 .page-texte p { margin: 8px 0 0; max-width: 660px; }
@@ -663,10 +782,43 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-connexion input { min-height: 48px; padding: 0 14px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; }
 .admin-connexion input:focus-visible { outline: 3px solid var(--or-clair); outline-offset: 1px; border-color: var(--baobab); }
 .admin-connexion .primaire { width: 100%; justify-content: center; margin-top: 4px; }
-.admin-connexion .erreur-admin { margin: 0; }
+.admin-connexion .admin-cle-nouvelle { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; border-color: var(--or); }
+.admin-cle-nouvelle p { margin: 0; }
+.admin-cle { padding: 6px 10px; border-radius: var(--radius-sm); background: var(--fond-2); font: 400 14px/20px var(--font-mono); overflow-wrap: anywhere; user-select: all; }
+.erreur-admin { margin: 0; }
 .admin-connexion-note { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 0; }
 .admin-verification { margin: clamp(24px, 10vh, 96px) auto 0; text-align: center; }
 @media (max-width: 480px) { .admin-connexion { padding: 28px 20px 22px; } }
+.admin-rejeu { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 8px 0; padding-top: 12px; border-top: 1px solid var(--ligne); width: 100%; }
+.admin-rejeu-cote { margin-top: 8px; font-size: 13px; line-height: 18px; }
+.admin-rejeu-cote p { margin: 0; }
+.admin-rejeu-cote ul { margin: 4px 0 0; padding-left: 16px; }
+
+.admin-groupes { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 12px; }
+.admin-groupe-tete { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.admin-groupe-tete .sous-titre { margin: 0; }
+.admin-groupe-nombre { font: 700 28px/32px var(--font-display); color: var(--baobab); font-variant-numeric: tabular-nums; }
+.admin-groupe-exemples { margin: 10px 0 0; padding-left: 18px; font-size: 14px; line-height: 20px; }
+.admin-groupe-pistes ul { margin: 4px 0 0; padding-left: 18px; font-size: 14px; }
+.admin-groupe-pistes a { color: var(--baobab); }
+
+.admin-groupes { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 12px; }
+/* Quatre statuts avec leur compte : ils passent à la ligne sur un téléphone (sinon la page déborde et se dézoome) */
+.admin-statuts { flex: 0 1 auto; flex-wrap: wrap; border-radius: var(--radius-md); }
+.admin-signalement { display: flex; flex-direction: column; gap: 8px; }
+.admin-signalement p { margin: 0; }
+.admin-signalement-question { margin: 0; font: 650 16px/22px var(--font-sans); color: var(--encre); }
+.admin-signalement .admin-commentaire { white-space: pre-wrap; padding: 6px 10px; border-left: 3px solid var(--or-clair); background: var(--baobab-50); border-radius: var(--radius-md); font-size: 14px; }
+.admin-signalement .admin-champ input { min-height: 44px; padding: 0 10px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; } /* 16 px : pas de zoom au focus sur mobile */
+.admin-signalement-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.admin-roles { margin: 0; padding-left: 18px; font-size: 14px; line-height: 21px; color: var(--encre-douce); }
+.admin-table select { min-height: 40px; padding: 0 8px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; }
+.admin-actions-ligne { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.admin-nouveau-compte { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.admin-nouveau-compte .sous-titre { margin: 0; }
+.admin-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px 16px; width: 100%; }
+.admin-nouveau-compte .admin-champ input, .admin-nouveau-compte .admin-champ select { min-height: 44px; padding: 0 10px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; }
 .erreur-admin { margin: 0; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--approchee-50); color: var(--approchee); font-size: 14px; }
 .admin-periode { border-color: var(--ligne); background: var(--fond-2); }
 .admin-periode button { min-width: 52px; color: var(--encre-douce); }
@@ -692,6 +844,18 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-issues .issue-exacte .admin-jauge span { background: var(--exacte); }
 .admin-issues .issue-approchee .admin-jauge span { background: var(--or); }
 .admin-issues .note { grid-column: 1 / -1; margin: 0; }
+
+/* Lexique (back-office) : formulaires, statuts qui passent à la ligne, actions de chaque entrée */
+.lexique-formulaire { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.lexique-formulaire .sous-titre { margin: 0; }
+.lexique-formulaire p { margin: 0; }
+.lexique-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px 16px; width: 100%; }
+.lexique-formulaire input, .lexique-formulaire select { min-height: 44px; padding: 0 10px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; }
+.lexique-formulaire .admin-filtres { width: 100%; }
+.lexique-formulaire .admin-filtres input { flex: 1 1 260px; }
+.lexique-statuts { flex: 0 1 auto; flex-wrap: wrap; align-self: flex-start; border-radius: var(--radius-md); }
+.lexique-actions { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.lexique-note { display: block; font: 400 12px/16px var(--font-mono); color: var(--encre-douce); }
 
 /* ---- Mobile (< 768 px) -------------------------------------------------- */
 @media (max-width: 767px) {

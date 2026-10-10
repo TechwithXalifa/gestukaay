@@ -68,6 +68,7 @@ export function BarreLaterale({ actif, onFermer }: { actif: Actif; onFermer: () 
           <Link href={ENTREE_DONNEES} aria-current={actif === "donnees" ? "page" : undefined} onClick={onFermer}>{t("nav.donnees")}</Link>
           <Link href="/situer" aria-current={actif === "situer" ? "page" : undefined} onClick={onFermer}>{t("nav.situer")}</Link>
           <Link href="/methode" aria-current={actif === "methode" ? "page" : undefined} onClick={onFermer}>{t("nav.methode")}</Link>
+          <Link href="/mes-chiffres" onClick={onFermer}>{t("nav.mesChiffres")}</Link>
         </nav>
 
         <div className="barre-laterale-langue">

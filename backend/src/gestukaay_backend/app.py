@@ -45,10 +45,15 @@ from gestukaay_contracts.models import (
 from gestukaay_engine import IndicateurInconnu, NonDisponible, SaisieInvalide, charger_moteur
 from pydantic import BaseModel, Field
 
-from . import comptes, jeu_de_test, securite
+from . import comptes, jeu_de_test, lexique, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
+from .carte import CarteResponse, carte
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
+from .flux import flux_atom
+from .profil_zone import ProfilZone, ZoneInconnue, profil
+from .regroupement import regrouper
 from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
+from .suggestions import SuggestionsResponse, suggerer
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
 ORIGINES = os.environ.get("GESTUKAAY_URL_PUBLIQUE", "http://localhost:3000").split(",")
@@ -75,7 +80,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINES,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "X-Gestukaay-Client"],  # identifiant d'onglet (securite.py)
+    allow_headers=["Content-Type", "X-Gestukaay-Client", "X-Gestukaay-Cle"],  # onglet, clé d'API (securite.py)
     allow_credentials=True,  # cookie de session du back-office (décision 0037)
 )
 
@@ -93,8 +98,16 @@ async def _proteger(requete: Request, suite):
         # Le back-office tient par un cookie : un POST venu d'un autre site est refusé (CSRF)
         probleme = Problem(title="Origine refusée", status=403)
         return JSONResponse(probleme.model_dump(), status_code=403, media_type="application/problem+json")
+    cle = None
+    if requete.headers.get(securite.ENTETE_CLE) and requete.url.path.startswith("/v1"):
+        # API publique : une clé fausse ou révoquée est refusée (le développeur doit le savoir), jamais ignorée
+        cle = await run_in_threadpool(stockage.verifier_cle, requete.headers[securite.ENTETE_CLE])
+        if cle is None:
+            probleme = Problem(title="Clé d'API inconnue ou révoquée", status=401,
+                               detail="Retirez l'en-tête X-Gestukaay-Cle, ou demandez une nouvelle clé à l'équipe.")
+            return JSONResponse(probleme.model_dump(), status_code=401, media_type="application/problem+json")
     if grp and requete.method != "OPTIONS" and securite.limites_actives():
-        attente = limiteur.attente(securite.adresse(requete), grp, client=securite.client(requete))
+        attente = limiteur.attente(securite.adresse(requete), grp, client=securite.client(requete), cle=cle)
         if attente:
             probleme = Problem(title="Trop de requêtes", status=429,
                                detail="Patientez un instant avant de réessayer.")
@@ -185,12 +198,32 @@ def demander(req: AskRequest) -> AskResponse:
     return _demander(req)
 
 
+# Entrées validées du lexique (lexique.py), relues au plus toutes les 30 s, ou aussitôt après une décision
+_LEXIQUE_DUREE_S = 30.0
+_lexique_cache: dict = {"le": -1e9, "entrees": []}
+
+
+def _lexique_valide() -> list[lexique.Entree]:
+    if time.monotonic() - _lexique_cache["le"] > _LEXIQUE_DUREE_S:
+        _lexique_cache["entrees"] = [lexique.Entree(e["id"], e["expression"], e["remplacement"])
+                                     for e in stockage.lexique("valide")]
+        _lexique_cache["le"] = time.monotonic()
+    return _lexique_cache["entrees"]
+
+
 def _demander(req: AskRequest) -> AskResponse:
     """Chemin commun au web et aux messageries : suivi, réponse du moteur, journal."""
     debut = time.perf_counter()
     # Suivi sur 3 échanges (EF-09, décision 0021) : le moteur reçoit les requêtes précédentes
     contexte = stockage.contexte(req.conversation_id) if req.conversation_id else None
-    return _conserver(moteur.repondre(req, contexte), debut, req)
+    # Lexique (V1.1) : la question réécrite part au moteur ; l'usager et le journal gardent la sienne
+    question, appliquees = lexique.appliquer(req.question, _lexique_valide())
+    if not appliquees:
+        return _conserver(moteur.repondre(req, contexte), debut, req)
+    rep = moteur.repondre(req.model_copy(update={"question": question}), contexte)
+    rep.reponse.question = req.question
+    stockage.noter_lexique([e.id for e in appliquees])
+    return _conserver(rep, debut, req)
 
 
 # Opus à 60 s dépasse rarement 600 Ko : 2 Mo laisse de la marge sans ouvrir la porte aux abus
@@ -340,6 +373,15 @@ def catalogue(
     return moteur.catalogue(domaine or None, (q or "").strip() or None, niveau, limite, decalage)
 
 
+@app.get("/v1/indicators/{code}/flux.atom")
+def flux_indicateur(code: str, zone: str = Query("SN", max_length=40)) -> Response:
+    """Alertes de nouvelle publication (flux.py) : un flux Atom des dernières valeurs publiées, à suivre dans un
+    lecteur de flux ou un service d'alerte par e-mail. Aucune donnée personnelle gardée."""
+    rep = moteur.series(code, _zones(zone)[:1])
+    return Response(flux_atom(rep, code, zone, URL_PUBLIQUE.rstrip("/")), media_type="application/atom+xml",
+                    headers={"Cache-Control": "public, max-age=3600"})
+
+
 @app.get("/v1/indicators/{code}", response_model=FicheIndicateur)
 def fiche(code: str) -> FicheIndicateur:
     rep = moteur.fiche(code)
@@ -367,6 +409,26 @@ def series(
     return moteur.series(indicateur, _zones(zones), debut or None, fin or None)
 
 
+@app.get("/v1/carte", response_model=CarteResponse)
+def carte_regions(
+    indicateur: str = Query(..., max_length=120),
+    periode: str | None = Query(None, max_length=10),
+) -> CarteResponse:
+    """Carte des 14 régions (Explorer, vue « Carte ») : une valeur publiée par région à une période commune,
+    les régions qui ne la publient pas dans `absents` (carte.py). Hors contrat public : une vue du site."""
+    return carte(moteur, indicateur, periode or None)
+
+
+@app.get("/v1/zones/{code}", response_model=ProfilZone)
+def profil_zone(code: str) -> ProfilZone:
+    """« Ma région en chiffres » : les chiffres clés d'une zone (pays, région, département), chacun avec sa
+    dernière valeur publiée, sa source et, pour une région, son rang (profil_zone.py). Hors contrat public."""
+    try:
+        return profil(moteur, code)
+    except ZoneInconnue as e:
+        raise ErreurApi(404, "Zone introuvable", f"Aucune zone {code}.") from e
+
+
 @app.get("/v1/series.csv")
 def series_csv(
     indicateur: str = Query(..., max_length=120),
@@ -389,6 +451,13 @@ def series_csv(
     )
 
 
+@app.get("/v1/suggestions", response_model=SuggestionsResponse)
+def suggestions(q: str = Query("", max_length=100)) -> SuggestionsResponse:
+    """Autocomplétion de la question (EF-10) : questions types vérifiées et indicateurs du catalogue publiés
+    au niveau de la zone tapée (suggestions.py). Hors contrat public : une aide de saisie du site."""
+    return SuggestionsResponse(suggestions=suggerer(moteur, q))
+
+
 @app.post("/v1/feedback", status_code=204)
 def retour(req: FeedbackRequest) -> None:
     _stockee(req.reponse_id)
@@ -403,14 +472,17 @@ def retour(req: FeedbackRequest) -> None:
 COOKIE_ADMIN = "gestukaay_admin"
 
 
-def _admin(session: str | None) -> str:
+def _admin(session: str | None, *roles: str) -> str:
     """L'identifiant de la session du back-office (comptes.py, décision 0037). Sans compte actif,
-    le back-office n'existe pas (404)."""
+    le back-office n'existe pas (404). `roles` : ceux qui ont le droit (tous les rôles si vide), 403 sinon."""
     if not stockage.back_office_ouvert():
         raise ErreurApi(404, "Not Found")
     identifiant = comptes.identifier(stockage, session)
     if not identifiant:
         raise ErreurApi(401, "Connexion requise")
+    if roles and (stockage.compte(identifiant) or {}).get("role") not in roles:
+        raise ErreurApi(403, "Réservé aux administrateurs" if roles == ("admin",) else "Accès réservé",
+                        "Votre rôle ne permet pas cette action.")
     return identifiant
 
 
@@ -430,7 +502,8 @@ def connexion(corps: Connexion, reponse: Response) -> dict:
                         f"Après {comptes.ESSAIS_MAX} essais manqués, le compte est bloqué 15 minutes.")
     reponse.set_cookie(COOKIE_ADMIN, jeton, max_age=int(comptes.DUREE_MAX.total_seconds()), path="/admin",
                        httponly=True, samesite="strict", secure=URL_PUBLIQUE.startswith("https://"))
-    return {"identifiant": comptes.identifier(stockage, jeton)}
+    identifiant = comptes.identifier(stockage, jeton)
+    return {"identifiant": identifiant, "role": (stockage.compte(identifiant) or {}).get("role")}
 
 
 @app.post("/admin/deconnexion", status_code=204)
@@ -443,8 +516,94 @@ def deconnexion(reponse: Response, session: str | None = Cookie(None, alias=COOK
 
 @app.get("/admin/moi")
 def moi(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
-    """La personne connectée : le site sait s'il doit montrer le formulaire de connexion."""
-    return {"identifiant": _admin(session)}
+    """La personne connectée et son rôle : le site sait s'il doit montrer le formulaire de connexion, et quoi."""
+    identifiant = _admin(session)
+    return {"identifiant": identifiant, "role": (stockage.compte(identifiant) or {}).get("role")}
+
+
+# ---------------------------------------------------------------------------
+# Comptes et rôles du back-office (V1.1) : gérés par un administrateur, depuis le site ou en ligne de commande
+# ---------------------------------------------------------------------------
+
+
+class NouveauCompte(BaseModel):
+    identifiant: str = Field(max_length=32)
+    mot_de_passe: str = Field(max_length=256)
+    role: Literal["admin", "linguiste", "lecteur"]
+
+
+class ChangementRole(BaseModel):
+    role: Literal["admin", "linguiste", "lecteur"]
+
+
+class NouveauMotDePasse(BaseModel):
+    mot_de_passe: str = Field(max_length=256)
+
+
+def _compte_existant(identifiant: str) -> dict:
+    compte = stockage.compte(identifiant)
+    if not compte:
+        raise ErreurApi(404, "Compte introuvable")
+    return compte
+
+
+def _garder_un_admin(compte: dict) -> None:
+    """Le dernier administrateur actif ne peut ni perdre son rôle ni être désactivé : le back-office resterait
+    sans personne pour gérer les comptes."""
+    admins = [c for c in stockage.comptes() if c["actif"] and c["role"] == "admin"]
+    if compte["role"] == "admin" and compte["actif"] and len(admins) <= 1:
+        raise ErreurApi(409, "Dernier administrateur", "Nommez d'abord un autre administrateur.")
+
+
+@app.get("/admin/comptes")
+def comptes_admin(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Comptes du back-office : identifiant, rôle, état, création. Jamais un hachage."""
+    _admin(session, "admin")
+    return {"comptes": stockage.comptes(), "roles": comptes.ROLES}
+
+
+@app.post("/admin/comptes", status_code=201)
+def creer_compte_admin(corps: NouveauCompte, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    _admin(session, "admin")
+    if not comptes.IDENTIFIANT.fullmatch(corps.identifiant):
+        raise ErreurApi(422, "Identifiant invalide", "2 à 32 caractères : lettres, chiffres, point, tiret ou souligné.")
+    if len(corps.mot_de_passe) < comptes.LONGUEUR_MIN:
+        raise ErreurApi(422, "Mot de passe trop court", f"{comptes.LONGUEUR_MIN} caractères au moins.")
+    if stockage.compte(corps.identifiant):
+        raise ErreurApi(409, "Ce compte existe déjà")
+    stockage.creer_compte(corps.identifiant, comptes.hacher(corps.mot_de_passe), corps.role)
+    return {"identifiant": corps.identifiant, "role": corps.role}
+
+
+@app.post("/admin/comptes/{identifiant}/role", status_code=204)
+def changer_role_admin(identifiant: str, corps: ChangementRole,
+                       session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    _admin(session, "admin")
+    compte = _compte_existant(identifiant)
+    if corps.role != "admin":
+        _garder_un_admin(compte)
+    stockage.changer_role(compte["identifiant"], corps.role)
+
+
+@app.post("/admin/comptes/{identifiant}/desactiver", status_code=204)
+def desactiver_compte_admin(identifiant: str, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    moi_meme = _admin(session, "admin")
+    compte = _compte_existant(identifiant)
+    if compte["identifiant"] == moi_meme:
+        raise ErreurApi(409, "Impossible de désactiver son propre compte")
+    _garder_un_admin(compte)
+    stockage.desactiver_compte(compte["identifiant"])
+
+
+@app.post("/admin/comptes/{identifiant}/mot-de-passe", status_code=204)
+def changer_mot_de_passe_admin(identifiant: str, corps: NouveauMotDePasse,
+                               session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    """Nouveau mot de passe : le compte est réactivé et débloqué, ses sessions sont fermées."""
+    _admin(session, "admin")
+    compte = _compte_existant(identifiant)
+    if len(corps.mot_de_passe) < comptes.LONGUEUR_MIN:
+        raise ErreurApi(422, "Mot de passe trop court", f"{comptes.LONGUEUR_MIN} caractères au moins.")
+    stockage.changer_mot_de_passe(compte["identifiant"], comptes.hacher(corps.mot_de_passe))
 
 
 def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | None, retour: str | None,
@@ -457,6 +616,32 @@ def _cellule(valeur):
     """Export ouvert dans un tableur : un texte saisi par l'usager (question, commentaire, suggestion) qui
     commence par = + - @ y deviendrait une formule (injection CSV). Une apostrophe le garde en texte."""
     return f"'{valeur}" if isinstance(valeur, str) and valeur[:1] in ("=", "+", "-", "@", "\t", "\r") else valeur
+
+
+class NouvelleCle(BaseModel):
+    nom: str = Field(min_length=2, max_length=80)  # qui l'utilise : « Le Soleil, rubrique économie »
+
+
+@app.get("/admin/cles")
+def cles_api(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Clés de l'API publique : nom, création, dernière utilisation, nombre d'appels. Jamais la clé elle-même."""
+    _admin(session, "admin")
+    return {"cles": stockage.cles(), "facteur": securite.FACTEUR_CLE}
+
+
+@app.post("/admin/cles", status_code=201)
+def creer_cle_api(corps: NouvelleCle, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Délivre une clé : elle n'est montrée qu'une fois, la base n'en garde que l'empreinte."""
+    par = _admin(session, "admin")
+    cid, cle = stockage.creer_cle(corps.nom.strip(), par)
+    return {"id": cid, "cle": cle}
+
+
+@app.post("/admin/cles/{cid}/revoquer", status_code=204)
+def revoquer_cle_api(cid: str, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    _admin(session, "admin")
+    if not stockage.revoquer_cle(cid):
+        raise ErreurApi(404, "Clé introuvable")
 
 
 @app.get("/admin/journal")
@@ -493,6 +678,163 @@ def tableau(
             "benchmark": {"lancee_le": derniere["lancee_le"], **jeu_de_test.resume(derniere["resultat"])} if derniere else None}
 
 
+class Rejeu(BaseModel):
+    reponse_id: str = Field(min_length=1, max_length=40)
+
+
+def _resume(rep: AskResponse) -> dict:
+    """Ce qui compte pour comparer deux réponses : l'issue, l'indicateur, et ce que l'usager a lu."""
+    r = rep.reponse
+    base = {"issue": r.issue, "indicateur": r.requete.indicateur if r.requete else None,
+            "version_socle": r.version_socle}
+    if isinstance(r, ReponseExacte):
+        lignes = [f"{v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle} : {v.valeur_affichee} {v.unite}".strip()
+                  for v in r.resultats]
+        return {**base, "texte": lignes}
+    if isinstance(r, ReponseApprochee):
+        return {**base, "texte": [r.reformulation, *(f"choix : {c.libelle}" for c in r.choix)]}
+    return {**base, "texte": [r.message], "motif": r.motif}
+
+
+@app.post("/admin/rejouer")
+def rejouer(corps: Rejeu, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Rejoue une question du journal sur le moteur et le socle actuels, pour vérifier qu'un défaut signalé est
+    corrigé. Rien n'est enregistré : ni réponse, ni ligne de journal. Sans le contexte de la conversation (une
+    relance « et pour Kaolack ? » est rejouée seule)."""
+    _admin(session)
+    avant = _stockee(corps.reponse_id)
+    debut = time.perf_counter()
+    apres = moteur.repondre(AskRequest(question=avant.reponse.question, langue="auto"), None)
+    ra, rb = _resume(avant), _resume(apres)
+    return {
+        "question": avant.reponse.question,
+        "avant": {**ra, "le": avant.reponse.cree_le.isoformat()},
+        "apres": {**rb, "latence_ms": round((time.perf_counter() - debut) * 1000)},
+        "identique": (ra["issue"], ra["indicateur"], ra["texte"]) == (rb["issue"], rb["indicateur"], rb["texte"]),
+    }
+
+
+@app.get("/admin/non-resolues")
+def non_resolues(
+    session: str | None = Cookie(None, alias=COOKIE_ADMIN),
+    jours: int = Query(30),
+    canal: str | None = None,
+    langue: str | None = None,
+    issue: Literal["aucune", "approchee"] = "aucune",
+) -> dict:
+    """Questions refusées (ou approchées) regroupées par thème (regroupement.py), avec, pour chaque thème, les
+    indicateurs du catalogue qui en contiennent les mots : s'il y en a, la question a été mal comprise
+    (lexique) ; sinon, l'indicateur manque au socle."""
+    _admin(session)
+    if jours not in (7, 30, 90):
+        raise ErreurApi(422, "Période inconnue", "jours = 7, 30 ou 90.")
+    lignes = stockage.non_resolues(jours, canal or None, langue or None, issue)
+    groupes = regrouper(lignes)
+    for g in groupes[:30]:  # le catalogue n'est interrogé que pour les thèmes affichés
+        trouves = moteur.catalogue(None, " ".join(g["mots"][:2]), None, 3, 0).indicateurs if g["mots"] else []
+        g["indicateurs_proches"] = [{"code": i.code, "libelle": i.libelle} for i in trouves]
+    return {"jours": jours, "questions": len(lignes), "groupes": groupes[:30]}
+
+
+@app.get("/admin/signalements")
+def signalements(
+    session: str | None = Cookie(None, alias=COOKIE_ADMIN),
+    statut: Literal["a_traiter", "en_cours", "corrige", "rejete"] | None = None,
+    type: Literal["signalement", "suggestion_indicateur"] | None = None,
+    jours: int = Query(90),
+) -> dict:
+    """Relecture des signalements et des suggestions d'indicateur : à traiter, en cours, corrigé, rejeté."""
+    _admin(session)
+    if jours not in (30, 90, 365):
+        raise ErreurApi(422, "Période inconnue", "jours = 30, 90 ou 365.")
+    return stockage.signalements(jours, statut, type)
+
+
+class SuiviRetour(BaseModel):
+    reponse_id: str = Field(max_length=40)
+    recu_le: str = Field(max_length=40)
+    type: Literal["signalement", "suggestion_indicateur"]
+    statut: Literal["a_traiter", "en_cours", "corrige", "rejete"]
+    note: str | None = Field(None, max_length=1000)
+
+
+@app.post("/admin/signalements/suivi", status_code=204)
+def suivre_signalement(corps: SuiviRetour, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    """Change le statut d'un signalement, avec une note ; garde qui l'a fait et quand."""
+    par = _admin(session, "admin")
+    if not stockage.suivre_retour(corps.reponse_id, corps.recu_le, corps.type, corps.statut,
+                                  (corps.note or "").strip() or None, par):
+        raise ErreurApi(404, "Signalement introuvable")
+
+
+# Lexique grand public et wolof (lexique.py) : proposer, valider ou rejeter, essayer, exporter
+class EntreeLexique(BaseModel):
+    expression: str = Field(min_length=2, max_length=80)
+    remplacement: str = Field(min_length=1, max_length=120)
+    langue: Literal["fr", "wo"]
+    note: str | None = Field(None, max_length=300)
+
+
+class DecisionLexique(BaseModel):
+    statut: Literal["propose", "valide", "rejete"]
+
+
+class EssaiLexique(BaseModel):
+    question: str = Field(min_length=1, max_length=300)
+
+
+@app.get("/admin/lexique")
+def lexique_liste(session: str | None = Cookie(None, alias=COOKIE_ADMIN),
+                  statut: Literal["propose", "valide", "rejete"] | None = None) -> dict:
+    _admin(session)
+    tous = stockage.lexique()
+    return {"comptes": {s: sum(e["statut"] == s for e in tous) for s in ("propose", "valide", "rejete")},
+            "entrees": [e for e in tous if not statut or e["statut"] == statut]}
+
+
+@app.post("/admin/lexique", status_code=201)
+def lexique_proposer(corps: EntreeLexique, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Propose une expression ; elle ne s'applique qu'une fois validée."""
+    par = _admin(session, "admin", "linguiste")
+    expression = " ".join(corps.expression.split())
+    eid = stockage.proposer_lexique(expression, lexique.sans_accents(expression), corps.remplacement.strip(),
+                                    corps.langue, (corps.note or "").strip() or None, par)
+    if eid is None:
+        raise ErreurApi(409, "Expression déjà dans le lexique", "Cette expression existe déjà dans cette langue.")
+    return {"id": eid}
+
+
+@app.post("/admin/lexique/{eid}/statut", status_code=204)
+def lexique_decider(eid: str, corps: DecisionLexique, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    par = _admin(session, "admin", "linguiste")
+    if not stockage.decider_lexique(eid, corps.statut, par):
+        raise ErreurApi(404, "Entrée introuvable")
+    _lexique_cache["le"] = -1e9  # la décision vaut aussitôt
+
+
+@app.post("/admin/lexique/essai")
+def lexique_essai(corps: EssaiLexique, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Ce que deviendrait une question avec les entrées validées, sans appeler le moteur."""
+    _admin(session)
+    texte, appliquees = lexique.appliquer(corps.question, _lexique_valide())
+    return {"question": corps.question, "transformee": texte,
+            "appliquees": [{"expression": e.expression, "remplacement": e.remplacement} for e in appliquees]}
+
+
+@app.get("/admin/lexique.csv")
+def lexique_csv(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> Response:
+    """Le lexique en CSV (même format Excel que les autres exports) : KBD peut l'intégrer au moteur."""
+    _admin(session)
+    colonnes = ["expression", "remplacement", "langue", "statut", "note", "propose_par", "propose_le", "decide_par",
+                "decide_le", "utilisations"]
+    sortie = io.StringIO()
+    w = csv.DictWriter(sortie, colonnes, delimiter=SEPARATEUR, lineterminator="\r\n", extrasaction="ignore")
+    w.writeheader()
+    w.writerows({k: _cellule(v) for k, v in e.items()} for e in stockage.lexique())
+    return Response(encoder_csv(sortie.getvalue()), media_type=TYPE_CSV,
+                    headers={"Content-Disposition": 'attachment; filename="gestukaay-lexique.csv"'})
+
+
 # Jeu de test (cahier 5.10, maquette BO-JeuTest) : le benchmark de KBD lancé depuis le back-office
 def _en_fond(tache) -> None:
     threading.Thread(target=tache, name="benchmark", daemon=True).start()
@@ -527,8 +869,8 @@ def jeu_de_test_execution(eid: str, session: str | None = Cookie(None, alias=COO
 
 @app.post("/admin/jeu-de-test/executions", status_code=202)
 def jeu_de_test_lancer(corps: dict, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
-    """Lance le benchmark en tâche de fond. « llm » appelle la chaîne LLM (environ 0,07 $)."""
-    _admin(session)
+    """Lance le benchmark en tâche de fond. « llm » appelle la chaîne LLM (environ 0,07 $). Administrateurs."""
+    _admin(session, "admin")
     mode = corps.get("mode")
     if mode not in jeu_de_test.MODES:
         raise ErreurApi(422, "Mode inconnu", "mode = regles ou llm.")

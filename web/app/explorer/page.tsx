@@ -8,6 +8,7 @@ import type { FicheIndicateur } from "@contracts/fiche_indicateur";
 import type { SeriesResponse } from "@contracts/series_response";
 import { Entete, PiedDePage } from "@/components/Entete";
 import { OngletsDonnees } from "@/components/OngletsDonnees";
+import { CarteExplorer } from "@/components/CarteExplorer";
 import { Chargement, Erreur } from "@/components/Etats";
 import { Graphique } from "@/components/Graphique";
 import { Croix, Externe, Livre, Telecharger } from "@/components/icones";
@@ -44,7 +45,8 @@ function Explorer() {
   );
   const debut = params.get("debut") ?? "";
   const fin = params.get("fin") ?? "";
-  const vue = params.get("vue") === "tableau" ? "tableau" : "graphique";
+  const vue = (["tableau", "carte"] as const).find((v) => v === params.get("vue")) ?? "graphique";
+  const periodeCarte = params.get("periode") ?? "";
 
   const [f, setF] = useState<FicheIndicateur | null>(null);
   const [s, setS] = useState<SeriesResponse | null>(null);
@@ -54,10 +56,10 @@ function Explorer() {
   // Adresse stable de cette vue, affichée dans le pied comme sur une réponse (audit du 09/10 : la mention
   // était dans la carte ici, dans le pied là-bas). Lue après le rendu, puis à chaque changement de vue.
   const [adresse, setAdresse] = useState<string | undefined>(undefined);
-  useEffect(() => setAdresse(window.location.href), [indicateur, zones.join(","), debut, fin, vue]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setAdresse(window.location.href), [indicateur, zones.join(","), debut, fin, vue, periodeCarte]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function changer(nouveau: Record<string, string>) {
-    const p = new URLSearchParams({ indicateur, zones: zones.join(","), debut, fin, vue, ...nouveau });
+    const p = new URLSearchParams({ indicateur, zones: zones.join(","), debut, fin, vue, periode: periodeCarte, ...nouveau });
     for (const [k, v] of [...p.entries()]) if (!v || (k === "vue" && v === "graphique")) p.delete(k);
     router.replace(`/explorer?${p}`, { scroll: false });
   }
@@ -89,6 +91,8 @@ function Explorer() {
     [f],
   );
   const regionsPubliees = f?.indicateur.niveaux.includes("region") ?? true;
+  // La carte place aussi les académies sur leur région (données d'éducation, décision 0003)
+  const carteDisponible = regionsPubliees || (f?.indicateur.niveaux.includes("academie") ?? false);
   const ajoutables = ZONES.filter((z) => !zones.includes(z.code) && (z.code === "SN" || regionsPubliees));
   const lignes = useMemo(() => [...new Set(s?.series.flatMap((x) => x.points.map((p) => p.periode)) ?? [])].sort(), [s]);
   const sources = s ? [...new Map(s.series.map((x) => [x.source.url, x.source])).values()] : [];
@@ -169,7 +173,7 @@ function Explorer() {
               <fieldset>
                 <legend>{t("explorer.affichage")}</legend>
                 <div role="group" aria-label={t("explorer.affichage")} className="bascule">
-                  {(["graphique", "tableau"] as const).map((v) => (
+                  {(carteDisponible ? (["graphique", "tableau", "carte"] as const) : (["graphique", "tableau"] as const)).map((v) => (
                     <button key={v} type="button" aria-pressed={vue === v} onClick={() => changer({ vue: v })}>
                       {t(`explorer.${v}`)}
                     </button>
@@ -180,7 +184,20 @@ function Explorer() {
             </form>
 
             <section className="explorer-resultat carte" aria-live="polite">
-              {!s ? (
+              {vue === "carte" && carteDisponible ? (
+                <CarteExplorer
+                  indicateur={indicateur}
+                  periode={periodeCarte}
+                  choisies={zones}
+                  onPeriode={(p) => changer({ periode: p })}
+                  // Toucher une région l'ajoute aux zones comparées, ou l'en retire (jamais la dernière)
+                  onZone={(code) =>
+                    zones.includes(code)
+                      ? zones.length > 1 && changer({ zones: zones.filter((z) => z !== code).join(",") })
+                      : zones.length < ZONES_MAX && changer({ zones: [...zones, code].join(",") })
+                  }
+                />
+              ) : !s ? (
                 <Chargement />
               ) : (
                 <>

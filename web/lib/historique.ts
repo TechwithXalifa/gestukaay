@@ -6,7 +6,7 @@ import type { AskResponse } from "@contracts/ask_response";
  * (navigation privée, données bloquées) ne casse jamais la page.
  */
 const CLE = "gestukaay.historique";
-const MAX = 10;
+const MAX = 20;
 
 export type Consultation = { reponse: AskResponse; consulteeLe: string };
 
@@ -32,3 +32,20 @@ export const historique = (): Consultation[] => lire();
 
 export const retrouver = (id: string): AskResponse | null =>
   lire().find((c) => c.reponse.reponse.id === id)?.reponse ?? null;
+
+/** « Mes chiffres » : oublier une consultation, ou tout l'historique de l'appareil. */
+export function oublier(id: string): void {
+  try {
+    localStorage.setItem(CLE, JSON.stringify(lire().filter((c) => c.reponse.reponse.id !== id)));
+  } catch {
+    /* stockage bloqué : rien à oublier */
+  }
+}
+
+export function effacerHistorique(): void {
+  try {
+    localStorage.removeItem(CLE);
+  } catch {
+    /* stockage bloqué : rien à effacer */
+  }
+}

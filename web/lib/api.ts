@@ -130,12 +130,66 @@ export const catalogue = (f: FiltreCatalogue = {}) =>
 
 export const fiche = (code: string) => requete<FicheIndicateur>(`/v1/indicators/${encodeURIComponent(code)}`);
 
+/** Autocomplétion de la question (EF-10) : route de confort du site, hors contrat public (suggestions.py). */
+export type Suggestion = { texte: string; indicateur: { code: string; libelle: string } | null };
+
+export const suggerer = (q: string, signal?: AbortSignal) =>
+  requete<{ suggestions: Suggestion[] }>(`/v1/suggestions?${parametres({ q })}`, { signal });
+
 export type DemandeSeries = { indicateur: string; zones: string[]; debut?: string; fin?: string };
 
 const parametresSeries = (d: DemandeSeries) =>
   parametres({ indicateur: d.indicateur, zones: d.zones.join(","), debut: d.debut, fin: d.fin });
 
 export const series = (d: DemandeSeries) => requete<SeriesResponse>(`/v1/series?${parametresSeries(d)}`);
+
+/** Carte des 14 régions (Explorer, vue « Carte ») : route du site, hors contrat public (carte.py). */
+export type ValeurCarte = {
+  region: string;
+  zone: { code: string; libelle: string; niveau: string };
+  valeur: number;
+  valeur_affichee: string;
+  nature: string | null;
+};
+export type CarteResponse = {
+  version_socle: string;
+  indicateur: { code: string; libelle: string };
+  unite: string;
+  periode: string | null;
+  libelle_periode: string | null;
+  periodes: string[];
+  valeurs: ValeurCarte[];
+  absents: string[];
+  ensemble: ValeurCarte | null;
+  sources: SeriesResponse["series"][number]["source"][];
+};
+
+export const carte = (indicateur: string, periode?: string) =>
+  requete<CarteResponse>(`/v1/carte?${parametres({ indicateur, periode })}`);
+
+/** « Ma région en chiffres » : chiffres clés d'une zone (route du site, hors contrat public : profil_zone.py). */
+export type ValeurCle = {
+  theme: string;
+  indicateur: { code: string; libelle: string };
+  unite: string;
+  zone_servie: { code: string; libelle: string; niveau: string };
+  periode: string;
+  libelle_periode: string;
+  valeur: number;
+  valeur_affichee: string;
+  nature: string | null;
+  rang: number | null;
+  sur: number | null;
+  source: SeriesResponse["series"][number]["source"];
+};
+export type ProfilZone = {
+  version_socle: string;
+  zone: { code: string; libelle: string; niveau: string };
+  chiffres: ValeurCle[];
+  absents: { code: string; libelle: string }[];
+};
+
+export const profilZone = (code: string) => requete<ProfilZone>(`/v1/zones/${encodeURIComponent(code)}`);
 
 /** Export CSV de la vue Explorer (EF-34), virgule décimale pour Excel en français. */
 export const seriesCsvUrl = (d: DemandeSeries) => `${BASE}/v1/series.csv?${parametresSeries(d)}&decimale=virgule`;

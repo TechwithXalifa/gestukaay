@@ -98,7 +98,50 @@ _TABLES = [
         ouverte_le TEXT NOT NULL,
         vue_le TEXT NOT NULL
     )""",
+    # Clés de l'API publique (développeurs) : seule l'empreinte est gardée, la clé n'est montrée qu'une fois
+    """CREATE TABLE IF NOT EXISTS cles_api (
+        id TEXT PRIMARY KEY,
+        nom TEXT NOT NULL,
+        empreinte TEXT NOT NULL UNIQUE,
+        creee_le TEXT NOT NULL,
+        creee_par TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        vue_le TEXT,
+        appels INTEGER NOT NULL DEFAULT 0
+    )""",
+    # Relecture des signalements et des suggestions d'indicateur (back-office) : un retour se repère par
+    # (réponse, date, type), la table des retours n'ayant pas d'identifiant propre
+    """CREATE TABLE IF NOT EXISTS suivi_retours (
+        reponse_id TEXT NOT NULL,
+        recu_le TEXT NOT NULL,
+        type TEXT NOT NULL,
+        statut TEXT NOT NULL,
+        note TEXT,
+        par TEXT NOT NULL,
+        le TEXT NOT NULL,
+        PRIMARY KEY (reponse_id, recu_le, type)
+    )""",
+    # Lexique grand public et wolof (lexique.py) : seules les entrées validées réécrivent les questions
+    """CREATE TABLE IF NOT EXISTS lexique (
+        id TEXT PRIMARY KEY,
+        expression TEXT NOT NULL,
+        cle TEXT NOT NULL,
+        remplacement TEXT NOT NULL,
+        langue TEXT NOT NULL,
+        statut TEXT NOT NULL,
+        note TEXT,
+        propose_par TEXT NOT NULL,
+        propose_le TEXT NOT NULL,
+        decide_par TEXT,
+        decide_le TEXT,
+        utilisations INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (cle, langue)
+    )""",
 ]
+
+# Relecture d'un signalement : à traiter (par défaut), en cours, corrigé (le défaut est réglé) ou rejeté
+STATUTS_RETOUR = ("a_traiter", "en_cours", "corrige", "rejete")
+TYPES_A_RELIRE = ("signalement", "suggestion_indicateur")
 
 # Suivi de conversation (décision 0021) : 3 derniers échanges, oubliés après 30 min sans échange
 ECHANGES_SUIVI = 3
@@ -158,6 +201,7 @@ class Stockage:
         with self._curseur() as c:
             for sql in _TABLES:
                 c.execute(sql)
+        self._migrer()
         # Sel du hachage des conversations (audit du 09/10) : GESTUKAAY_SEL s'il est donné, sinon un sel tiré
         # une fois et gardé dans la base. Avant, un sel neuf à chaque démarrage : « et pour Kaolack ? » et le
         # « 1 » de WhatsApp perdaient la conversation après un redémarrage.
@@ -168,6 +212,14 @@ class Stockage:
             logging.getLogger("gestukaay.stockage").warning(
                 "GESTUKAAY_SEL absent : le sel des conversations est gardé dans la base. "
                 "En production, le donner hors de la base (DEPLOIEMENT.md).")
+
+    def _migrer(self) -> None:
+        """Colonnes ajoutées après coup à une base existante (une base neuve les reçoit aussi)."""
+        # Rôles du back-office (comptes.py) : un compte d'avant les rôles reste administrateur
+        if self._pg:
+            self._executer("ALTER TABLE comptes_admin ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin'")
+        elif "role" not in {r[1] for r in self._executer("PRAGMA table_info(comptes_admin)")}:
+            self._executer("ALTER TABLE comptes_admin ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'")
 
     @contextmanager
     def _curseur(self) -> Iterator:
@@ -298,6 +350,79 @@ class Stockage:
              req.commentaire),
         )
 
+    # ------------------------------------------------------------------ relecture des signalements
+
+    def signalements(self, jours: int = 90, statut: str | None = None, type_: str | None = None,
+                     maintenant: datetime | None = None) -> dict:
+        """Signalements et suggestions d'indicateur de la période, avec leur question et leur suivi ; les plus
+        anciens à traiter d'abord. Comptes par statut et arrivées par semaine (tendance, 8 semaines)."""
+        maintenant = maintenant or datetime.now(UTC)
+        debut = maintenant - timedelta(days=jours)
+        lignes = self._executer(
+            "SELECT r.reponse_id, r.recu_le, r.type, r.motif, r.commentaire, j.question, j.issue, j.indicateur, "
+            "j.langue, j.canal, s.statut, s.note, s.par, s.le FROM retours r "
+            "LEFT JOIN journal j ON j.reponse_id = r.reponse_id "
+            "LEFT JOIN suivi_retours s ON s.reponse_id = r.reponse_id AND s.recu_le = r.recu_le AND s.type = r.type "
+            "WHERE r.type IN (?, ?) AND r.recu_le >= ? ORDER BY r.recu_le",
+            (*TYPES_A_RELIRE, debut.isoformat(timespec="seconds")))
+        colonnes = ("reponse_id", "recu_le", "type", "motif", "commentaire", "question", "issue", "indicateur",
+                    "langue", "canal", "statut", "note", "par", "le")
+        tous = [{**dict(zip(colonnes, lg, strict=True)), "statut": lg[10] or "a_traiter"} for lg in lignes]
+        if type_:
+            tous = [x for x in tous if x["type"] == type_]
+        semaines = Counter((maintenant - datetime.fromisoformat(x["recu_le"])).days // 7 for x in tous)
+        return {
+            "comptes": {s: sum(x["statut"] == s for x in tous) for s in STATUTS_RETOUR},
+            "par_semaine": [{"il_y_a": k, "recus": semaines.get(k, 0)} for k in range(7, -1, -1)],
+            "lignes": [x for x in tous if not statut or x["statut"] == statut],
+        }
+
+    def suivre_retour(self, reponse_id: str, recu_le: str, type_: str, statut: str, note: str | None,
+                      par: str) -> bool:
+        """Change le suivi d'un signalement ; False s'il n'existe pas."""
+        if not self._executer("SELECT 1 FROM retours WHERE reponse_id = ? AND recu_le = ? AND type = ?",
+                              (reponse_id, recu_le, type_)):
+            return False
+        self._executer(
+            "INSERT INTO suivi_retours (reponse_id, recu_le, type, statut, note, par, le) VALUES (?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT (reponse_id, recu_le, type) DO UPDATE SET statut = excluded.statut, note = excluded.note, "
+            "par = excluded.par, le = excluded.le",
+            (reponse_id, recu_le, type_, statut, note, par, datetime.now(UTC).isoformat(timespec="seconds")))
+        return True
+
+    # ------------------------------------------------------------------ lexique
+
+    _COLONNES_LEXIQUE = ("id", "expression", "remplacement", "langue", "statut", "note", "propose_par",
+                         "propose_le", "decide_par", "decide_le", "utilisations")
+
+    def lexique(self, statut: str | None = None) -> list[dict]:
+        lignes = self._executer(f"SELECT {', '.join(self._COLONNES_LEXIQUE)} FROM lexique ORDER BY propose_le DESC")
+        tous = [dict(zip(self._COLONNES_LEXIQUE, lg, strict=True)) for lg in lignes]
+        return [x for x in tous if not statut or x["statut"] == statut]
+
+    def proposer_lexique(self, expression: str, cle: str, remplacement: str, langue: str, note: str | None,
+                         par: str) -> str | None:
+        """L'identifiant de la nouvelle entrée (proposée), ou None si l'expression existe déjà dans cette langue."""
+        if self._executer("SELECT 1 FROM lexique WHERE cle = ? AND langue = ?", (cle, langue)):
+            return None
+        eid = secrets.token_hex(4)
+        self._executer(
+            "INSERT INTO lexique (id, expression, cle, remplacement, langue, statut, note, propose_par, propose_le) "
+            "VALUES (?, ?, ?, ?, ?, 'propose', ?, ?, ?)",
+            (eid, expression, cle, remplacement, langue, note, par, datetime.now(UTC).isoformat(timespec="seconds")))
+        return eid
+
+    def decider_lexique(self, eid: str, statut: str, par: str) -> bool:
+        if not self._executer("SELECT 1 FROM lexique WHERE id = ?", (eid,)):
+            return False
+        self._executer("UPDATE lexique SET statut = ?, decide_par = ?, decide_le = ? WHERE id = ?",
+                       (statut, par, datetime.now(UTC).isoformat(timespec="seconds"), eid))
+        return True
+
+    def noter_lexique(self, ids: list[str]) -> None:
+        for eid in ids:
+            self._executer("UPDATE lexique SET utilisations = utilisations + 1 WHERE id = ?", (eid,))
+
     # ------------------------------------------------------------------ journal
 
     def journal(self, f: FiltreJournal) -> tuple[int, list[dict]]:
@@ -405,6 +530,25 @@ class Stockage:
             "non_resolues": sorted(groupes.values(), key=lambda g: (-g["occurrences"], g["question"]))[:10],
         }
 
+    def non_resolues(self, jours: int = 30, canal: str | None = None, langue: str | None = None,
+                     issue: str = "aucune", maintenant: datetime | None = None) -> list[dict]:
+        """Les questions refusées (ou approchées) de la période, avec le motif du refus, pour les regrouper par
+        thème (regroupement.py). Une salutation ou un merci (motif « conversation », 0033) n'en est pas une."""
+        debut = (maintenant or datetime.now(UTC)) - timedelta(days=jours)
+        lignes = self._executer(
+            "SELECT j.question, j.langue, j.recu_le, j.reponse_id, j.canal, r.contenu FROM journal j "
+            "JOIN reponses r ON r.id = j.reponse_id "
+            "WHERE j.recu_le >= ? AND j.issue = ? AND j.confirme_depuis IS NULL ORDER BY j.recu_le",
+            (debut.isoformat(timespec="milliseconds"), issue))
+        sortie = []
+        for question, lg, recu, rid, cnl, contenu in lignes:
+            if (canal and cnl != canal) or (langue and lg != langue):
+                continue
+            motif = json.loads(contenu)["reponse"].get("motif") or ""
+            if motif != "conversation":
+                sortie.append({"question": question, "langue": lg, "motif": motif, "recu_le": recu, "reponse_id": rid})
+        return sortie
+
     # ------------------------------------------------------------------ jeu de test
 
     def creer_execution(self, mode: str) -> str:
@@ -430,24 +574,27 @@ class Stockage:
     def compte(self, identifiant: str) -> dict | None:
         """Le compte, l'identifiant comparé sans la casse (« san » ouvre SAN)."""
         lignes = self._executer(
-            "SELECT identifiant, hachage, cree_le, actif, echecs, bloque_jusqu_a FROM comptes_admin "
+            "SELECT identifiant, hachage, cree_le, actif, echecs, bloque_jusqu_a, role FROM comptes_admin "
             "WHERE LOWER(identifiant) = LOWER(?)", (identifiant.strip(),))
         if not lignes:
             return None
-        return dict(zip(("identifiant", "hachage", "cree_le", "actif", "echecs", "bloque_jusqu_a"), lignes[0],
-                        strict=True))
+        return dict(zip(("identifiant", "hachage", "cree_le", "actif", "echecs", "bloque_jusqu_a", "role"),
+                        lignes[0], strict=True))
 
     def comptes(self) -> list[dict]:
-        return [{"identifiant": i, "actif": bool(a), "cree_le": c} for i, a, c in self._executer(
-            "SELECT identifiant, actif, cree_le FROM comptes_admin ORDER BY identifiant")]
+        return [{"identifiant": i, "actif": bool(a), "cree_le": c, "role": r} for i, a, c, r in self._executer(
+            "SELECT identifiant, actif, cree_le, role FROM comptes_admin ORDER BY identifiant")]
+
+    def changer_role(self, identifiant: str, role: str) -> None:
+        self._executer("UPDATE comptes_admin SET role = ? WHERE identifiant = ?", (role, identifiant))
 
     def back_office_ouvert(self) -> bool:
         """Sans compte actif, le back-office n'existe pas (404), comme avant sans jeton."""
         return bool(self._executer("SELECT 1 FROM comptes_admin WHERE actif = 1 LIMIT 1"))
 
-    def creer_compte(self, identifiant: str, hachage: str) -> None:
-        self._executer("INSERT INTO comptes_admin (identifiant, hachage, cree_le) VALUES (?, ?, ?)",
-                       (identifiant, hachage, datetime.now(UTC).isoformat(timespec="seconds")))
+    def creer_compte(self, identifiant: str, hachage: str, role: str = "admin") -> None:
+        self._executer("INSERT INTO comptes_admin (identifiant, hachage, cree_le, role) VALUES (?, ?, ?, ?)",
+                       (identifiant, hachage, datetime.now(UTC).isoformat(timespec="seconds"), role))
 
     def changer_mot_de_passe(self, identifiant: str, hachage: str) -> None:
         """Nouveau mot de passe : le compte est réactivé et débloqué, ses sessions sont fermées."""
@@ -494,6 +641,35 @@ class Stockage:
 
     def fermer_session(self, jeton: str) -> None:
         self._executer("DELETE FROM sessions_admin WHERE jeton = ?", (_empreinte(jeton),))
+
+    # ------------------------------------------------------------------ clés de l'API publique
+
+    def creer_cle(self, nom: str, par: str) -> tuple[str, str]:
+        """(identifiant, clé en clair) : la clé n'est rendue qu'ici, la base n'en garde que l'empreinte."""
+        cid, cle = secrets.token_hex(4), f"gk_{secrets.token_urlsafe(24)}"
+        self._executer("INSERT INTO cles_api (id, nom, empreinte, creee_le, creee_par) VALUES (?, ?, ?, ?, ?)",
+                       (cid, nom, _empreinte(cle), datetime.now(UTC).isoformat(timespec="seconds"), par))
+        return cid, cle
+
+    def cles(self) -> list[dict]:
+        colonnes = ("id", "nom", "creee_le", "creee_par", "active", "vue_le", "appels")
+        return [{**dict(zip(colonnes, ligne, strict=True)), "active": bool(ligne[4])} for ligne in self._executer(
+            f"SELECT {', '.join(colonnes)} FROM cles_api ORDER BY creee_le DESC")]
+
+    def revoquer_cle(self, cid: str) -> bool:
+        if not self._executer("SELECT 1 FROM cles_api WHERE id = ?", (cid,)):
+            return False
+        self._executer("UPDATE cles_api SET active = 0 WHERE id = ?", (cid,))
+        return True
+
+    def verifier_cle(self, cle: str, maintenant: datetime | None = None) -> str | None:
+        """L'identifiant d'une clé active (son appel est compté), None si elle est inconnue ou révoquée."""
+        lignes = self._executer("SELECT id FROM cles_api WHERE empreinte = ? AND active = 1", (_empreinte(cle),))
+        if not lignes:
+            return None
+        quand = (maintenant or datetime.now(UTC)).isoformat(timespec="seconds")
+        self._executer("UPDATE cles_api SET appels = appels + 1, vue_le = ? WHERE id = ?", (quand, lignes[0][0]))
+        return lignes[0][0]
 
 
 def _empreinte(jeton: str) -> str:

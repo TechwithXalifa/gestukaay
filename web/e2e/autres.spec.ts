@@ -220,3 +220,116 @@ test("adresse inconnue : page en français, avec l'en-tête et une suite (7.1 n�
   await expect(page.getByRole("link", { name: "Poser une question" }).last()).toHaveAttribute("href", "/");
   await accessible(page, "page introuvable");
 });
+
+test("journal : rejouer une requête sur le moteur actuel, sans rien enregistrer", async ({ page }) => {
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.goto("/admin/journal");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await page.getByRole("button", { name: /habitants à Thiès/ }).first().click();
+  await page.getByRole("button", { name: "Rejouer sur le moteur actuel" }).click();
+  const rejeu = page.getByRole("region", { name: "Rejouer sur le moteur actuel" });
+  await expect(rejeu.getByText("Réponse identique")).toBeVisible();
+  await expect(rejeu).toContainText("Thiès");
+  await accessible(page, "journal, rejeu");
+});
+
+test("non résolues : les refus regroupés par thème, avec les pistes du catalogue", async ({ page }) => {
+  await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
+  await poser(page, "Combien de gens parlent sérère à Thiès ?");
+  await page.goto("/admin/non-resolues");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByRole("heading", { name: "Questions non résolues, par thème" })).toBeVisible();
+  const theme = page.locator(".admin-groupes > li").filter({ hasText: "sérère" }).first();
+  await expect(theme).toContainText("parlent");
+  await expect(theme).toContainText("Hors socle");
+  await accessible(page, "non résolues par thème");
+  await page.getByRole("button", { name: "7 j" }).click();
+  await expect(theme).toBeVisible();
+});
+
+test("signalements : à traiter, puis corrigé avec une note", async ({ page }) => {
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.getByRole("button", { name: "Signaler une erreur" }).click();
+  await page.getByRole("radio", { name: "Le chiffre me semble faux" }).check();
+  const commentaire = `Vérifié dans le RGPH ${Date.now()}`;
+  await page.getByLabel("Précisez (facultatif)").fill(commentaire);
+  await page.getByRole("button", { name: "Envoyer le signalement" }).click();
+  await expect(page.getByText("Merci, votre retour a été transmis")).toBeVisible();
+
+  await page.goto("/admin/signalements");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByRole("heading", { name: "Relecture des signalements" })).toBeVisible();
+  const carte = page.locator(".admin-signalement").filter({ hasText: commentaire });
+  await expect(carte).toContainText("Chiffre faux");
+  await accessible(page, "signalements");
+  await carte.getByLabel("Note (facultative)").fill("Corrigé par la PR #261");
+  await carte.getByRole("button", { name: "Corrigé" }).click();
+  await expect(page.locator(".admin-signalement").filter({ hasText: commentaire })).toHaveCount(0); // sorti de « À traiter »
+  await page.getByRole("group", { name: "Statut" }).getByRole("button", { name: /^Corrigé/ }).click();
+  await expect(page.locator(".admin-signalement").filter({ hasText: commentaire })).toContainText("Corrigé par la PR #261");
+});
+
+test("comptes et rôles : un administrateur crée un lecteur, qui ne voit pas la gestion des comptes", async ({ page, browser }) => {
+  await page.goto("/admin/comptes");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByRole("heading", { name: "Comptes et rôles" })).toBeVisible();
+  const lecteur = `lecteur${Date.now() % 100000}`;
+  const motDePasse = "mot-de-passe-lecteur-e2e";
+  const formulaire = page.getByRole("form", { name: "Créer un compte" });
+  await formulaire.getByLabel("Identifiant").fill(lecteur);
+  await formulaire.getByRole("combobox").selectOption("lecteur");
+  await formulaire.getByLabel(/^Mot de passe/).fill(motDePasse);
+  await formulaire.getByLabel("Le même, encore une fois").fill(motDePasse);
+  await formulaire.getByRole("button", { name: "Créer le compte" }).click();
+  await expect(page.getByRole("status").filter({ hasText: `Compte ${lecteur} créé.` })).toBeVisible();
+  await expect(page.getByRole("row", { name: new RegExp(lecteur) })).toContainText("Actif");
+  await accessible(page, "comptes et rôles");
+
+  // Le lecteur se connecte dans une autre session : ni lien « Comptes », ni lancement du jeu de test
+  const autre = await browser.newPage();
+  await autre.goto("/admin/jeu-de-test");
+  await autre.getByLabel("Identifiant").fill(lecteur);
+  await autre.getByLabel("Mot de passe").fill(motDePasse);
+  await autre.getByRole("button", { name: "Se connecter" }).click();
+  await expect(autre.getByText("Le lancement du jeu de test est réservé aux administrateurs.")).toBeVisible();
+  await expect(autre.getByRole("link", { name: "Comptes" })).toHaveCount(0);
+  await autre.goto("/admin/comptes");
+  await expect(autre.getByText("Cet écran est réservé aux administrateurs.")).toBeVisible();
+  await autre.close();
+});
+
+test("lexique : proposer, essayer, valider ; la question réécrite part au moteur, l'usager garde la sienne", async ({ page }) => {
+  await page.goto("/admin/lexique");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByRole("heading", { name: "Lexique grand public et wolof" })).toBeVisible();
+  const expression = `mamans${Date.now() % 100000}`;
+  const formulaire = page.getByRole("form", { name: "Proposer une expression" });
+  await formulaire.getByLabel("Expression des usagers").fill(expression);
+  await formulaire.getByLabel("Ce que le moteur comprend").fill("habitants");
+  await formulaire.getByRole("button", { name: "Proposer" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "proposée" })).toBeVisible();
+  const ligne = page.getByRole("row", { name: new RegExp(expression) });
+  await accessible(page, "lexique");
+
+  const essai = page.getByRole("form", { name: "Essayer une question" });
+  await essai.getByLabel("Question à essayer").fill(`Combien de ${expression} à Thiès ?`);
+  await essai.getByRole("button", { name: "Essayer" }).click();
+  await expect(page.getByText("Aucune entrée validée ne s'applique.")).toBeVisible(); // proposée : rien ne change
+
+  await ligne.getByRole("button", { name: "Valider" }).click();
+  await expect(page.getByRole("status").filter({ hasText: new RegExp(`${expression}.*: validée`) })).toBeVisible();
+  await essai.getByRole("button", { name: "Essayer" }).click();
+  await expect(page.getByText("Le moteur recevrait")).toContainText("Combien de habitants à Thiès ?");
+
+  // Sur le site, la réponse affiche la question telle que l'usager l'a écrite
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Votre question" }).or(page.getByRole("textbox", { name: "Votre question" })).fill(`Combien de ${expression} à Thiès ?`);
+  await page.getByRole("button", { name: "Envoyer la question" }).click();
+  await page.waitForURL(/\/r\/[\w-]+$/);
+  await expect(page.locator(".valeur")).toContainText("2 463 677"); // faux moteur : « thiès » → population
+});

@@ -30,10 +30,10 @@ def test_ferme_sans_compte(sans_compte, client):
 def test_connexion_cookie_et_deconnexion(connecter, client):
     assert client.get("/admin/moi").status_code == 401
     r = connecter(client, "san")  # l'identifiant est comparé sans la casse
-    assert r.status_code == 200 and r.json() == {"identifiant": "SAN"}
+    assert r.status_code == 200 and r.json() == {"identifiant": "SAN", "role": "admin"}
     cookie = r.headers["set-cookie"].lower()
     assert "httponly" in cookie and "samesite=strict" in cookie and "path=/admin" in cookie
-    assert client.get("/admin/moi").json() == {"identifiant": "SAN"}
+    assert client.get("/admin/moi").json() == {"identifiant": "SAN", "role": "admin"}
     assert client.post("/admin/deconnexion").status_code == 204
     assert client.get("/admin/moi").status_code == 401
 
@@ -96,7 +96,7 @@ def test_ligne_de_commande(tmp_path, monkeypatch, capsys):
         comptes.main(["creer", "kbd"])
     comptes.main(["desactiver", "KBD"])
     comptes.main(["lister"])
-    assert "KBD\tdésactivé" in capsys.readouterr().out
+    assert "KBD\tadmin\tdésactivé" in capsys.readouterr().out  # rôle par défaut : administrateur
     comptes.main(["changer", "KBD"])  # réactive
     assert comptes.connecter(Stockage(), "KBD", MOT_DE_PASSE)
     monkeypatch.setattr(comptes, "_lire_mot_de_passe", lambda: "court")
