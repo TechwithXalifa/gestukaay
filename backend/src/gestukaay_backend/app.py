@@ -493,6 +493,37 @@ def tableau(
             "benchmark": {"lancee_le": derniere["lancee_le"], **jeu_de_test.resume(derniere["resultat"])} if derniere else None}
 
 
+@app.get("/admin/signalements")
+def signalements(
+    session: str | None = Cookie(None, alias=COOKIE_ADMIN),
+    statut: Literal["a_traiter", "en_cours", "corrige", "rejete"] | None = None,
+    type: Literal["signalement", "suggestion_indicateur"] | None = None,
+    jours: int = Query(90),
+) -> dict:
+    """Relecture des signalements et des suggestions d'indicateur : à traiter, en cours, corrigé, rejeté."""
+    _admin(session)
+    if jours not in (30, 90, 365):
+        raise ErreurApi(422, "Période inconnue", "jours = 30, 90 ou 365.")
+    return stockage.signalements(jours, statut, type)
+
+
+class SuiviRetour(BaseModel):
+    reponse_id: str = Field(max_length=40)
+    recu_le: str = Field(max_length=40)
+    type: Literal["signalement", "suggestion_indicateur"]
+    statut: Literal["a_traiter", "en_cours", "corrige", "rejete"]
+    note: str | None = Field(None, max_length=1000)
+
+
+@app.post("/admin/signalements/suivi", status_code=204)
+def suivre_signalement(corps: SuiviRetour, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    """Change le statut d'un signalement, avec une note ; garde qui l'a fait et quand."""
+    par = _admin(session)
+    if not stockage.suivre_retour(corps.reponse_id, corps.recu_le, corps.type, corps.statut,
+                                  (corps.note or "").strip() or None, par):
+        raise ErreurApi(404, "Signalement introuvable")
+
+
 # Jeu de test (cahier 5.10, maquette BO-JeuTest) : le benchmark de KBD lancé depuis le back-office
 def _en_fond(tache) -> None:
     threading.Thread(target=tache, name="benchmark", daemon=True).start()

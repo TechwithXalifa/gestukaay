@@ -220,3 +220,26 @@ test("adresse inconnue : page en français, avec l'en-tête et une suite (7.1 n�
   await expect(page.getByRole("link", { name: "Poser une question" }).last()).toHaveAttribute("href", "/");
   await accessible(page, "page introuvable");
 });
+
+test("signalements : à traiter, puis corrigé avec une note", async ({ page }) => {
+  await poser(page, "Combien d'habitants à Thiès ?");
+  await page.getByRole("button", { name: "Signaler une erreur" }).click();
+  await page.getByRole("radio", { name: "Le chiffre me semble faux" }).check();
+  const commentaire = `Vérifié dans le RGPH ${Date.now()}`;
+  await page.getByLabel("Précisez (facultatif)").fill(commentaire);
+  await page.getByRole("button", { name: "Envoyer le signalement" }).click();
+  await expect(page.getByText("Merci, votre retour a été transmis")).toBeVisible();
+
+  await page.goto("/admin/signalements");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByRole("heading", { name: "Relecture des signalements" })).toBeVisible();
+  const carte = page.locator(".admin-signalement").filter({ hasText: commentaire });
+  await expect(carte).toContainText("Chiffre faux");
+  await accessible(page, "signalements");
+  await carte.getByLabel("Note (facultative)").fill("Corrigé par la PR #261");
+  await carte.getByRole("button", { name: "Corrigé" }).click();
+  await expect(page.locator(".admin-signalement").filter({ hasText: commentaire })).toHaveCount(0); // sorti de « À traiter »
+  await page.getByRole("group", { name: "Statut" }).getByRole("button", { name: /^Corrigé/ }).click();
+  await expect(page.locator(".admin-signalement").filter({ hasText: commentaire })).toContainText("Corrigé par la PR #261");
+});

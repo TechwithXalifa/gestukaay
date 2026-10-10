@@ -98,7 +98,23 @@ _TABLES = [
         ouverte_le TEXT NOT NULL,
         vue_le TEXT NOT NULL
     )""",
+    # Relecture des signalements et des suggestions d'indicateur (back-office) : un retour se repère par
+    # (réponse, date, type), la table des retours n'ayant pas d'identifiant propre
+    """CREATE TABLE IF NOT EXISTS suivi_retours (
+        reponse_id TEXT NOT NULL,
+        recu_le TEXT NOT NULL,
+        type TEXT NOT NULL,
+        statut TEXT NOT NULL,
+        note TEXT,
+        par TEXT NOT NULL,
+        le TEXT NOT NULL,
+        PRIMARY KEY (reponse_id, recu_le, type)
+    )""",
 ]
+
+# Relecture d'un signalement : à traiter (par défaut), en cours, corrigé (le défaut est réglé) ou rejeté
+STATUTS_RETOUR = ("a_traiter", "en_cours", "corrige", "rejete")
+TYPES_A_RELIRE = ("signalement", "suggestion_indicateur")
 
 # Suivi de conversation (décision 0021) : 3 derniers échanges, oubliés après 30 min sans échange
 ECHANGES_SUIVI = 3
@@ -297,6 +313,46 @@ class Stockage:
             (req.reponse_id, datetime.now(UTC).isoformat(timespec="seconds"), req.type, req.vote, req.motif,
              req.commentaire),
         )
+
+    # ------------------------------------------------------------------ relecture des signalements
+
+    def signalements(self, jours: int = 90, statut: str | None = None, type_: str | None = None,
+                     maintenant: datetime | None = None) -> dict:
+        """Signalements et suggestions d'indicateur de la période, avec leur question et leur suivi ; les plus
+        anciens à traiter d'abord. Comptes par statut et arrivées par semaine (tendance, 8 semaines)."""
+        maintenant = maintenant or datetime.now(UTC)
+        debut = maintenant - timedelta(days=jours)
+        lignes = self._executer(
+            "SELECT r.reponse_id, r.recu_le, r.type, r.motif, r.commentaire, j.question, j.issue, j.indicateur, "
+            "j.langue, j.canal, s.statut, s.note, s.par, s.le FROM retours r "
+            "LEFT JOIN journal j ON j.reponse_id = r.reponse_id "
+            "LEFT JOIN suivi_retours s ON s.reponse_id = r.reponse_id AND s.recu_le = r.recu_le AND s.type = r.type "
+            "WHERE r.type IN (?, ?) AND r.recu_le >= ? ORDER BY r.recu_le",
+            (*TYPES_A_RELIRE, debut.isoformat(timespec="seconds")))
+        colonnes = ("reponse_id", "recu_le", "type", "motif", "commentaire", "question", "issue", "indicateur",
+                    "langue", "canal", "statut", "note", "par", "le")
+        tous = [{**dict(zip(colonnes, lg, strict=True)), "statut": lg[10] or "a_traiter"} for lg in lignes]
+        if type_:
+            tous = [x for x in tous if x["type"] == type_]
+        semaines = Counter((maintenant - datetime.fromisoformat(x["recu_le"])).days // 7 for x in tous)
+        return {
+            "comptes": {s: sum(x["statut"] == s for x in tous) for s in STATUTS_RETOUR},
+            "par_semaine": [{"il_y_a": k, "recus": semaines.get(k, 0)} for k in range(7, -1, -1)],
+            "lignes": [x for x in tous if not statut or x["statut"] == statut],
+        }
+
+    def suivre_retour(self, reponse_id: str, recu_le: str, type_: str, statut: str, note: str | None,
+                      par: str) -> bool:
+        """Change le suivi d'un signalement ; False s'il n'existe pas."""
+        if not self._executer("SELECT 1 FROM retours WHERE reponse_id = ? AND recu_le = ? AND type = ?",
+                              (reponse_id, recu_le, type_)):
+            return False
+        self._executer(
+            "INSERT INTO suivi_retours (reponse_id, recu_le, type, statut, note, par, le) VALUES (?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT (reponse_id, recu_le, type) DO UPDATE SET statut = excluded.statut, note = excluded.note, "
+            "par = excluded.par, le = excluded.le",
+            (reponse_id, recu_le, type_, statut, note, par, datetime.now(UTC).isoformat(timespec="seconds")))
+        return True
 
     # ------------------------------------------------------------------ journal
 
