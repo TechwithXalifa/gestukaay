@@ -993,14 +993,14 @@ hfhored.cabinets-medicaux-prives;hfhored;Cabinets médicaux privés;;;;;;Santé;
 hfhored.cabinets-paramedicaux;hfhored;Cabinets paramédicaux;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2017;2022;83;indicateurs;Cabinets paramédicaux;ETABLISSEMENTS DE SANTE;
 hfhored.cases-de-sante;hfhored;Cases de santé;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2017;2022;90;indicateurs;Cases de santé;ETABLISSEMENTS DE SANTE;
 hfhored.centre-de-sante-pour-1-000-000-habitants;hfhored;Centre de santé pour 1 000 000 habitants — ETABLISSEMENTS DE SANTE;;;;pour 1 000 000 habitants;;Santé;P2;a_verifier;;MSAS;pays;catégories;A;1970;2018;47;indicateurs;Centre de santé pour 1 000 000 habitants;ETABLISSEMENTS DE SANTE;"unité déduite (#132) : libellé « pour 1 000 000 habitants » ; valeurs 5.5 à 8 (47)"
-hfhored.centres-de-sante;hfhored;Centres de santé — ETABLISSEMENTS DE SANTE;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;1970;2022;295;indicateurs;Centres de santé;ETABLISSEMENTS DE SANTE;
+hfhored.centres-de-sante;hfhored;Centres de santé — ETABLISSEMENTS DE SANTE;;;;centres de santé;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;1970;2022;295;indicateurs;Centres de santé;ETABLISSEMENTS DE SANTE;
 hfhored.chirurgien-dentiste;hfhored;Chirurgien-dentiste;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2015;2021;90;indicateurs;Chirurgien-dentiste;ETABLISSEMENTS DE SANTE;
 hfhored.chirurgien-generaliste;hfhored;Chirurgien généraliste;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2015;2022;119;indicateurs;Chirurgien généraliste;ETABLISSEMENTS DE SANTE;
 hfhored.cliniques-privees;hfhored;Cliniques privées;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2017;2022;75;indicateurs;Cliniques privées;ETABLISSEMENTS DE SANTE;
 hfhored.depenses-publiques-en-sante-hbt-fcfa;hfhored;Dépenses publiques en santé / hbt FCFA — ETABLISSEMENTS DE SANTE;;;;;;Santé;P2;a_verifier;;MSAS;pays;catégories;A;1997;2022;26;indicateurs;Dépenses publiques en santé / hbt FCFA;ETABLISSEMENTS DE SANTE;
 hfhored.gynecologue-obstetricien;hfhored;Gynécologue-Obstétricien;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2015;2022;120;indicateurs;Gynécologue-Obstétricien;ETABLISSEMENTS DE SANTE;
 hfhored.hopital-pour-1-000-000-habitants;hfhored;Hôpital pour 1 000 000 habitants — ETABLISSEMENTS DE SANTE;;;;pour 1 000 000 habitants;;Santé;P2;a_verifier;;MSAS;pays;catégories;A;1970;2018;48;indicateurs;Hôpital pour 1 000 000 habitants;ETABLISSEMENTS DE SANTE;"unité déduite (#132) : libellé « pour 1 000 000 habitants » ; valeurs 1.7 à 2.7 (48)"
-hfhored.hopitaux;hfhored;Hopitaux — ETABLISSEMENTS DE SANTE;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;1970;2022;285;indicateurs;Hopitaux;ETABLISSEMENTS DE SANTE;
+hfhored.hopitaux;hfhored;Hopitaux — ETABLISSEMENTS DE SANTE;;;;hôpitaux;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;1970;2022;285;indicateurs;Hopitaux;ETABLISSEMENTS DE SANTE;
 hfhored.infirmier-detat;hfhored;Infirmier d'Etat;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2015;2022;120;indicateurs;Infirmier d'Etat;ETABLISSEMENTS DE SANTE;
 hfhored.materiel-et-medicaments;hfhored;Matériel et médicaments — ETABLISSEMENTS DE SANTE;;;;;;Santé;P2;a_verifier;;MSAS;pays;catégories;A;1997;2016;18;indicateurs;Matériel et médicaments;ETABLISSEMENTS DE SANTE;
 hfhored.medecin-generaliste;hfhored;Médecin généraliste;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2015;2022;120;indicateurs;Médecin généraliste;ETABLISSEMENTS DE SANTE;
@@ -1010,7 +1010,7 @@ hfhored.nombre-dhabitants-par-poste-de-sante;hfhored;Nombre d'habitants par Post
 hfhored.pediatre;hfhored;Pédiatre;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2015;2022;120;indicateurs;Pédiatre;ETABLISSEMENTS DE SANTE;
 hfhored.personnel;hfhored;Personnel — ETABLISSEMENTS DE SANTE;;;;;;Santé;P2;a_verifier;;MSAS;pays;catégories;A;1997;2022;26;indicateurs;Personnel;ETABLISSEMENTS DE SANTE;
 hfhored.poste-de-sante-pour-100-000-habitants;hfhored;Poste de santé pour 100 000 habitants — ETABLISSEMENTS DE SANTE;;;;;;Santé;P2;a_verifier;;MSAS;pays;catégories;A;1970;2018;47;indicateurs;Poste de santé pour 100 000 habitants;ETABLISSEMENTS DE SANTE;
-hfhored.postes-de-sante;hfhored;Postes de santé;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;1970;2022;296;indicateurs;Postes de santé;ETABLISSEMENTS DE SANTE;
+hfhored.postes-de-sante;hfhored;Postes de santé;;;;postes de santé;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;1970;2022;296;indicateurs;Postes de santé;ETABLISSEMENTS DE SANTE;
 hfhored.sage-femme-detat;hfhored;Sage-femme d'Etat;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2015;2022;120;indicateurs;Sage-femme d'Etat;ETABLISSEMENTS DE SANTE;
 hfhored.sites-communautaires;hfhored;Sites communautaires;;;;;;Santé;P2;a_verifier;;MSAS;pays|region;catégories;A;2018;2020;44;indicateurs;Sites communautaires;ETABLISSEMENTS DE SANTE;
 hfhored.transferts;hfhored;Transferts — ETABLISSEMENTS DE SANTE;;;;;;Santé;P2;a_verifier;;MSAS;pays;catégories;A;1997;2022;26;indicateurs;Transferts;ETABLISSEMENTS DE SANTE;

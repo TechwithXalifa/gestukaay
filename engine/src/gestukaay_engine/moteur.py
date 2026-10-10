@@ -58,6 +58,7 @@ from .approchee import (
     rattachements,
 )
 from .candidats import (
+    capacite_au_lieu_de,
     desagregation_citee,
     deux_sexes,
     index,
@@ -67,10 +68,16 @@ from .candidats import (
     sans_emploi,
 )
 from .compagnons import compagnon
-from .comprehension import Comprehension, Comprise, _meme_notion
+from .comprehension import (
+    _TOUTES_REGIONS,
+    Comprehension,
+    Comprise,
+    _meme_notion,
+    sujet_dans_la_question,
+)
 from .conversation import domaine_demande, sans_politesse
 from .conversation import texte as conversation_texte
-from .gabarits import citation, explication, note_perimetre
+from .gabarits import citation, explication, les_autres, note_perimetre
 from .interface import NoteVocale
 from .langue import detecter
 from .nombres import en_chiffres
@@ -139,7 +146,16 @@ class MoteurReel:
             return self._aucune(refuser(self.socle, c, question, LANGUE), question, transcription)
         if c.requete and (dite := categorie_dite(c.requete, question)):
             c = replace(c, requete=dite)  # « véhicules particuliers » : la catégorie est dite, pas de choix
+        if c.requete.indicateur and capacite_au_lieu_de(c.requete.indicateur, question):
+            # #217 : les lits d'un centre de santé ne sont pas des centres ; un candidat qui compte ce que la question
+            # nomme d'abord (hfhored.centres-de-sante), sinon un refus avec suggestions (bloc suivant)
+            autre = next((x.indicateur.code for x in c.candidats if x.indicateur.code != c.requete.indicateur
+                          and not capacite_au_lieu_de(x.indicateur.code, question)
+                          and sujet_dans_la_question(x.indicateur.code, question)), None)
+            if autre:
+                c = replace(c, requete=c.requete.model_copy(update={"indicateur": autre}))
         if c.requete.indicateur and (ratio_non_publie(c.requete.indicateur, question)
+                                     or capacite_au_lieu_de(c.requete.indicateur, question)
                                      or (mesure_inverse(c.requete.indicateur, question)  # une prévision d'abord
                                          and not est_projection(self.socle, c.requete, question)[0])):
             # « médecins pour 10 000 habitants » donnait le nombre de médecins (recette du 08/10) : on ne calcule
@@ -296,6 +312,8 @@ class MoteurReel:
             # total ni moyenne de l'année n'est calculé (zéro chiffre fabriqué)
             texte = (f"{texte} L'ANSD publie cette série par {'trimestre' if '-T' in res[0].periode.valeur else 'mois'}"
                      f" : voici la dernière période publiée de {an}, pas un total ni une moyenne de l'année.")
+        if intention == "classement" and len(res) > 3 and _TOUTES_REGIONS.search(normaliser(question)):
+            texte = f"{texte} {les_autres(res[3:])}"  # #217 : « dans chaque région », toutes les valeurs
         if manquantes := _annees_non_servies(question, res):  # #242 : jamais une année citée perdue en silence
             texte = (f"{texte} Vous avez aussi cité {_liste(manquantes)} : une réponse porte sur deux périodes au plus, "
                      f"posez la question pour {'cette année' if len(manquantes) == 1 else 'ces années'} à part.")

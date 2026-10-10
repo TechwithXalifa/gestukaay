@@ -246,6 +246,25 @@ def explication(resultats: list[Resultat], derniere: bool = False,
     return comparaison(resultats, ind)
 
 
+def _nom_zone(r: Resultat) -> str:
+    z = zones().get(r.zone.code)
+    nom = z.libelle_fr if z else r.zone.libelle
+    if r.zone.niveau == "academie":
+        return f"l'académie {_de(nom)}"
+    return nom
+
+
+def _val_zone(r: Resultat) -> str:
+    nb, _ = formater(r.valeur, r.unite)
+    return avec_unite(nb, r.unite)
+
+
+def les_autres(resultats: list[Resultat]) -> str:
+    """#217 : « dans chaque région » ; après les trois premières, les autres zones publiées, dans l'ordre (sur
+    WhatsApp et Telegram, pas de graphique pour les voir)."""
+    return "Ensuite : " + ", ".join(f"{_nom_zone(r)} ({_val_zone(r)})" for r in resultats) + "." if resultats else ""
+
+
 def classement(resultats: list[Resultat], ind: Indicateur, ordre: str = "desc") -> str:
     """Forme sans accord à deviner (choix 4) :
     « En {période}, la valeur la plus élevée est celle de {zone 1} ({v1}), devant celles de {zone 2} ({v2}) et de {zone 3} ({v3}). »
@@ -256,17 +275,7 @@ def classement(resultats: list[Resultat], ind: Indicateur, ordre: str = "desc") 
     en_p = f"{periode_en_lettres(p)[0].upper()}{periode_en_lettres(p)[1:]}"
     superlatif = "la plus élevée" if ordre == "desc" else "la plus faible"
 
-    def nom_zone(r: Resultat) -> str:
-        z = zones().get(r.zone.code)
-        nom = z.libelle_fr if z else r.zone.libelle
-        if r.zone.niveau == "academie":
-            return f"l'académie {_de(nom)}"
-        return nom
-
-    def val_zone(r: Resultat) -> str:
-        nb, _ = formater(r.valeur, r.unite)
-        return avec_unite(nb, r.unite)
-
+    nom_zone, val_zone = _nom_zone, _val_zone
     z1, v1 = nom_zone(resultats[0]), val_zone(resultats[0])
     if len(resultats) >= 3:
         z2, v2 = nom_zone(resultats[1]), val_zone(resultats[1])

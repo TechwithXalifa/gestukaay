@@ -411,6 +411,24 @@ def _porte_sur_la_mesure(apres: str, libelle: str) -> bool:
     return any(w[:5] in du_libelle for w in mots)
 
 
+# #217 : « combien de centres de santé » servait les LITS des centres de santé (mksvmnc, 10 138 à Dakar), un autre
+# compte. Une unité de capacité (lits, places, chambres) en tête du libellé, absente de la question : l'indicateur
+# compte la capacité d'un établissement, pas l'établissement.
+_CAPACITES = {"lits", "places", "chambres"}
+
+
+def capacite_au_lieu_de(code: str, question: str) -> bool:
+    ind = indicateurs().get(code)
+    if ind is None:
+        return False
+    unite = texte_normalise(ind.unite_affichee or ind.unite or "").split()
+    libelle = texte_normalise(ind.libelle_fr).split()
+    if not unite or unite[0] not in _CAPACITES or libelle[:1] != unite[:1]:
+        return False
+    mots = texte_normalise(question).split()
+    return unite[0] not in mots and ("combien" in mots or "nombre" in mots)
+
+
 _SANS_EMPLOI = re.compile(r"\bsans (emploi|travail|boulot|job)\b", re.IGNORECASE)
 
 
