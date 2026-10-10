@@ -158,6 +158,7 @@ class Stockage:
         with self._curseur() as c:
             for sql in _TABLES:
                 c.execute(sql)
+        self._migrer()
         # Sel du hachage des conversations (audit du 09/10) : GESTUKAAY_SEL s'il est donné, sinon un sel tiré
         # une fois et gardé dans la base. Avant, un sel neuf à chaque démarrage : « et pour Kaolack ? » et le
         # « 1 » de WhatsApp perdaient la conversation après un redémarrage.
@@ -168,6 +169,14 @@ class Stockage:
             logging.getLogger("gestukaay.stockage").warning(
                 "GESTUKAAY_SEL absent : le sel des conversations est gardé dans la base. "
                 "En production, le donner hors de la base (DEPLOIEMENT.md).")
+
+    def _migrer(self) -> None:
+        """Colonnes ajoutées après coup à une base existante (une base neuve les reçoit aussi)."""
+        # Rôles du back-office (comptes.py) : un compte d'avant les rôles reste administrateur
+        if self._pg:
+            self._executer("ALTER TABLE comptes_admin ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin'")
+        elif "role" not in {r[1] for r in self._executer("PRAGMA table_info(comptes_admin)")}:
+            self._executer("ALTER TABLE comptes_admin ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'")
 
     @contextmanager
     def _curseur(self) -> Iterator:
@@ -430,24 +439,27 @@ class Stockage:
     def compte(self, identifiant: str) -> dict | None:
         """Le compte, l'identifiant comparé sans la casse (« san » ouvre SAN)."""
         lignes = self._executer(
-            "SELECT identifiant, hachage, cree_le, actif, echecs, bloque_jusqu_a FROM comptes_admin "
+            "SELECT identifiant, hachage, cree_le, actif, echecs, bloque_jusqu_a, role FROM comptes_admin "
             "WHERE LOWER(identifiant) = LOWER(?)", (identifiant.strip(),))
         if not lignes:
             return None
-        return dict(zip(("identifiant", "hachage", "cree_le", "actif", "echecs", "bloque_jusqu_a"), lignes[0],
-                        strict=True))
+        return dict(zip(("identifiant", "hachage", "cree_le", "actif", "echecs", "bloque_jusqu_a", "role"),
+                        lignes[0], strict=True))
 
     def comptes(self) -> list[dict]:
-        return [{"identifiant": i, "actif": bool(a), "cree_le": c} for i, a, c in self._executer(
-            "SELECT identifiant, actif, cree_le FROM comptes_admin ORDER BY identifiant")]
+        return [{"identifiant": i, "actif": bool(a), "cree_le": c, "role": r} for i, a, c, r in self._executer(
+            "SELECT identifiant, actif, cree_le, role FROM comptes_admin ORDER BY identifiant")]
+
+    def changer_role(self, identifiant: str, role: str) -> None:
+        self._executer("UPDATE comptes_admin SET role = ? WHERE identifiant = ?", (role, identifiant))
 
     def back_office_ouvert(self) -> bool:
         """Sans compte actif, le back-office n'existe pas (404), comme avant sans jeton."""
         return bool(self._executer("SELECT 1 FROM comptes_admin WHERE actif = 1 LIMIT 1"))
 
-    def creer_compte(self, identifiant: str, hachage: str) -> None:
-        self._executer("INSERT INTO comptes_admin (identifiant, hachage, cree_le) VALUES (?, ?, ?)",
-                       (identifiant, hachage, datetime.now(UTC).isoformat(timespec="seconds")))
+    def creer_compte(self, identifiant: str, hachage: str, role: str = "admin") -> None:
+        self._executer("INSERT INTO comptes_admin (identifiant, hachage, cree_le, role) VALUES (?, ?, ?, ?)",
+                       (identifiant, hachage, datetime.now(UTC).isoformat(timespec="seconds"), role))
 
     def changer_mot_de_passe(self, identifiant: str, hachage: str) -> None:
         """Nouveau mot de passe : le compte est réactivé et débloqué, ses sessions sont fermées."""

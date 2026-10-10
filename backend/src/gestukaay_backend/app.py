@@ -403,14 +403,17 @@ def retour(req: FeedbackRequest) -> None:
 COOKIE_ADMIN = "gestukaay_admin"
 
 
-def _admin(session: str | None) -> str:
+def _admin(session: str | None, *roles: str) -> str:
     """L'identifiant de la session du back-office (comptes.py, décision 0037). Sans compte actif,
-    le back-office n'existe pas (404)."""
+    le back-office n'existe pas (404). `roles` : ceux qui ont le droit (tous les rôles si vide), 403 sinon."""
     if not stockage.back_office_ouvert():
         raise ErreurApi(404, "Not Found")
     identifiant = comptes.identifier(stockage, session)
     if not identifiant:
         raise ErreurApi(401, "Connexion requise")
+    if roles and (stockage.compte(identifiant) or {}).get("role") not in roles:
+        raise ErreurApi(403, "Réservé aux administrateurs" if roles == ("admin",) else "Accès réservé",
+                        "Votre rôle ne permet pas cette action.")
     return identifiant
 
 
@@ -430,7 +433,8 @@ def connexion(corps: Connexion, reponse: Response) -> dict:
                         f"Après {comptes.ESSAIS_MAX} essais manqués, le compte est bloqué 15 minutes.")
     reponse.set_cookie(COOKIE_ADMIN, jeton, max_age=int(comptes.DUREE_MAX.total_seconds()), path="/admin",
                        httponly=True, samesite="strict", secure=URL_PUBLIQUE.startswith("https://"))
-    return {"identifiant": comptes.identifier(stockage, jeton)}
+    identifiant = comptes.identifier(stockage, jeton)
+    return {"identifiant": identifiant, "role": (stockage.compte(identifiant) or {}).get("role")}
 
 
 @app.post("/admin/deconnexion", status_code=204)
@@ -443,8 +447,94 @@ def deconnexion(reponse: Response, session: str | None = Cookie(None, alias=COOK
 
 @app.get("/admin/moi")
 def moi(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
-    """La personne connectée : le site sait s'il doit montrer le formulaire de connexion."""
-    return {"identifiant": _admin(session)}
+    """La personne connectée et son rôle : le site sait s'il doit montrer le formulaire de connexion, et quoi."""
+    identifiant = _admin(session)
+    return {"identifiant": identifiant, "role": (stockage.compte(identifiant) or {}).get("role")}
+
+
+# ---------------------------------------------------------------------------
+# Comptes et rôles du back-office (V1.1) : gérés par un administrateur, depuis le site ou en ligne de commande
+# ---------------------------------------------------------------------------
+
+
+class NouveauCompte(BaseModel):
+    identifiant: str = Field(max_length=32)
+    mot_de_passe: str = Field(max_length=256)
+    role: Literal["admin", "linguiste", "lecteur"]
+
+
+class ChangementRole(BaseModel):
+    role: Literal["admin", "linguiste", "lecteur"]
+
+
+class NouveauMotDePasse(BaseModel):
+    mot_de_passe: str = Field(max_length=256)
+
+
+def _compte_existant(identifiant: str) -> dict:
+    compte = stockage.compte(identifiant)
+    if not compte:
+        raise ErreurApi(404, "Compte introuvable")
+    return compte
+
+
+def _garder_un_admin(compte: dict) -> None:
+    """Le dernier administrateur actif ne peut ni perdre son rôle ni être désactivé : le back-office resterait
+    sans personne pour gérer les comptes."""
+    admins = [c for c in stockage.comptes() if c["actif"] and c["role"] == "admin"]
+    if compte["role"] == "admin" and compte["actif"] and len(admins) <= 1:
+        raise ErreurApi(409, "Dernier administrateur", "Nommez d'abord un autre administrateur.")
+
+
+@app.get("/admin/comptes")
+def comptes_admin(session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Comptes du back-office : identifiant, rôle, état, création. Jamais un hachage."""
+    _admin(session, "admin")
+    return {"comptes": stockage.comptes(), "roles": comptes.ROLES}
+
+
+@app.post("/admin/comptes", status_code=201)
+def creer_compte_admin(corps: NouveauCompte, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    _admin(session, "admin")
+    if not comptes.IDENTIFIANT.fullmatch(corps.identifiant):
+        raise ErreurApi(422, "Identifiant invalide", "2 à 32 caractères : lettres, chiffres, point, tiret ou souligné.")
+    if len(corps.mot_de_passe) < comptes.LONGUEUR_MIN:
+        raise ErreurApi(422, "Mot de passe trop court", f"{comptes.LONGUEUR_MIN} caractères au moins.")
+    if stockage.compte(corps.identifiant):
+        raise ErreurApi(409, "Ce compte existe déjà")
+    stockage.creer_compte(corps.identifiant, comptes.hacher(corps.mot_de_passe), corps.role)
+    return {"identifiant": corps.identifiant, "role": corps.role}
+
+
+@app.post("/admin/comptes/{identifiant}/role", status_code=204)
+def changer_role_admin(identifiant: str, corps: ChangementRole,
+                       session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    _admin(session, "admin")
+    compte = _compte_existant(identifiant)
+    if corps.role != "admin":
+        _garder_un_admin(compte)
+    stockage.changer_role(compte["identifiant"], corps.role)
+
+
+@app.post("/admin/comptes/{identifiant}/desactiver", status_code=204)
+def desactiver_compte_admin(identifiant: str, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    moi_meme = _admin(session, "admin")
+    compte = _compte_existant(identifiant)
+    if compte["identifiant"] == moi_meme:
+        raise ErreurApi(409, "Impossible de désactiver son propre compte")
+    _garder_un_admin(compte)
+    stockage.desactiver_compte(compte["identifiant"])
+
+
+@app.post("/admin/comptes/{identifiant}/mot-de-passe", status_code=204)
+def changer_mot_de_passe_admin(identifiant: str, corps: NouveauMotDePasse,
+                               session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> None:
+    """Nouveau mot de passe : le compte est réactivé et débloqué, ses sessions sont fermées."""
+    _admin(session, "admin")
+    compte = _compte_existant(identifiant)
+    if len(corps.mot_de_passe) < comptes.LONGUEUR_MIN:
+        raise ErreurApi(422, "Mot de passe trop court", f"{comptes.LONGUEUR_MIN} caractères au moins.")
+    stockage.changer_mot_de_passe(compte["identifiant"], comptes.hacher(corps.mot_de_passe))
 
 
 def _filtre(issue: str | None, canal: str | None, langue: str | None, q: str | None, retour: str | None,
@@ -527,8 +617,8 @@ def jeu_de_test_execution(eid: str, session: str | None = Cookie(None, alias=COO
 
 @app.post("/admin/jeu-de-test/executions", status_code=202)
 def jeu_de_test_lancer(corps: dict, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
-    """Lance le benchmark en tâche de fond. « llm » appelle la chaîne LLM (environ 0,07 $)."""
-    _admin(session)
+    """Lance le benchmark en tâche de fond. « llm » appelle la chaîne LLM (environ 0,07 $). Administrateurs."""
+    _admin(session, "admin")
     mode = corps.get("mode")
     if mode not in jeu_de_test.MODES:
         raise ErreurApi(422, "Mode inconnu", "mode = regles ou llm.")
