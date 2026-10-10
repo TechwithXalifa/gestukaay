@@ -99,7 +99,7 @@ test("fiche : suivre les mises à jour d'un indicateur par un flux Atom, sans do
   await page.getByRole("button", { name: "Suivre les mises à jour" }).click();
   const adresse = page.getByLabel("Adresse du flux");
   await expect(adresse).toHaveValue("http://localhost:8000/v1/indicators/jcvcajc.taux-de-pauvrete/flux.atom?zone=SN");
-  await page.getByLabel("Zone", { exact: true }).selectOption("SN-KD");
+  await page.locator(".suivre").getByLabel("Zone", { exact: true }).selectOption("SN-KD");
   await expect(adresse).toHaveValue(/zone=SN-KD$/);
   await accessible(page, "fiche, suivre");
   const flux = await request.get((await adresse.inputValue()) ?? "");

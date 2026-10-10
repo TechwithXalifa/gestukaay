@@ -29,7 +29,7 @@ test("fiche indicateur : « Intégrer à un site » donne le code et l'aperçu",
   await page.getByRole("button", { name: "Intégrer à un site" }).click();
   const code = page.getByLabel("Code à copier");
   await expect(code).toHaveValue(/<iframe src="http:\/\/localhost:3000\/integrer\/jcvcajc\.taux-de-pauvrete\?zone=SN"/);
-  await page.getByLabel("Zone", { exact: true }).selectOption("SN-KD");
+  await page.locator(".integrer").getByLabel("Zone", { exact: true }).selectOption("SN-KD");
   await page.getByLabel("Apparence").selectOption("sombre");
   await expect(code).toHaveValue(/zone=SN-KD&theme=sombre/);
   await expect(page.frameLocator("iframe[title^='Aperçu du widget']").locator(".widget-valeur")).toContainText("62,5");

@@ -41,6 +41,9 @@ html { scroll-padding-top: var(--hauteur-entete); scroll-padding-bottom: var(--h
 /* Sur ordinateur, le défilement se cale doucement sur le haut de chaque section de l'accueil.
    Les sections font tout l'écran et l'en-tête se cache en descendant : pas de marge en haut. */
 @media (min-width: 768px) { html:has(main.accueil) { scroll-snap-type: y proximity; scroll-padding-top: 0; } }
+/* Le bas du pied de page est aussi un point d'arrêt : sans lui, le défilement revenait au haut de la dernière
+   section et les derniers liens du pied (À propos, Confidentialité) restaient sous l'écran. */
+@media (min-width: 768px) { html:has(main.accueil) .pied { scroll-snap-align: end; } }
 main:focus, h1[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
 .evitement { position: absolute; left: 16px; top: -56px; z-index: 100; padding: 10px 16px; border-radius: var(--radius-md); background: var(--or-clair); color: var(--sur-or); font-weight: 700; text-decoration: none; }
 .evitement:focus { top: 10px; }
