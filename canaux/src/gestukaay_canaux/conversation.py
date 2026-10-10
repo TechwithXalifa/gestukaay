@@ -31,7 +31,7 @@ from gestukaay_engine.langue import detecter
 
 from .format import Sortant, fiche, formater
 from .media import NoteTropGrosse
-from .textes import commande, est_salutation, texte
+from .textes import commande, est_salutation, mot, texte
 
 
 @dataclass(frozen=True)
@@ -106,7 +106,9 @@ def _repondre(dest: str, c: Contenu, services: Services, envoyeur: Envoyeur) -> 
         return envoyeur.texte(dest, texte("reformuler"))
     if cmd:
         return envoyeur.texte(dest, texte(cmd))
-    if len(c.texte.strip()) < 3:  # « ok », « ?? » : trop court pour une question (contrat : 3 caractères)
+    if mot(c.texte) in ("ok", "ko"):  # #284 : un acquiescement, pas une question trop courte
+        return _envoyer(dest, services.demander("d'accord"), services, envoyeur)
+    if len(c.texte.strip()) < 3:  # « ?? » : trop court pour une question (contrat : 3 caractères)
         return envoyeur.texte(dest, texte("aide"))
     _envoyer(dest, services.demander(c.texte.strip()[:300]), services, envoyeur)  # écrite : texte seul
 

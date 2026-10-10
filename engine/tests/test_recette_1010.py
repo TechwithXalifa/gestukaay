@@ -120,3 +120,14 @@ def test_dit_ce_qui_est_servi_pour_une_periode_relative():
     assert _dit_relative("deux_dernieres", q, _res("2021", "2023")).startswith("La série est annuelle")
     assert _dit_relative("deux_dernieres", q, _res("2026-T1", "2026-T2")) == "Ce sont les deux dernières périodes publiées."
     assert _dit_relative("debut", "début de la série", _res("2011")) == "C'est la première période publiée de la série."
+
+
+@pytest.mark.parametrize("message", ["merci gëstukaay", "d'accord", "ok merci", "Super gëstukaay", "C'est noté"])
+def test_remerciements_et_acquiescements(message):  # #284
+    from gestukaay_engine.conversation import regles, sans_politesse
+    assert regles(sans_politesse(message)) == "remerciement"
+
+
+def test_ok_devant_une_question_reste_une_question():  # #284 : « ok » seul est un acquiescement, pas en tête
+    from gestukaay_engine.conversation import regles
+    assert regles("ok combien d'habitants à Thiès ?") is None
