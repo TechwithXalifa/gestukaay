@@ -802,6 +802,14 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-signalement .admin-commentaire { white-space: pre-wrap; padding: 6px 10px; border-left: 3px solid var(--or-clair); background: var(--baobab-50); border-radius: var(--radius-md); font-size: 14px; }
 .admin-signalement .admin-champ input { min-height: 44px; padding: 0 10px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; } /* 16 px : pas de zoom au focus sur mobile */
 .admin-signalement-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.admin-roles { margin: 0; padding-left: 18px; font-size: 14px; line-height: 21px; color: var(--encre-douce); }
+.admin-table select { min-height: 40px; padding: 0 8px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; }
+.admin-actions-ligne { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.admin-nouveau-compte { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.admin-nouveau-compte .sous-titre { margin: 0; }
+.admin-champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px 16px; width: 100%; }
+.admin-nouveau-compte .admin-champ input, .admin-nouveau-compte .admin-champ select { min-height: 44px; padding: 0 10px; border: 1px solid var(--champ); border-radius: var(--radius-sm); background: var(--carte); color: var(--encre); font-size: 16px; }
 .erreur-admin { margin: 0; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--approchee-50); color: var(--approchee); font-size: 14px; }
 .admin-periode { border-color: var(--ligne); background: var(--fond-2); }
 .admin-periode button { min-width: 52px; color: var(--encre-douce); }

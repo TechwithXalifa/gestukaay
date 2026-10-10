@@ -33,7 +33,7 @@ const LANGUES = { fr: "Français", wo: "Wolof" };
 const jour = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 export default function NonResolues() {
-  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
+  const { identifiant, role, avis, connecter, fermer, appeler } = useAdmin();
   const [jours, setJours] = useState<(typeof PERIODES)[number]>(30);
   const [filtres, setFiltres] = useState({ canal: "", langue: "", issue: "aucune" });
   const [donnees, setDonnees] = useState<{ questions: number; groupes: Groupe[] } | null>(null);
@@ -67,7 +67,7 @@ export default function NonResolues() {
   }
 
   return (
-    <Cadre actif="non-resolues" identifiant={identifiant} onFermer={() => { fermer(); setDonnees(null); }}>
+    <Cadre actif="non-resolues" identifiant={identifiant} role={role} onFermer={() => { fermer(); setDonnees(null); }}>
       <div className="admin-titre">
         <h1 className="titre-etat">Questions non résolues, par thème</h1>
         <div role="group" aria-label="Période" className="bascule admin-periode">

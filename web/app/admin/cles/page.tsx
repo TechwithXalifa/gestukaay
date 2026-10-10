@@ -14,7 +14,7 @@ type Cle = { id: string; nom: string; creee_le: string; creee_par: string; activ
 const date = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 export default function ClesApi() {
-  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
+  const { identifiant, role, avis, connecter, fermer, appeler } = useAdmin();
   const [cles, setCles] = useState<Cle[] | null>(null);
   const [facteur, setFacteur] = useState(10);
   const [nom, setNom] = useState("");
@@ -70,7 +70,7 @@ export default function ClesApi() {
   }
 
   return (
-    <Cadre actif="cles" identifiant={identifiant} onFermer={() => { fermer(); setCles(null); }}>
+    <Cadre actif="cles" identifiant={identifiant} role={role} onFermer={() => { fermer(); setCles(null); }}>
       <div className="admin-titre">
         <h1 className="titre-etat">Clés de l'API publique</h1>
       </div>

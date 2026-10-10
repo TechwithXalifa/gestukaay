@@ -27,13 +27,17 @@ export function appelAdmin(chemin: string, init?: RequestInit) {
  */
 export function useAdmin() {
   const [identifiant, setIdentifiant] = useState<string | null | undefined>(undefined);
+  // Rôle (V1.1) : « admin », « linguiste » ou « lecteur » ; l'API refuse de toute façon ce qu'il ne permet pas
+  const [role, setRole] = useState<string | null>(null);
   const [avis, setAvis] = useState<string | null>(null);
 
   useEffect(() => {
     appelAdmin("/admin/moi")
       .then(async (r) => {
         if (r.status === 404) setAvis(FERME);
-        setIdentifiant(r.ok ? (await r.json()).identifiant : null);
+        const moi = r.ok ? await r.json() : null;
+        setRole(moi?.role ?? null);
+        setIdentifiant(moi ? moi.identifiant : null);
       })
       .catch(() => setIdentifiant(null));
   }, []);
@@ -53,12 +57,15 @@ export function useAdmin() {
     if (r.status === 401) throw new Error("Identifiant ou mot de passe incorrect. Après 5 essais manqués, le compte est bloqué 15 minutes.");
     if (r.status === 429) throw new Error("Trop d'essais : patientez une minute.");
     if (!r.ok) throw new Error("L'API ne répond pas.");
-    setIdentifiant((await r.json()).identifiant);
+    const moi = await r.json();
+    setRole(moi.role ?? null);
+    setIdentifiant(moi.identifiant);
   }, []);
 
   const fermer = useCallback(() => {
     appelAdmin("/admin/deconnexion", { method: "POST" }).catch(() => {});
     setIdentifiant(null);
+    setRole(null);
   }, []);
 
   const appeler = useCallback(async (chemin: string) => {
@@ -72,7 +79,7 @@ export function useAdmin() {
     return r;
   }, []);
 
-  return { identifiant, avis, connecter, fermer, appeler };
+  return { identifiant, role, avis, connecter, fermer, appeler };
 }
 
 /**
@@ -123,10 +130,13 @@ export function Connexion({ erreur, verification, onConnecter }: {
   );
 }
 
-export function Cadre({ children, actif, identifiant, onFermer }: {
+export const ROLES: Record<string, string> = { admin: "administrateur", linguiste: "linguiste", lecteur: "lecteur" };
+
+export function Cadre({ children, actif, identifiant, role, onFermer }: {
   children: React.ReactNode;
-  actif: "tableau" | "journal" | "jeu" | "cles" | "non-resolues" | "signalements";
+  actif: "tableau" | "journal" | "jeu" | "cles" | "non-resolues" | "signalements" | "comptes";
   identifiant?: string | null;
+  role?: string | null;
   onFermer?: () => void;
 }) {
   return (
@@ -142,12 +152,13 @@ export function Cadre({ children, actif, identifiant, onFermer }: {
             <Link href="/admin/non-resolues" aria-current={actif === "non-resolues" ? "page" : undefined}>Non résolues</Link>
             <Link href="/admin/signalements" aria-current={actif === "signalements" ? "page" : undefined}>Signalements</Link>
             <Link href="/admin/jeu-de-test" aria-current={actif === "jeu" ? "page" : undefined}>Jeu de test</Link>
-            <Link href="/admin/cles" aria-current={actif === "cles" ? "page" : undefined}>Clés d'API</Link>
+            {role === "admin" && <Link href="/admin/cles" aria-current={actif === "cles" ? "page" : undefined}>Clés d'API</Link>}
+            {role === "admin" && <Link href="/admin/comptes" aria-current={actif === "comptes" ? "page" : undefined}>Comptes</Link>}
           </nav>
         )}
         {onFermer && (
           <div className="admin-actions">
-            {identifiant && <span className="note">{identifiant}</span>}
+            {identifiant && <span className="note">{identifiant}{role ? ` · ${ROLES[role] ?? role}` : ""}</span>}
             <button type="button" className="secondaire petit" onClick={onFermer}>Se déconnecter</button>
           </div>
         )}

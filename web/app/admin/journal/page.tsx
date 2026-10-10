@@ -54,7 +54,7 @@ function secondes(ms: number | null): string {
 }
 
 export default function Journal() {
-  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
+  const { identifiant, role, avis, connecter, fermer, appeler } = useAdmin();
   const [filtres, setFiltres] = useState({ canal: "", issue: "", retour: "", q: "" });
   const [recherche, setRecherche] = useState("");
   const [page, setPage] = useState(0);
@@ -132,7 +132,7 @@ export default function Journal() {
   const fin = donnees ? Math.min((page + 1) * PAR_PAGE, donnees.total) : 0;
 
   return (
-    <Cadre actif="journal" identifiant={identifiant} onFermer={() => { fermer(); setDonnees(null); }}>
+    <Cadre actif="journal" identifiant={identifiant} role={role} onFermer={() => { fermer(); setDonnees(null); }}>
       <div className="admin-titre">
         <div>
           <h1 className="titre-etat">Journal des requêtes</h1>

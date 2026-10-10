@@ -271,3 +271,33 @@ test("signalements : à traiter, puis corrigé avec une note", async ({ page }) 
   await page.getByRole("group", { name: "Statut" }).getByRole("button", { name: /^Corrigé/ }).click();
   await expect(page.locator(".admin-signalement").filter({ hasText: commentaire })).toContainText("Corrigé par la PR #261");
 });
+
+test("comptes et rôles : un administrateur crée un lecteur, qui ne voit pas la gestion des comptes", async ({ page, browser }) => {
+  await page.goto("/admin/comptes");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByRole("heading", { name: "Comptes et rôles" })).toBeVisible();
+  const lecteur = `lecteur${Date.now() % 100000}`;
+  const motDePasse = "mot-de-passe-lecteur-e2e";
+  const formulaire = page.getByRole("form", { name: "Créer un compte" });
+  await formulaire.getByLabel("Identifiant").fill(lecteur);
+  await formulaire.getByRole("combobox").selectOption("lecteur");
+  await formulaire.getByLabel(/^Mot de passe/).fill(motDePasse);
+  await formulaire.getByLabel("Le même, encore une fois").fill(motDePasse);
+  await formulaire.getByRole("button", { name: "Créer le compte" }).click();
+  await expect(page.getByRole("status").filter({ hasText: `Compte ${lecteur} créé.` })).toBeVisible();
+  await expect(page.getByRole("row", { name: new RegExp(lecteur) })).toContainText("Actif");
+  await accessible(page, "comptes et rôles");
+
+  // Le lecteur se connecte dans une autre session : ni lien « Comptes », ni lancement du jeu de test
+  const autre = await browser.newPage();
+  await autre.goto("/admin/jeu-de-test");
+  await autre.getByLabel("Identifiant").fill(lecteur);
+  await autre.getByLabel("Mot de passe").fill(motDePasse);
+  await autre.getByRole("button", { name: "Se connecter" }).click();
+  await expect(autre.getByText("Le lancement du jeu de test est réservé aux administrateurs.")).toBeVisible();
+  await expect(autre.getByRole("link", { name: "Comptes" })).toHaveCount(0);
+  await autre.goto("/admin/comptes");
+  await expect(autre.getByText("Cet écran est réservé aux administrateurs.")).toBeVisible();
+  await autre.close();
+});

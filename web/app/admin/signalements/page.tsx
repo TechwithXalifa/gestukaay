@@ -41,7 +41,7 @@ const PERIODES = [30, 90, 365] as const;
 const date = new Intl.DateTimeFormat("fr-FR", { dateStyle: "short", timeStyle: "short" });
 
 export default function Signalements() {
-  const { identifiant, avis, connecter, fermer, appeler } = useAdmin();
+  const { identifiant, role, avis, connecter, fermer, appeler } = useAdmin();
   const [statut, setStatut] = useState<Statut>("a_traiter");
   const [type, setType] = useState("");
   const [jours, setJours] = useState<(typeof PERIODES)[number]>(90);
@@ -88,7 +88,7 @@ export default function Signalements() {
   const max = donnees ? Math.max(1, ...donnees.par_semaine.map((s) => s.recus)) : 1;
 
   return (
-    <Cadre actif="signalements" identifiant={identifiant} onFermer={() => { fermer(); setDonnees(null); }}>
+    <Cadre actif="signalements" identifiant={identifiant} role={role} onFermer={() => { fermer(); setDonnees(null); }}>
       <div className="admin-titre">
         <h1 className="titre-etat">Relecture des signalements</h1>
         <div role="group" aria-label="Période" className="bascule admin-periode">
