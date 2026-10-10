@@ -667,6 +667,13 @@ ol.etapes { margin-top: 12px; counter-reset: etape; }
 .admin-connexion-note { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 0; }
 .admin-verification { margin: clamp(24px, 10vh, 96px) auto 0; text-align: center; }
 @media (max-width: 480px) { .admin-connexion { padding: 28px 20px 22px; } }
+.admin-groupes { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 12px; }
+.admin-groupe-tete { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.admin-groupe-tete .sous-titre { margin: 0; }
+.admin-groupe-nombre { font: 700 28px/32px var(--font-display); color: var(--baobab); font-variant-numeric: tabular-nums; }
+.admin-groupe-exemples { margin: 10px 0 0; padding-left: 18px; font-size: 14px; line-height: 20px; }
+.admin-groupe-pistes ul { margin: 4px 0 0; padding-left: 18px; font-size: 14px; }
+.admin-groupe-pistes a { color: var(--baobab); }
 .erreur-admin { margin: 0; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--approchee-50); color: var(--approchee); font-size: 14px; }
 .admin-periode { border-color: var(--ligne); background: var(--fond-2); }
 .admin-periode button { min-width: 52px; color: var(--encre-douce); }

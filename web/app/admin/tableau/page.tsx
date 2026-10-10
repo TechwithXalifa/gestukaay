@@ -227,6 +227,7 @@ export default function TableauDeBord() {
           <section className="admin-panneau" aria-labelledby="titre-non-resolues">
             <div className="admin-titre">
               <h2 id="titre-non-resolues" className="sous-titre">Questions non résolues les plus fréquentes</h2>
+              <Link href="/admin/non-resolues" className="lien">Regrouper par thème</Link>
               <Link href="/admin/journal" className="lien">Tout voir dans le journal</Link>
             </div>
             {t.non_resolues.length === 0 ? (

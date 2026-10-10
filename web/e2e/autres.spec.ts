@@ -220,3 +220,18 @@ test("adresse inconnue : page en français, avec l'en-tête et une suite (7.1 n�
   await expect(page.getByRole("link", { name: "Poser une question" }).last()).toHaveAttribute("href", "/");
   await accessible(page, "page introuvable");
 });
+
+test("non résolues : les refus regroupés par thème, avec les pistes du catalogue", async ({ page }) => {
+  await poser(page, "Combien de personnes parlent sérère au Sénégal ?");
+  await poser(page, "Combien de gens parlent sérère à Thiès ?");
+  await page.goto("/admin/non-resolues");
+  await seConnecter(page);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page.getByRole("heading", { name: "Questions non résolues, par thème" })).toBeVisible();
+  const theme = page.locator(".admin-groupes > li").filter({ hasText: "sérère" }).first();
+  await expect(theme).toContainText("parlent");
+  await expect(theme).toContainText("Hors socle");
+  await accessible(page, "non résolues par thème");
+  await page.getByRole("button", { name: "7 j" }).click();
+  await expect(theme).toBeVisible();
+});
