@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from gestukaay_canaux.format import CHIFFRES, _commun, formater
+from gestukaay_canaux.textes import texte
 from gestukaay_contracts.models import AskResponse
 
 EXEMPLES = Path(__file__).parents[2] / "contracts" / "examples"
@@ -34,7 +35,9 @@ def test_approchee_choix_numerotes_et_proposes():
     for c in s.choix:  # #214 : numéros emoji, choix courts (le contexte commun est dit une fois en tête)
         assert f"{CHIFFRES[c.id]} {c.libelle}" in s.texte
     assert [c.id for c in s.choix] == [c.id for c in r.reponse.choix]
-    assert "Tontul ak lim (numéro) bi nga tànn." in s.texte  # « choisir », wolof de KBD
+    assert texte("choisir", "fr") in s.texte and "Tontul" not in s.texte  # réponse en français : consigne en français (#274)
+    wo = formater(r.model_copy(update={"reponse": r.reponse.model_copy(update={"langue": "wo"})}))
+    assert "Tontul ak lim (numéro) bi nga tànn." in wo.texte  # « choisir », wolof de KBD
 
 
 def test_choix_courts_contexte_une_fois():  # #214

@@ -79,7 +79,7 @@ def _approchee(r: ReponseApprochee, gras: bool) -> Sortant:
     lignes = [f"🔎 {r.reformulation}"]
     if tete:
         lignes.append(f"*{tete}*" if gras else tete)
-    lignes += ["", *(f"{CHIFFRES.get(c.id, c.id + ')')} {c.libelle}" for c in choix), "", f"👉 {texte('choisir')}"]
+    lignes += ["", *(f"{CHIFFRES.get(c.id, c.id + ')')} {c.libelle}" for c in choix), "", f"👉 {texte('choisir', r.langue)}"]
     return Sortant("\n".join(lignes), choix)
 
 
