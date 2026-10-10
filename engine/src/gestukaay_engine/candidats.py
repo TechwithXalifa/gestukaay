@@ -481,7 +481,14 @@ def nature_differente(code: str, question: str) -> bool:
     for nature, (demande, _) in _NATURES_DEMANDEES.items():
         if re.search(demande, t) and nature not in autres:
             return bool(autres)  # l'indicateur a une autre nature nommée (prix, importation…) : il ne répond pas
-    return False
+    # « il y a combien de moutons ? » servait l'indice des prix « Mouton - chèvre » (113,7) : on compte, un indice ou
+    # un prix n'y répond pas (« combien coûte », « combien vaut », « combien de francs » demandent bien un prix)
+    return bool(_COMPTE.search(t) and not _PRIX_DEMANDE.search(t) and (re.search(r"\bindice\b", unite) or "prix" in autres))
+
+
+_COMPTE = re.compile(r"\b(combien de|combien d|nombre de|nombre d)\b")
+_PRIX_DEMANDE = re.compile(r"\bcombien (coute|coutent|vaut|valent|faut|paie|paye|gagne|gagnent)\b|\bcombien (de|d) "
+                           r"(f ?cfa|francs?|cfa|dollars?|euros?)\b|\b(prix|cout|couts|tarif|indice)\b")
 
 
 def capacite_au_lieu_de(code: str, question: str) -> bool:

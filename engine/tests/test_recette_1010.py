@@ -186,3 +186,14 @@ def test_fiche_lue_dans_le_referentiel():  # #273
     assert f["unite"] == "%" and f["frequence"] == "chaque année" and f["debut"] == "2015"
     assert _producteur_lisible("Direction-de-l-Administration-Penitentiaire") == "Direction de l'Administration Penitentiaire"
     assert _sujet_de_la_fiche("Quelle unité est utilisée pour mesurer le taux de chômage ?") is not None
+
+
+@pytest.mark.parametrize("code, question, attendu", [  # #282 (suite) : compter n'est pas un indice ni un prix
+    ("cirzjwg.mouton-chevre", "il y a combien de moutons au senegal", True),
+    ("feujxob.riz-brise-ordinaire-au-detail", "Combien coûte le riz à Dakar ?", False),
+    ("tsghpfc.indice-global", "Combien vaut l'indice des prix ?", False),
+    ("elwxsmc.indice-synthetique-de-fecondite", "Combien d'enfants par femme au Sénégal ?", False),
+])
+def test_une_question_qui_compte_n_est_pas_servie_par_un_indice(code, question, attendu):
+    from gestukaay_engine.candidats import nature_differente
+    assert nature_differente(code, question) is attendu
