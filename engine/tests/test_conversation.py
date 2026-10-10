@@ -44,8 +44,12 @@ def test_chaque_categorie_a_son_texte():
     assert all(fr.strip() for fr, _ in _textes().values())
 
 
+EN_ATTENTE_DE_KBD = {"domaine"}  # #216 (09/10) : le français part seul tant que KBD n'a pas écrit le wolof (0009)
+
+
 def test_textes_wolof_de_kbd():  # écrits par KBD le 07/10 (0009), sigle écrit à l'écrit (0032)
-    assert all(wo.strip() for _, wo in _textes().values())
+    assert all(wo.strip() for cle, (_, wo) in _textes().items() if cle not in EN_ATTENTE_DE_KBD)
+    assert texte("domaine", "wo", domaine="Santé").startswith("Voici des chiffres")  # repli français, jamais vide
     assert texte("salutation", "wo").startswith("Maa ngi fi rekk, jërëjëf !")
     assert "ANSD" in texte("a_propos", "wo") and "A-EN-ES-DE" not in texte("a_propos", "wo")
     assert texte("definition", "wo", definition="X.") == "X. Ndax bëgg nga xam lim bi ?"
