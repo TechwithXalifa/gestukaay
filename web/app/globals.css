@@ -662,6 +662,30 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .mes-chiffres-confirmer { display: inline-flex; flex-wrap: wrap; gap: 8px; }
 .actions .secondaire[aria-pressed="true"] { border-color: var(--baobab); color: var(--baobab); background: var(--baobab-50); }
 
+/* ---- Explique-moi simplement : « Comprendre ce chiffre », glossaire ------ */
+.comprendre { width: 100%; margin-top: 20px; }
+.comprendre-bouton { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--ligne); border-radius: var(--radius-full);
+  background: var(--fond-2); color: var(--baobab); font: 650 14.5px/20px var(--font-sans); cursor: pointer; }
+.comprendre-bouton:hover { border-color: var(--baobab); }
+.comprendre-bouton .ic:last-child { transition: transform var(--duree-moyenne) var(--ease-sortie); }
+/* Chevron Phosphor pointé à gauche : vers le bas fermé, vers le haut ouvert */
+.comprendre-bouton .ic:last-child { transform: rotate(-90deg); }
+.comprendre-bouton[aria-expanded="true"] .ic:last-child { transform: rotate(90deg); }
+.comprendre-corps { margin-top: 12px; padding: 18px 20px; border-radius: var(--radius-md); background: var(--or-50); }
+.comprendre-corps[hidden] { display: none; }
+.comprendre-titre { margin: 0; font: 650 16px/22px var(--font-sans); color: var(--encre); }
+.comprendre-sous-titre { margin: 16px 0 0; font: 650 14px/20px var(--font-sans); color: var(--encre); }
+.comprendre-definition { margin: 8px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid var(--or); font-size: 15px; line-height: 23px; }
+.comprendre-mots, .glossaire { margin: 8px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.comprendre-mots dt, .glossaire dt { font-weight: 650; }
+.comprendre-mots dd, .glossaire dd { margin: 2px 0 0; color: var(--encre); font-size: 14.5px; line-height: 22px; }
+.comprendre-liens { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.glossaire { gap: 0; }
+.glossaire > div { padding: 14px 0; border-bottom: 1px solid var(--ligne); scroll-margin-top: calc(var(--hauteur-entete) + 12px); }
+.glossaire > div:target { background: var(--or-50); }
+.glossaire dt { color: var(--baobab); font-size: 17px; }
+.glossaire-filtre { margin-top: 16px; }
+
 /* ---- Pages d'information : Méthode, À propos, Confidentialité ----------- */
 .site main.page-texte { max-width: 760px; }
 .page-texte p { margin: 8px 0 0; max-width: 660px; }

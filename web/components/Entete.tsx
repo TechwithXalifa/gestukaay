@@ -119,6 +119,7 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
           <h2>{t("pied.titreConfiance")}</h2>
           <Link href="/mes-chiffres">{t("nav.mesChiffres")}</Link>
           <Link href="/methode">{t("pied.methode")}</Link>
+          <Link href="/glossaire">{t("pied.glossaire")}</Link>
           <Link href="/a-propos">{t("pied.apropos")}</Link>
           <Link href="/confidentialite">{t("pied.confidentialite")}</Link>
         </nav>

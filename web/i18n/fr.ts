@@ -280,6 +280,23 @@ export const fr = {
   "methode.m.bonneDetail": "{reussies} questions sur {sur} reçoivent le bon chiffre, avec la bonne source.",
   "methode.signaler": "Un chiffre vous semble faux ? Utilisez « Signaler une erreur » sous la réponse : chaque signalement est lu par l'équipe.",
 
+  // Explique-moi simplement : « Comprendre ce chiffre » et glossaire
+  "comprendre.bouton": "Comprendre ce chiffre",
+  "comprendre.mesure": "Ce que mesure « {indicateur} »",
+  "comprendre.chargement": "Lecture de la définition…",
+  "comprendre.cite": "Définition publiée par {producteur}, citée telle quelle.",
+  "comprendre.mots": "Les mots utiles",
+  "comprendre.glossaire": "Tout le glossaire",
+  "comprendre.fiche": "Fiche complète de l'indicateur",
+  "glossaire.titre": "Glossaire : les mots de la statistique",
+  "glossaire.intro": "Les mots qu'on croise dans les réponses, expliqués simplement. La définition exacte d'un indicateur reste celle de sa fiche, publiée par le producteur officiel.",
+  "glossaire.recherche": "Chercher un mot",
+  "glossaire.resultats": "{n} mots",
+  "glossaire.resultat": "1 mot",
+  "glossaire.aucun": "Aucun mot ne correspond. Posez votre question : la réponse dira d'où vient le chiffre.",
+  "glossaire.note": "Ces explications sont générales : elles ne remplacent pas la méthode de chaque enquête, décrite dans sa publication.",
+  "pied.glossaire": "Glossaire",
+
   // À propos
   "apropos.titre": "Le chiffre officiel, avec sa source et sa date",
   "apropos.texte1": "Gëstukaay (« vérifier », en wolof) répond aux questions sur les statistiques du Sénégal, en français et en wolof, à l'écrit ou à la voix.",
