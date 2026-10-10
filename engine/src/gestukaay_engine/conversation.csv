@@ -12,3 +12,6 @@ hors_sujet;Je réponds seulement aux questions sur les statistiques officielles 
 impoli;Je reste à votre disposition pour toute question sur les statistiques officielles du Sénégal.;Maa ngi fi ngir say laaj yu jëm ci lim yu wóor yu Senegaal.
 pourquoi_sans_chiffre;Gëstukaay donne les chiffres officiels, pas d'analyse ni d'opinion.;Gëstukaay lim yu wóor rekk lay joxe, du saytu walla joxe xalaatam.
 domaine;Voici des chiffres publiés sur ce thème ({domaine}), à demander directement. La liste complète est dans la rubrique Données.;
+unite;{libelle} : cet indicateur est publié en {unite}. Voulez-vous le chiffre ?;
+frequence;{libelle} : cet indicateur est publié {frequence} ; les données couvertes vont de {debut} à {fin}. Voulez-vous le dernier chiffre ?;
+producteur;{libelle} : ce chiffre est produit par {producteur} (« {jeu} »). Voulez-vous le chiffre ?;

@@ -166,3 +166,23 @@ def test_precisions_de_lecture(monkeypatch):  # #275, #276
     assert "décembre 2021 et décembre 2022), pas sur la moyenne de l'année" in texte
     monkeypatch.setattr(m, "note_perimetre", lambda r: None)
     assert m._precisions_de_lecture("Texte.", "Évolution de la pauvreté entre 2011 et 2022", _res("2011", "2022")) == "Texte."
+
+
+@pytest.mark.parametrize("question, cle", [  # #273
+    ("Quelle unité est utilisée pour mesurer taux de chômage ?", "unite"),
+    ("À quelle fréquence les données de indice de gini sont-elles mises à jour ?", "frequence"),
+    ("Qui produit ou publie les données de taux de pauvreté ?", "producteur"),
+    ("Que signifie l'indicateur « taux de chômage » ?", "definition"),
+    ("D'où viennent tes chiffres ?", "a_propos"),
+])
+def test_questions_sur_la_fiche_d_un_indicateur(question, cle):
+    from gestukaay_engine.conversation import regles
+    assert regles(question) == cle
+
+
+def test_fiche_lue_dans_le_referentiel():  # #273
+    from gestukaay_engine.moteur import _fiche, _producteur_lisible, _sujet_de_la_fiche
+    f = _fiche(indicateurs()["dwibrlf"])
+    assert f["unite"] == "%" and f["frequence"] == "chaque année" and f["debut"] == "2015"
+    assert _producteur_lisible("Direction-de-l-Administration-Penitentiaire") == "Direction de l'Administration Penitentiaire"
+    assert _sujet_de_la_fiche("Quelle unité est utilisée pour mesurer le taux de chômage ?") is not None
