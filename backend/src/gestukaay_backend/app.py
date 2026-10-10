@@ -49,6 +49,7 @@ from . import comptes, jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
 from .carte import CarteResponse, carte
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
+from .profil_zone import ProfilZone, ZoneInconnue, profil
 from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
@@ -376,6 +377,16 @@ def carte_regions(
     """Carte des 14 régions (Explorer, vue « Carte ») : une valeur publiée par région à une période commune,
     les régions qui ne la publient pas dans `absents` (carte.py). Hors contrat public : une vue du site."""
     return carte(moteur, indicateur, periode or None)
+
+
+@app.get("/v1/zones/{code}", response_model=ProfilZone)
+def profil_zone(code: str) -> ProfilZone:
+    """« Ma région en chiffres » : les chiffres clés d'une zone (pays, région, département), chacun avec sa
+    dernière valeur publiée, sa source et, pour une région, son rang (profil_zone.py). Hors contrat public."""
+    try:
+        return profil(moteur, code)
+    except ZoneInconnue as e:
+        raise ErreurApi(404, "Zone introuvable", f"Aucune zone {code}.") from e
 
 
 @app.get("/v1/series.csv")
