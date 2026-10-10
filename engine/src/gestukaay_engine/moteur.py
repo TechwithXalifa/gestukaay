@@ -70,6 +70,7 @@ from .candidats import (
     ratio_non_publie,
     sans_emploi,
     sans_periode_relative,
+    texte_normalise,
 )
 from .compagnons import compagnon
 from .comprehension import (
@@ -83,7 +84,7 @@ from .comprehension import (
 )
 from .conversation import domaine_demande, sans_politesse
 from .conversation import texte as conversation_texte
-from .gabarits import citation, explication, les_autres, note_perimetre
+from .gabarits import citation, explication, les_autres, note_perimetre, periode_en_lettres
 from .interface import NoteVocale
 from .langue import detecter
 from .nombres import en_chiffres
@@ -358,6 +359,7 @@ class MoteurReel:
             # #282 : « combien on importe de riz » -> septembre 2017, sans le dire
             texte = (f"{texte} Attention : cette donnée date de {res[0].periode.valeur[:4]} ; "
                      "aucune valeur plus récente n'est publiée dans les jeux couverts.")
+        texte = _precisions_de_lecture(texte, question, res)
         if rel := periode_relative(question):
             texte = f"{texte} {_dit_relative(rel, question, res)}".rstrip()
         if manquantes := _annees_non_servies(question, res):  # #242 : jamais une année citée perdue en silence
@@ -451,6 +453,25 @@ def _annees_non_servies(question: str, res: list) -> list[str]:
         return []
     servies = {x.periode.valeur[:4] for x in res}
     return [a for a in citees if a not in servies]
+
+
+def _precisions_de_lecture(texte: str, question: str, res: list) -> str:
+    """Ce que la phrase pourrait faire croire, dit (test du bot du 10/10) :
+    - #275 : des prix relevés dans l'agglomération de Dakar ne sont pas ceux de « la région de Dakar » ;
+    - #276 : « l'écart entre » : aucun écart n'est calculé (zéro chiffre fabriqué), les deux valeurs suffisent ;
+    - #276 : deux années demandées, série mensuelle : ce sont deux mois (décembre), pas deux années entières."""
+    note = note_perimetre(res[0]) or ""
+    if "agglomeration" in normaliser(note):
+        texte = texte.replace("dans la région de Dakar", "dans l'agglomération de Dakar")
+    t = texte_normalise(question)  # « l'écart » -> « l ecart » (normaliser colle l'apostrophe)
+    if len(res) == 2 and re.search(r"\b(ecart|difference)\b", t):
+        texte = f"{texte} Gëstukaay ne calcule pas d'écart : voici les deux valeurs publiées."
+    annees = [p for p in periodes_citees(question) if re.fullmatch(r"\d{4}", p)]
+    mois = [x.periode.valeur for x in res if re.fullmatch(r"\d{4}-\d{2}", x.periode.valeur)]
+    if len(annees) >= 2 and len(mois) == len(res) == 2:
+        texte = (f"{texte} La série est mensuelle : la comparaison porte sur deux mois "
+                 f"({periode_en_lettres(mois[0])[3:]} et {periode_en_lettres(mois[1])[3:]}), pas sur la moyenne de l'année.")
+    return texte
 
 
 def _dit_relative(rel: str, question: str, res: list) -> str:

@@ -154,3 +154,15 @@ def test_ok_devant_une_question_reste_une_question():  # #284 : « ok » seul es
 def test_un_prix_ne_repond_pas_a_une_exportation_ou_une_production(code, question, attendu):
     from gestukaay_engine.candidats import nature_differente
     assert nature_differente(code, question) is attendu
+
+
+def test_precisions_de_lecture(monkeypatch):  # #275, #276
+    import gestukaay_engine.moteur as m
+    monkeypatch.setattr(m, "note_perimetre", lambda r: "Prix relevés dans l'agglomération de Dakar, pas dans toute la région.")
+    texte = m._precisions_de_lecture("Prix du riz dans la région de Dakar : 317 FCFA en décembre 2021 et 350 FCFA en décembre 2022.",
+                                     "Quel est l'écart entre les prix du riz à Dakar en 2021 et en 2022 ?",
+                                     _res("2021-12", "2022-12"))
+    assert "dans l'agglomération de Dakar" in texte and "ne calcule pas d'écart" in texte
+    assert "décembre 2021 et décembre 2022), pas sur la moyenne de l'année" in texte
+    monkeypatch.setattr(m, "note_perimetre", lambda r: None)
+    assert m._precisions_de_lecture("Texte.", "Évolution de la pauvreté entre 2011 et 2022", _res("2011", "2022")) == "Texte."
