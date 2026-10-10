@@ -141,8 +141,8 @@ def test_zones_et_periodes_de_kbd():
 
 
 @pytest.mark.parametrize("sigle, dit", [  # KBD (fiche 3) : épelés comme en français
-    ("ANSD", "a, èn, ès, dé"), ("EHCVM", "e, ach, cé, vé, èm"), ("ENES", "e, èn, e, ès"), ("EDS", "e, dé, ès"),
-    ("IHPC", "i, ach, pé, cé"), ("CSA", "cé, ès, a"), ("ARTP", "a, èr, té, pé"), ("RGPH-5", "èr, jé, pé, ach, cinq"),
+    ("ANSD", "a, èn, ès, dé"), ("EHCVM", "e, hache, cé, vé, èm"), ("ENES", "e, èn, e, ès"), ("EDS", "e, dé, ès"),
+    ("IHPC", "i, hache, pé, cé"), ("CSA", "cé, ès, a"), ("ARTP", "a, èr, té, pé"), ("RGPH-5", "èr, jé, pé, hache, cinq"),
 ])
 def test_sigles_epeles_comme_kbd(sigle, dit):
     assert epeler(sigle) == dit
@@ -275,7 +275,7 @@ def test_projection_annoncee_a_l_oral():
 
 
 def test_estimation_annoncee_a_l_oral():
-    assert "Lii ab xeyma la, bu bawoo ci e, ach, cé, vé, èm" in _avec_nature("estimation", "EHCVM 2021")
+    assert "Lii ab xeyma la, bu bawoo ci e, hache, cé, vé, èm" in _avec_nature("estimation", "EHCVM 2021")
 
 
 def test_valeur_observee_sans_etiquette():
