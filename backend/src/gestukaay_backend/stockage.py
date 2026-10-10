@@ -416,6 +416,25 @@ class Stockage:
             "non_resolues": sorted(groupes.values(), key=lambda g: (-g["occurrences"], g["question"]))[:10],
         }
 
+    def non_resolues(self, jours: int = 30, canal: str | None = None, langue: str | None = None,
+                     issue: str = "aucune", maintenant: datetime | None = None) -> list[dict]:
+        """Les questions refusées (ou approchées) de la période, avec le motif du refus, pour les regrouper par
+        thème (regroupement.py). Une salutation ou un merci (motif « conversation », 0033) n'en est pas une."""
+        debut = (maintenant or datetime.now(UTC)) - timedelta(days=jours)
+        lignes = self._executer(
+            "SELECT j.question, j.langue, j.recu_le, j.reponse_id, j.canal, r.contenu FROM journal j "
+            "JOIN reponses r ON r.id = j.reponse_id "
+            "WHERE j.recu_le >= ? AND j.issue = ? AND j.confirme_depuis IS NULL ORDER BY j.recu_le",
+            (debut.isoformat(timespec="milliseconds"), issue))
+        sortie = []
+        for question, lg, recu, rid, cnl, contenu in lignes:
+            if (canal and cnl != canal) or (langue and lg != langue):
+                continue
+            motif = json.loads(contenu)["reponse"].get("motif") or ""
+            if motif != "conversation":
+                sortie.append({"question": question, "langue": lg, "motif": motif, "recu_le": recu, "reponse_id": rid})
+        return sortie
+
     # ------------------------------------------------------------------ jeu de test
 
     def creer_execution(self, mode: str) -> str:

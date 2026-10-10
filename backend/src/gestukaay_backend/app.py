@@ -50,6 +50,7 @@ from .canaux import Canal, Entrant, Services, charger_canaux
 from .carte import CarteResponse, carte
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
 from .profil_zone import ProfilZone, ZoneInconnue, profil
+from .regroupement import regrouper
 from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
 from .suggestions import SuggestionsResponse, suggerer
 
@@ -591,6 +592,28 @@ def rejouer(corps: Rejeu, session: str | None = Cookie(None, alias=COOKIE_ADMIN)
         "apres": {**rb, "latence_ms": round((time.perf_counter() - debut) * 1000)},
         "identique": (ra["issue"], ra["indicateur"], ra["texte"]) == (rb["issue"], rb["indicateur"], rb["texte"]),
     }
+
+
+@app.get("/admin/non-resolues")
+def non_resolues(
+    session: str | None = Cookie(None, alias=COOKIE_ADMIN),
+    jours: int = Query(30),
+    canal: str | None = None,
+    langue: str | None = None,
+    issue: Literal["aucune", "approchee"] = "aucune",
+) -> dict:
+    """Questions refusées (ou approchées) regroupées par thème (regroupement.py), avec, pour chaque thème, les
+    indicateurs du catalogue qui en contiennent les mots : s'il y en a, la question a été mal comprise
+    (lexique) ; sinon, l'indicateur manque au socle."""
+    _admin(session)
+    if jours not in (7, 30, 90):
+        raise ErreurApi(422, "Période inconnue", "jours = 7, 30 ou 90.")
+    lignes = stockage.non_resolues(jours, canal or None, langue or None, issue)
+    groupes = regrouper(lignes)
+    for g in groupes[:30]:  # le catalogue n'est interrogé que pour les thèmes affichés
+        trouves = moteur.catalogue(None, " ".join(g["mots"][:2]), None, 3, 0).indicateurs if g["mots"] else []
+        g["indicateurs_proches"] = [{"code": i.code, "libelle": i.libelle} for i in trouves]
+    return {"jours": jours, "questions": len(lignes), "groupes": groupes[:30]}
 
 
 # Jeu de test (cahier 5.10, maquette BO-JeuTest) : le benchmark de KBD lancé depuis le back-office
