@@ -170,6 +170,27 @@ test("autocomplétion indisponible : la saisie continue sans liste", async ({ pa
   await page.waitForURL(/\/r\/[\w-]+$/);
 });
 
+test("partage enrichi : aperçu WhatsApp avec le chiffre, et export de l'image (EF-36)", async ({ page, request }) => {
+  await poser(page, "Combien d'habitants à Thiès ?");
+  const id = page.url().split("/r/")[1];
+  // Aperçu d'un lien collé dans une messagerie : titre, chiffre et source, image absolue de 1200 × 630
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Combien d'habitants à Thiès ?");
+  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", /2.463.677 habitants · .*Thiès · 2023\. Source : ANSD/);
+  const apercu = await page.locator('meta[property="og:image"]').getAttribute("content");
+  expect(apercu).toMatch(/^http:\/\/localhost:3000\/r\/[\w-]+\/opengraph-image/);
+  const og = await request.get(apercu ?? "");
+  expect(og.ok()).toBeTruthy();
+  expect(og.headers()["content-type"]).toBe("image/png");
+
+  const lien = page.getByRole("link", { name: "Exporter l'image" });
+  await expect(lien).toHaveAttribute("href", `/r/${id}/image.png`);
+  const image = await request.get(`/r/${id}/image.png`);
+  expect(image.ok()).toBeTruthy();
+  expect(image.headers()["content-disposition"]).toBe(`attachment; filename="gestukaay-${id}.png"`);
+  expect((await image.body()).subarray(1, 4).toString()).toBe("PNG");
+  expect((await request.get("/r/inexistante/image.png")).status()).toBe(404);
+});
+
 test("adresse inconnue : message clair, pas d'erreur technique", async ({ page }) => {
   await page.goto("/r/inexistante");
   await expect(page.getByText("Cette réponse n'existe plus.")).toBeVisible();

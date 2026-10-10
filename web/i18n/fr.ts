@@ -81,6 +81,7 @@ export const fr = {
   // Actions
   "actions.pdf": "Exporter PDF",
   "actions.csv": "Exporter CSV",
+  "actions.image": "Exporter l'image",
   "actions.citer": "Copier la citation",
   "actions.partager": "Partager",
   "actions.citationCopiee": "Citation copiée",

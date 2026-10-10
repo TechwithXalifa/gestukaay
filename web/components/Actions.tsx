@@ -48,6 +48,10 @@ export function Actions({ id, citation, url }: { id: string; citation: string; u
       <a className="secondaire" href={exportUrl(id, "csv")} download>
         <Telecharger />{t("actions.csv")}
       </a>
+      {/* Image de la réponse (EF-36) : celle de l'aperçu de partage, servie par le site (app/r/[id]/image.png) */}
+      <a className="secondaire" href={`/r/${encodeURIComponent(id)}/image.png`} download>
+        <Telecharger />{t("actions.image")}
+      </a>
       <button type="button" className="secondaire" onClick={() => copier(citation, t("actions.citationCopiee"))}>
         <Copier />{t("actions.citer")}
       </button>
