@@ -275,12 +275,26 @@ def producteur_et_operation(dataset_id: str, s, ind: Indicateur) -> tuple[str, s
     return producteur, operation
 
 
+def _debut(periode: str) -> date:
+    """Premier jour d'une période : « 2026-07 », « 2026-T3 », « 2026 »."""
+    an = int(periode[:4])
+    if m := re.fullmatch(r"\d{4}-(\d{2})", periode):
+        return date(an, int(m[1]), 1)
+    if m := re.fullmatch(r"\d{4}-T(\d)", periode):
+        return date(an, 3 * int(m[1]) - 2, 1)
+    return date(an, 1, 1)
+
+
 def source(socle: Socle, o: Observation, ind: Indicateur) -> Source:
     s = socle.sources.get(o.source_id)
     publie = (s.date_publication if s and s.date_publication else None) or date(1970, 1, 1)
+    verbe = "publié le"
+    if s and s.derniere_maj and s.derniere_maj > publie and _debut(o.periode) > publie:
+        # #233 : une valeur de juillet 2026 n'a pas été « publiée le 20 mars 2025 » (première publication du jeu)
+        publie, verbe = s.derniere_maj, "mis à jour le"
     producteur, operation = producteur_et_operation(o.source_id, s, ind)
     licence = s.licence if s else ""
-    libelle = " · ".join(x for x in (producteur, operation, f"publié le {_date_fr(publie)}", licence) if x)
+    libelle = " · ".join(x for x in (producteur, operation, f"{verbe} {_date_fr(publie)}", licence) if x)
     return Source(producteur=producteur, operation=operation, titre=(s.titre if s else ind.jeu),
                   date_publication=publie, licence=licence, url=s.url if s else "", libelle=libelle)
 

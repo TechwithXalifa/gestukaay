@@ -218,3 +218,25 @@ def test_classement_et_comparaison_ne_melangent_pas_les_categories():
     r = resoudre(peche, req("wrqfsxb.quantite", periode="2024", intention="classement",
                             **{"type-de-pêche": "Pêche artisanale"}))
     assert [(x.zone.code, x.valeur) for x in r.resultats] == [("SN-SL", 109830), ("SN-TH", 104460)]
+
+
+def test_valeur_posterieure_a_la_publication_dit_mis_a_jour_le():  # #233
+    from datetime import date
+
+    from gestukaay_engine.resolution import _debut, source
+    from gestukaay_engine.socle import Observation, Socle, SourceJeu
+    from gestukaay_socle.indicateurs import indicateurs
+
+    ind = indicateurs()["pvswjnd"]
+    sj = SourceJeu("tsghpfc", "ANSD", "ANSD", "IHPC", date(2025, 3, 20), "", "", date(2026, 9, 11))
+    soc = Socle([], {"tsghpfc": sj})
+
+    def obs(periode):
+        return Observation(id="x", indicateur="pvswjnd", zone="SN", zone_presumee=False, periode=periode,
+                           desagregation=(), valeur=1.0, unite="", echelle="1", source_id="tsghpfc",
+                           nature="observee", base_projection="")
+    recente = source(soc, obs("2026-07"), ind)
+    assert "mis à jour le 11 septembre 2026" in recente.libelle and recente.date_publication == date(2026, 9, 11)
+    ancienne = source(soc, obs("2024"), ind)
+    assert "publié le 20 mars 2025" in ancienne.libelle  # la première publication couvre déjà 2024
+    assert _debut("2026-T3") == date(2026, 7, 1)

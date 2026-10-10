@@ -24,7 +24,8 @@ def pied_graphique(s: Source) -> str:
     « Source : ANSD, RGPH-5, publié le 31 octobre 2023 · gestukaay »."""
     operation = s.operation or s.titre
     date_pub = date_en_lettres(s.date_publication) if isinstance(s.date_publication, date) else str(s.date_publication)
-    return f"Source : {s.producteur}, {operation}, publié le {date_pub} · gestukaay"
+    verbe = "mis à jour le" if "mis à jour le" in s.libelle else "publié le"  # #233
+    return f"Source : {s.producteur}, {operation}, {verbe} {date_pub} · gestukaay"
 
 
 def _nom_zone_court(code: str, repli: str) -> str:
