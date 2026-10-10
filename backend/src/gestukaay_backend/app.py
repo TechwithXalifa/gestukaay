@@ -48,6 +48,7 @@ from pydantic import BaseModel, Field
 from . import comptes, jeu_de_test, securite
 from .canaux import Canal, Entrant, Services, charger_canaux
 from .exports import SEPARATEUR, TYPE_CSV, encoder_csv, vers_csv, vers_csv_series, vers_pdf
+from .flux import flux_atom
 from .stockage import COLONNES_JOURNAL, COLONNES_RETOURS, FiltreJournal, Stockage
 
 app = FastAPI(title="Gëstukaay", version="0.1.0")
@@ -338,6 +339,15 @@ def catalogue(
     decalage: int = Query(0, ge=0),
 ) -> CatalogueResponse:
     return moteur.catalogue(domaine or None, (q or "").strip() or None, niveau, limite, decalage)
+
+
+@app.get("/v1/indicators/{code}/flux.atom")
+def flux_indicateur(code: str, zone: str = Query("SN", max_length=40)) -> Response:
+    """Alertes de nouvelle publication (flux.py) : un flux Atom des dernières valeurs publiées, à suivre dans un
+    lecteur de flux ou un service d'alerte par e-mail. Aucune donnée personnelle gardée."""
+    rep = moteur.series(code, _zones(zone)[:1])
+    return Response(flux_atom(rep, code, zone, URL_PUBLIQUE.rstrip("/")), media_type="application/atom+xml",
+                    headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.get("/v1/indicators/{code}", response_model=FicheIndicateur)

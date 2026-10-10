@@ -270,6 +270,7 @@ export const fr = {
   "confid.whatsapp": "Sur WhatsApp, votre numéro n'est pas conservé : la conversation n'est connue que par un code brouillé, impossible à relier à vous.",
   "confid.appareil": "Sur votre appareil",
   "confid.appareil.texte": "Votre navigateur garde vos dernières réponses consultées et votre langue, pour qu'elles restent lisibles hors ligne. Effacer les données du site les supprime.",
+  "confid.suivre": "Suivre un indicateur passe par un flux public que votre lecteur de flux vient lire : Gëstukaay ne garde ni adresse e-mail ni numéro.",
   "confid.retours": "Vos votes et signalements",
   "confid.retours.texte": "Ils sont gardés avec la réponse concernée, sans rien qui vous identifie, pour corriger le service.",
 
@@ -306,6 +307,15 @@ export const fr = {
   "fiche.annees": "Périodes publiées",
   "fiche.desagregations": "Détail disponible : {liste}.",
   "fiche.citer": "Citer cet indicateur",
+  // Alertes de nouvelle publication (flux Atom, fiche indicateur)
+  "suivre.bouton": "Suivre les mises à jour",
+  "suivre.aide": "Ajoutez cette adresse à un lecteur de flux (Feedly, Inoreader, Thunderbird…) ou à un service qui envoie les flux par e-mail : vous serez prévenu à chaque nouvelle valeur publiée.",
+  "suivre.zone": "Zone",
+  "suivre.adresse": "Adresse du flux",
+  "suivre.copier": "Copier l'adresse",
+  "suivre.copie": "Adresse copiée",
+  "suivre.ouvrir": "Voir le flux",
+  "suivre.confidentialite": "Gëstukaay ne garde ni votre adresse ni votre numéro : il publie seulement le flux, que votre lecteur vient lire.",
   "fiche.enBref": "En bref",
   "fiche.source": "Source",
   "fiche.unite": "Unité",
