@@ -116,6 +116,7 @@ export function PiedDePage({ adresse }: { adresse?: string }) {
         </nav>
         <nav aria-label={t("pied.nav")}>
           <h2>{t("pied.titreConfiance")}</h2>
+          <Link href="/mes-chiffres">{t("nav.mesChiffres")}</Link>
           <Link href="/methode">{t("pied.methode")}</Link>
           <Link href="/a-propos">{t("pied.apropos")}</Link>
           <Link href="/confidentialite">{t("pied.confidentialite")}</Link>

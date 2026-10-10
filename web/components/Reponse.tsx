@@ -195,7 +195,7 @@ function Exacte({ r }: { r: ReponseExacte }) {
       {r.audio_url && <LecteurAudio url={r.audio_url} langue={r.langue} />}
 
       {/* Partager vient juste sous le chiffre : sur mobile, la barre était 1,4 écran plus bas (revue UI) */}
-      <Actions id={r.id} citation={r.citation} url={r.url} />
+      <Actions id={r.id} citation={r.citation} url={r.url} reponse={r} />
 
       <div className="corps">
         {r.graphique && <Graphique g={r.graphique} />}

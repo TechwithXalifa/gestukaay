@@ -604,6 +604,17 @@ html[data-langue="wo"] .bascule button[lang="wo"] { background: var(--or-clair);
 .explorer-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
 .explorer-choisir { align-items: stretch; gap: 16px; }
 
+/* ---- Mes chiffres : épinglés et consultés, sur l'appareil ---------------- */
+.site main.mes-chiffres { max-width: 760px; }
+.mes-chiffres .section-tete { align-items: center; margin-top: 12px; }
+.mes-chiffres .sous-titre { margin: 0; }
+.mes-chiffres-liste { margin-top: 12px; }
+.mes-chiffres-liste li { position: relative; }
+.mes-chiffres-liste a { padding-right: 56px; }
+.mes-chiffres-liste .bouton-retirer { position: absolute; top: 8px; right: 8px; margin: 0; }
+.mes-chiffres-confirmer { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.actions .secondaire[aria-pressed="true"] { border-color: var(--baobab); color: var(--baobab); background: var(--baobab-50); }
+
 /* ---- Pages d'information : Méthode, À propos, Confidentialité ----------- */
 .site main.page-texte { max-width: 760px; }
 .page-texte p { margin: 8px 0 0; max-width: 660px; }
