@@ -493,6 +493,42 @@ def tableau(
             "benchmark": {"lancee_le": derniere["lancee_le"], **jeu_de_test.resume(derniere["resultat"])} if derniere else None}
 
 
+class Rejeu(BaseModel):
+    reponse_id: str = Field(min_length=1, max_length=40)
+
+
+def _resume(rep: AskResponse) -> dict:
+    """Ce qui compte pour comparer deux réponses : l'issue, l'indicateur, et ce que l'usager a lu."""
+    r = rep.reponse
+    base = {"issue": r.issue, "indicateur": r.requete.indicateur if r.requete else None,
+            "version_socle": r.version_socle}
+    if isinstance(r, ReponseExacte):
+        lignes = [f"{v.indicateur.libelle} · {v.zone.libelle} · {v.periode.libelle} : {v.valeur_affichee} {v.unite}".strip()
+                  for v in r.resultats]
+        return {**base, "texte": lignes}
+    if isinstance(r, ReponseApprochee):
+        return {**base, "texte": [r.reformulation, *(f"choix : {c.libelle}" for c in r.choix)]}
+    return {**base, "texte": [r.message], "motif": r.motif}
+
+
+@app.post("/admin/rejouer")
+def rejouer(corps: Rejeu, session: str | None = Cookie(None, alias=COOKIE_ADMIN)) -> dict:
+    """Rejoue une question du journal sur le moteur et le socle actuels, pour vérifier qu'un défaut signalé est
+    corrigé. Rien n'est enregistré : ni réponse, ni ligne de journal. Sans le contexte de la conversation (une
+    relance « et pour Kaolack ? » est rejouée seule)."""
+    _admin(session)
+    avant = _stockee(corps.reponse_id)
+    debut = time.perf_counter()
+    apres = moteur.repondre(AskRequest(question=avant.reponse.question, langue="auto"), None)
+    ra, rb = _resume(avant), _resume(apres)
+    return {
+        "question": avant.reponse.question,
+        "avant": {**ra, "le": avant.reponse.cree_le.isoformat()},
+        "apres": {**rb, "latence_ms": round((time.perf_counter() - debut) * 1000)},
+        "identique": (ra["issue"], ra["indicateur"], ra["texte"]) == (rb["issue"], rb["indicateur"], rb["texte"]),
+    }
+
+
 # Jeu de test (cahier 5.10, maquette BO-JeuTest) : le benchmark de KBD lancé depuis le back-office
 def _en_fond(tache) -> None:
     threading.Thread(target=tache, name="benchmark", daemon=True).start()

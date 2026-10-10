@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { CANAUX, Cadre, Choix, Connexion, useAdmin } from "@/components/Admin";
+import { appelAdmin, CANAUX, Cadre, Choix, Connexion, useAdmin } from "@/components/Admin";
 import { Telecharger } from "@/components/icones";
 import { nombre } from "@/lib/typo";
 
@@ -32,6 +32,9 @@ type Ligne = {
   suggestion: string | null; // texte de la dernière suggestion
 };
 
+type Resume = { issue: Ligne["issue"]; indicateur: string | null; version_socle: string; texte: string[]; motif?: string };
+type Rejeu = { avant: Resume & { le: string }; apres: Resume & { latence_ms: number }; identique: boolean };
+
 const PAR_PAGE = 50;
 const ISSUES = { exacte: "Exacte", approchee: "Approchée", aucune: "Refus" } as const;
 const RETOURS = { signale: "Signalée", pas_utile: "Jugée pas utile", utile: "Jugée utile", suggere: "Indicateur suggéré" } as const;
@@ -58,6 +61,19 @@ export default function Journal() {
   const [donnees, setDonnees] = useState<{ total: number; lignes: Ligne[] } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [choisie, setChoisie] = useState<Ligne | null>(null);
+  // Rejeu de la requête choisie sur le moteur actuel (rien n'est enregistré)
+  const [rejeu, setRejeu] = useState<Rejeu | "en_cours" | "erreur" | null>(null);
+  useEffect(() => setRejeu(null), [choisie]);
+
+  async function rejouer(rid: string) {
+    setRejeu("en_cours");
+    const r = await appelAdmin("/admin/rejouer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reponse_id: rid }),
+    }).catch(() => null);
+    setRejeu(r?.ok ? await r.json() : "erreur");
+  }
 
   const parametres = useCallback(
     (extra: Record<string, string> = {}) => {
@@ -203,6 +219,28 @@ export default function Journal() {
               {choisie.suggestion && (<><dt>Indicateur suggéré</dt><dd className="admin-commentaire">{choisie.suggestion}</dd></>)}
             </dl>
             <Link href={`/r/${choisie.reponse_id}`} className="lien" target="_blank">Voir la réponse</Link>
+            <section className="admin-rejeu" aria-label="Rejouer sur le moteur actuel">
+              <button type="button" className="secondaire petit" disabled={rejeu === "en_cours"} onClick={() => rejouer(choisie.reponse_id)}>
+                {rejeu === "en_cours" ? "Rejeu en cours…" : "Rejouer sur le moteur actuel"}
+              </button>
+              <p className="note">Même question, moteur et socle d&apos;aujourd&apos;hui, sans le contexte de la conversation. Rien n&apos;est enregistré.</p>
+              {rejeu === "erreur" && <p className="erreur-admin" role="alert">Le rejeu a échoué.</p>}
+              {rejeu && typeof rejeu === "object" && (
+                <div role="status">
+                  <p><span className={rejeu.identique ? "badge exacte" : "badge approchee"}>{rejeu.identique ? "Réponse identique" : "Réponse différente"}</span></p>
+                  {(["avant", "apres"] as const).map((quand) => {
+                    const r = rejeu[quand];
+                    return (
+                      <div key={quand} className="admin-rejeu-cote">
+                        <p className="admin-tuile-titre">{quand === "avant" ? `Avant (socle ${r.version_socle})` : `Maintenant (socle ${r.version_socle})`}</p>
+                        <p>{ISSUES[r.issue]}{r.motif ? ` · ${r.motif}` : ""}{r.indicateur ? ` · ${r.indicateur}` : ""}</p>
+                        <ul>{r.texte.map((t) => <li key={t}>{t}</li>)}</ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
             <button type="button" className="lien-bouton" onClick={() => setChoisie(null)}>Fermer le détail</button>
           </aside>
         )}
