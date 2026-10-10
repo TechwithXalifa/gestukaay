@@ -197,3 +197,17 @@ def test_fiche_lue_dans_le_referentiel():  # #273
 def test_une_question_qui_compte_n_est_pas_servie_par_un_indice(code, question, attendu):
     from gestukaay_engine.candidats import nature_differente
     assert nature_differente(code, question) is attendu
+
+
+def test_derniere_annee_prend_la_serie_annuelle():  # #272
+    from gestukaay_contracts.models import Periode, RequeteStructuree
+    from gestukaay_engine.candidats import index
+    from gestukaay_engine.comprehension import Comprise
+    from gestukaay_engine.moteur import _serie_annuelle_si_demandee
+    req = RequeteStructuree(intention="valeur", indicateur="muhgux.taux-de-chomage", zones=[],
+                            periode=Periode(type="derniere"), confiance=0.5)
+    c = Comprise(req, index().chercher("taux de chômage", 15), "llm")
+    annee = _serie_annuelle_si_demandee(c, "Quel est le taux de chômage pour la dernière année disponible ?")
+    assert annee.requete.indicateur == "dwibrlf"  # 20,4 % en 2025, pas le 1er trimestre 2026
+    trimestre = _serie_annuelle_si_demandee(c, "Quel est le taux de chômage au dernier trimestre ?")
+    assert trimestre.requete.indicateur == "muhgux.taux-de-chomage"
