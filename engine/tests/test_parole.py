@@ -193,12 +193,14 @@ def test_population_de_thies():
     assert not re.search(r"\d", t) and duree_estimee(t) <= DUREE_MAX_S
 
 
-def test_taux_regional_compare_au_national_avec_la_source():
+def test_taux_regional_compare_au_national_sans_la_source():
     t = parle("Quel est le taux de chômage à Thiès en 2025 ?")
     assert t.startswith("Tolluwaayu ñàkk liggéey bi ci diiwaanu Cees mi ngi tollu ci ñaar-fukk ak ñaar "
                         "wirgil juróom-ñaar ci téeméer ci atum deux mille vingt-cinq.")
     assert "Loolu dafa ëpp limu réew mi gépp, di ñaar-fukk wirgil ñeent ci téeméer" in t
-    assert "a, èn, ès, dé" in t and not re.search(r"\d", t)
+    assert not re.search(r"\d", t)
+    # 0041 : la source est écrite, jamais dite (Oolel n'épelle pas les sigles)
+    assert "a, èn, ès, dé" not in t and "wóoral" not in t and "bawoo ci" not in t
 
 
 def test_comparaison_de_deux_regions():
@@ -235,7 +237,7 @@ def test_refus(question, debut):
 
 
 def test_une_note_ne_depasse_pas_20_s():
-    """Variante la plus courte, puis on retire la source, « dernière donnée », le national."""
+    """Variante la plus courte, puis on retire « dernière donnée », le national (la source n'est jamais dite)."""
     for q in ("Combien d'habitants à Thiès ?", "Quel est le taux de chômage à Thiès ?",
               "Combien d'habitants au Sénégal ?"):
         assert duree_estimee(parle(q)) <= DUREE_MAX_S, q
@@ -303,6 +305,7 @@ def test_reponse_ecrite_en_wolof():
     t = texte_ecrit(rep, SOCLE)
     assert "2 463 677 nit" in t and "2023" in t and "Cees" in t
     assert "deux mille" not in t and "milyoŋ" not in t and "a, èn, ès, dé" not in t
+    assert re.search(r"(Li ko wóoral|Xibaar bii mi ngi bawoo ci) ?: ANSD", t)  # 0041 : la source reste écrite
     assert texte_parle(rep, SOCLE) != t  # la voix garde les mots
     r = en_wolof(rep, SOCLE).reponse
     assert r.langue == "wo" and r.explication == t
