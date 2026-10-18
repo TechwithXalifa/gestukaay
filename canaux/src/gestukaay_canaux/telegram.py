@@ -15,6 +15,8 @@ from gestukaay_contracts.models import Choix
 
 from .conversation import Contenu, traiter
 from .media import relance, telecharger
+from .menu import PREFIXE as PREFIXE_MENU
+from .menu import Bouton
 
 DELAI_S = 10
 
@@ -24,6 +26,8 @@ def lire(update: dict) -> list[Entrant]:
     if q := update.get("callback_query"):  # toucher sur un bouton de choix
         chat = str((q.get("message") or {}).get("chat", {}).get("id", ""))
         data = q.get("data", "")
+        if chat and data.startswith(PREFIXE_MENU):  # bouton du menu (menu.py)
+            return [Entrant(ident, chat, Contenu("menu", texte=data, accuse=q["id"]))]
         if not chat or not data.startswith("choix-"):
             return []
         return [Entrant(ident, chat, Contenu("choix", choix_id=data.removeprefix("choix-"), accuse=q["id"]))]
@@ -81,6 +85,21 @@ class ClientTelegram:
         self._appel("sendMessage", {"chat_id": destinataire, "text": message[:4096],
                                     "link_preview_options": {"is_disabled": True},
                                     "reply_markup": {"inline_keyboard": boutons}})
+
+    def menu(self, destinataire: str, message: str, boutons: list[Bouton]) -> None:
+        """Menu à boutons : deux par ligne pour des noms courts (thèmes, régions), un par ligne pour des questions."""
+        par_ligne = 2 if max(len(b.libelle) for b in boutons) <= 18 else 1
+        touches = [{"text": b.libelle[:60], "callback_data": b.id} for b in boutons]
+        lignes = [touches[i:i + par_ligne] for i in range(0, len(touches), par_ligne)]
+        self._appel("sendMessage", {"chat_id": destinataire, "text": message[:4096],
+                                    "reply_markup": {"inline_keyboard": lignes}})
+
+    def declarer_commandes(self) -> None:
+        """À lancer une fois au déploiement : /themes et /region apparaissent dans le menu de Telegram."""
+        self._appel("setMyCommands", {"commands": [
+            {"command": "themes", "description": "Questions par thème"},
+            {"command": "region", "description": "Les chiffres de votre région"},
+        ]})
 
     def preparer_vocal(self, destinataire: str) -> None:
         self._appel("sendChatAction", {"chat_id": destinataire, "action": "record_voice"})

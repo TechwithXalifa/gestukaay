@@ -16,6 +16,8 @@ from gestukaay_contracts.models import Choix
 
 from .conversation import Contenu, traiter
 from .media import relance, telecharger
+from .menu import PREFIXE as PREFIXE_MENU
+from .menu import Bouton
 from .textes import bouton_liste, texte
 
 _log = logging.getLogger("gestukaay.canaux.whatsapp")
@@ -52,6 +54,8 @@ def _contenu(m: dict) -> Contenu:
         ident = reponse.get("id", "")
         if ident.startswith("choix-"):
             return Contenu("choix", choix_id=ident.removeprefix("choix-"), accuse=accuse)
+        if ident.startswith(PREFIXE_MENU):  # ligne du menu (menu.py)
+            return Contenu("menu", texte=ident, accuse=accuse)
     if t == "button":  # bouton d'un modèle de message
         return Contenu("texte", texte=m.get("button", {}).get("text", ""), accuse=accuse)
     return Contenu("autre", accuse=accuse)
@@ -120,6 +124,15 @@ class ClientGraph:
                        "interactive": {"type": "list", "body": {"text": message[:1024]},
                                        "action": {"button": bouton_liste(),
                                                   "sections": [{"title": "Choix", "rows": lignes}]}}})
+
+    def menu(self, destinataire: str, message: str, boutons: list[Bouton]) -> None:
+        """Menu en liste à toucher : 10 lignes au plus, titre de 24 caractères (le libellé entier en description)."""
+        lignes = [{"id": b.id, "title": b.libelle[:24], **({"description": b.libelle[:72]} if len(b.libelle) > 24 else {})}
+                  for b in boutons[:10]]
+        self._envoyer({"recipient_type": "individual", "to": destinataire, "type": "interactive",
+                       "interactive": {"type": "list", "body": {"text": message[:1024]},
+                                       "action": {"button": bouton_liste(),
+                                                  "sections": [{"title": "Menu", "rows": lignes}]}}})
 
     def preparer_vocal(self, destinataire: str) -> None:
         pass  # l'API Cloud n'a pas d'indicateur « enregistre un audio »
