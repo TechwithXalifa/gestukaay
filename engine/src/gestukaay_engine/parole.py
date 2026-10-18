@@ -14,8 +14,11 @@ module ne fait que remplir les trous :
 - `{zone}` porte sa préposition (« ci diiwaanu Cees »), `{nom_zone}` non (« diiwaanu Cees ») ;
 - `{source}` : les sigles s'épellent à la française, en minuscules (« a, èn, ès, dé », choix de KBD à l'écoute).
 
-Une note fait 20 s au plus (#30) : on prend la variante la plus courte, puis on retire la source
-(elle reste dans le texte écrit), « dernière donnée publiée », enfin la comparaison au national.
+La source d'une réponse exacte (« Li ko wóoral : … ») est écrite, jamais dite (décision 0041, choix de KBD
+le 18/10 à l'écoute) : Oolel n'épelle aucun sigle correctement, et la fiche ou le texte suivent la note.
+
+Une note fait 20 s au plus (#30) : on prend la variante la plus courte, puis on retire « dernière donnée
+publiée », enfin la comparaison au national.
 """
 
 from __future__ import annotations
@@ -538,7 +541,7 @@ def texte_parle(rep: AskResponse, socle: Socle) -> str | None:
             break
         blocs = _blocs(r, socle, _Choix(r.id, court=True), n)  # 1. les variantes les plus courtes
         while duree_estimee(_assembler(blocs)) > DUREE_MAX_S and max(p for p, _ in blocs) > 0:
-            pire = max(p for p, _ in blocs)  # 2. la source, puis « dernière donnée », puis le national
+            pire = max(p for p, _ in blocs)  # 2. « dernière donnée », puis le national
             blocs = [b for b in blocs if b[0] != pire]
         if not (isinstance(r, ReponseExacte) and r.intention == "classement"):
             break
@@ -555,7 +558,10 @@ def _blocs(r, socle: Socle, choix: _Choix, n: int = 3) -> list[tuple[int, str]] 
             blocs = _comparaison(r, choix)
         else:
             blocs = _valeur(r, socle, choix)
-        return [*blocs, *_nature(r, choix), (3, choix(gabarits_wo()["source"], source=source_wo(r.resultats[0])))]
+        # la source est écrite, jamais dite (0041) : Oolel ne sait pas épeler un sigle, et la fiche ou le texte
+        # qui suivent la note la donnent déjà
+        source = [(3, choix(gabarits_wo()["source"], source=source_wo(r.resultats[0])))] if _ECRIT.get() else []
+        return [*blocs, *_nature(r, choix), *source]
     if isinstance(r, ReponseApprochee):
         return _approchee(r, choix)
     return _aucune(r, choix)
